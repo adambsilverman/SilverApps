@@ -1,0 +1,15 @@
+/* Instrument Transpositions additions */
+.ins { display: inline-block; font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1; text-wrap: balance; }
+.staff.solo { width: min(100%, 240px); }
+.choice-row.notes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-row.notes .choice { justify-content: center; text-align: center; font-family: var(--display); font-size: 1.5rem; }
+.choice-row.notes .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.2rem; }
+.pair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.pair figure { margin: 0; display: grid; justify-items: center; gap: 2px; width: min(46%, 220px); }
+.pair .staff { width: 100%; }
+.pair figcaption { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
+.pair .arrow { font-size: 1.6rem; color: var(--muted); }
+.ref + .ref, .table-wrap + .table-wrap { margin-top: 14px; }
+@media (max-width: 420px) { .choice-row.notes { grid-template-columns: 1fr 1fr; } .pair figure { width: 100%; } .pair .arrow { display: none; } }
+
+.nw { white-space: nowrap; }

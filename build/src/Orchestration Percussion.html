@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Percussion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;800&family=JetBrains+Mono:wght@500&family=Noto+Music&display=swap">
+<style>
+/* Layout: one practice card under a slim header (prompt → answer controls → feedback); settings and reference fold away below it. */
+:root {
+  --bg: #E8ECF1;
+  --surface: #FBFCFD;
+  --field: #F1F4F8;
+  --ink: #141A24;
+  --muted: #586376;
+  --line: #C9D1DC;
+  --brass: #9C6110;
+  --brass-soft: #F4E6CC;
+  --on-brass: #FFFFFF;
+  --good: #176845;
+  --good-soft: #D5EEE1;
+  --bad: #B3352E;
+  --bad-soft: #F7DCD9;
+  --warn: #8A5B00;
+  --warn-soft: #F6EBCB;
+  --display: "Big Shoulders Display", "Noto Music", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Noto Music", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "Noto Music", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+    --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+    --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+  --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+  --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.skip { position: absolute; left: 8px; top: -60px; background: var(--brass); color: var(--on-brass); padding: 10px 14px; border-radius: 8px; font-weight: 700; z-index: 10; }
+.skip:focus { top: 8px; }
+
+.wrap-aside { display: grid; gap: 14px; }
+.credit { text-align: center; color: var(--muted); font-size: .8125rem; letter-spacing: .02em; padding-top: 6px; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 56px; display: grid; gap: 14px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2.5rem; line-height: .95; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; max-width: 46ch; }
+.score { display: flex; gap: 18px; font-variant-numeric: tabular-nums; }
+.score div { display: grid; justify-items: end; line-height: 1; }
+.score b { font-family: var(--display); font-weight: 800; font-size: 1.9rem; }
+.score small { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: 4px; }
+.score-reset { align-self: center; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; min-height: 44px; min-width: 44px; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.score-reset.armed { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+
+.play-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.play { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--brass); background: transparent; color: var(--brass); border-radius: 99px; padding: 8px 16px; min-height: 44px; font-weight: 700; font-size: .9rem; }
+.play svg { width: 12px; height: 12px; fill: currentColor; }
+.play:active { background: var(--brass-soft); }
+.answer .play-row { justify-content: flex-start; }
+
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+.modes button { border: 0; background: transparent; border-radius: 9px; padding: 9px 10px; display: grid; gap: 1px; text-align: center; min-height: 44px; }
+.modes button b { font-family: var(--display); font-weight: 800; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+.modes button small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.modes button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.kicker { margin: 0; font-family: var(--mono); font-weight: 500; font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.kicker:focus { outline: none; }
+.kicker:focus-visible { outline: 3px solid var(--brass); outline-offset: 4px; }
+.prompt { min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.big { font-family: var(--display); font-weight: 800; line-height: 1; font-size: clamp(2.6rem, 11vw, 4.4rem); text-wrap: balance; }
+.big .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: .8em; }
+.q-text { font-size: 1.3rem; font-weight: 700; line-height: 1.6; max-width: 34ch; text-wrap: balance; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+
+.staff { width: min(100%, 470px); }
+.staff svg { display: block; width: 100%; height: auto; }
+.staff-msg { color: var(--muted); font-size: .9rem; padding: 40px 0; }
+
+.hint { background: var(--brass-soft); border-radius: 10px; padding: 10px 14px; font-size: .95rem; }
+.mono { font-family: var(--mono); font-size: .92em; }
+/* Scale-degree caret drawn in CSS: the combining circumflex renders unevenly across fonts. */
+.sd { position: relative; display: inline-block; }
+.sd::before { content: "^"; position: absolute; left: 50%; top: -.55em; transform: translateX(-50%); font-size: .8em; font-weight: 400; }
+
+.field label { display: block; font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 6px; }
+.field input { width: 100%; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; font-family: var(--mono); font-size: 1.2rem; }
+.field input:focus { border-color: var(--brass); outline: none; }
+.field input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.field .help { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+
+.pad { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.pad button { min-height: 44px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; padding: 0 2px; }
+.pad button.accb { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.25rem; }
+.pad button.util { font-family: var(--body); font-weight: 700; font-size: .85rem; color: var(--muted); }
+.pad button:active { background: var(--brass-soft); }
+
+.choices { display: grid; gap: 12px; }
+.choice-group { display: grid; gap: 6px; }
+.choice-group > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.choice-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.choice-row.wide { grid-template-columns: 1fr; }
+.choice-row.sig { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.choice { position: relative; min-height: 48px; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; font-weight: 700; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.choice-row.sig .choice { justify-content: center; text-align: center; padding: 6px 2px; font-family: var(--display); font-size: 1.25rem; }
+.choice-row.sig .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.1rem; }
+.choice:hover:not(:disabled) { border-color: var(--brass); }
+.choice:active:not(:disabled) { background: var(--brass-soft); }
+.choice.right { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.choice:disabled:not(.right):not(.wrong) { color: var(--muted); }
+.choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { font-family: var(--mono); font-size: .8125rem; white-space: nowrap; }
+.choice-row.sig .choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { position: absolute; top: 1px; right: 4px; font-size: .75rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 16px; font-weight: 700; min-height: 44px; }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--on-brass); min-width: 110px; }
+.btn.ghost { margin-left: auto; }
+
+.feedback { display: grid; gap: 12px; }
+.feedback:empty { display: none; }
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 700; }
+.pill { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; padding: 4px 9px; border-radius: 99px; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.note-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--display); font-weight: 800; font-size: 1.25rem; padding: 2px 10px; border-radius: 8px; }
+.chip.ok { background: var(--good-soft); color: var(--good); }
+.chip.enh { background: var(--warn-soft); color: var(--warn); }
+.chip.no { background: var(--bad-soft); color: var(--bad); }
+.legend { font-size: .9rem; color: var(--muted); margin: 0; }
+.explain { margin: 0; max-width: 62ch; }
+
+#answerBox:empty { display: none; }
+.answer { display: grid; gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.answer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.answer-head h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.answer .staff { width: min(100%, 470px); }
+.degs { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 4px; }
+.deg { border-top: 3px solid var(--line); padding-top: 6px; text-align: center; min-width: 0; }
+.deg i { display: block; font-style: normal; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.deg.char i { color: var(--brass); font-weight: 700; }
+.deg.char i::after { content: "*"; }
+.deg b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.15; }
+.deg.ok { border-color: var(--good); }
+.deg.enh { border-color: var(--warn); }
+.deg.miss { border-color: var(--bad); }
+.deg em { display: block; font-style: normal; font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; }
+
+details.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+details.panel summary { padding: 14px 18px; min-height: 44px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+details.panel summary::-webkit-details-marker { display: none; }
+details.panel summary::after { content: "+"; font-family: var(--mono); color: var(--muted); }
+details.panel[open] summary::after { content: "−"; }
+.panel-body { padding: 0 18px 18px; display: grid; gap: 16px; }
+.panel-body h2 { margin: 6px 0 0; font-size: 1rem; }
+.set-row { display: grid; gap: 8px; }
+.set-row > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.tog { border: 1px solid var(--line); background: var(--field); border-radius: 99px; padding: 7px 14px; min-height: 44px; font-size: .92rem; }
+.tog[aria-pressed="true"] { background: var(--brass-soft); border-color: var(--brass); color: var(--ink); font-weight: 700; }
+.tog[aria-pressed="true"]::before { content: "✓ "; }
+.tog small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); margin-left: 4px; }
+.set-note { font-size: .85rem; color: var(--muted); margin: 0; }
+.reset { justify-self: start; background: none; border: 0; padding: 0 4px; min-height: 44px; min-width: 44px; color: var(--muted); text-decoration: underline; font-size: .88rem; }
+
+.rules { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 64ch; }
+.rules li::marker { color: var(--brass); }
+.ref { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ref caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+.ref th, .ref td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ref th[scope="col"] { font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 500; }
+.ref td.mono { white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.ref-dialog { width: min(720px, calc(100vw - 24px)); max-height: calc(100vh - 32px); border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.ref-dialog::backdrop { background: rgba(10, 14, 20, .55); }
+.ref-dialog[open] { display: grid; gap: 12px; }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: -18px; background: var(--surface); padding-block: 4px; }
+.dlg-head h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; line-height: 1.05; }
+@media (max-width: 420px) { .ref-dialog { padding: 14px; } .dlg-head { top: -14px; } .dlg-head h2 { font-size: 1.15rem; } }
+/* Narrow screens: each scale becomes a small stacked card instead of a wide row. */
+@media (max-width: 560px) {
+  .ref thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ref, .ref tbody, .ref tr, .ref th, .ref td { display: block; }
+  .ref tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .ref th, .ref td { border: 0; padding: 1px 0; }
+  .ref td { display: grid; grid-template-columns: 7.5em 1fr; gap: 8px; }
+  .ref td::before { content: attr(data-label); font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 2px; }
+  .ref td.mono { white-space: normal; }
+}
+
+@media (max-width: 420px) {
+  .card { padding: 16px; }
+  .brand h1 { font-size: 2.1rem; }
+  .deg b { font-size: 1.15rem; }
+  .btn.ghost { margin-left: 0; }
+  .choice-row { grid-template-columns: 1fr 1fr; }
+  .choice-row.wide { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .prompt > * { animation: rise .28s ease-out both; }
+  @keyframes rise { from { transform: translateY(6px); opacity: .4; } to { transform: none; opacity: 1; } }
+}
+@media (forced-colors: active) {
+  .choice.right, .choice.wrong, .tog[aria-pressed="true"], .modes button[aria-pressed="true"] { border: 3px solid CanvasText; }
+}
+/* Instrument Transpositions additions */
+.ins { display: inline-block; font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1; text-wrap: balance; }
+.staff.solo { width: min(100%, 240px); }
+.choice-row.notes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-row.notes .choice { justify-content: center; text-align: center; font-family: var(--display); font-size: 1.5rem; }
+.choice-row.notes .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.2rem; }
+.pair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.pair figure { margin: 0; display: grid; justify-items: center; gap: 2px; width: min(46%, 220px); }
+.pair .staff { width: 100%; }
+.pair figcaption { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
+.pair .arrow { font-size: 1.6rem; color: var(--muted); }
+.ref + .ref, .table-wrap + .table-wrap { margin-top: 14px; }
+@media (max-width: 420px) { .choice-row.notes { grid-template-columns: 1fr 1fr; } .pair figure { width: 100%; } .pair .arrow { display: none; } }
+
+.nw { white-space: nowrap; }
+
+.q-text { max-width: 44ch; }
+.choice-row.wide .choice { text-align: left; }
+.picker { display: grid; gap: 10px; }
+.pk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pk-lab { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); min-width: 6.5em; }
+.pk { min-width: 44px; min-height: 44px; border: 2px solid var(--line); background: var(--field); border-radius: 10px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.pk .acc { font-family: "Noto Music", var(--body); font-weight: 400; }
+.pk.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pk.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.pk.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.pk-now { margin-right: auto; }
+@media (max-width: 420px) { .pk-lab { min-width: 100%; } }
+
+@media (min-width: 640px) { .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }
+.modes.m3 button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#practice">Skip to the practice question</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Percussion</h1>
+      <p>Percussion: the instruments and what they&#x27;re made of, beaters and playing logistics, and how to notate percussion parts.</p>
+    </div>
+    <div class="score">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <nav class="modes m3" aria-label="Practice mode">
+    <button data-mode="inst" aria-pressed="true"><b>Instruments</b><small><span aria-hidden="true">drums · mallets · metals</span><span class="sr">: the percussion instruments, materials and how they&#x27;re played</span></small></button>
+    <button data-mode="play" aria-pressed="false"><b>Playing</b><small><span aria-hidden="true">beaters · logistics</span><span class="sr">: beaters, techniques and getting from one instrument to another</span></small></button>
+    <button data-mode="nota" aria-pressed="false"><b>Notation</b><small><span aria-hidden="true">staff · legend</span><span class="sr">: how to write percussion parts</span></small></button>
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+<p class="set-note">Missed questions come back for review now and then.</p>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"><li><b>Logistics:</b> leave time to move between instruments and change beaters.</li><li><b>Shared staff:</b> snare on the third space, bass drum on the bottom space, metals on lines; always include a legend.</li></ol></div>
+  </details>
+  </aside>
+  <footer class="credit">App by Adam Silverman</footer>
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script>
+window.FAM = (() => {
+  const F = (q, a, w, why) => ({ q, a, w, why });
+  // name, pitched?, material, how it's played
+  const INS = [
+    ["Timpani", "pitched", "membrane (drum)", "struck"], ["Snare drum", "non-pitched", "membrane (drum)", "struck"], ["Bass drum", "non-pitched", "membrane (drum)", "struck"],
+    ["Tom-toms", "non-pitched", "membrane (drum)", "struck"], ["Bongos", "non-pitched", "membrane (drum)", "struck"], ["Congas", "non-pitched", "membrane (drum)", "struck"],
+    ["Timbales", "non-pitched", "membrane (drum)", "struck"], ["Roto-toms", "pitched", "membrane (drum)", "struck"],
+    ["Xylophone", "pitched", "wood", "struck"], ["Marimba", "pitched", "wood", "struck"], ["Vibraphone", "pitched", "metal", "struck"],
+    ["Glockenspiel", "pitched", "metal", "struck"], ["Crotales", "pitched", "metal", "struck"], ["Chimes (tubular bells)", "pitched", "metal", "struck"], ["Almglocken", "pitched", "metal", "struck"],
+    ["Crash cymbals", "non-pitched", "metal", "struck"], ["Suspended cymbal", "non-pitched", "metal", "struck"], ["Tam-tam", "non-pitched", "metal", "struck"], ["Triangle", "non-pitched", "metal", "struck"],
+    ["Cowbell", "non-pitched", "metal", "struck"], ["Brake drum", "non-pitched", "metal", "struck"], ["Anvil", "non-pitched", "metal", "struck"],
+    ["Woodblock", "non-pitched", "wood", "struck"], ["Temple blocks", "non-pitched", "wood", "struck"], ["Claves", "non-pitched", "wood", "struck"], ["Slapstick (whip)", "non-pitched", "wood", "struck"], ["Castanets", "non-pitched", "wood", "struck"],
+    ["Maracas", "non-pitched", "gourd/seeds", "shaken"], ["Cabasa", "non-pitched", "gourd/beads", "shaken"], ["Shekere", "non-pitched", "gourd/beads", "shaken"], ["Tambourine", "non-pitched", "membrane (drum)", "shaken or struck"],
+    ["Rainstick", "non-pitched", "wood", "turned over"], ["Guiro", "non-pitched", "gourd/beads", "scraped"], ["Washboard", "non-pitched", "metal", "scraped"], ["Sandblocks", "non-pitched", "wood", "rubbed"],
+    ["Ratchet", "non-pitched", "wood", "cranked"], ["Wind machine", "non-pitched", "other", "cranked"], ["Thundersheet", "non-pitched", "metal", "shaken"], ["Flexatone", "pitched", "metal", "shaken"],
+  ];
+  const MATS = ["membrane (drum)", "wood", "metal", "gourd/seeds", "gourd/beads"];
+  const HOWS = ["struck", "shaken", "scraped", "cranked", "rubbed"];
+  const FACTS = [
+    F("Which are the oldest pitched percussion instruments in the orchestra?", "timpani", ["xylophone", "chimes", "glockenspiel"], "Orchestral literature features timpani more than any other percussion instrument."),
+    F("On timpani, pressing the pedal down…", "tightens the head and raises the pitch", ["loosens the head and lowers the pitch", "mutes the drum", "turns on the snares"], "Glissandos are possible by moving the pedal while playing."),
+    F("Should a timpanist be asked to play other instruments too?", "no: in professional orchestras timpanists play only timpani", ["yes, always xylophone too", "yes, whatever the percussionists can't cover", "only cymbals"], "Another percussionist can be asked to play timpani instead."),
+    F("Roto-toms change pitch by…", "rotating the drum's frame", ["a foot pedal", "turning off the snares", "changing sticks"], "They can't do rolled glissandos, since one hand turns the drum."),
+    F("The snare drum gets its rattle from…", "wires (snares) vibrating against the bottom head", ["metal jingles in the frame", "a loose top head", "beads around the shell"], "Turn the snares off to stop sympathetic buzzing."),
+    F("The default roll in orchestral and band music is…", "the closed (buzz) roll", ["the open (crush) roll", "the thumb roll", "the shake roll"], "Write “crush” for the open roll common in marching bands."),
+    F("A rim shot produces…", "a very sharp attack, like a gunshot", ["a soft muffled thud", "a sustained ring", "a pitch bend"], "Most common on snare drum."),
+    F("Playing a drum precisely in the center gives…", "a dark, blunt thud", ["a bright, brittle tone", "a snare buzz", "a harmonic"], "Near the edge is strident and brittle; write ord. to return."),
+    F("Bongos and congas: which is higher pitched?", "bongos", ["congas", "they're the same", "it depends on the sticks"], "Never use sticks on calf-skin bongos."),
+    F("The tambourine is part drum, part…", "cymbal (metal jingles)", ["woodblock", "shaker", "bell"], "Rolls can be finger, shake or thumb rolls."),
+    F("Which mallet instrument first joined the orchestra?", "xylophone", ["marimba", "vibraphone", "glockenspiel"], "Biting and crisp, it can't sustain without rolls."),
+    F("The marimba compared with the xylophone is…", "darker, mellower and softer", ["brighter and harder", "made of metal", "higher pitched"], "Soft mallets are needed; four-mallet technique is most developed on marimba."),
+    F("What makes the vibraphone different from the xylophone and marimba?", "metal bars, a sustain pedal and a motor", ["wooden bars", "no resonators", "only one octave"], "Motor on gives an amplitude tremolo; many school vibes have broken motors."),
+    F("Holding a vibraphone mallet against the bar after striking it is called…", "dead sticking", ["rolling", "pedaling", "bowing"], "Notated with an x over the stem plus instructions."),
+    F("Crotales are also called…", "antique cymbals", ["finger cymbals", "temple bells", "almglocken"], "Sets usually cover one octave; the upper octave is more common."),
+    F("Chimes (tubular bells) resemble…", "church bells", ["triangles", "woodblocks", "a xylophone"], "Two rows of brass tubes hang in a keyboard layout."),
+    F("Crash cymbals crashed and immediately damped against the body are…", "choked", ["sizzled", "rolled", "bowed"], "Notated with staccatos or the word “choke.”"),
+    F("Drawing a bass bow on the rim of a cymbal or tam-tam gives…", "an eerie, ethereal squeal with many overtones", ["a dry click", "a short crash", "no sound"], "Most effective on larger cymbals."),
+    F("Which suspended-cymbal beater is best for smooth rolls?", "yarn mallets", ["wire brushes", "triangle beaters", "hammers"], "Sticks give the clearest articulation; brushes only work softly."),
+    F("The instrument struck on “The Gong Show” was actually a…", "tam-tam", ["gong", "cymbal", "bell plate"], "Tam-tams are unpitched; gongs have a definite pitch."),
+    F("A water gong is…", "a tam-tam lowered into water after it's struck", ["a gong filled with water", "a bowl of water struck with a mallet", "an electronic effect"], "The pitch drops as it's submerged."),
+    F("Temple blocks usually come in sets of five tuned roughly to…", "a pentatonic scale", ["a chromatic scale", "a major triad", "one pitch"], "They're still treated as non-pitched."),
+    F("In a drum set, the bass drum (kick) is played with…", "a foot pedal (right foot)", ["mallets", "brushes", "the left hand"], "The hi-hat pedal is the left foot."),
+    F("Brake drums and anvils should usually be struck with…", "hammers", ["yarn mallets", "brushes", "fingers"], "Sticks and brass mallets get ruined quickly."),
+  ];
+  const PLAYING = [
+    F("Why must percussion parts allow time between instruments?", "players need time to move and change implements", ["percussion must rest every bar", "instruments need retuning each time", "the conductor asks for it"], "If xylophone and snare use different sticks or sit apart, include rests."),
+    F("Hard beaters compared with soft ones give…", "a more percussive, direct attack", ["a mellower attack", "no change in sound", "a longer sustain"], "Beater material, shape, size and weight all change the color."),
+    F("Which is a common creative choice of implement?", "a bow on cymbal, tam-tam, vibraphone or crotales", ["a violin bow on snare drum heads", "a mute on the marimba", "a reed on a timpano"], "Others: dowels, hands on stick drums, a superball on drumheads."),
+    F("A useful trick when a percussionist plays many instruments:", "put copies of the part on several stands around the setup", ["memorize the part", "play everything with one stick", "seat them in the strings"], "Including a setup diagram in the score helps too."),
+    F("Sharing one instrument between several percussionists…", "causes congestion; give them separate instruments instead", ["is the standard practice", "is required for timpani", "makes the part easier"], "Multiple instruments placed around the stage also sound great."),
+    F("Do percussionists prefer parts with many instruments?", "generally no, for logistical reasons", ["yes, always", "only in chamber music", "only for mallets"], "If an instrument plays only a note or two, reconsider it."),
+    F("Grace notes before a drum stroke (flams, drags, ruffs) should be…", "slurred to the main note", ["accented", "played on the beat", "notated as separate notes in rhythm"], "They're played slightly before the beat."),
+    F("An unmeasured roll is shown with…", "a tremolo mark (three slashes)", ["a fermata", "a slur", "a diamond notehead"], "Some scores use a trill sign."),
+    F("Which articulation mark has little meaning for percussion and should be avoided?", "tenuto", ["accent", "staccato", "slur"], "Staccato means muffle soon after the attack."),
+    F("To let a cymbal or tam-tam ring, write…", "l.v. (let vibrate)", ["secco", "ord.", "senza sord."], "Otherwise the note is muffled at the end of its written value."),
+    F("For very short instruments (snare, claves) the notation should…", "show the attacks clearly without fussy rests", ["show exact durations with many rests", "always use whole notes", "use only rolls"], "Long-sustaining instruments get written rhythms and l.v. as needed."),
+  ];
+  const NOTATION = [
+    F("On a multi-instrument percussion staff, where does the snare drum go?", "the third space from the bottom", ["the bottom space", "the top line", "the middle line"], "Snare: third space; bass drum: bottom space."),
+    F("On a percussion staff, where does the bass drum go?", "the bottom space", ["the third space", "the top line", "below the staff"], "Higher instruments go higher on the staff."),
+    F("Metal instruments on a shared percussion staff usually go…", "on the lines", ["in the spaces", "below the staff", "on separate staves"], "Drums usually take the spaces."),
+    F("A set of three toms or five temple blocks should be placed…", "all on lines or all on spaces", ["alternating lines and spaces", "on one line", "on separate staves"], "Keep homogeneous groups together; higher instruments higher."),
+    F("What MUST appear at the start of a multi-instrument percussion part?", "a legend (key) showing where each instrument sits", ["a tempo marking in seconds", "a list of mallet prices", "a drum-set diagram only"], "Show sizes (small, medium, large) too."),
+    F("Pitched percussion (marimba, xylophone…) is written on…", "a five-line staff in treble or bass clef, or a grand staff", ["a one-line staff", "a percussion clef staff", "tablature"], "Marimba most often uses a grand staff."),
+    F("Which instrument indications should be AVOIDED in percussion parts?", "pictograms of instruments and mallets", ["the instrument's name", "a legend", "x noteheads with an explanation"], "Pictograms aren't standard and are risky."),
+    F("Using triangle, square or diamond noteheads for different instruments…", "should be avoided", ["is the standard practice", "is required for drum set", "is only for timpani"], "Write the instrument's name instead."),
+    F("When are x noteheads clearly useful?", "for unusual techniques (rim, bell), alternate beaters, and drum-set metals", ["for every percussion note", "for pitched percussion", "for timpani rolls"], "Always explain what an x notehead means."),
+    F("Drum-set notation…", "puts all instruments compactly on one staff, with a legend", ["needs one staff per drum", "is the same as timpani notation", "never shows cymbals"], "Drummers may also get only a style description to interpret."),
+    F("Older scores give each percussion instrument its own staff. What is more practical?", "a single part for each player", ["one staff per instrument in the parts", "no percussion parts", "graphic notation"], "The principal assigns players when each instrument has its own line."),
+  ];
+  const fromList = (H, list, kicker, topic) => { const f = H.rnd(list); return H.mc(f.q, f.a, f.w, f.why, { kicker, topic }); };
+  function instQ(H) {
+    const k = Math.random();
+    if (k < .45) return fromList(H, FACTS, "The instruments", "inst");
+    const x = H.rnd(INS);
+    if (k < .6) { const same = INS.filter(y => y[1] === x[1]); const diff = INS.filter(y => y[1] !== x[1]); const a = H.rnd(x[1] === "pitched" ? same : same), w = H.shuffle(diff).slice(0, 3).map(y => y[0]); return H.mc(`Which of these is ${a[1] === "pitched" ? "a pitched" : "a non-pitched"} percussion instrument?`, a[0], w, `Pitched: ${INS.filter(y => y[1] === "pitched").map(y => y[0]).join(", ")}. The line between pitched and non-pitched is often fine.`, { kicker: "Pitched or not?", topic: "inst" }); }
+    if (k < .8) return H.mc(`What is the ${x[0].toLowerCase()} mainly made of (what vibrates)?`, x[2], MATS, `${x[0]}: ${x[2]}, ${x[3]}${x[1] === "pitched" ? ", pitched" : ""}.`, { kicker: "Materials", topic: "inst" });
+    const y = H.rnd(INS.filter(z => z[3] !== "struck")); return H.mc(`How is the ${y[0].toLowerCase()} normally played?`, y[3], HOWS.concat(["bowed"]), `Percussion can be struck, shaken, scraped, rubbed, cranked, blown and more; most instruments allow several techniques.`, { kicker: "How it's played", topic: "inst" });
+  }
+  return {
+    key: "orch-percussion",
+    modes: [{ id: "inst", kicker: "The instruments" }, { id: "play", kicker: "Playing & logistics" }, { id: "nota", kicker: "Notation" }],
+    make(mode, H) {
+      if (mode === "inst") return instQ(H);
+      if (mode === "play") return fromList(H, PLAYING, "Playing & logistics", "play");
+      return fromList(H, NOTATION, "Notation", "nota");
+    },
+    reference(H, esc) {
+      const rows = INS.map(x => `<tr><th scope="row">${esc(x[0])}</th><td data-label="Pitch">${x[1]}</td><td data-label="Material">${esc(x[2])}</td><td data-label="Played">${esc(x[3])}</td></tr>`).join("");
+      return `<p><b>Shared staff:</b> snare drum on the third space, bass drum on the bottom space, other drums on spaces, metals on lines; higher instruments higher. Always include a legend.</p>
+      <div class="table-wrap"><table class="ref"><caption>Instruments</caption><thead><tr><th scope="col">Instrument</th><th scope="col">Pitch</th><th scope="col">Material</th><th scope="col">Played</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    },
+  };
+})();
+</script>
+<script>
+(() => {
+  // ===== Orchestration family trainer engine. Content comes from window.FAM (strings.js, winds.js, percussion.js). =====
+  const FAM = window.FAM;
+  const LET = "CDEFGAB", NAT = [0, 2, 4, 5, 7, 9, 11];
+  const ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
+  const SPOKEN_ACC = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const accHTML = s => esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>');
+  const speak = s => String(s).replace(/𝄫/g, " double flat").replace(/𝄪/g, " double sharp").replace(/♭/g, " flat").replace(/♯/g, " sharp").replace(/♮/g, " natural").replace(/π/g, "down-bow").replace(/\bV\b(?= )/g, "V");
+
+  // ---------- notes: { l, a, step } with C4 = step 28 ----------
+  const mk = (step, a = 0) => ({ l: ((step % 7) + 7) % 7, a, step });
+  const oct = n => Math.floor(n.step / 7);
+  const midi = n => 12 * (oct(n) + 1) + NAT[((n.step % 7) + 7) % 7] + n.a;
+  function up(n, st, se) { const step = n.step + st, l = ((step % 7) + 7) % 7; return { l, a: midi(n) + se - (12 * (Math.floor(step / 7) + 1) + NAT[l]), step }; }
+  const nm = n => LET[n.l] + ACC[n.a] + oct(n);
+  const nmSpoken = n => LET[n.l] + SPOKEN_ACC[n.a] + " " + oct(n);
+  const parse = s => { const m = /^([A-G])(♭|♯|b|#)?(-?\d)$/.exec(s); const l = LET.indexOf(m[1]); return mk(+m[3] * 7 + l, m[2] === "♯" || m[2] === "#" ? 1 : m[2] ? -1 : 0); };
+  const okNote = n => Math.abs(n.a) <= 1 && !(n.a === 1 && (n.l === 2 || n.l === 6)) && !(n.a === -1 && (n.l === 3 || n.l === 0));
+
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // A multiple-choice question; wrong answers are de-duplicated and trimmed to three.
+  const mc = (text, answer, wrong, explain, extra) => {
+    const w = shuffle([...new Set(wrong.map(String))].filter(v => v !== String(answer))).slice(0, 3);
+    return Object.assign({ text, choices: shuffle([String(answer), ...w]), answer: String(answer), explain }, extra || {});
+  };
+  const H = { oct, mk, up, nm, nmSpoken, parse, midi, okNote, rnd, shuffle, mc, LET, ACC };
+
+  // ---------- Staff (VexFlow); notes may be { n, head: "diamond" | "normal", circle } ----------
+  function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const GLYPH = { "-1": "b", "0": "n", "1": "#" };
+  function drawStaff(el, o) {
+    el._args = o; el.innerHTML = "";
+    if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Reload the page.</p>'; return; }
+    const VF = Vex.Flow, ink = cssVar("--ink");
+    const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    const stave = new VF.Stave(4, 30, 400);
+    stave.addClef(o.clef || "treble");
+    const sx = stave.getNoteStartX(), groups = o.groups || [o.notes || []];
+    const W = Math.round(sx + 26 + groups.length * 62), Hh = 170;
+    stave.setWidth(W - 8); r.resize(W, Hh);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    stave.setStyle({ fillStyle: ink, strokeStyle: ink }); stave.setContext(ctx).draw();
+    const sns = groups.map(g => {
+      const ns = g.slice().sort((a, b) => a.n.step - b.n.step);
+      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: ns.map(x => LET[x.n.l].toLowerCase() + "/" + oct(x.n)), duration: "w" });
+      sn.setStyle({ fillStyle: ink, strokeStyle: ink });
+      if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      ns.forEach((x, i) => {
+        if (x.n.a !== 0) sn.addModifier(new VF.Accidental(GLYPH[x.n.a]), i);
+        if (x.head === "diamond") sn.setKeyStyle(i, { fillStyle: "rgba(0,0,0,0)", strokeStyle: "rgba(0,0,0,0)" });
+      });
+      if (ns.some(x => x.circle)) sn.addModifier(new VF.Annotation("o").setVerticalJustification(1), 0);
+      sn._ns = ns; return sn;
+    });
+    const voice = new VF.Voice({ num_beats: 4 * sns.length, beat_value: 4 }).addTickables(sns);
+    new VF.Formatter().joinVoices([voice]).format([voice], stave.getNoteEndX() - stave.getNoteStartX() - 16);
+    voice.draw(ctx, stave);
+    // Hollow diamond noteheads, drawn by hand so they sit exactly on the line or space.
+    sns.forEach(sn => sn._ns.forEach((x, i) => {
+      if (x.head !== "diamond") return;
+      const y = sn.getYs()[i], cx = sn.getNoteHeadBeginX() + 8, w = 6.5, h = 5.2;
+      ctx.beginPath(); ctx.moveTo(cx - w, y); ctx.lineTo(cx, y - h); ctx.lineTo(cx + w, y); ctx.lineTo(cx, y + h); ctx.closePath();
+      ctx.setLineWidth(1.6); ctx.setStrokeStyle(ink); ctx.stroke();
+    }));
+    const svg = el.querySelector("svg");
+    if (svg) {
+      let vb = `0 0 ${W} ${Hh}`;
+      try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 8} ${bb.width + 8} ${bb.height + 16}`; } catch (e) {}
+      svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
+      svg.style.width = "100%"; svg.style.height = "auto";
+      svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
+      svg.setAttribute("aria-label", o.label || "Staff");
+    }
+  }
+  function redrawStaves() { document.querySelectorAll(".staff").forEach(el => el._args && drawStaff(el, el._args)); }
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
+
+  // ---------- Sound (Web Audio): a soft bowed/organ-like tone, or a plain sine for harmonics ----------
+  let AC = null, bus = null;
+  function audio() {
+    if (AC) { if (AC.state === "suspended") AC.resume(); return AC; }
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    AC = new C(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(AC.destination); AC._out = comp; return AC;
+  }
+  function newBus() { if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => old.disconnect(), 400); } bus = AC.createGain(); bus.connect(AC._out); return bus; }
+  function tone(out, m, t0, dur, pure) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (pure ? 2 : 6), 7000); g.connect(out); lp.connect(g);
+    const parts = pure ? [[1, 1]] : [[1, 1], [2, .5], [3, .32], [4, .2], [5, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a * (f < 90 ? .9 : .55) / parts.length * 2; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .5); });
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.32, t0 + .08); g.gain.setTargetAtTime(.25, t0 + .1, .3); g.gain.setTargetAtTime(0, t0 + dur, .12);
+  }
+  function play(p) { if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .05; (p.seq || [p.m]).forEach((m, i) => tone(out, m, t + i * (p.gap || .7), p.dur || 1.1, p.pure)); }
+  function autoPlay(q) { if (S.settings.auto !== false && q.c.play) play(q.c.play); }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (b && Q[S.mode]) play(b.dataset.play === "a" ? Q[S.mode].c.play : Q[S.mode].c.playQ); });
+  const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>${label}</button></div>`;
+
+  // ---------- State ----------
+  const MODES = FAM.modes.map(m => m.id);
+  const DEFAULTS = { auto: true, topics: Object.fromEntries((FAM.topics || []).map(t => [t.id, true])) };
+  let S = { mode: MODES[0], settings: JSON.parse(JSON.stringify(DEFAULTS)), right: 0, total: 0, streak: 0, misses: [] };
+  try { const saved = JSON.parse(localStorage.getItem(FAM.key) || "null"); if (saved) S = Object.assign(S, saved, { settings: Object.assign({}, S.settings, saved.settings, { topics: Object.assign({}, DEFAULTS.topics, (saved.settings || {}).topics) }) }); } catch (e) {}
+  if (!MODES.includes(S.mode)) S.mode = MODES[0];
+  const save = () => { try { localStorage.setItem(FAM.key, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
+  const Q = Object.fromEntries(MODES.map(m => [m, null]));
+  const sameSpec = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const topicOn = t => !t || !FAM.topics || S.settings.topics[t] !== false;
+  H.topicOn = topicOn;
+
+  function newQuestion(mode) {
+    const prev = Q[mode];
+    const review = S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
+    if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
+    for (let i = 0; i < 40; i++) {
+      const c = FAM.make(mode, H);
+      if (c && (c.picker || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || i > 30)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
+    }
+    const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
+  }
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const promptEl = $("prompt"), fb = $("feedback"), ansBox = $("answerBox"), work = $("work"), nextBtn = $("nextBtn");
+  function renderScore() { $("scRight").textContent = S.right; $("scTotal").textContent = S.total; $("scStreak").textContent = S.streak; $("scoreText").textContent = `Score: ${S.right} correct out of ${S.total} answered. Streak: ${S.streak}.`; }
+  function msg(cls, label, text) { return `<div class="verdict"><span class="pill ${cls}">${label}</span><span>${text}</span></div>`; }
+  const modeInfo = m => FAM.modes.find(x => x.id === m);
+
+  function renderPrompt() {
+    const q = Q[S.mode], c = q.c;
+    const tag = q.review ? ' <span class="pill warn">review</span>' : "";
+    let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
+    if (c.big) h += `<div class="ins">${accHTML(c.big)}</div>`;
+    h += `<p class="q-text" id="qText">${accHTML(c.text)}</p>`;
+    if (c.staff) h += `<div class="staff solo" id="promptStaff"></div>`;
+    if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
+    promptEl.innerHTML = h;
+    if (c.staff) drawStaff($("promptStaff"), c.staff);
+    renderWork();
+  }
+  function choiceBtn(value, q) {
+    let cls = "choice", mark = "";
+    if (q.done) {
+      if (value === q.correctValue) { cls += " right"; mark = `<span class="mark"><span aria-hidden="true">✓</span><span class="sr">correct answer</span></span>`; }
+      else if (value === q.chosen) { cls += " wrong"; mark = `<span class="mark"><span aria-hidden="true">✗</span><span class="sr">your answer, incorrect</span></span>`; }
+    }
+    const sr = /^[A-G][♭♯]?-?\d$/.test(value) ? `<span aria-hidden="true">${accHTML(value)}</span><span class="sr">${esc(nmSpoken(parse(value)))}</span>` : accHTML(value);
+    return `<button class="${cls}" data-v="${esc(value)}"${q.done ? " disabled" : ""}><span>${sr}</span>${mark}</button>`;
+  }
+  // Pitch + octave picker: any letter, any accidental, any normal octave.
+  function renderPicker(q) {
+    const c = q.c, P = q.pick || (q.pick = { l: null, a: 0, o: null });
+    const ans = parse(c.answer), ch = q.chosen ? parse(q.chosen) : null;
+    const mark = (kind, v) => {
+      if (!q.done) return "";
+      const right = kind === "l" ? v === ans.l : kind === "a" ? v === ans.a : v === oct(ans);
+      const mine = ch && (kind === "l" ? v === ch.l : kind === "a" ? v === ch.a : v === oct(ch));
+      return right ? " right" : mine ? " wrong" : "";
+    };
+    const btn = (kind, v, label, sr) => `<button class="pk${P[kind] === v ? " on" : ""}${mark(kind, v)}" data-pk="${kind}" data-val="${v}" aria-pressed="${P[kind] === v}"${q.done ? " disabled" : ""}><span aria-hidden="true">${label}</span>${sr ? `<span class="sr">${sr}</span>` : ""}</button>`;
+    const octs = c.picker.octaves || [1, 2, 3, 4, 5, 6, 7];
+    const ready = P.l !== null && P.o !== null;
+    work.innerHTML = `<div class="picker" role="group" aria-labelledby="qText">
+      <div class="pk-row" role="group" aria-label="Note letter"><span class="pk-lab" aria-hidden="true">Note</span>${LET.split("").map((L, i) => btn("l", i, L, "")).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Accidental"><span class="pk-lab" aria-hidden="true">Accidental</span>${[[-1, "♭", "flat"], [0, "♮", "natural"], [1, "♯", "sharp"]].map(([v, g, sr]) => btn("a", v, `<span class="acc">${g}</span>`, sr)).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Octave number"><span class="pk-lab" aria-hidden="true">Octave</span>${octs.map(o => btn("o", o, String(o), `octave ${o}`)).join("")}</div>
+      <div class="pk-row"><span class="pk-now" aria-live="polite">${ready ? `Your answer: <b>${accHTML(LET[P.l] + ACC[P.a] + P.o)}</b>` : "Choose a note and an octave."}</span>${q.done ? "" : `<button class="btn primary" id="pkCheck"${ready ? "" : " disabled"}>Check</button>`}</div>
+      <p class="legend">Octave numbers: middle C is C4; each octave number starts on C.</p></div>`;
+  }
+  work.addEventListener("click", e => {
+    const q = Q[S.mode]; if (!q || !q.c.picker || q.done) return;
+    const b = e.target.closest("[data-pk]");
+    if (b) { q.pick[b.dataset.pk] = +b.dataset.val; renderPicker(q); const again = work.querySelector(`[data-pk="${b.dataset.pk}"][data-val="${b.dataset.val}"]`); if (again) again.focus(); return; }
+    if (e.target.closest("#pkCheck")) { const P = q.pick; choose(LET[P.l] + ACC[P.a] + P.o); }
+  });
+  function renderWork() {
+    const q = Q[S.mode], c = q.c;
+    if (c.picker) return renderPicker(q);
+    const notes = c.choices.every(v => /^[A-G][♭♯]?-?\d$/.test(v));
+    const short = !notes && c.choices.every(v => v.length <= 18);
+    const list = notes ? c.choices.slice().sort((a, b) => midi(parse(a)) - midi(parse(b))) : c.choices;
+    work.innerHTML = `<div class="choice-row ${notes ? "notes" : short ? "" : "wide"}" role="group" aria-labelledby="qText">${list.map(v => choiceBtn(v, q)).join("")}</div>${notes ? '<p class="legend">Octave numbers: middle C is C4.</p>' : ""}`;
+  }
+  function renderControls() {
+    const q = Q[S.mode];
+    document.querySelectorAll(".modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
+    const finished = q.done || q.revealed;
+    nextBtn.textContent = finished ? "Next question" : "Skip";
+    nextBtn.classList.toggle("primary", !!finished);
+  }
+  function score(q, correct) {
+    if (q.tries > 0) return;
+    S.total++;
+    const sp = { mode: q.mode, c: q.c };
+    if (correct) { S.right++; S.streak++; S.misses = S.misses.filter(m => !sameSpec(m.c, q.c)); }
+    else { S.streak = 0; if (!S.misses.some(m => sameSpec(m.c, q.c))) S.misses.push(sp); }
+    save(); renderScore();
+  }
+  function choose(value) {
+    const q = Q[S.mode], c = q.c;
+    if (q.done) return;
+    const enh = c.picker && value !== q.correctValue && midi(parse(value)) === midi(parse(c.answer));
+    const correct = value === q.correctValue || enh;
+    score(q, correct);
+    q.tries++; q.done = true; q.chosen = value;
+    renderWork();
+    fb.innerHTML = msg(correct ? "good" : "bad", correct ? "Correct" : "Not quite", enh ? `${accHTML(value)} is the right pitch; it's usually spelled ${accHTML(c.answer)}.` : correct ? `${accHTML(c.answer)}.` : c.picker ? `You chose ${accHTML(value)}. The answer is ${accHTML(c.answer)}.` : `The answer is ${accHTML(c.answer)}.`);
+    ansBox.innerHTML = `<div class="answer">${c.staffAns ? `<div class="staff" id="ansStaff"></div>` : ""}${c.staffAnsCap ? `<p class="legend">${accHTML(c.staffAnsCap)}</p>` : ""}${c.play ? PLAY_BTN(c.playLabel || "Play", "a") : ""}<p class="explain">${accHTML(c.explain)}</p></div>`;
+    if (c.staffAns) drawStaff($("ansStaff"), c.staffAns);
+    autoPlay(q);
+    renderControls(); nextBtn.focus();
+  }
+  function reveal() { const q = Q[S.mode]; if (q.done) return; q.tries = 1; choose(q.correctValue); }
+  work.addEventListener("click", e => { if (Q[S.mode] && Q[S.mode].c.picker) return; const b = e.target.closest("[data-v]"); if (b && !b.disabled) choose(b.dataset.v); });
+
+  function clearAnswer() { fb.innerHTML = ""; ansBox.innerHTML = ""; }
+  function next(focus = true) { Q[S.mode] = newQuestion(S.mode); clearAnswer(); renderPrompt(); renderControls(); if (focus) { const h = $("qHead"); if (h) h.focus(); } }
+  function setMode(m) { if (S.mode === m) return; S.mode = m; save(); clearAnswer(); if (!Q[m] || Q[m].done) Q[m] = newQuestion(m); renderPrompt(); renderControls(); }
+
+  // ---------- Events & settings ----------
+  document.querySelectorAll(".modes [data-mode]").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+  nextBtn.onclick = () => next(true);
+  function renderSettings() {
+    document.querySelectorAll("[data-auto]").forEach(b => b.setAttribute("aria-pressed", String((S.settings.auto !== false) === (b.dataset.auto === "1"))));
+    document.querySelectorAll("[data-topic]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.topics[b.dataset.topic] !== false)));
+  }
+  const autoT = $("autoToggles"); if (autoT) autoT.onclick = e => { const b = e.target.closest("[data-auto]"); if (b) { S.settings.auto = b.dataset.auto === "1"; save(); renderSettings(); } };
+  const topT = $("topicToggles");
+  if (topT) {
+    topT.innerHTML = (FAM.topics || []).map(t => `<button class="tog" data-topic="${t.id}">${esc(t.name)}${t.sub ? ` <small>${esc(t.sub)}</small>` : ""}</button>`).join("");
+    topT.onclick = e => {
+      const b = e.target.closest("[data-topic]"); if (!b) return;
+      const t = b.dataset.topic, on = S.settings.topics[t] === false;
+      if (!on && Object.values(S.settings.topics).filter(v => v !== false).length === 1) return;
+      S.settings.topics[t] = on; save(); renderSettings(); MODES.forEach(m => Q[m] = newQuestion(m)); clearAnswer(); renderPrompt(); renderControls();
+    };
+  }
+  $("resetBtn").onclick = () => { S.misses = []; save(); $("resetBtn").textContent = "Review list cleared"; };
+  let armTimer = null;
+  $("scoreReset").onclick = () => {
+    const b = $("scoreReset");
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.innerHTML = 'Tap again to reset<span class="sr"> the score</span>'; armTimer = setTimeout(() => { b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>'; }, 3000); return; }
+    clearTimeout(armTimer); S.right = 0; S.total = 0; S.streak = 0; save(); renderScore(); b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>';
+  };
+  // Reference
+  document.querySelectorAll(".ref-slot").forEach(el => el.innerHTML = FAM.reference(H, esc, accHTML));
+  const dlg = $("refDialog"); let dlgReturn = null;
+  $("refBtn").onclick = () => { dlgReturn = document.activeElement; if (dlg.showModal) dlg.showModal(); else { $("refPanel").open = true; $("refPanel").scrollIntoView(); return; } $("refClose").focus(); };
+  $("refClose").onclick = () => dlg.close();
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener("close", () => { if (dlgReturn && dlgReturn.focus) dlgReturn.focus(); });
+
+  MODES.forEach(m => Q[m] = newQuestion(m));
+  renderSettings(); renderScore(); renderPrompt(); renderControls();
+})();
+</script>
+
+</body>
+</html>

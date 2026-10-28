@@ -1,0 +1,123 @@
+/* =====================================================================
+   SilverApps — skin for the trainers (Modes, Modulation, Rhythm Notation,
+   Chord Extension). They share one design system (CSS variables + classes);
+   this file maps it onto the indie look in assets/indie.css.
+   Loaded AFTER each trainer's own <style>, so these rules win.
+   ===================================================================== */
+:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+  --bg:var(--fi-paper); --surface:var(--fi-card); --field:var(--fi-gray); --ink:var(--fi-ink); --muted:var(--fi-muted); --line:var(--fi-line);
+  --brass:var(--fi-red-dk); --brass-soft:var(--fi-red-pale); --on-brass:#fff;
+  --good:var(--fi-green-dk); --good-soft:var(--fi-green-pale); --bad:var(--fi-red-dk); --bad-soft:var(--fi-red-pale); --warn:#6e4a00; --warn-soft:#fbeec9;
+  --display:var(--fi-display); --body:var(--fi-serif); --mono:var(--fi-body);
+  color-scheme:light;
+}
+html,body{background:var(--fi-paper)!important;color:var(--fi-ink)}
+body{font-family:var(--fi-serif)}
+.wrap{max-width:780px}
+.wrap :is(button,.pill,.chip,.tog,.play){border-radius:var(--fi-pill)!important}
+.wrap :is(.card,.panel,.answer,.hint,.staff,.verdict,details,dialog,.modes){border-radius:var(--fi-r)!important}
+.wrap :is(input,select,textarea,.field){border-radius:var(--fi-r-sm)!important}
+.wrap .modes{background:transparent!important}
+.credit{display:none}             /* replaced by the linked footer credit */
+
+/* header */
+.top{border-top:2px solid var(--fi-red);padding-top:12px}
+.brand h1{font-family:var(--fi-display);font-weight:400;font-size:clamp(3rem,8vw,4.6rem);line-height:.9}
+.brand p{color:var(--fi-ink)}
+.score b{font-family:var(--fi-display);font-weight:400;font-size:2.4rem}
+.score small{font-weight:900;letter-spacing:.08em;color:var(--fi-ink)}
+.score-reset{border:1.5px solid var(--fi-line);font-weight:700;text-transform:none;color:var(--fi-ink)}
+
+/* mode tabs = programme tiles */
+.modes{background:var(--fi-card);border:0;padding:0;gap:6px}
+.modes button{border:1.5px solid var(--fi-line);background:var(--fi-card)}
+.modes button b{font-family:var(--fi-display);font-weight:400;font-size:1.7rem;letter-spacing:.01em}
+.modes button small{font-family:var(--fi-body);font-weight:700;color:var(--fi-ink)}
+.modes button:hover:not([aria-pressed="true"]){background:var(--fi-gray)}
+.modes button[aria-pressed="true"]{background:var(--fi-red);color:var(--fi-ink);border-color:var(--fi-line)}
+.modes button[aria-pressed="true"] small{color:var(--fi-ink);opacity:1}
+
+/* the practice card */
+.card{border:1.5px solid var(--fi-line);padding:22px}
+.kicker{font-family:var(--fi-body);font-weight:900;color:var(--fi-ink);letter-spacing:.1em}
+.big{font-family:var(--fi-display);font-weight:400;font-size:clamp(3.2rem,12vw,5.4rem)}
+.q-text{font-family:var(--fi-body);font-weight:700}
+.sub,.help,.legend{color:var(--fi-ink)}
+.hint{background:#fbeec9;border-left:6px solid var(--fi-line);border-radius:var(--fi-r-sm)}
+.field label{font-family:var(--fi-body);font-weight:900;color:var(--fi-ink)}
+.field input{border:1.5px solid var(--fi-line);background:var(--fi-card);font-family:var(--fi-body);font-weight:700}
+.field input:focus{border-color:var(--fi-red-dk)}
+.pad button{border:1.5px solid var(--fi-line);background:var(--fi-card);font-family:var(--fi-display);font-weight:400;font-size:1.6rem}
+.pad button.util{font-family:var(--fi-body);font-weight:700;font-size:.85rem;color:var(--fi-ink)}
+.pad button:active{background:var(--fi-red)}
+.choice{border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink)}
+.choice:hover:not(:disabled){border-color:var(--fi-line);background:var(--fi-gray)}
+.choice.right{background:var(--fi-green);border-color:var(--fi-line);color:var(--fi-ink)}
+.choice.wrong{background:var(--fi-card);border-color:var(--fi-red-dk);border-style:dashed;color:var(--fi-ink)}
+.choice.dim,.choice:disabled:not(.right):not(.wrong){color:var(--fi-muted)}
+.choice .mark{font-weight:900;color:var(--fi-ink)}
+.choice-group>span{font-family:var(--fi-body);font-weight:900;color:var(--fi-ink)}
+.choice-row.sig .choice{font-family:var(--fi-display);font-weight:400;font-size:1.5rem}
+.btn{border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);font-weight:700;text-transform:none;letter-spacing:.01em;font-size:.9rem}
+.btn:hover:not(:disabled){background:var(--fi-ink);color:#fff}
+.btn.primary{background:var(--fi-red);border-color:var(--fi-red);color:var(--fi-ink)}
+.btn.primary:hover:not(:disabled){background:var(--fi-ink);border-color:var(--fi-line);color:#fff}
+.play{border:1.5px solid var(--fi-line);color:var(--fi-ink);background:var(--fi-card);text-transform:none;letter-spacing:.04em}
+.play:hover{background:var(--fi-ink);color:#fff}
+.verdict{font-family:var(--fi-body)}
+.pill{font-family:var(--fi-body);font-weight:900}
+.pill.good{background:var(--fi-green);color:var(--fi-ink)}
+.pill.bad{background:var(--fi-red);color:var(--fi-ink)}
+.pill.warn{background:#ffd54a;color:var(--fi-ink)}
+.chip{font-family:var(--fi-display);font-weight:400;font-size:1.5rem;border:1.5px solid var(--fi-line)}
+.answer{border:1.5px solid var(--fi-line);background:var(--fi-card);padding:16px 18px!important}
+.answer h3{font-family:var(--fi-display);font-weight:400;text-transform:none;font-size:2rem}
+.deg b{font-family:var(--fi-display);font-weight:400}
+.panel{border:1.5px solid var(--fi-line);background:var(--fi-card)}
+.panel>summary{font-family:var(--fi-display);font-weight:400;text-transform:none;font-size:1.6rem}
+.tog{border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink)}
+.tog[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.tog[aria-pressed="true"] small{color:#ddd}
+:focus-visible{outline:3px solid var(--fi-red-dk)!important;outline-offset:2px}
+.skip{background:var(--fi-ink);color:#fff}
+dialog{border:1.5px solid var(--fi-line)}
+
+/* ---------- class game: student & host views ---------- */
+.lc{margin:0}
+body.lc-student .modes,body.lc-student .wrap-aside,body.lc-student .top .score,
+body.lc-student #nextBtn,body.lc-student #showBtn,body.lc-student .skip{display:none!important}
+body.lc-student.lc-idle main.card{display:none}
+/* while the class is still answering: hide feedback and right/wrong marks */
+body.lc-hold #feedback,body.lc-hold #answerBox{display:none!important}
+body.lc-hold .lc-locked-card :is(.right,.wrong,.ok,.enh,.no,.dim){background:var(--fi-card)!important;color:var(--fi-ink)!important;border-color:var(--fi-line)!important;border-style:solid!important}
+body.lc-hold .lc-locked-card .mark{visibility:hidden}
+.lc-locked-card :is(#work,.field,.pad,.actions){opacity:.95}
+/* host: the projector shows the question but nobody clicks it there */
+body.lc-host.lc-q main.card :is(#work,.field,.actions){pointer-events:none}
+body.lc-host.lc-q #hintBtn,body.lc-host.lc-q #showBtn,body.lc-host.lc-q #checkBtn,body.lc-host.lc-q #nextBtn{visibility:hidden}
+body.lc-host #nextBtn{display:none}
+/* embedded practice frame (work ahead) */
+body.lc-embed .site-strip,body.lc-embed .fi-credit,body.lc-embed .fi-filmstrip,body.lc-embed .lc{display:none!important}
+body.lc-embed .wrap{padding-top:10px}
+body.lc-fs .wrap{max-width:1100px}
+body.lc-fs .big{font-size:clamp(4rem,9vw,7rem)}
+
+/* ---- warm-paper finish ---- */
+.card,.answer,.panel{border-radius:var(--fi-r)!important;box-shadow:var(--fi-shadow)}
+.modes{gap:8px}
+.modes button{border-radius:var(--fi-r-sm)!important;background:var(--fi-card)}
+.modes button[aria-pressed="true"]{background:var(--fi-red);border-color:var(--fi-red)}
+.btn,.play,.score-reset{border-radius:var(--fi-pill)!important;font-family:var(--fi-body)}
+.btn{text-transform:none;letter-spacing:.01em;font-size:.95rem}
+.tog{border-radius:var(--fi-pill)!important;font-family:var(--fi-body)}
+.tog[aria-pressed="true"]{background:var(--fi-navy);border-color:var(--fi-navy)}
+.choice{font-family:var(--fi-serif);font-weight:600}
+.q-text{font-family:var(--fi-serif);font-weight:600}
+.field input{font-family:var(--fi-serif);background:#fff}
+.kicker,.choice-group>span,.field label,.score small,.pill{color:var(--fi-muted)}
+.pill.good,.pill.bad,.pill.warn{color:var(--fi-ink)}
+.pill.good{background:var(--fi-green)} .pill.bad{background:var(--fi-red-pale)}
+.choice.wrong{background:var(--fi-red-pale);border-style:solid}
+.top .score-reset{display:none}   /* reset lives in the "Your progress" panel now */
+.wrap .deg{border-radius:0!important}
+.wrap .answer .legend,.wrap .answer .explain{margin:0}

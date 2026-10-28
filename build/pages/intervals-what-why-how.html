@@ -1,0 +1,579 @@
+<!-- title: Intervals: What, Why and How | sound: 1 | desc: An interactive lesson on intervals: what they are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music. -->
+<style>
+.lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
+.lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.lesson-head h1 span{color:var(--fi-red-dk)}
+.lesson-head p{max-width:60ch;margin:10px 0 0}
+.steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:18px 0 12px}
+.steps button{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;min-height:36px;min-width:36px;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:4px 11px;cursor:pointer}
+.steps button[aria-current="step"]{background:var(--fi-ink);color:#fff}
+.steps button.seen:not([aria-current]){background:var(--fi-green-pale)}
+.slide{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:22px 24px;display:grid;gap:14px}
+.slide[hidden]{display:none}
+.slide h2{font:400 clamp(32px,5vw,46px)/1 var(--fi-display);margin:0}
+.slide .kick{font:700 13px var(--fi-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--fi-muted);margin:0}
+.slide p{margin:0;max-width:64ch}
+.fig{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:12px;overflow:hidden}
+.fig svg{display:block;width:100%;height:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbtn{font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:9px 16px;min-height:44px;cursor:pointer}
+.lbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk);color:var(--fi-ink)}
+.lbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.lbtn:focus-visible,.steps button:focus-visible,.key:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.readout{font:400 clamp(26px,4.4vw,38px)/1.05 var(--fi-display)}
+.readout small{display:block;font:15px/1.4 var(--fi-serif);color:var(--fi-muted)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.note{font-size:.95rem;color:var(--fi-muted)}
+/* keyboard */
+.kb{position:relative;height:150px;user-select:none;touch-action:manipulation}
+.kb .whites{display:flex;height:100%}
+.key{position:relative;border:1.5px solid var(--fi-line);cursor:pointer;padding:0;font:600 12px var(--fi-ui);color:var(--fi-muted);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
+.key.w{flex:1;background:#fff;border-radius:0 0 8px 8px;margin-right:-1.5px;z-index:1}
+.key.b{position:absolute;top:0;height:60%;background:var(--fi-ink);border-radius:0 0 6px 6px;z-index:2;color:transparent}
+.key.sel{box-shadow:inset 0 -46px 0 -10px var(--fi-red)}
+.key.b.sel{box-shadow:inset 0 -34px 0 -8px var(--fi-red)}
+.key .dot{position:absolute;bottom:30px;width:16px;height:16px;border-radius:50%;background:var(--fi-red);box-shadow:0 0 0 4px rgba(232,87,63,.3),0 0 18px rgba(232,87,63,.8)}
+.key.b .dot{bottom:22px}
+.tape{position:relative;height:46px;margin-bottom:8px}
+.tape .band{position:absolute;top:8px;height:26px;background:repeating-linear-gradient(90deg,#F3D06B 0 2px,#FFE79A 2px var(--hs,20px));border:1.5px solid #8a6d12;border-radius:5px;transition:left .5s ease,width .5s ease}
+.tape .lab{position:absolute;top:-2px;transform:translateX(-50%);font:700 14px var(--fi-ui);white-space:nowrap;background:var(--fi-paper);padding:0 6px;border-radius:6px;transition:left .5s ease}
+@media (prefers-reduced-motion:reduce){.tape .band,.tape .lab{transition:none}}
+/* chord blocks */
+.chord{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.stack{display:grid;gap:6px;width:150px}
+.blk{border-radius:12px;padding:10px;text-align:center;font:400 28px var(--fi-display);border:1.5px solid var(--fi-line);transition:background .4s,transform .4s}
+.gap{font:700 14px var(--fi-ui);text-align:center;color:var(--fi-muted)}
+.mood{border-radius:var(--fi-r-sm);padding:18px;min-height:170px;display:grid;place-items:center;text-align:center;transition:background .6s;font:400 34px var(--fi-display)}
+.mood.major{background:radial-gradient(circle at 50% 40%,#FFF3B0,#F7C948 70%)}
+.mood.minor{background:radial-gradient(circle at 50% 40%,#9FB7E8,#2E3A59 75%);color:#fff}
+/* quiz */
+.q{border-top:1px dashed var(--fi-soft);padding-top:12px;display:grid;gap:8px}
+.q .opts{display:flex;flex-wrap:wrap;gap:8px}
+.q .opt{font:600 16px var(--fi-serif);border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);padding:8px 14px;min-height:44px;cursor:pointer;color:var(--fi-ink)}
+.q .opt.right{background:var(--fi-green)} .q .opt.wrong{background:var(--fi-red-pale);border-color:var(--fi-red-dk)}
+.q .fbk{min-height:1.4em;font-weight:600}
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.cards3 div{border-radius:var(--fi-r-sm);padding:14px;border:1.5px solid var(--fi-line)}
+.cards3 b{display:block;font:400 28px var(--fi-display)}
+.c1{background:var(--fi-red-pale)} .c2{background:var(--fi-green-pale)} .c3{background:#E3E6F0}
+input[type=range]{width:min(100%,360px);accent-color:var(--fi-red-dk)}
+label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;display:grid;gap:4px}
+.pickrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:6px}
+.pickrow .pl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;min-width:4.5em;color:var(--fi-muted)}
+.pickrow>span{display:inline-flex;flex-wrap:wrap;gap:5px;margin-right:10px}
+.pkb{min-width:44px;min-height:44px;border-radius:10px;border:1.5px solid var(--fi-line);background:var(--fi-card);font:700 18px var(--fi-serif);cursor:pointer;color:var(--fi-ink)}
+.pkb[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.pkb:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.fam{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:66ch}
+.sub3{font:400 30px/1 var(--fi-display);margin:8px 0 0}
+.enh{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.ecard{border:1.5px solid var(--fi-line);border-radius:var(--fi-r-sm);background:var(--fi-paper);padding:14px;display:grid;gap:8px}
+.ecard>b{font:400 32px var(--fi-display)}
+.ecard p{margin:0}
+.lets{display:flex;flex-wrap:wrap;gap:5px}
+.lets span{min-width:44px;padding:6px 6px 2px;border-radius:8px;background:#FFE07A;border:1.5px solid var(--fi-line);text-align:center;font:700 18px var(--fi-serif);display:grid}
+.lets span i{font:700 12px var(--fi-ui);font-style:normal;color:var(--fi-red-dk)}
+.lets span.x{background:var(--fi-red-pale);border-color:var(--fi-red-dk)}
+.eq{font:400 44px var(--fi-display);text-align:center;color:var(--fi-muted)}
+.eq small{display:block;font:13px var(--fi-serif)}
+#scBox{grid-template-columns:1fr}
+.scrow{border:1.5px solid var(--fi-line);border-radius:var(--fi-r-sm);padding:10px 12px;display:grid;gap:6px}
+.scrow.ok{background:var(--fi-green-pale)} .scrow.bad{background:var(--fi-card)}
+.scrow.bad .lets span{background:var(--fi-card)} .scrow.bad .lets span.x{background:var(--fi-red-pale)}
+.sclab{margin:0;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.04em}
+@media (max-width:560px){.enh{grid-template-columns:1fr}.eq{font-size:28px}}
+@media (max-width:560px){.slide{padding:16px}.chord{grid-template-columns:1fr}.stack{width:100%}.kb{height:120px}.key{font-size:10px}}
+</style>
+
+<main class="lesson" id="main">
+  <header class="lesson-head">
+    <h1>Intervals: <span>What, Why and How</span></h1>
+    <p>An interval is the distance between two notes. Step through the lesson, play with each picture, and listen. Use the arrow keys or the buttons to move between steps.</p>
+  </header>
+  <ol class="steps" id="steps" aria-label="Lesson steps"></ol>
+  <div id="slides">
+
+  <section class="slide" data-title="What is an interval?">
+    <p class="kick">1 · What</p><h2>What is an interval?</h2>
+    <p>In music, an interval is simply the <b>distance between two notes</b>. We measure space in inches or centimeters; musicians measure sound in intervals. The smallest step on a keyboard, from one key to the very next, is a <b>half step</b>.</p>
+    <div class="fig">
+      <div class="tape" id="tape" aria-hidden="true"><div class="band"></div><div class="lab"></div></div>
+      <div class="kb" id="kb" role="group" aria-label="Keyboard from C4 to B5. Choose two keys to measure the interval between them."></div>
+    </div>
+    <div class="row"><div class="readout" id="kbRead" aria-live="polite"></div></div>
+    <div class="row"><button class="lbtn primary" id="kbPlay" type="button">▶ Play the two notes</button><button class="lbtn" id="kbReset" type="button">Start over</button></div>
+    <p class="note">Tap any two keys. The measuring tape counts the half steps between them.</p>
+  </section>
+
+  <section class="slide" data-title="Size and quality" hidden>
+    <p class="kick">2 · How: naming</p><h2>Two numbers: size and quality</h2>
+    <p>Every interval name has two parts. The <b>size</b> (2nd, 3rd, 4th…) comes from counting <b>letter names</b>, starting with the bottom note as 1. The <b>quality</b> (major, minor, perfect, augmented, diminished) comes from counting the exact number of <b>half steps</b>. C up to E is a 3rd because it spans three letters, C D E; it is a <b>major</b> 3rd because those letters are 4 half steps apart.</p>
+    <div class="fig">
+      <div class="pickrow" role="group" aria-label="Bottom note"><span class="pl">Bottom</span><span id="loL"></span><span id="loA"></span></div>
+      <div class="pickrow" role="group" aria-label="Top note"><span class="pl">Top</span><span id="hiL"></span><span id="hiA"></span></div>
+      <svg id="sqSvg" viewBox="0 0 640 190" role="img" aria-labelledby="sqDesc"><desc id="sqDesc"></desc></svg>
+    </div>
+    <div class="row"><div class="readout" id="sqRead" aria-live="polite"></div></div>
+    <div class="row"><button class="lbtn primary" id="sqPlay" type="button">▶ Play</button></div>
+    <p class="note">Count letters for the size (the top row), then half steps for the quality (the bottom row).</p>
+  </section>
+
+  <section class="slide" data-title="Stretch and squeeze" hidden>
+    <p class="kick">3 · How: qualities</p><h2>Stretching and squeezing an interval</h2>
+    <p>Change the top note by a half step and the <b>size stays the same</b> (the letters don't change) but the <b>quality</b> changes. There are two families:</p>
+    <ul class="fam"><li><b>Perfect family</b> (unisons, 4ths, 5ths, octaves): one half step smaller than perfect is <b>diminished</b>; one larger is <b>augmented</b>. There is no major or minor.</li>
+      <li><b>Major/minor family</b> (2nds, 3rds, 6ths, 7ths): major made a half step smaller is <b>minor</b>; minor made smaller is <b>diminished</b>; major made larger is <b>augmented</b>.</li></ul>
+    <div class="row" role="group" aria-label="Interval size" id="ssSizes"></div>
+    <div class="fig"><svg id="ssSvg" viewBox="0 0 640 230" role="img" aria-labelledby="ssDesc"><desc id="ssDesc"></desc></svg></div>
+    <div class="row">
+      <button class="lbtn" id="ssDown" type="button">♭ Squeeze (top note down)</button>
+      <button class="lbtn" id="ssUp" type="button">♯ Stretch (top note up)</button>
+      <button class="lbtn primary" id="ssPlay" type="button">▶ Play</button>
+    </div>
+    <div class="readout" id="ssRead" aria-live="polite"></div>
+  </section>
+
+  <section class="slide" data-title="Spelling counts" hidden>
+    <p class="kick">4 · How: spelling</p><h2>Spelling counts</h2>
+    <p>Two notes that sound the same but are spelled differently are <b>enharmonic</b>: D♯ and E♭ are the same key on the piano. But an interval is named from its spelling, not just its sound. <b>C–D♯</b> spans two letters (C D), so it's an <b>augmented 2nd</b>; <b>C–E♭</b> spans three letters (C D E), so it's a <b>minor 3rd</b>. Same 3 half steps, same sound, different interval.</p>
+    <div class="row" role="group" aria-label="Enharmonic pairs" id="enPairs"></div>
+    <div class="enh" id="enhBox"></div>
+    <h3 class="sub3">In scales</h3>
+    <p>Scales follow the same rule: a major or minor scale uses <b>each letter name once</b>, so each scale degree is the right size above the tonic. In E major the 7th degree is <b>D♯</b> (a major 7th above E), not E♭ (which would be a diminished 8th and repeat the letter E).</p>
+    <div class="row" role="group" aria-label="Scales" id="scBtns"></div>
+    <div class="enh" id="scBox"></div>
+  </section>
+
+  <section class="slide" data-title="Melodies" hidden>
+    <p class="kick">5 · Why: melody</p><h2>A melody is a chain of intervals</h2>
+    <p>At its simplest, a melody is a sequence of intervals: the basic ups and downs of a tune. Watch the ball bounce from note to note; the numbers show how many half steps each hop moves.</p>
+    <div class="fig"><svg id="melSvg" viewBox="0 0 640 260" role="img" aria-labelledby="melDesc"><desc id="melDesc"></desc></svg></div>
+    <div class="row"><button class="lbtn primary" data-play-mel="mel" type="button">▶ Play and bounce</button></div>
+  </section>
+
+  <section class="slide" data-title="Transposition" hidden>
+    <p class="kick">6 · Why: transposition</p><h2>Same intervals, new key</h2>
+    <p>Move a song higher or lower to fit a singer's voice and every note changes, but the <b>intervals stay exactly the same</b>. That's why your brain still recognizes the song instantly.</p>
+    <div class="fig"><svg id="trSvg" viewBox="0 0 640 300" role="img" aria-labelledby="trDesc"><desc id="trDesc"></desc></svg></div>
+    <div class="row">
+      <label class="sl" for="trKey">Move the song: <span id="trOut">0 half steps</span><input id="trKey" type="range" min="-5" max="7" step="1" value="0"></label>
+      <button class="lbtn primary" data-play-mel="tr" type="button">▶ Play in this key</button>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Inversion" hidden>
+    <p class="kick">7 · How composers use them</p><h2>Flip it: interval inversion</h2>
+    <p>Keep the interval sizes but flip their direction: every “up” becomes a “down,” every “down” an “up.” The result is a fresh variation that still feels connected to the original. Here a motif leaps <b>up a 5th</b>; its inversion leaps <b>down a 5th</b>.</p>
+    <div class="fig"><svg id="invSvg" viewBox="0 0 640 300" role="img" aria-labelledby="invDesc"><desc id="invDesc">The original motif rises a fifth then steps down; a mirror line runs across the middle; the inversion below falls a fifth then steps up, the exact mirror image.</desc></svg></div>
+    <div class="row"><button class="lbtn primary" data-play-mel="orig" type="button">▶ Original</button><button class="lbtn" data-play-mel="inv" type="button">▶ Inversion</button></div>
+  </section>
+
+  <section class="slide" data-title="Singing" hidden>
+    <p class="kick">8 · Why: singing</p><h2>Steps are easy, leaps are dramatic</h2>
+    <p>Interval size matters to singers. Small steps and skips are a smooth, comfortable path for the voice; big leaps are like jumping a canyon: exciting, but much harder to land accurately.</p>
+    <div class="fig"><svg id="singSvg" viewBox="0 0 640 230" role="img" aria-labelledby="singDesc"><desc id="singDesc"></desc></svg></div>
+    <div class="row">
+      <label class="sl" for="singIv">Interval size: <span id="singOut"></span><input id="singIv" type="range" min="1" max="12" step="1" value="2"></label>
+      <button class="lbtn primary" id="singPlay" type="button">▶ Hear it</button>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Tension" hidden>
+    <p class="kick">9 · Why: tension</p><h2>Stretch, then resolve</h2>
+    <p>Big leaps create emotional tension. A classic rule of thumb: after a wide leap <b>upward</b>, a melody feels stretched and wants to come back the other way, usually by step. The opening of “Somewhere Over the Rainbow” is a famous example: a breathtaking octave leap up, then intervals that get smaller and smaller as the tune cascades down toward the home note. Here is an original tune with the same shape.</p>
+    <div class="fig"><svg id="tenSvg" viewBox="0 0 640 280" role="img" aria-labelledby="tenDesc"><desc id="tenDesc">A line graph: a huge leap up of an octave, drawn as a stretched elastic band, then smaller and smaller steps down: a fourth, a minor third, then whole steps back to the home note. The band relaxes as the line comes home.</desc></svg></div>
+    <div class="row"><button class="lbtn primary" data-play-mel="ten" type="button">▶ Play the shape</button></div>
+  </section>
+
+  <section class="slide" data-title="Chords" hidden>
+    <p class="kick">10 · Why: harmony</p><h2>Intervals all at once: chords</h2>
+    <p>Intervals also happen at the same time, in chords. A major triad stacks a <b>major 3rd</b> with a <b>minor 3rd</b> above it. Squeeze the middle note down by one half step and the stack flips to minor 3rd + major 3rd: the bright major chord turns dark.</p>
+    <div class="chord">
+      <div class="stack" id="stack" aria-hidden="true"></div>
+      <div class="mood major" id="mood" role="img" aria-label="C major: bright">C major<br>bright</div>
+    </div>
+    <div class="row"><button class="lbtn primary" id="chPlay" type="button">▶ Play the chord</button><button class="lbtn" id="chFlip" aria-pressed="false" type="button">Lower the middle note (E → E♭)</button></div>
+  </section>
+
+  <section class="slide" data-title="Distance from home" hidden>
+    <p class="kick">11 · Why: navigating a key</p><h2>How far from home?</h2>
+    <p>Intervals tell us where we are in a key by measuring the distance from the <b>tonic</b>, the home base. Knowing whether a note is the 3rd, 5th or 7th above home helps musicians find their way through a song. Tap a scale degree to hear it against home.</p>
+    <div class="fig"><svg id="homeSvg" viewBox="0 0 640 220" role="img" aria-labelledby="homeDesc"><desc id="homeDesc">A road of eight scale degrees in C major, starting at a house labeled 1 (home). Flags mark the 3rd, 5th and 7th.</desc></svg></div>
+    <div class="row" id="degBtns" role="group" aria-label="Scale degrees"></div>
+    <div class="readout" id="degRead" aria-live="polite"></div>
+  </section>
+
+  <section class="slide" data-title="Atonal music" hidden>
+    <p class="kick">12 · Beyond keys</p><h2>Intervals as building blocks</h2>
+    <p>In the 20th century, atonal composers broke free of traditional keys. Instead of scales, they used <b>intervals themselves</b> as the building blocks of new chords and whole compositional systems. On this pitch circle, each shape is built from one kind of interval.</p>
+    <div class="fig"><svg id="atSvg" viewBox="0 0 640 320" role="img" aria-labelledby="atDesc"><desc id="atDesc"></desc></svg></div>
+    <div class="row" role="group" aria-label="Interval shapes">
+      <button class="lbtn" data-at="4ths" aria-pressed="true" type="button">Stack of 4ths</button>
+      <button class="lbtn" data-at="cluster" aria-pressed="false" type="button">Half-step cluster</button>
+      <button class="lbtn" data-at="aug" aria-pressed="false" type="button">Major 3rds</button>
+      <button class="lbtn" data-at="row" aria-pressed="false" type="button">12-tone row</button>
+      <button class="lbtn primary" id="atPlay" type="button">▶ Play</button>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Summary" hidden>
+    <p class="kick">13 · Summary</p><h2>The universal language</h2>
+    <p>Whether you're humming a lullaby, moving a song into your key, or analyzing modern music, intervals connect every note.</p>
+    <div class="cards3"><div class="c4" style="background:#FFF3C4"><b>Naming</b>size from letters, quality from half steps; spelling counts</div><div class="c1"><b>Melody</b>ups and downs, transposition and inversion</div><div class="c2"><b>Harmony</b>chords built from stacked intervals</div><div class="c3"><b>Structure</b>distance from home, tension and release</div></div>
+    <div id="quiz"></div>
+  </section>
+  </div>
+  <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const nameOf = m => NAMES[m % 12] + (Math.floor(m / 12) - 1);
+  const spoken = s => s.replace("♯", " sharp").replace("♭", " flat");
+  const IV = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th", "octave", "minor 9th", "major 9th", "minor 10th", "major 10th", "perfect 11th", "augmented 11th", "perfect 12th", "minor 13th", "major 13th", "minor 14th", "major 14th", "two octaves"];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+
+  // ---------- sound ----------
+  let AC = null, bus = null;
+  function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); const c = AC.createDynamicsCompressor(); c.threshold.value = -14; c.connect(AC.destination); AC._o = c; } if (AC.state === "suspended") AC.resume(); return AC; }
+  function newBus() { if (bus) { const o = bus; o.gain.setTargetAtTime(0, AC.currentTime, .03); setTimeout(() => o.disconnect(), 300); } bus = AC.createGain(); bus.connect(AC._o); return bus; }
+  function note(out, m, t, d, v = .3) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(f * 8, 8000), t); lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + 1); g.connect(out); lp.connect(g);
+    [[1, 1], [2, .4], [3, .18], [4, .08]].forEach(([h, a]) => { const o = AC.createOscillator(); o.type = h === 1 ? "triangle" : "sine"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a; o.connect(og); og.connect(lp); o.start(t); o.stop(t + d + .8); });
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .01); g.gain.setTargetAtTime(v * .35, t + .02, .35); g.gain.setTargetAtTime(0, t + d, .15);
+  }
+  function seq(ms, gap = .42, onStep) { if (!ac()) return; const out = newBus(), t0 = AC.currentTime + .06; ms.forEach((m, i) => { (Array.isArray(m) ? m : [m]).forEach(x => note(out, x, t0 + i * gap, i === ms.length - 1 ? 1.2 : gap * .95, Array.isArray(m) ? .22 : .3)); if (onStep) setTimeout(() => onStep(i), (i * gap + .06) * 1000); }); }
+
+  // ---------- steps ----------
+  const slides = [...document.querySelectorAll(".slide")], stepsEl = $("steps");
+  const SL = t => slides.find(x => x.dataset.title === t);
+  let cur = 0; const seen = new Set([0]);
+  slides.forEach((s, i) => { const li = document.createElement("li"); li.innerHTML = `<button type="button" aria-label="Step ${i + 1}: ${s.dataset.title}">${i + 1}</button>`; li.firstChild.onclick = () => go(i, true); stepsEl.appendChild(li); });
+  function go(i, focus) {
+    cur = Math.max(0, Math.min(slides.length - 1, i)); seen.add(cur);
+    slides.forEach((s, k) => s.hidden = k !== cur);
+    [...stepsEl.querySelectorAll("button")].forEach((b, k) => { b.toggleAttribute("aria-current", k === cur); if (k === cur) b.setAttribute("aria-current", "step"); b.classList.toggle("seen", seen.has(k)); });
+    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Start again ↺" : "Next →";
+    $("where").textContent = `Step ${cur + 1} of ${slides.length}: ${slides[cur].dataset.title}`;
+    if (focus) { const h = slides[cur].querySelector("h2"); h.tabIndex = -1; h.focus(); }
+    if (slides[cur].onshow) slides[cur].onshow();
+    try { localStorage.setItem("silverapps-intervals-step", cur); } catch (e) {}
+  }
+  $("back").onclick = () => go(cur - 1, true);
+  $("fwd").onclick = () => go(cur === slides.length - 1 ? 0 : cur + 1, true);
+  document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select")) return; if (e.key === "ArrowRight") go(cur + 1, true); if (e.key === "ArrowLeft") go(cur - 1, true); });
+
+  // ---------- 1. keyboard + tape ----------
+  const LO = 60, HI = 83, kb = $("kb"), whites = document.createElement("div"); whites.className = "whites"; kb.appendChild(whites);
+  const isBlack = m => [1, 3, 6, 8, 10].includes(m % 12);
+  const keys = {}; let wi = 0; const nW = 14;
+  for (let m = LO; m <= HI; m++) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "key " + (isBlack(m) ? "b" : "w"); b.dataset.m = m;
+    b.setAttribute("aria-label", spoken(nameOf(m))); b.setAttribute("aria-pressed", "false");
+    if (isBlack(m)) { b.style.left = `calc(${(wi / nW) * 100}% - ${(0.6 / nW) * 50}%)`; b.style.width = `${(0.6 / nW) * 100}%`; kb.appendChild(b); }
+    else { b.textContent = m % 12 === 0 ? nameOf(m) : ""; whites.appendChild(b); wi++; }
+    keys[m] = b;
+  }
+  let pick = [60, 67];
+  function keyCenter(m) { const r = keys[m].getBoundingClientRect(), k = kb.getBoundingClientRect(); return (r.left + r.width / 2 - k.left) / k.width * 100; }
+  function drawKb(play) {
+    Object.values(keys).forEach(k => { k.classList.remove("sel"); k.setAttribute("aria-pressed", "false"); k.querySelector(".dot")?.remove(); });
+    pick.forEach(m => { keys[m].classList.add("sel"); keys[m].setAttribute("aria-pressed", "true"); const d = document.createElement("span"); d.className = "dot"; keys[m].appendChild(d); });
+    const band = $("tape").querySelector(".band"), lab = $("tape").querySelector(".lab");
+    if (pick.length === 2) {
+      const [a, b] = pick.slice().sort((x, y) => x - y), x1 = keyCenter(a), x2 = keyCenter(b), n = b - a;
+      band.style.left = x1 + "%"; band.style.width = Math.max(.5, x2 - x1) + "%"; band.style.setProperty("--hs", n ? ((x2 - x1) / n * kb.getBoundingClientRect().width / 100) + "px" : "20px");
+      lab.style.left = (x1 + x2) / 2 + "%"; lab.textContent = `${n} half step${n === 1 ? "" : "s"}`;
+      $("kbRead").innerHTML = `${nameOf(a)} → ${nameOf(b)}: ${n} half step${n === 1 ? "" : "s"}<small>${IV[n] ? "a " + IV[n] : ""}${n === 6 ? " (augmented 4th or diminished 5th)" : ""}</small>`;
+      if (play) seq([a, b], .55);
+    } else { band.style.width = "0"; lab.textContent = "pick a second key"; $("kbRead").innerHTML = `${nameOf(pick[0])}<small>Now choose a second key.</small>`; if (play) seq([pick[0]]); }
+  }
+  kb.addEventListener("click", e => { const k = e.target.closest(".key"); if (!k) return; const m = +k.dataset.m; pick = pick.length === 2 ? [m] : pick[0] === m ? [m] : [pick[0], m]; drawKb(true); });
+  $("kbPlay").onclick = () => { if (pick.length === 2) { const [a, b] = pick.slice().sort((x, y) => x - y); seq([a, b, [a, b]], .55); } };
+  $("kbReset").onclick = () => { pick = [60, 67]; drawKb(true); };
+  addEventListener("resize", () => drawKb(false));
+  SL("What is an interval?").onshow = () => requestAnimationFrame(() => drawKb(false));
+
+  // ---------- melody grid with bouncing ball (slides 2–4, 6) ----------
+  const MEL = [67, 69, 71, 67, 74, 72, 71, 69, 67];                // original tune
+  const TEN = [60, 72, 67, 64, 62, 60];                              // leap up an octave, then smaller steps home
+  const ORIG = [60, 67, 65, 64, 62, 60], INV = ORIG.map(m => 2 * 60 - m + 0);
+  function grid(svg, lines, opts) {
+    svg.querySelectorAll(":scope > :not(desc)").forEach(n => n.remove());
+    const W = 640, H = +svg.getAttribute("viewBox").split(" ")[3], all = lines.flatMap(l => l.ms), lo = Math.min(...all) - 2, hi = Math.max(...all) + 2;
+    const y = m => H - 24 - (m - lo) / (hi - lo) * (H - 56), x = (i, n) => 56 + i * (W - 100) / (n - 1);
+    for (let m = lo; m <= hi; m++) el("line", { x1: 40, x2: W - 20, y1: y(m), y2: y(m), stroke: m % 12 === 0 ? "#cbbfae" : "#ece3d6", "stroke-width": m % 12 === 0 ? 1.5 : 1 }, svg);
+    for (let m = lo; m <= hi; m++) if (m % 12 === 0 || m % 12 === 7) el("text", { x: 4, y: y(m) + 4, "font-size": 11, fill: "#7a6e63", "font-family": "Barlow Condensed, sans-serif" }, svg).textContent = nameOf(m);
+    if (opts && opts.mirror != null) { el("line", { x1: 40, x2: W - 20, y1: y(opts.mirror), y2: y(opts.mirror), stroke: css("--fi-navy"), "stroke-width": 2, "stroke-dasharray": "8 6" }, svg); el("text", { x: 44, y: y(opts.mirror) + 16, "text-anchor": "start", "font-size": 13, fill: css("--fi-navy"), "font-family": "Barlow Condensed, sans-serif", "font-weight": 700 }, svg).textContent = "MIRROR"; }
+    const out = [];
+    lines.forEach(l => {
+      const n = l.ms.length, pts = l.ms.map((m, i) => [x(i, n), y(m)]);
+      if (l.band) el("polyline", { points: pts.map(p => p.join(",")).join(" "), fill: "none", stroke: l.color, "stroke-width": 1, opacity: .35 }, svg);
+      for (let i = 1; i < n; i++) {
+        const d = l.ms[i] - l.ms[i - 1], w = l.band ? Math.max(2, Math.abs(d) * 1.1) : 3;
+        el("line", { x1: pts[i - 1][0], y1: pts[i - 1][1], x2: pts[i][0], y2: pts[i][1], stroke: l.band ? (Math.abs(d) >= 7 ? css("--fi-red") : Math.abs(d) >= 3 ? "#E9A23B" : css("--fi-green-dk")) : l.color, "stroke-width": w, "stroke-linecap": "round", opacity: .85 }, svg);
+        const t = el("text", { x: (pts[i - 1][0] + pts[i][0]) / 2, y: (pts[i - 1][1] + pts[i][1]) / 2 - 8, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: css("--fi-ink"), "font-family": "Barlow Condensed, sans-serif", "paint-order": "stroke", stroke: css("--fi-paper"), "stroke-width": 4 }, svg);
+        t.textContent = (d > 0 ? "+" : "−") + Math.abs(d);
+      }
+      pts.forEach((p, i) => el("circle", { cx: p[0], cy: p[1], r: 7, fill: css("--fi-card"), stroke: l.color, "stroke-width": 3 }, svg));
+      const ball = el("circle", { cx: pts[0][0], cy: pts[0][1], r: 11, fill: l.color, opacity: 0 }, svg);
+      out.push({ pts, ball, ms: l.ms });
+    });
+    return out;
+  }
+  function bounce(g, gap = .42) {
+    const { pts, ball, ms } = g; ball.setAttribute("opacity", .9);
+    seq(ms, gap, i => {
+      if (reduce || i === 0) { ball.setAttribute("cx", pts[i][0]); ball.setAttribute("cy", pts[i][1]); return; }
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], t0 = performance.now(), dur = gap * 1000 * .9;
+      const f = now => { const k = Math.min(1, (now - t0) / dur); ball.setAttribute("cx", x0 + (x1 - x0) * k); ball.setAttribute("cy", y0 + (y1 - y0) * k - Math.sin(Math.PI * k) * 34); if (k < 1) requestAnimationFrame(f); };
+      requestAnimationFrame(f);
+    });
+    setTimeout(() => ball.setAttribute("opacity", 0), (ms.length * gap + 1.2) * 1000);
+  }
+  const intervalsText = ms => ms.slice(1).map((m, i) => `${m > ms[i] ? "up" : "down"} ${Math.abs(m - ms[i])}`).join(", ");
+  let melG, trG, invG, tenG;
+  const red = () => css("--fi-red-dk"), navy = () => css("--fi-navy");
+  function drawMel() { melG = grid($("melSvg"), [{ ms: MEL, color: red() }]); $("melDesc").textContent = `A tune of ${MEL.length} notes on a pitch grid. Hops in half steps: ${intervalsText(MEL)}.`; }
+  function drawTr() {
+    const k = +$("trKey").value; $("trOut").textContent = `${k > 0 ? "+" : ""}${k} half step${Math.abs(k) === 1 ? "" : "s"}`;
+    trG = grid($("trSvg"), [{ ms: MEL.map(m => m + k), color: red() }]);
+    $("trDesc").textContent = `The same tune moved ${k} half steps, now starting on ${spoken(nameOf(MEL[0] + k))}. The hops are unchanged: ${intervalsText(MEL)}.`;
+  }
+  function drawInv() { invG = grid($("invSvg"), [{ ms: ORIG.map(m => m + 2), color: red() }, { ms: INV.map(m => m - 2), color: navy() }], { mirror: 60 }); }
+  function drawTen() { tenG = grid($("tenSvg"), [{ ms: TEN, color: red(), band: true }]); }
+  SL("Melodies").onshow = drawMel; SL("Transposition").onshow = drawTr; SL("Inversion").onshow = drawInv; SL("Tension").onshow = drawTen;
+  $("trKey").oninput = drawTr;
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-play-mel]"); if (!b) return;
+    const w = b.dataset.playMel;
+    if (w === "mel") bounce(melG[0]); if (w === "tr") bounce(trG[0]); if (w === "orig") bounce(invG[0], .45); if (w === "inv") bounce(invG[1], .45); if (w === "ten") bounce(tenG[0], .55);
+  });
+
+  // ---------- 5. singing: steps vs canyon ----------
+  function drawSing() {
+    const n = +$("singIv").value, svg = $("singSvg"); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    $("singOut").textContent = `${n} half step${n > 1 ? "s" : ""} (${IV[n]})`;
+    const gap = 20 + n * 34, left = 320 - gap / 2, right = 320 + gap / 2, rise = n * 9, ground = 190;
+    el("rect", { x: 0, y: 0, width: 640, height: 230, fill: n <= 2 ? "#EAF4DC" : n <= 5 ? "#FBF1DA" : "#FBE3DA" }, svg);
+    el("path", { d: `M0 ${ground} L${left} ${ground} L${left} 230 L0 230 Z`, fill: "#C9B79C" }, svg);
+    el("path", { d: `M${right} ${ground - rise} L640 ${ground - rise} L640 230 L${right} 230 Z`, fill: "#C9B79C" }, svg);
+    if (n > 2) el("path", { d: `M${left} 230 Q320 ${ground + 30} ${right} 230 Z`, fill: "#7FA7D9", opacity: .7 }, svg);
+    else for (let i = 0; i < 3; i++) el("rect", { x: left + 4 + i * (gap / 3), y: ground - rise * (i + 1) / 3, width: gap / 3 - 2, height: 8, rx: 3, fill: "#A98B62" }, svg);
+    el("path", { d: `M${left - 30} ${ground - 40} Q320 ${ground - rise - 70 - n * 4} ${right + 30} ${ground - rise - 40}`, fill: "none", stroke: css("--fi-ink"), "stroke-width": 2, "stroke-dasharray": "6 6" }, svg);
+    const fig = (x, y) => { const g = el("g", { transform: `translate(${x},${y})` }, svg); el("circle", { cx: 0, cy: -34, r: 8, fill: css("--fi-ink") }, g); el("path", { d: "M0 -26 L0 -6 M0 -18 L-10 -10 M0 -18 L10 -12 M0 -6 L-8 8 M0 -6 L8 8", stroke: css("--fi-ink"), "stroke-width": 3, "stroke-linecap": "round", fill: "none" }, g); };
+    fig(left - 30, ground - 8); fig(right + 30, ground - rise - 8);
+    const lvl = n <= 2 ? "Step: smooth and easy" : n <= 4 ? "Skip: comfortable" : n <= 7 ? "Leap: takes aim" : "Big leap: dramatic and tricky";
+    el("text", { x: 320, y: 30, "text-anchor": "middle", "font-size": 24, "font-family": "League Gothic, sans-serif", fill: css("--fi-ink") }, svg).textContent = lvl;
+    $("singDesc").textContent = `${IV[n]}: ${lvl}. A singer must jump a gap ${n <= 2 ? "small enough to step across on stones" : "like a canyon"} to reach the next note.`;
+  }
+  $("singIv").oninput = drawSing; SL("Singing").onshow = drawSing;
+  $("singPlay").onclick = () => { const n = +$("singIv").value; seq([62, 62 + n], .6); };
+
+  // ---------- 7. chords ----------
+  let minor = false;
+  function drawChord(play) {
+    const notes = minor ? ["G", "E♭", "C"] : ["G", "E", "C"], gaps = minor ? ["major 3rd (4)", "minor 3rd (3)"] : ["minor 3rd (3)", "major 3rd (4)"];
+    const st = $("stack"), col = minor ? "#9FB7E8" : "#FFE07A";
+    st.innerHTML = `<div class="blk" style="background:${col}">${notes[0]}</div><div class="gap">${gaps[0]}</div><div class="blk" style="background:${minor ? "#6E8CC9" : "#F7C948"};transform:translateY(${minor ? 6 : 0}px)">${notes[1]}</div><div class="gap">${gaps[1]}</div><div class="blk" style="background:${col}">${notes[2]}</div>`;
+    const mood = $("mood"); mood.className = "mood " + (minor ? "minor" : "major"); mood.innerHTML = minor ? "C minor<br>dark" : "C major<br>bright";
+    mood.setAttribute("aria-label", minor ? "C minor: C, E flat, G. Minor third below a major third. Dark." : "C major: C, E, G. Major third below a minor third. Bright.");
+    $("chFlip").setAttribute("aria-pressed", String(minor)); $("chFlip").textContent = minor ? "Raise the middle note (E♭ → E)" : "Lower the middle note (E → E♭)";
+    if (play) seq([[60, minor ? 63 : 64, 67]], .6);
+  }
+  $("chFlip").onclick = () => { minor = !minor; drawChord(true); };
+  $("chPlay").onclick = () => seq([60, minor ? 63 : 64, 67, [60, minor ? 63 : 64, 67]], .35);
+  drawChord(false);
+
+  // ---------- 8. distance from home ----------
+  const SC = [60, 62, 64, 65, 67, 69, 71, 72], DEG = ["1 (home)", "2nd", "3rd", "4th", "5th", "6th", "7th", "8 (home, an octave up)"];
+  function drawHome(active) {
+    const svg = $("homeSvg"); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    el("path", { d: "M30 170 C 200 140, 420 200, 610 150", fill: "none", stroke: "#C9B79C", "stroke-width": 28, "stroke-linecap": "round" }, svg);
+    SC.forEach((m, i) => {
+      const x = 50 + i * 78, yy = 168 - Math.sin(i / 7 * Math.PI) * 10 - (i === 7 ? 10 : 0);
+      if (i === 0 || i === 7) { el("path", { d: `M${x - 20} ${yy - 4} L${x} ${yy - 26} L${x + 20} ${yy - 4} L${x + 16} ${yy - 4} L${x + 16} ${yy + 14} L${x - 16} ${yy + 14} L${x - 16} ${yy - 4} Z`, fill: active === i ? css("--fi-red") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 2 }, svg); }
+      else el("circle", { cx: x, cy: yy, r: 15, fill: active === i ? css("--fi-red") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 2 }, svg);
+      if ([2, 4, 6].includes(i)) { el("line", { x1: x, y1: yy - 16, x2: x, y2: yy - 80, stroke: css("--fi-ink"), "stroke-width": 2.5 }, svg); el("path", { d: `M${x} ${yy - 80} L${x + 34} ${yy - 70} L${x} ${yy - 60} Z`, fill: [null, null, "#F7C948", null, css("--fi-green"), null, "#9FB7E8"][i], stroke: css("--fi-ink") }, svg); el("text", { x: x + 38, y: yy - 66, "font-size": 13, "font-weight": 700, "font-family": "Barlow Condensed, sans-serif", fill: css("--fi-ink") }, svg).textContent = DEG[i].toUpperCase(); }
+      el("text", { x, y: yy + 5 + (i === 0 || i === 7 ? 4 : 0), "text-anchor": "middle", "font-size": 15, "font-weight": 700, "font-family": "Barlow Condensed, sans-serif", fill: css("--fi-ink") }, svg).textContent = i === 7 ? "8" : String(i + 1);
+      el("text", { x, y: yy + 40, "text-anchor": "middle", "font-size": 14, "font-family": "Literata, serif", fill: css("--fi-muted") }, svg).textContent = NAMES[m % 12];
+    });
+  }
+  $("degBtns").innerHTML = SC.map((m, i) => `<button class="lbtn" type="button" data-deg="${i}">${i === 0 ? "1 Home" : i === 7 ? "8" : DEG[i]}</button>`).join("");
+  $("degBtns").onclick = e => { const b = e.target.closest("[data-deg]"); if (!b) return; const i = +b.dataset.deg, n = SC[i] - 60; drawHome(i); seq(i ? [60, SC[i], [60, SC[i]]] : [60], .5); $("degRead").innerHTML = i ? `${NAMES[SC[i] % 12]} is the ${DEG[i]} above home<small>${n} half steps: a ${IV[n]}</small>` : `C is home, the tonic<small>Everything is measured from here.</small>`; };
+  SL("Distance from home").onshow = () => drawHome(-1);
+
+  // ---------- 9. atonal pitch circle ----------
+  const SHAPES = {
+    "4ths": { pcs: [0, 5, 10, 3, 8], name: "a chord stacked in perfect 4ths (5 half steps each)", play: [48, 53, 58, 63, 68] },
+    cluster: { pcs: [0, 1, 2, 3], name: "a cluster of half steps", play: [60, 61, 62, 63] },
+    aug: { pcs: [0, 4, 8], name: "major 3rds splitting the octave into three equal parts", play: [60, 64, 68, 72] },
+    row: { pcs: [0, 11, 3, 4, 8, 7, 9, 5, 6, 1, 2, 10], name: "a 12-tone row using every pitch once, in an order chosen for its intervals", play: [60, 71, 63, 64, 68, 67, 69, 65, 66, 61, 62, 70], line: true },
+  };
+  let shape = "4ths";
+  function drawAt() {
+    const svg = $("atSvg"), S = SHAPES[shape]; svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    el("rect", { x: 0, y: 0, width: 640, height: 320, fill: "#F1EBF3" }, svg);
+    [[60, 60, 70, "#F7C948"], [560, 260, 50, "#9FB7E8"], [570, 50, 30, css("--fi-red")]].forEach(([x, y, r, c]) => el("rect", { x: x - r, y: y - r, width: r * 2, height: r * 2, fill: c, opacity: .35, transform: `rotate(18 ${x} ${y})` }, svg));
+    const cx = 320, cy = 160, R = 120, P = k => [cx + R * Math.sin(k / 12 * 2 * Math.PI), cy - R * Math.cos(k / 12 * 2 * Math.PI)];
+    el("circle", { cx, cy, r: R, fill: "none", stroke: "#b9a9c2", "stroke-width": 2 }, svg);
+    const pts = S.pcs.map(P);
+    el(S.line ? "polyline" : "polygon", { points: pts.map(p => p.join(",")).join(" "), fill: S.line ? "none" : "rgba(142,69,148,.25)", stroke: css("--fi-purple"), "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    for (let k = 0; k < 12; k++) { const [x, y] = P(k), on = S.pcs.includes(k); el("circle", { cx: x, cy: y, r: on ? 16 : 12, fill: on ? css("--fi-purple") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 1.5 }, svg); el("text", { x, y: y + 5, "text-anchor": "middle", "font-size": 13, "font-weight": 700, "font-family": "Barlow Condensed, sans-serif", fill: on ? "#fff" : css("--fi-ink") }, svg).textContent = NAMES[k]; }
+    $("atDesc").textContent = `Pitch circle of all 12 notes. Highlighted: ${S.pcs.map(k => spoken(NAMES[k])).join(", ")}, ${S.name}.`;
+    document.querySelectorAll("[data-at]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.at === shape)));
+  }
+  document.querySelectorAll("[data-at]").forEach(b => b.onclick = () => { shape = b.dataset.at; drawAt(); $("atPlay").click(); });
+  $("atPlay").onclick = () => { const S = SHAPES[shape]; seq(S.line ? S.play : S.play.concat([S.play]), S.line ? .3 : .38); };
+  SL("Atonal music").onshow = drawAt;
+
+  // ---------- size & quality, stretch & squeeze, spelling ----------
+  const LET = "CDEFGAB", NATS = [0, 2, 4, 5, 7, 9, 11];
+  const AG = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" }, AS = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
+  const SIZE = ["", "unison", "2nd", "3rd", "4th", "5th", "6th", "7th", "octave"];
+  const PERF = new Set([1, 4, 5, 8]), BASE = { 1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11, 8: 12 };
+  const QP = { "-2": ["doubly diminished", "dd"], "-1": ["diminished", "d"], "0": ["perfect", "P"], "1": ["augmented", "A"], "2": ["doubly augmented", "AA"] };
+  const QM = { "-3": ["doubly diminished", "dd"], "-2": ["diminished", "d"], "-1": ["minor", "m"], "0": ["major", "M"], "1": ["augmented", "A"], "2": ["doubly augmented", "AA"] };
+  const nmL = n => LET[n.l] + AG[n.a], nmS = n => LET[n.l] + AS[n.a];
+  const midiL = n => 12 * (n.o + 1) + NATS[n.l] + n.a;
+  function analyze(lo, hi) {
+    const size = (hi.o * 7 + hi.l) - (lo.o * 7 + lo.l) + 1, semis = midiL(hi) - midiL(lo);
+    const q = (PERF.has(size) ? QP : QM)[semis - BASE[size]];
+    return { size, semis, q: q ? q[0] : null, ab: q ? q[1] + (size === 8 ? 8 : size) : "?", name: q ? `${q[0]} ${SIZE[size]}` : `an unusual ${SIZE[size]}` };
+  }
+  const svgText = (svg, x, y, t, o = {}) => { const e = el("text", Object.assign({ x, y, "text-anchor": "middle", "font-family": "Literata, 'Noto Music', serif", "font-size": 18, fill: css("--fi-ink") }, o), svg); e.textContent = t; return e; };
+
+  // Size and quality: pick any bottom and top note
+  const SQ = { lo: { l: 0, a: 0 }, up: 2, ha: 0 };
+  const sqNotes = () => { const lo = { l: SQ.lo.l, a: SQ.lo.a, o: 4 }, step = SQ.lo.l + SQ.up; return [lo, { l: step % 7, a: SQ.ha, o: 4 + Math.floor(step / 7) }]; };
+  function pickBtns(id, items, cur, on) {
+    $(id).innerHTML = items.map(([v, lab, sr]) => `<button type="button" class="pkb" aria-pressed="${v === cur}" data-v="${v}"><span aria-hidden="true">${lab}</span><span class="sr-only">${sr}</span></button>`).join("");
+    $(id).onclick = e => { const b = e.target.closest("[data-v]"); if (b) { on(+b.dataset.v); drawSQ(true); $(id).querySelector(`[data-v="${b.dataset.v}"]`).focus(); } };
+  }
+  const ACCS = [[-1, "♭", "flat"], [0, "♮", "natural"], [1, "♯", "sharp"]];
+  function drawSQ(play) {
+    pickBtns("loL", LET.split("").map((L, i) => [i, L, L]), SQ.lo.l, v => SQ.lo.l = v);
+    pickBtns("loA", ACCS, SQ.lo.a, v => SQ.lo.a = v);
+    pickBtns("hiL", Array.from({ length: 8 }, (_, k) => [k, LET[(SQ.lo.l + k) % 7] + (k === 7 ? "′" : ""), `${LET[(SQ.lo.l + k) % 7]}${k === 7 ? " (octave above)" : ""}`]), SQ.up, v => SQ.up = v);
+    pickBtns("hiA", ACCS, SQ.ha, v => SQ.ha = v);
+    const [lo, hi] = sqNotes(), r = analyze(lo, hi), svg = $("sqSvg"); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    svgText(svg, 20, 28, "LETTERS → SIZE", { "text-anchor": "start", "font-family": "Barlow Condensed, sans-serif", "font-size": 14, "font-weight": 700, fill: css("--fi-muted") });
+    for (let k = 0; k < 8; k++) {
+      const x = 40 + k * 74, on = k < r.size, L = LET[(SQ.lo.l + k) % 7];
+      el("rect", { x: x - 30, y: 38, width: 60, height: 46, rx: 10, fill: on ? "#FFE07A" : css("--fi-card"), stroke: css("--fi-line"), "stroke-width": 1.5 }, svg);
+      svgText(svg, x, 68, k === 0 ? nmL(lo) : k === r.size - 1 ? nmL(hi) : L, { "font-weight": 700 });
+      if (on) svgText(svg, x, 102, String(k + 1), { "font-family": "Barlow Condensed, sans-serif", "font-size": 15, "font-weight": 700, fill: css("--fi-red-dk") });
+    }
+    svgText(svg, 20, 136, "HALF STEPS → QUALITY", { "text-anchor": "start", "font-family": "Barlow Condensed, sans-serif", "font-size": 14, "font-weight": 700, fill: css("--fi-muted") });
+    const n = Math.max(0, r.semis), w = Math.min(44, 560 / Math.max(1, n));
+    for (let k = 0; k < n; k++) { el("rect", { x: 40 + k * w, y: 148, width: w - 3, height: 26, rx: 5, fill: "#9FB7E8", stroke: css("--fi-navy"), "stroke-width": 1 }, svg); svgText(svg, 40 + k * w + (w - 3) / 2, 166, String(k + 1), { "font-size": 12, "font-family": "Barlow Condensed, sans-serif", "font-weight": 700 }); }
+    svgText(svg, 40 + n * w + 8, 167, `${r.semis} half step${r.semis === 1 ? "" : "s"}`, { "text-anchor": "start", "font-family": "Barlow Condensed, sans-serif", "font-size": 16, "font-weight": 700 });
+    $("sqRead").innerHTML = `${nmL(lo)} up to ${nmL(hi)}: <span style="color:var(--fi-red-dk)">${r.name}</span> (${r.ab})<small>${r.size} letter${r.size > 1 ? "s" : ""} = ${SIZE[r.size]}; ${r.semis} half steps = ${r.q || "an unusual quality"}</small>`;
+    $("sqDesc").textContent = `${nmS(lo)} up to ${nmS(hi)} spans ${r.size} letter names (a ${SIZE[r.size]}) and ${r.semis} half steps, so it is a ${r.name}.`;
+    if (play) seq([midiL(lo), midiL(hi), [midiL(lo), midiL(hi)]], .5);
+  }
+  $("sqPlay").onclick = () => { const [lo, hi] = sqNotes(); seq([midiL(lo), midiL(hi), [midiL(lo), midiL(hi)]], .5); };
+  SL("Size and quality").onshow = () => drawSQ(false);
+
+  // Stretch and squeeze: fixed bottom C, change the top note's accidental
+  const SS = { size: 3, a: 0 };
+  const ssTop = () => { const step = SS.size - 1; return { l: step % 7, a: SS.a, o: 4 + Math.floor(step / 7) }; };
+  const ssRange = () => { const fam = PERF.has(SS.size) ? QP : QM, lo = { l: 0, a: 0, o: 4 }, out = []; for (let a = -2; a <= 2; a++) { const t = { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }, r = analyze(lo, t); if (r.q && !/doubly/.test(r.q)) out.push(a); } return out; };
+  $("ssSizes").innerHTML = [2, 3, 4, 5, 6, 7, 8].map(z => `<button type="button" class="lbtn" data-sz="${z}" aria-pressed="false">${SIZE[z]}</button>`).join("");
+  $("ssSizes").onclick = e => { const b = e.target.closest("[data-sz]"); if (!b) return; SS.size = +b.dataset.sz; SS.a = ssRange().find(a => analyze({ l: 0, a: 0, o: 4 }, { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }).semis === BASE[SS.size]) ?? 0; drawSS(true); };
+  function drawSS(play) {
+    document.querySelectorAll("[data-sz]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.sz === SS.size)));
+    const lo = { l: 0, a: 0, o: 4 }, svg = $("ssSvg"), rng = ssRange(); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    const fam = PERF.has(SS.size), boxes = rng.map(a => ({ a, r: analyze(lo, { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }) }));
+    const W = 560 / boxes.length;
+    svgText(svg, 320, 26, fam ? "PERFECT FAMILY: diminished ← PERFECT → augmented" : "MAJOR/MINOR FAMILY: diminished ← minor ← MAJOR → augmented", { "font-family": "Barlow Condensed, sans-serif", "font-size": 16, "font-weight": 700, fill: css("--fi-muted") });
+    boxes.forEach((b, i) => {
+      const x = 40 + i * W, cur = b.a === SS.a, mid = b.r.semis === BASE[SS.size];
+      el("rect", { x, y: 46, width: W - 14, height: 150, rx: 14, fill: cur ? (b.r.q === "major" || b.r.q === "perfect" ? "#FFE07A" : b.r.q === "minor" ? "#9FB7E8" : b.r.q === "augmented" ? "#F3B3A5" : "#C9B7D6") : css("--fi-card"), stroke: cur ? css("--fi-ink") : css("--fi-soft"), "stroke-width": cur ? 3 : 1.5 }, svg);
+      svgText(svg, x + (W - 14) / 2, 84, b.r.q, { "font-family": "League Gothic, sans-serif", "font-size": 30 });
+      svgText(svg, x + (W - 14) / 2, 118, `C–${nmL({ l: (SS.size - 1) % 7, a: b.a })}`, { "font-size": 22, "font-weight": 700 });
+      svgText(svg, x + (W - 14) / 2, 148, `${b.r.semis} half steps`, { "font-family": "Barlow Condensed, sans-serif", "font-size": 16 });
+      svgText(svg, x + (W - 14) / 2, 178, b.r.ab, { "font-family": "Barlow Condensed, sans-serif", "font-size": 20, "font-weight": 700, fill: css("--fi-red-dk") });
+      if (i < boxes.length - 1) svgText(svg, x + W - 7, 125, "↔", { "font-size": 18, fill: css("--fi-muted") });
+    });
+    const t = ssTop(), r = analyze(lo, t);
+    $("ssRead").innerHTML = `C–${nmL(t)}: ${r.name}<small>Still a ${SIZE[SS.size]} (the letters C and ${LET[t.l]} don't change); ${r.semis} half steps.</small>`;
+    $("ssDesc").textContent = `${fam ? "Perfect" : "Major and minor"} family of ${SIZE[SS.size]}s above C: ${boxes.map(b => `C to ${nmS({ l: (SS.size - 1) % 7, a: b.a })} is ${b.r.name}, ${b.r.semis} half steps`).join("; ")}. Currently showing ${r.name}.`;
+    $("ssDown").disabled = SS.a <= rng[0]; $("ssUp").disabled = SS.a >= rng[rng.length - 1];
+    if (play) seq([60, midiL(t), [60, midiL(t)]], .5);
+  }
+  $("ssDown").onclick = () => { const r = ssRange(); if (SS.a > r[0]) { SS.a--; drawSS(true); } };
+  $("ssUp").onclick = () => { const r = ssRange(); if (SS.a < r[r.length - 1]) { SS.a++; drawSS(true); } };
+  $("ssPlay").onclick = () => { const t = ssTop(); seq([60, midiL(t), [60, midiL(t)]], .5); };
+  SL("Stretch and squeeze").onshow = () => drawSS(false);
+
+  // Spelling counts: enharmonic intervals and enharmonic scale spellings
+  const PAIRS = [[[0, 0], [1, 1], [2, -1]], [[3, 0], [4, 1], [5, -1]], [[0, 0], [3, 1], [4, -1]], [[4, 0], [5, 1], [6, -1]], [[0, 0], [6, 0], [0, -1, 1]]];
+  let pairI = 0;
+  $("enPairs").innerHTML = PAIRS.map((p, i) => { const lo = { l: p[0][0], a: p[0][1] }, a = { l: p[1][0], a: p[1][1] }, b = { l: p[2][0], a: p[2][1] }; return `<button type="button" class="lbtn" data-pair="${i}" aria-pressed="${i === 0}">${nmL(lo)}–${nmL(a)} or ${nmL(lo)}–${nmL(b)}</button>`; }).join("");
+  function enCard(lo, top) {
+    const r = analyze(lo, top), n = r.size, letters = Array.from({ length: n }, (_, k) => LET[(lo.l + k) % 7]);
+    letters[0] = nmL(lo); letters[n - 1] = nmL(top);
+    return `<div class="ecard"><b>${nmL(lo)} – ${nmL(top)}</b><div class="lets">${letters.map((L, k) => `<span>${L}<i>${k + 1}</i></span>`).join("")}</div><p>${n} letters → <b>${SIZE[n]}</b><br>${r.semis} half steps → <b style="color:var(--fi-red-dk)">${r.name} (${r.ab})</b></p></div>`;
+  }
+  function drawPair(play) {
+    const p = PAIRS[pairI], lo = { l: p[0][0], a: p[0][1], o: 4 };
+    const mk = q => ({ l: q[0], a: q[1], o: 4 + (q[2] || 0) + (q[0] < p[0][0] ? 1 : 0) });
+    const A = mk(p[1]), B = mk(p[2]);
+    $("enhBox").innerHTML = enCard(lo, A) + `<div class="eq" aria-hidden="true">=<small>same sound</small></div>` + enCard(lo, B) + `<div class="row" style="grid-column:1/-1"><button type="button" class="lbtn primary" id="enPlay">▶ Play both: they sound identical</button></div>`;
+    document.querySelectorAll("[data-pair]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.pair === pairI)));
+    $("enPlay").onclick = () => seq([[midiL(lo), midiL(A)], [midiL(lo), midiL(B)]], .9);
+    if (play) $("enPlay").click();
+  }
+  $("enPairs").onclick = e => { const b = e.target.closest("[data-pair]"); if (b) { pairI = +b.dataset.pair; drawPair(true); } };
+  const SCALES = [
+    ["E major", "E F♯ G♯ A B C♯ D♯ E", "E G♭ A♭ A B D♭ E♭ E", [64, 66, 68, 69, 71, 73, 75, 76]],
+    ["A harmonic minor", "A B C D E F G♯ A", "A B C D E F A♭ A", [57, 59, 60, 62, 64, 65, 68, 69]],
+    ["C natural minor", "C D E♭ F G A♭ B♭ C", "C D D♯ F G G♯ A♯ C", [60, 62, 63, 65, 67, 68, 70, 72]],
+    ["B major", "B C♯ D♯ E F♯ G♯ A♯ B", "B D♭ E♭ E G♭ A♭ B♭ B", [59, 61, 63, 64, 66, 68, 70, 71]],
+  ];
+  let scI = 0;
+  $("scBtns").innerHTML = SCALES.map((s, i) => `<button type="button" class="lbtn" data-sc="${i}" aria-pressed="${i === 0}">${s[0]}</button>`).join("");
+  function scRow(spelling, good) {
+    const ns = spelling.split(" "), letters = ns.slice(0, 7).map(n => n[0]), dup = letters.filter((L, i) => letters.indexOf(L) !== i), miss = LET.split("").filter(L => !letters.includes(L));
+    return `<div class="scrow ${good ? "ok" : "bad"}"><p class="sclab">${good ? "✓ Each letter once" : `✗ ${dup.length ? `repeats ${[...new Set(dup)].join(", ")}` : ""}${dup.length && miss.length ? "; " : ""}${miss.length ? `skips ${miss.join(", ")}` : ""}`}</p><div class="lets">${ns.map((n, k) => `<span class="${!good && k < 7 && (dup.includes(n[0]) && letters.indexOf(n[0]) !== k) ? "x" : ""}">${n}<i>${k === 7 ? 8 : k + 1}</i></span>`).join("")}</div></div>`;
+  }
+  function drawScale(play) {
+    const s = SCALES[scI];
+    document.querySelectorAll("[data-sc]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.sc === scI)));
+    $("scBox").innerHTML = scRow(s[1], true) + scRow(s[2], false) + `<p class="note" style="grid-column:1/-1">Both rows sound exactly the same. Only the top spelling shows each note as the right scale degree, so every interval above the tonic has the right size (2nd, 3rd, 4th…).</p><div class="row" style="grid-column:1/-1"><button type="button" class="lbtn primary" id="scPlay">▶ Play the scale</button></div>`;
+    $("scPlay").onclick = () => seq(s[3], .3);
+    if (play) $("scPlay").click();
+  }
+  $("scBtns").onclick = e => { const b = e.target.closest("[data-sc]"); if (b) { scI = +b.dataset.sc; drawScale(true); } };
+  SL("Spelling counts").onshow = () => { drawPair(false); drawScale(false); };
+
+  // ---------- quick check ----------
+  const QZ = [
+    ["An interval is…", ["the distance between two notes", "the speed of a melody", "a kind of chord"], 0, "Musicians measure sound in intervals, the way we measure space in inches."],
+    ["When a song is moved to a new key, its intervals…", ["stay exactly the same", "all get bigger", "flip direction"], 0, "The notes change, but the distances between them don't, so the tune is still recognizable."],
+    ["Inverting a melody's intervals means…", ["keeping the sizes but flipping up and down", "playing it backwards", "making every interval an octave"], 0, "Every up becomes a down and every down an up."],
+    ["An interval's size (3rd, 5th…) is found by counting…", ["letter names", "half steps", "black keys"], 0, "Count letters for the size; count half steps for the quality."],
+    ["C–D♯ and C–E♭ sound the same. What are they?", ["an augmented 2nd and a minor 3rd", "both minor 3rds", "both augmented 2nds"], 0, "Spelling counts: C–D♯ spans two letters, C–E♭ three."],
+    ["A perfect 5th made one half step larger becomes…", ["augmented", "major", "minor"], 0, "Perfect intervals become augmented or diminished, never major or minor."],
+    ["Lowering the middle note of a major triad a half step makes it…", ["minor", "augmented", "an octave"], 0, "Major 3rd + minor 3rd becomes minor 3rd + major 3rd."],
+    ["After a big upward leap, a melody usually…", ["comes back down, often by step", "leaps up again", "stops"], 0, "The stretch wants to resolve in the opposite direction."],
+  ];
+  $("quiz").innerHTML = `<h3 class="readout" style="margin:6px 0 0">Quick check</h3>` + QZ.map((q, i) => `<div class="q" role="group" aria-labelledby="qz${i}"><p id="qz${i}"><b>${i + 1}.</b> ${q[0]}</p><div class="opts">${q[1].map((o, j) => ({ o, j })).sort((a, b) => ((a.j * 7 + i * 3) % 5) - ((b.j * 7 + i * 3) % 5)).map(({ o, j }) => `<button class="opt" type="button" data-q="${i}" data-o="${j}">${o}</button>`).join("")}</div><p class="fbk" id="qf${i}" aria-live="polite"></p></div>`).join("");
+  $("quiz").onclick = e => {
+    const b = e.target.closest(".opt"); if (!b || b.disabled) return; const i = +b.dataset.q, j = +b.dataset.o, q = QZ[i], ok = j === q[2];
+    b.parentNode.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (+x.dataset.o === q[2]) x.classList.add("right"); });
+    if (!ok) b.classList.add("wrong");
+    if (window.SFX) SFX.play(ok);
+    $("qf" + i).textContent = (ok ? "Yes! " : "Not quite. ") + q[3];
+  };
+
+  let start = 0; try { start = +localStorage.getItem("silverapps-intervals-step") || 0; } catch (e) {}
+  go(start, false);
+})();
+</script>

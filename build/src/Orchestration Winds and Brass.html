@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Winds &amp; Brass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;800&family=JetBrains+Mono:wght@500&family=Noto+Music&display=swap">
+<style>
+/* Layout: one practice card under a slim header (prompt → answer controls → feedback); settings and reference fold away below it. */
+:root {
+  --bg: #E8ECF1;
+  --surface: #FBFCFD;
+  --field: #F1F4F8;
+  --ink: #141A24;
+  --muted: #586376;
+  --line: #C9D1DC;
+  --brass: #9C6110;
+  --brass-soft: #F4E6CC;
+  --on-brass: #FFFFFF;
+  --good: #176845;
+  --good-soft: #D5EEE1;
+  --bad: #B3352E;
+  --bad-soft: #F7DCD9;
+  --warn: #8A5B00;
+  --warn-soft: #F6EBCB;
+  --display: "Big Shoulders Display", "Noto Music", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Noto Music", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "Noto Music", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+    --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+    --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+  --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+  --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.skip { position: absolute; left: 8px; top: -60px; background: var(--brass); color: var(--on-brass); padding: 10px 14px; border-radius: 8px; font-weight: 700; z-index: 10; }
+.skip:focus { top: 8px; }
+
+.wrap-aside { display: grid; gap: 14px; }
+.credit { text-align: center; color: var(--muted); font-size: .8125rem; letter-spacing: .02em; padding-top: 6px; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 56px; display: grid; gap: 14px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2.5rem; line-height: .95; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; max-width: 46ch; }
+.score { display: flex; gap: 18px; font-variant-numeric: tabular-nums; }
+.score div { display: grid; justify-items: end; line-height: 1; }
+.score b { font-family: var(--display); font-weight: 800; font-size: 1.9rem; }
+.score small { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: 4px; }
+.score-reset { align-self: center; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; min-height: 44px; min-width: 44px; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.score-reset.armed { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+
+.play-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.play { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--brass); background: transparent; color: var(--brass); border-radius: 99px; padding: 8px 16px; min-height: 44px; font-weight: 700; font-size: .9rem; }
+.play svg { width: 12px; height: 12px; fill: currentColor; }
+.play:active { background: var(--brass-soft); }
+.answer .play-row { justify-content: flex-start; }
+
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+.modes button { border: 0; background: transparent; border-radius: 9px; padding: 9px 10px; display: grid; gap: 1px; text-align: center; min-height: 44px; }
+.modes button b { font-family: var(--display); font-weight: 800; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+.modes button small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.modes button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.kicker { margin: 0; font-family: var(--mono); font-weight: 500; font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.kicker:focus { outline: none; }
+.kicker:focus-visible { outline: 3px solid var(--brass); outline-offset: 4px; }
+.prompt { min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.big { font-family: var(--display); font-weight: 800; line-height: 1; font-size: clamp(2.6rem, 11vw, 4.4rem); text-wrap: balance; }
+.big .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: .8em; }
+.q-text { font-size: 1.3rem; font-weight: 700; line-height: 1.6; max-width: 34ch; text-wrap: balance; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+
+.staff { width: min(100%, 470px); }
+.staff svg { display: block; width: 100%; height: auto; }
+.staff-msg { color: var(--muted); font-size: .9rem; padding: 40px 0; }
+
+.hint { background: var(--brass-soft); border-radius: 10px; padding: 10px 14px; font-size: .95rem; }
+.mono { font-family: var(--mono); font-size: .92em; }
+/* Scale-degree caret drawn in CSS: the combining circumflex renders unevenly across fonts. */
+.sd { position: relative; display: inline-block; }
+.sd::before { content: "^"; position: absolute; left: 50%; top: -.55em; transform: translateX(-50%); font-size: .8em; font-weight: 400; }
+
+.field label { display: block; font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 6px; }
+.field input { width: 100%; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; font-family: var(--mono); font-size: 1.2rem; }
+.field input:focus { border-color: var(--brass); outline: none; }
+.field input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.field .help { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+
+.pad { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.pad button { min-height: 44px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; padding: 0 2px; }
+.pad button.accb { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.25rem; }
+.pad button.util { font-family: var(--body); font-weight: 700; font-size: .85rem; color: var(--muted); }
+.pad button:active { background: var(--brass-soft); }
+
+.choices { display: grid; gap: 12px; }
+.choice-group { display: grid; gap: 6px; }
+.choice-group > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.choice-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.choice-row.wide { grid-template-columns: 1fr; }
+.choice-row.sig { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.choice { position: relative; min-height: 48px; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; font-weight: 700; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.choice-row.sig .choice { justify-content: center; text-align: center; padding: 6px 2px; font-family: var(--display); font-size: 1.25rem; }
+.choice-row.sig .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.1rem; }
+.choice:hover:not(:disabled) { border-color: var(--brass); }
+.choice:active:not(:disabled) { background: var(--brass-soft); }
+.choice.right { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.choice:disabled:not(.right):not(.wrong) { color: var(--muted); }
+.choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { font-family: var(--mono); font-size: .8125rem; white-space: nowrap; }
+.choice-row.sig .choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { position: absolute; top: 1px; right: 4px; font-size: .75rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 16px; font-weight: 700; min-height: 44px; }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--on-brass); min-width: 110px; }
+.btn.ghost { margin-left: auto; }
+
+.feedback { display: grid; gap: 12px; }
+.feedback:empty { display: none; }
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 700; }
+.pill { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; padding: 4px 9px; border-radius: 99px; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.note-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--display); font-weight: 800; font-size: 1.25rem; padding: 2px 10px; border-radius: 8px; }
+.chip.ok { background: var(--good-soft); color: var(--good); }
+.chip.enh { background: var(--warn-soft); color: var(--warn); }
+.chip.no { background: var(--bad-soft); color: var(--bad); }
+.legend { font-size: .9rem; color: var(--muted); margin: 0; }
+.explain { margin: 0; max-width: 62ch; }
+
+#answerBox:empty { display: none; }
+.answer { display: grid; gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.answer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.answer-head h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.answer .staff { width: min(100%, 470px); }
+.degs { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 4px; }
+.deg { border-top: 3px solid var(--line); padding-top: 6px; text-align: center; min-width: 0; }
+.deg i { display: block; font-style: normal; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.deg.char i { color: var(--brass); font-weight: 700; }
+.deg.char i::after { content: "*"; }
+.deg b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.15; }
+.deg.ok { border-color: var(--good); }
+.deg.enh { border-color: var(--warn); }
+.deg.miss { border-color: var(--bad); }
+.deg em { display: block; font-style: normal; font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; }
+
+details.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+details.panel summary { padding: 14px 18px; min-height: 44px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+details.panel summary::-webkit-details-marker { display: none; }
+details.panel summary::after { content: "+"; font-family: var(--mono); color: var(--muted); }
+details.panel[open] summary::after { content: "−"; }
+.panel-body { padding: 0 18px 18px; display: grid; gap: 16px; }
+.panel-body h2 { margin: 6px 0 0; font-size: 1rem; }
+.set-row { display: grid; gap: 8px; }
+.set-row > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.tog { border: 1px solid var(--line); background: var(--field); border-radius: 99px; padding: 7px 14px; min-height: 44px; font-size: .92rem; }
+.tog[aria-pressed="true"] { background: var(--brass-soft); border-color: var(--brass); color: var(--ink); font-weight: 700; }
+.tog[aria-pressed="true"]::before { content: "✓ "; }
+.tog small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); margin-left: 4px; }
+.set-note { font-size: .85rem; color: var(--muted); margin: 0; }
+.reset { justify-self: start; background: none; border: 0; padding: 0 4px; min-height: 44px; min-width: 44px; color: var(--muted); text-decoration: underline; font-size: .88rem; }
+
+.rules { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 64ch; }
+.rules li::marker { color: var(--brass); }
+.ref { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ref caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+.ref th, .ref td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ref th[scope="col"] { font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 500; }
+.ref td.mono { white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.ref-dialog { width: min(720px, calc(100vw - 24px)); max-height: calc(100vh - 32px); border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.ref-dialog::backdrop { background: rgba(10, 14, 20, .55); }
+.ref-dialog[open] { display: grid; gap: 12px; }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: -18px; background: var(--surface); padding-block: 4px; }
+.dlg-head h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; line-height: 1.05; }
+@media (max-width: 420px) { .ref-dialog { padding: 14px; } .dlg-head { top: -14px; } .dlg-head h2 { font-size: 1.15rem; } }
+/* Narrow screens: each scale becomes a small stacked card instead of a wide row. */
+@media (max-width: 560px) {
+  .ref thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ref, .ref tbody, .ref tr, .ref th, .ref td { display: block; }
+  .ref tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .ref th, .ref td { border: 0; padding: 1px 0; }
+  .ref td { display: grid; grid-template-columns: 7.5em 1fr; gap: 8px; }
+  .ref td::before { content: attr(data-label); font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 2px; }
+  .ref td.mono { white-space: normal; }
+}
+
+@media (max-width: 420px) {
+  .card { padding: 16px; }
+  .brand h1 { font-size: 2.1rem; }
+  .deg b { font-size: 1.15rem; }
+  .btn.ghost { margin-left: 0; }
+  .choice-row { grid-template-columns: 1fr 1fr; }
+  .choice-row.wide { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .prompt > * { animation: rise .28s ease-out both; }
+  @keyframes rise { from { transform: translateY(6px); opacity: .4; } to { transform: none; opacity: 1; } }
+}
+@media (forced-colors: active) {
+  .choice.right, .choice.wrong, .tog[aria-pressed="true"], .modes button[aria-pressed="true"] { border: 3px solid CanvasText; }
+}
+/* Instrument Transpositions additions */
+.ins { display: inline-block; font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1; text-wrap: balance; }
+.staff.solo { width: min(100%, 240px); }
+.choice-row.notes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-row.notes .choice { justify-content: center; text-align: center; font-family: var(--display); font-size: 1.5rem; }
+.choice-row.notes .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.2rem; }
+.pair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.pair figure { margin: 0; display: grid; justify-items: center; gap: 2px; width: min(46%, 220px); }
+.pair .staff { width: 100%; }
+.pair figcaption { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
+.pair .arrow { font-size: 1.6rem; color: var(--muted); }
+.ref + .ref, .table-wrap + .table-wrap { margin-top: 14px; }
+@media (max-width: 420px) { .choice-row.notes { grid-template-columns: 1fr 1fr; } .pair figure { width: 100%; } .pair .arrow { display: none; } }
+
+.nw { white-space: nowrap; }
+
+.q-text { max-width: 44ch; }
+.choice-row.wide .choice { text-align: left; }
+.picker { display: grid; gap: 10px; }
+.pk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pk-lab { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); min-width: 6.5em; }
+.pk { min-width: 44px; min-height: 44px; border: 2px solid var(--line); background: var(--field); border-radius: 10px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.pk .acc { font-family: "Noto Music", var(--body); font-weight: 400; }
+.pk.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pk.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.pk.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.pk-now { margin-right: auto; }
+@media (max-width: 420px) { .pk-lab { min-width: 100%; } }
+
+@media (min-width: 640px) { .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }
+.modes.m3 button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#practice">Skip to the practice question</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Winds &amp; Brass</h1>
+      <p>Woodwind and brass families: how each instrument works and sounds, score order and scoring shorthand, valves and the harmonic series, and mutes and techniques.</p>
+    </div>
+    <div class="score">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <nav class="modes m4" aria-label="Practice mode">
+    <button data-mode="inst" aria-pressed="true"><b>Instruments</b><small><span aria-hidden="true">flute → tuba</span><span class="sr">: woodwind and brass instruments and their registers</span></small></button>
+    <button data-mode="order" aria-pressed="false"><b>Score order</b><small><span aria-hidden="true">2, 2, 2, 2 – 4, 2, 3, 1</span><span class="sr">: score order, doubling and scoring shorthand</span></small></button>
+    <button data-mode="brass" aria-pressed="false"><b>Brass</b><small><span aria-hidden="true">valves · partials</span><span class="sr">: valves, slide positions and the harmonic series</span></small></button>
+    <button data-mode="color" aria-pressed="false"><b>Mutes &amp; effects</b><small><span aria-hidden="true">straight · cup · Harmon</span><span class="sr">: brass mutes and wind techniques</span></small></button>
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+      <div class="set-row" role="group" aria-labelledby="grp3"><span id="grp3">Sound</span>
+        <div class="toggles" id="autoToggles">
+          <button class="tog" data-auto="1">Play the sound after each answer</button>
+          <button class="tog" data-auto="0">Only when I tap Play</button>
+        </div>
+      </div>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"><li><b>Score order:</b> flutes, oboes, clarinets, bassoons, then horns, trumpets, trombones, tuba. Auxiliaries sit next to their family by size.</li><li><b>Valves:</b> 1 lowers a M2, 2 a m2, 3 a m3; 1+3 a P4; 1+2+3 a tritone. The lips choose the partial.</li><li><b>Mutes</b> change color and volume; allow up to 10 seconds to put one in.</li></ol></div>
+  </details>
+  </aside>
+  <footer class="credit">App by Adam Silverman</footer>
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script>
+window.FAM = (() => {
+  const F = (q, a, w, why) => ({ q, a, w, why });
+  const INST = [
+    F("Which woodwinds make their sound without a reed or buzzing lips?", "the flute family", ["the oboe family", "the clarinet family", "the saxophone family"], "Air is directed across the embouchure hole, free of a mouthpiece."),
+    F("“Flute” on its own means…", "the C flute", ["the alto flute", "the piccolo", "any member of the flute family"], "Piccolo and alto flute are its auxiliaries."),
+    F("The most common auxiliary instrument in the orchestra is the…", "piccolo", ["English horn", "bass clarinet", "contrabassoon"], "It's virtually a half-size flute sounding an octave higher."),
+    F("The piccolo's lowest written note is…", "D4", ["C4", "B3", "E4"], "The flute goes down to C4 (or B3 with a B foot)."),
+    F("Where is the flute weakest?", "in its lowest register", ["in its top octave", "in the middle of the staff", "it's equally strong throughout"], "Notes in the staff or below add little to a full tutti."),
+    F("Compared with other winds, the flute needs…", "more air and more breaths", ["less air than any other wind", "no breaths in long phrases", "circular breathing"], "Overlapping two flutes can make an endless line."),
+    F("The oboe's dynamic shape is the inverse of the flute's: its basic volume…", "diminishes as it goes higher", ["grows as it goes higher", "is the same in every register", "is loudest at the very top"], "Its overall dynamic range is relatively limited."),
+    F("What makes the oboe's sound so distinctive?", "its double reed", ["its single reed", "its conical brass body", "its wide bell"], "Oboists spend much of their lives making and adjusting reeds."),
+    F("Why can an oboist sustain such long lines?", "the oboe uses far less air than normal breathing", ["the oboe has a breath reservoir", "the oboist breathes through the nose while playing", "the reed stores air"], "Players must exhale stale air as well as inhale during breaks."),
+    F("The English horn is pitched…", "a perfect fifth below the oboe", ["an octave below the oboe", "a fourth below the oboe", "a major second below the oboe"], "It's neither a horn nor English; the English call it cor anglais."),
+    F("The English horn's lowest written note is…", "B3", ["B♭3", "C4", "A3"], "The B♭ key would fall where the d'amore bell is."),
+    F("The bulb-shaped bell of the English horn is called…", "a d'amore bell", ["a bocal", "a crook", "a bell flare"], "The metal pipe connecting reed to body is a bocal (also on bassoons)."),
+    F("Clarinets have a cylindrical bore, which favors…", "the odd partials of the harmonic series", ["the even partials", "only the fundamental", "no partials at all"], "The strong 3rd partial gives the clarinet its smooth, hollow sound."),
+    F("The clarinet overblows at the…", "twelfth", ["octave", "fifth", "double octave"], "Flutes, oboes, saxophones and bassoons overblow at the octave."),
+    F("The clarinet's low register, from written E3 to about F4, is called the…", "chalumeau register", ["clarion register", "altissimo register", "throat register"], "Dark, rich and hollow."),
+    F("The least colorful notes of the clarinet, just above the chalumeau, are the…", "throat tones", ["clarion tones", "pedal tones", "altissimo tones"], "Good players and instruments minimize this pocket."),
+    F("Which woodwind can begin a note from nothing (niente) and play at the threshold of audibility?", "clarinet", ["oboe", "bassoon", "piccolo"], "Its dynamic range practically doubles that of other woodwinds except saxophones."),
+    F("On the clarinet, which kind of leap is nearly impossible to slur?", "downward leaps of a 10th or more", ["upward leaps of a 10th", "any step", "octave leaps up"], "Slurring large skips upward is no problem."),
+    F("Why did orchestras use clarinets in both B♭ and A?", "one for flat keys and one for sharp keys", ["one for loud and one for soft music", "one for solo and one for section playing", "to cover a wider range"], "Most professional clarinetists own both."),
+    F("The saxophone is classed as a woodwind because…", "it uses a single reed", ["it is made of wood", "it has a cylindrical bore", "it has valves"], "All saxophones are made of brass."),
+    F("Who invented the whole saxophone family around 1840?", "Adolphe Sax", ["Theobald Boehm", "Hector Berlioz", "Johann Denner"], "The entire family appeared at once, so it is unusually consistent."),
+    F("The common saxophone quartet is…", "B♭ soprano, E♭ alto, B♭ tenor, E♭ baritone", ["E♭ sopranino, B♭ soprano, E♭ alto, B♭ bass", "C soprano, F alto, C tenor, F baritone", "B♭ alto, E♭ tenor, B♭ baritone, E♭ bass"], "B♭ bass, E♭ sopranino and E♭ contrabass are rarer."),
+    F("Saxophones blend especially well with…", "brass", ["percussion", "harp", "voices only"], "In bands they bridge the woodwinds and brass."),
+    F("Bassoons are…", "double-reed, conical-bore instruments", ["single-reed, cylindrical-bore instruments", "edge-tone instruments", "brass instruments with a reed"], "Less nasal and more relaxed than the oboes."),
+    F("The bassoon's high register is preferably written in…", "tenor clef", ["alto clef", "treble 8vb clef", "percussion clef"], "Treble clef is becoming more common; bassoonists read bass-clef ledger lines up to B4."),
+    F("The contrabassoon sounds…", "an octave lower than written", ["as written", "a fifth lower than written", "two octaves lower than written"], "It plays lower than any orchestral instrument except the piano (by one semitone)."),
+    F("Which woodwind has the narrowest dynamic range?", "bassoon", ["clarinet", "saxophone", "flute"], "Its timbre is almost always attractive, adding warmth to any context."),
+    F("Woodwind keys raise the pitch by…", "opening tone holes, shortening the air column", ["adding tubing", "tightening the reed", "changing the mouthpiece"], "Brass valves do the opposite: they add tubing."),
+    F("All brass instruments make their sound by…", "buzzing the lips into a mouthpiece", ["vibrating a reed", "blowing across an edge", "striking the bell"], "The flaring bell amplifies the sound and helps upper partials."),
+    F("Which brass instruments have proportionally more conical tubing, giving a darker sound?", "horns and tubas", ["trumpets and trombones", "trumpets and tubas", "cornets and trombones"], "Trumpets and trombones are more cylindrical."),
+    F("The horn mouthpiece is…", "funnel-shaped", ["a deep cup", "a shallow cup", "a reed"], "Other brass mouthpieces have cups; shallow cups sound brighter."),
+    F("All modern horn parts are written in…", "F, sounding a perfect fifth lower", ["B♭, sounding a major second lower", "C, at concert pitch", "E♭, sounding a major sixth lower"], "Bass clef is used for the lowest notes."),
+    F("Horns 1 and 3 are traditionally the…", "high horns (2 and 4 are the low horns)", ["low horns", "solo horns", "stopped horns"], "The pairs come from writing two pairs of horns in different keys."),
+    F("Which brass instrument is generally the most tiring to play?", "horn", ["tuba", "trombone", "euphonium"], "Orchestras often hire an assistant principal horn."),
+    F("Which is arguably the loudest, most powerful orchestral instrument (organ and some percussion aside)?", "trumpet", ["horn", "trombone", "piccolo"], "A single trumpet at f in its middle-high register can always be heard."),
+    F("The default trumpets today are…", "B♭ and C trumpets", ["F and E♭ trumpets", "D and A trumpets", "bass and piccolo trumpets"], "B♭ is slightly fuller, C slightly brighter."),
+    F("Cornet and flugelhorn are mellower than the trumpet because…", "they have more conical tubing", ["they are made of wood", "they use a double reed", "they have no valves"], "The flugelhorn is completely conical except the valve tubing."),
+    F("The trombone's slide has how many positions?", "seven, spanning a tritone", ["five, spanning a fourth", "three, spanning a minor third", "twelve, spanning an octave"], "It allows complete control of intonation and glissandos up to a tritone."),
+    F("The F attachment on a trombone lowers the first-position fundamental from B♭1 to…", "F1", ["E♭1", "C1", "G1"], "It adds a third more tubing and makes the low E♭2 to C2 available."),
+    F("The standard orchestral trombone section is…", "two tenor trombones and one bass trombone", ["three tenor trombones", "alto, tenor and bass trombones", "two bass trombones and a tuba"], "“Trombone” alone means tenor trombone."),
+    F("Pedal tones are more effective on which brass instrument than any other?", "trombone", ["trumpet", "horn", "piccolo trumpet"], "Easier still on bass trombone than tenor."),
+    F("The heart of the tuba's range is about…", "C2 to G3", ["C4 to G5", "C1 to G1", "C3 to G4"], "Its lowest octave responds slowly."),
+    F("The euphonium has exactly the same range as…", "the tenor trombone", ["the horn", "the tuba", "the trumpet"], "It's sometimes called tenor tuba in orchestral scores."),
+    F("Which needs the most air of the brass?", "tuba", ["trumpet", "horn", "piccolo trumpet"], "A tuba player breathes about twice as often as a trumpet or horn player."),
+  ];
+  const COLOR = [
+    F("Which brass mute is by far the most common, and works at any dynamic?", "straight mute", ["cup mute", "Harmon mute", "plunger"], "It gives a reedy, edgy tone, especially insistent at f."),
+    F("Which mute gives a darker, mellower tone that blends with woodwinds and strings?", "cup mute", ["straight mute", "Harmon mute", "solotone mute"], "The cup catches the sound after it leaves the bell."),
+    F("Which mute is filled with sound-absorbing material and clips onto the bell?", "bucket mute", ["cup mute", "practice mute", "straight mute"], "It sounds like an echo, stripped of brilliance."),
+    F("Which mute is held in front of the bell for “wah-wah” effects?", "plunger", ["straight mute", "bucket mute", "stopping mute"], "A plumber's helper without the handle."),
+    F("The Harmon mute with the stem removed sounds…", "extremely stuffy and focused", ["bright and metallic", "exactly like open horn", "louder than open"], "“Stem in” is bright and metallic; avoid the ambiguous “stem out.”"),
+    F("Which is the quietest brass mute?", "practice mute", ["cup mute", "straight mute", "hat"], "Playing loudly with it is impossible."),
+    F("Which mutes are available for tuba?", "straight mutes (and practice mutes, rarely)", ["cup and Harmon mutes", "plungers and hats", "stopping mutes"], "Tuba mutes are large, heavy and slow to insert."),
+    F("Horns normally use…", "a straight mute or a stopping mute", ["a plunger", "a Harmon mute", "a bucket mute"], "Other horn mutes are so rare that “mute” for horn means straight mute."),
+    F("How long can it take to put a mute in securely?", "up to about 10 seconds", ["about one second", "one beat at any tempo", "no time at all"], "Changing from one mute to another takes even longer; a dropped mute is disastrous."),
+    F("Stopped horn (hand fully in the bell) raises the pitch…", "a minor second, so the player fingers a half step lower", ["a fifth", "an octave", "not at all"], "It's notated normally; loud stopped horn sounds nasal and sinister."),
+    F("Half-stopping (echo horn) lowers the pitch about…", "a minor second, with a distant muted sound", ["a major third", "an octave", "a quarter tone"], "The player fingers a half step higher to compensate."),
+    F("“Brassy” describes…", "a harsh, strident tone possible only at f and above", ["a muted tone", "a soft, mellow tone", "playing into the stand"], "Write the word with the dynamic."),
+    F("Circular breathing works by…", "breathing in through the nose while pushing air out with the cheeks", ["breathing between every note", "using a second player", "playing only short notes"], "It's a rare skill; don't assume it in standard writing."),
+    F("One way to make a wind multiphonic is to…", "sing while playing", ["play with a mute", "play staccato", "use the F attachment"], "Possible on all brass, flutes and single reeds; it creates a difference tone."),
+    F("Another way to make woodwind multiphonics is…", "special fingerings with controlled overblowing", ["double tonguing", "a cup mute", "playing into the stand"], "Most common on saxophones, clarinets and flutes."),
+    F("A horn “rip” is a…", "fast harmonic glissando", ["stopped note", "valve trill", "flutter tongue"], "Harmonic glisses can also be slow arpeggios."),
+    F("A brass lip trill is only possible where…", "the partials are a step or half step apart", ["valves are pressed", "a mute is used", "pedal tones are played"], "A wider lip tremolo is a “shake.”"),
+    F("Half-step valve trills use…", "the 2nd valve", ["the 1st valve", "the 3rd valve", "all three valves"], "Whole-step valve trills use the 1st valve."),
+    F("Brass instruments generally need…", "more rests than woodwinds", ["fewer rests than woodwinds", "no rests at all", "rests only at ff"], "Lip endurance matters; low and loud notes use more air."),
+    F("Much of the rhythmic energy in brass writing comes from…", "repeated notes, single-, double- or triple-tongued", ["wide leaps", "trills", "glissandos only"], "Brass are less agile than woodwinds for rapid or disjunct notes."),
+  ];
+
+  const ORDER_WW = ["Piccolo", "Flutes", "Alto flute", "Oboes", "English horn", "Clarinet in E♭", "Clarinets in B♭", "Bass clarinet", "Bassoons", "Contrabassoon"];
+  const ORDER_BR = ["Horns", "Piccolo trumpet", "Trumpets", "Trombones", "Bass trombone", "Tuba"];
+  const ALL = ORDER_WW.concat(ORDER_BR);
+  const ERAS = [
+    ["Classical (18th century)", "0–2 flutes, 1–2 oboes, 0–2 bassoons, 2–4 horns, 0–2 trumpets"],
+    ["Romantic (19th century)", "2 flutes, 2 oboes, 2 clarinets, 2 bassoons, 4 horns, 2 trumpets, 0–3 trombones"],
+    ["Late Romantic and modern", "2–4 flutes, 2–3 oboes, 2–4 clarinets, 2–3 bassoons, 4–6 horns, 2–3 trumpets, 1–4 trombones, 1 tuba"],
+  ];
+  const ORDF = [
+    F("In the score, woodwinds are grouped in which order (top to bottom)?", "flutes, oboes, clarinets, bassoons", ["oboes, flutes, bassoons, clarinets", "clarinets, flutes, oboes, bassoons", "flutes, clarinets, oboes, bassoons"], "Then the brass: horns, trumpets, trombones, tuba."),
+    F("In an orchestral score, brass are ordered…", "horns, trumpets, trombones, tuba", ["trumpets, horns, trombones, tuba", "tuba, trombones, trumpets, horns", "trumpets, trombones, horns, tuba"], "Horns sit above trumpets even though they're lower in pitch."),
+    F("When a player doubles an auxiliary (flute and piccolo), who usually plays it?", "the last-chair player (e.g. flute 3 doubles piccolo)", ["the principal player", "the second player", "a percussionist"], "Oboe 3 doubles English horn, and so on."),
+    F("In a wind band score, where is the saxophone choir usually placed?", "between the woodwinds and the brass", ["above the flutes", "below the tuba", "with the percussion"], "Often AATB or SATB."),
+    F("In a big band chart, the saxophone section is typically…", "AATTB, above the brass", ["SATB, below the brass", "a single alto", "AATB with the rhythm section"], "Five saxes: two altos, two tenors, baritone."),
+    F("In chamber music and band scores, the horns' position…", "varies: sometimes above, sometimes below the trumpets", ["is always at the top of the score", "is always below the tuba", "is always with the woodwinds"], "In orchestral scores, horns come first in the brass."),
+    F("Why must wind writing leave places to breathe?", "players must pause to inhale, which shapes phrasing and endurance", ["it doesn't: winds can sustain forever", "only to turn pages", "only in slow music"], "Unplayable passages come from ignoring breath."),
+  ];
+  const SLOTS = ["flutes", "oboes", "clarinets", "bassoons", "horns", "trumpets", "trombones", "tubas"];
+
+  const fromList = (H, list, kicker, topic) => { const f = H.rnd(list); return H.mc(f.q, f.a, f.w, f.why, { kicker, topic }); };
+  function orderQ(H) {
+    const k = Math.random();
+    if (k < .3) {
+      const i = Math.floor(Math.random() * (ALL.length - 1));
+      return H.mc(`In score order, which comes directly below ${ALL[i].toLowerCase()}?`, ALL[i + 1], ALL.filter((x, j) => j !== i + 1 && j !== i), `Woodwinds: ${ORDER_WW.join(" – ")}. Brass: ${ORDER_BR.join(" – ")}.`, { kicker: "Score order", topic: "order" });
+    }
+    if (k < .5) {
+      const pick = H.shuffle(ALL).slice(0, 4), top = pick.slice().sort((a, b) => ALL.indexOf(a) - ALL.indexOf(b))[0];
+      return H.mc("Which of these is listed highest in the score?", top, pick, `Auxiliary instruments sit next to their family by size: ${ORDER_WW.join(" – ")}; ${ORDER_BR.join(" – ")}.`, { kicker: "Score order", topic: "order" });
+    }
+    if (k < .75) {
+      const nums = [H.rnd([1, 2, 3]), H.rnd([1, 2, 3]), H.rnd([0, 2, 3]), H.rnd([2, 3]), H.rnd([2, 4, 6]), H.rnd([2, 3, 4]), H.rnd([0, 2, 3]), H.rnd([0, 1])];
+      const code = `${nums.slice(0, 4).join(", ")} – ${nums.slice(4).join(", ")}, timp., str.`;
+      const s = Math.floor(Math.random() * 8);
+      return H.mc(`In the scoring shorthand ${code}, how many ${SLOTS[s]} are there?`, String(nums[s]), [0, 1, 2, 3, 4, 6].map(String), `The numbers follow score order: flutes, oboes, clarinets, bassoons – horns, trumpets, trombones, tuba.`, { kicker: "Scoring shorthand", topic: "order" });
+    }
+    if (k < .88) { const e = H.rnd(ERAS); return H.mc(`Which wind and brass forces are typical of the ${e[0]} orchestra?`, e[1], ERAS.map(x => x[1]), `${ERAS.map(x => `${x[0]}: ${x[1]}`).join(". ")}.`, { kicker: "Orchestras through time", topic: "order" }); }
+    return fromList(H, ORDF, "Score order", "order");
+  }
+
+  const VALVES = [["1", "a major 2nd", 2], ["2", "a minor 2nd", 1], ["3", "a minor 3rd", 3], ["1 + 2", "a minor 3rd", 3], ["2 + 3", "a major 3rd", 4], ["1 + 3", "a perfect 4th", 5], ["1 + 2 + 3", "a tritone", 6]];
+  const IVS = ["a minor 2nd", "a major 2nd", "a minor 3rd", "a major 3rd", "a perfect 4th", "a tritone", "a perfect 5th"];
+  // Harmonic series above C2 (partials 1–10, nearest notes)
+  const PART = ["C2", "C3", "G3", "C4", "E4", "G4", "B♭4", "C5", "D5", "E5"];
+  function brassQ(H) {
+    const k = Math.random();
+    if (k < .3) { const v = H.rnd(VALVES); return H.mc(`Pressing valve${v[0].length > 1 ? "s" : ""} ${v[0]} lowers the pitch by…`, v[1], IVS, `Valve 1 lowers a M2, valve 2 a m2, valve 3 a m3. Together: 1+2 = m3, 2+3 = M3, 1+3 = P4, 1+2+3 = tritone.`, { kicker: "Valves", topic: "brass" }); }
+    if (k < .45) { const v = H.rnd(VALVES.filter(x => x[0] !== "3" && x[0] !== "1 + 2")); return H.mc(`Which valve combination lowers the pitch ${v[1]}?`, v[0], VALVES.map(x => x[0]), `Valve 1 = M2, 2 = m2, 3 = m3 (also 1+2), 2+3 = M3, 1+3 = P4, 1+2+3 = tritone.`, { kicker: "Valves", topic: "brass" }); }
+    if (k < .65) {
+      const v = H.rnd(VALVES), start = H.rnd([{ s: "C5", n: H.parse("C5") }, { s: "G4", n: H.parse("G4") }, { s: "E5", n: H.parse("E5") }, { s: "D5", n: H.parse("D5") }]);
+      const steps = { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3 }[v[2]];
+      const res = H.up(start.n, -steps, -v[2]);
+      const wr = [1, 2, 3, 4, 5].filter(x => x !== v[2]).map(se => H.nm(H.up(start.n, -({ 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 }[se]), -se)));
+      return H.mc(`A trumpet plays ${start.s} open (no valves). With valve${v[0].length > 1 ? "s" : ""} ${v[0]} down on the same partial, which written note sounds?`, H.nm(res), wr, `Valve${v[0].length > 1 ? "s" : ""} ${v[0]} lower${v[0].length > 1 ? "" : "s"} the pitch ${v[1]}: ${start.s} → ${H.nm(res)}.`, { kicker: "Valves", topic: "brass", play: { seq: [H.midi(start.n), H.midi(res)] }, playLabel: "Play both notes" });
+    }
+    if (k < .82) {
+      const p = 2 + Math.floor(Math.random() * 8);
+      const ans = PART[p - 1];
+      return H.mc(`On a brass instrument whose fundamental is C2, which pitch is the ${p}${["", "st", "nd", "rd"][p] || "th"} partial?`, ans, PART.filter(x => x !== ans), `Partials above C2: ${PART.map((x, i) => `${i + 1}: ${x}`).join(", ")}. The 7th (and 11th) are nearly a quarter tone flat.`, { kicker: "The harmonic series", topic: "brass", play: { seq: PART.slice(0, p).map(x => H.midi(H.parse(x))), gap: .35, dur: .5 }, playLabel: "Play partials 1 up" });
+    }
+    const BF = [
+      F("Brass pitch depends on two things:", "the fundamental (valves or slide) and the partial (embouchure)", ["the reed and the fingering", "the bell and the mute", "tube length only"], "Pressing the right valve doesn't guarantee the right note: the lips choose the partial."),
+      F("Valves and slides lower the pitch by…", "adding tubing", ["opening tone holes", "tightening the lips", "shortening the bell"], "That's the opposite of woodwind keys."),
+      F("Which partials are nearly a quarter tone flat?", "the 7th and 11th", ["the 2nd and 4th", "the 3rd and 6th", "the 5th and 10th"], "Trumpets and trombones rarely play above the 10th partial."),
+      F("The modern trumpet responds most comfortably to partials…", "3 through 8", ["1 through 3", "8 through 16", "only the fundamental"], "The horn's core uses higher partials, which are closer together, so horn players miss more notes."),
+      F("Why can't brass use “harmonics” as a color the way strings do?", "every brass note already is a partial of the harmonic series", ["brass can't play high", "the bell blocks them", "mutes prevent them"], "Adding tubing changes the color very little."),
+      F("Large leaps on brass instruments are…", "substantially harder than on other instruments", ["easier than steps", "the same as on woodwinds", "impossible"], "The lips must find each new partial."),
+      F("A trombone slide glissando is possible only…", "between positions on the same partial (up to a tritone)", ["across any interval", "with a mute", "on the F attachment only"], "Lip glisses across partials can fake larger ones."),
+      F("Before valves, natural brass instruments could play…", "only the partials of one fundamental (the instrument's key)", ["every chromatic note", "only the fundamental", "only one octave"], "Players changed crooks to change key."),
+    ];
+    return fromList(H, BF, "How brass works", "brass");
+  }
+
+  return {
+    key: "orch-winds",
+    modes: [{ id: "inst", kicker: "The instruments" }, { id: "order", kicker: "Score order" }, { id: "brass", kicker: "How brass works" }, { id: "color", kicker: "Mutes & techniques" }],
+    make(mode, H) {
+      if (mode === "inst") return fromList(H, INST, "The instruments", "inst");
+      if (mode === "order") return orderQ(H);
+      if (mode === "brass") return brassQ(H);
+      return fromList(H, COLOR, "Mutes & techniques", "color");
+    },
+    reference(H, esc, accHTML) {
+      const vr = VALVES.map(v => `<tr><th scope="row">${v[0]}</th><td data-label="Lowers by">${v[1]}</td></tr>`).join("");
+      const er = ERAS.map(e => `<tr><th scope="row">${e[0]}</th><td data-label="Winds and brass">${e[1]}</td></tr>`).join("");
+      return `<p><b>Score order.</b> ${accHTML(ORDER_WW.join(" – "))}; ${ORDER_BR.join(" – ")}.</p>
+      <p class="legend">Shorthand lists flutes, oboes, clarinets, bassoons – horns, trumpets, trombones, tuba: e.g. 2, 2, 2, 2 – 4, 2, 3, 1, timp., str.</p>
+      <div class="table-wrap"><table class="ref"><caption>Valves</caption><thead><tr><th scope="col">Valves</th><th scope="col">Lowers by</th></tr></thead><tbody>${vr}</tbody></table></div>
+      <div class="table-wrap"><table class="ref"><caption>Winds and brass through time</caption><thead><tr><th scope="col">Orchestra</th><th scope="col">Winds and brass</th></tr></thead><tbody>${er}</tbody></table></div>`;
+    },
+  };
+})();
+</script>
+<script>
+(() => {
+  // ===== Orchestration family trainer engine. Content comes from window.FAM (strings.js, winds.js, percussion.js). =====
+  const FAM = window.FAM;
+  const LET = "CDEFGAB", NAT = [0, 2, 4, 5, 7, 9, 11];
+  const ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
+  const SPOKEN_ACC = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const accHTML = s => esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>');
+  const speak = s => String(s).replace(/𝄫/g, " double flat").replace(/𝄪/g, " double sharp").replace(/♭/g, " flat").replace(/♯/g, " sharp").replace(/♮/g, " natural").replace(/π/g, "down-bow").replace(/\bV\b(?= )/g, "V");
+
+  // ---------- notes: { l, a, step } with C4 = step 28 ----------
+  const mk = (step, a = 0) => ({ l: ((step % 7) + 7) % 7, a, step });
+  const oct = n => Math.floor(n.step / 7);
+  const midi = n => 12 * (oct(n) + 1) + NAT[((n.step % 7) + 7) % 7] + n.a;
+  function up(n, st, se) { const step = n.step + st, l = ((step % 7) + 7) % 7; return { l, a: midi(n) + se - (12 * (Math.floor(step / 7) + 1) + NAT[l]), step }; }
+  const nm = n => LET[n.l] + ACC[n.a] + oct(n);
+  const nmSpoken = n => LET[n.l] + SPOKEN_ACC[n.a] + " " + oct(n);
+  const parse = s => { const m = /^([A-G])(♭|♯|b|#)?(-?\d)$/.exec(s); const l = LET.indexOf(m[1]); return mk(+m[3] * 7 + l, m[2] === "♯" || m[2] === "#" ? 1 : m[2] ? -1 : 0); };
+  const okNote = n => Math.abs(n.a) <= 1 && !(n.a === 1 && (n.l === 2 || n.l === 6)) && !(n.a === -1 && (n.l === 3 || n.l === 0));
+
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // A multiple-choice question; wrong answers are de-duplicated and trimmed to three.
+  const mc = (text, answer, wrong, explain, extra) => {
+    const w = shuffle([...new Set(wrong.map(String))].filter(v => v !== String(answer))).slice(0, 3);
+    return Object.assign({ text, choices: shuffle([String(answer), ...w]), answer: String(answer), explain }, extra || {});
+  };
+  const H = { oct, mk, up, nm, nmSpoken, parse, midi, okNote, rnd, shuffle, mc, LET, ACC };
+
+  // ---------- Staff (VexFlow); notes may be { n, head: "diamond" | "normal", circle } ----------
+  function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const GLYPH = { "-1": "b", "0": "n", "1": "#" };
+  function drawStaff(el, o) {
+    el._args = o; el.innerHTML = "";
+    if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Reload the page.</p>'; return; }
+    const VF = Vex.Flow, ink = cssVar("--ink");
+    const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    const stave = new VF.Stave(4, 30, 400);
+    stave.addClef(o.clef || "treble");
+    const sx = stave.getNoteStartX(), groups = o.groups || [o.notes || []];
+    const W = Math.round(sx + 26 + groups.length * 62), Hh = 170;
+    stave.setWidth(W - 8); r.resize(W, Hh);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    stave.setStyle({ fillStyle: ink, strokeStyle: ink }); stave.setContext(ctx).draw();
+    const sns = groups.map(g => {
+      const ns = g.slice().sort((a, b) => a.n.step - b.n.step);
+      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: ns.map(x => LET[x.n.l].toLowerCase() + "/" + oct(x.n)), duration: "w" });
+      sn.setStyle({ fillStyle: ink, strokeStyle: ink });
+      if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      ns.forEach((x, i) => {
+        if (x.n.a !== 0) sn.addModifier(new VF.Accidental(GLYPH[x.n.a]), i);
+        if (x.head === "diamond") sn.setKeyStyle(i, { fillStyle: "rgba(0,0,0,0)", strokeStyle: "rgba(0,0,0,0)" });
+      });
+      if (ns.some(x => x.circle)) sn.addModifier(new VF.Annotation("o").setVerticalJustification(1), 0);
+      sn._ns = ns; return sn;
+    });
+    const voice = new VF.Voice({ num_beats: 4 * sns.length, beat_value: 4 }).addTickables(sns);
+    new VF.Formatter().joinVoices([voice]).format([voice], stave.getNoteEndX() - stave.getNoteStartX() - 16);
+    voice.draw(ctx, stave);
+    // Hollow diamond noteheads, drawn by hand so they sit exactly on the line or space.
+    sns.forEach(sn => sn._ns.forEach((x, i) => {
+      if (x.head !== "diamond") return;
+      const y = sn.getYs()[i], cx = sn.getNoteHeadBeginX() + 8, w = 6.5, h = 5.2;
+      ctx.beginPath(); ctx.moveTo(cx - w, y); ctx.lineTo(cx, y - h); ctx.lineTo(cx + w, y); ctx.lineTo(cx, y + h); ctx.closePath();
+      ctx.setLineWidth(1.6); ctx.setStrokeStyle(ink); ctx.stroke();
+    }));
+    const svg = el.querySelector("svg");
+    if (svg) {
+      let vb = `0 0 ${W} ${Hh}`;
+      try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 8} ${bb.width + 8} ${bb.height + 16}`; } catch (e) {}
+      svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
+      svg.style.width = "100%"; svg.style.height = "auto";
+      svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
+      svg.setAttribute("aria-label", o.label || "Staff");
+    }
+  }
+  function redrawStaves() { document.querySelectorAll(".staff").forEach(el => el._args && drawStaff(el, el._args)); }
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
+
+  // ---------- Sound (Web Audio): a soft bowed/organ-like tone, or a plain sine for harmonics ----------
+  let AC = null, bus = null;
+  function audio() {
+    if (AC) { if (AC.state === "suspended") AC.resume(); return AC; }
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    AC = new C(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(AC.destination); AC._out = comp; return AC;
+  }
+  function newBus() { if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => old.disconnect(), 400); } bus = AC.createGain(); bus.connect(AC._out); return bus; }
+  function tone(out, m, t0, dur, pure) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (pure ? 2 : 6), 7000); g.connect(out); lp.connect(g);
+    const parts = pure ? [[1, 1]] : [[1, 1], [2, .5], [3, .32], [4, .2], [5, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a * (f < 90 ? .9 : .55) / parts.length * 2; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .5); });
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.32, t0 + .08); g.gain.setTargetAtTime(.25, t0 + .1, .3); g.gain.setTargetAtTime(0, t0 + dur, .12);
+  }
+  function play(p) { if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .05; (p.seq || [p.m]).forEach((m, i) => tone(out, m, t + i * (p.gap || .7), p.dur || 1.1, p.pure)); }
+  function autoPlay(q) { if (S.settings.auto !== false && q.c.play) play(q.c.play); }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (b && Q[S.mode]) play(b.dataset.play === "a" ? Q[S.mode].c.play : Q[S.mode].c.playQ); });
+  const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>${label}</button></div>`;
+
+  // ---------- State ----------
+  const MODES = FAM.modes.map(m => m.id);
+  const DEFAULTS = { auto: true, topics: Object.fromEntries((FAM.topics || []).map(t => [t.id, true])) };
+  let S = { mode: MODES[0], settings: JSON.parse(JSON.stringify(DEFAULTS)), right: 0, total: 0, streak: 0, misses: [] };
+  try { const saved = JSON.parse(localStorage.getItem(FAM.key) || "null"); if (saved) S = Object.assign(S, saved, { settings: Object.assign({}, S.settings, saved.settings, { topics: Object.assign({}, DEFAULTS.topics, (saved.settings || {}).topics) }) }); } catch (e) {}
+  if (!MODES.includes(S.mode)) S.mode = MODES[0];
+  const save = () => { try { localStorage.setItem(FAM.key, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
+  const Q = Object.fromEntries(MODES.map(m => [m, null]));
+  const sameSpec = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const topicOn = t => !t || !FAM.topics || S.settings.topics[t] !== false;
+  H.topicOn = topicOn;
+
+  function newQuestion(mode) {
+    const prev = Q[mode];
+    const review = S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
+    if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
+    for (let i = 0; i < 40; i++) {
+      const c = FAM.make(mode, H);
+      if (c && (c.picker || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || i > 30)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
+    }
+    const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
+  }
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const promptEl = $("prompt"), fb = $("feedback"), ansBox = $("answerBox"), work = $("work"), nextBtn = $("nextBtn");
+  function renderScore() { $("scRight").textContent = S.right; $("scTotal").textContent = S.total; $("scStreak").textContent = S.streak; $("scoreText").textContent = `Score: ${S.right} correct out of ${S.total} answered. Streak: ${S.streak}.`; }
+  function msg(cls, label, text) { return `<div class="verdict"><span class="pill ${cls}">${label}</span><span>${text}</span></div>`; }
+  const modeInfo = m => FAM.modes.find(x => x.id === m);
+
+  function renderPrompt() {
+    const q = Q[S.mode], c = q.c;
+    const tag = q.review ? ' <span class="pill warn">review</span>' : "";
+    let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
+    if (c.big) h += `<div class="ins">${accHTML(c.big)}</div>`;
+    h += `<p class="q-text" id="qText">${accHTML(c.text)}</p>`;
+    if (c.staff) h += `<div class="staff solo" id="promptStaff"></div>`;
+    if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
+    promptEl.innerHTML = h;
+    if (c.staff) drawStaff($("promptStaff"), c.staff);
+    renderWork();
+  }
+  function choiceBtn(value, q) {
+    let cls = "choice", mark = "";
+    if (q.done) {
+      if (value === q.correctValue) { cls += " right"; mark = `<span class="mark"><span aria-hidden="true">✓</span><span class="sr">correct answer</span></span>`; }
+      else if (value === q.chosen) { cls += " wrong"; mark = `<span class="mark"><span aria-hidden="true">✗</span><span class="sr">your answer, incorrect</span></span>`; }
+    }
+    const sr = /^[A-G][♭♯]?-?\d$/.test(value) ? `<span aria-hidden="true">${accHTML(value)}</span><span class="sr">${esc(nmSpoken(parse(value)))}</span>` : accHTML(value);
+    return `<button class="${cls}" data-v="${esc(value)}"${q.done ? " disabled" : ""}><span>${sr}</span>${mark}</button>`;
+  }
+  // Pitch + octave picker: any letter, any accidental, any normal octave.
+  function renderPicker(q) {
+    const c = q.c, P = q.pick || (q.pick = { l: null, a: 0, o: null });
+    const ans = parse(c.answer), ch = q.chosen ? parse(q.chosen) : null;
+    const mark = (kind, v) => {
+      if (!q.done) return "";
+      const right = kind === "l" ? v === ans.l : kind === "a" ? v === ans.a : v === oct(ans);
+      const mine = ch && (kind === "l" ? v === ch.l : kind === "a" ? v === ch.a : v === oct(ch));
+      return right ? " right" : mine ? " wrong" : "";
+    };
+    const btn = (kind, v, label, sr) => `<button class="pk${P[kind] === v ? " on" : ""}${mark(kind, v)}" data-pk="${kind}" data-val="${v}" aria-pressed="${P[kind] === v}"${q.done ? " disabled" : ""}><span aria-hidden="true">${label}</span>${sr ? `<span class="sr">${sr}</span>` : ""}</button>`;
+    const octs = c.picker.octaves || [1, 2, 3, 4, 5, 6, 7];
+    const ready = P.l !== null && P.o !== null;
+    work.innerHTML = `<div class="picker" role="group" aria-labelledby="qText">
+      <div class="pk-row" role="group" aria-label="Note letter"><span class="pk-lab" aria-hidden="true">Note</span>${LET.split("").map((L, i) => btn("l", i, L, "")).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Accidental"><span class="pk-lab" aria-hidden="true">Accidental</span>${[[-1, "♭", "flat"], [0, "♮", "natural"], [1, "♯", "sharp"]].map(([v, g, sr]) => btn("a", v, `<span class="acc">${g}</span>`, sr)).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Octave number"><span class="pk-lab" aria-hidden="true">Octave</span>${octs.map(o => btn("o", o, String(o), `octave ${o}`)).join("")}</div>
+      <div class="pk-row"><span class="pk-now" aria-live="polite">${ready ? `Your answer: <b>${accHTML(LET[P.l] + ACC[P.a] + P.o)}</b>` : "Choose a note and an octave."}</span>${q.done ? "" : `<button class="btn primary" id="pkCheck"${ready ? "" : " disabled"}>Check</button>`}</div>
+      <p class="legend">Octave numbers: middle C is C4; each octave number starts on C.</p></div>`;
+  }
+  work.addEventListener("click", e => {
+    const q = Q[S.mode]; if (!q || !q.c.picker || q.done) return;
+    const b = e.target.closest("[data-pk]");
+    if (b) { q.pick[b.dataset.pk] = +b.dataset.val; renderPicker(q); const again = work.querySelector(`[data-pk="${b.dataset.pk}"][data-val="${b.dataset.val}"]`); if (again) again.focus(); return; }
+    if (e.target.closest("#pkCheck")) { const P = q.pick; choose(LET[P.l] + ACC[P.a] + P.o); }
+  });
+  function renderWork() {
+    const q = Q[S.mode], c = q.c;
+    if (c.picker) return renderPicker(q);
+    const notes = c.choices.every(v => /^[A-G][♭♯]?-?\d$/.test(v));
+    const short = !notes && c.choices.every(v => v.length <= 18);
+    const list = notes ? c.choices.slice().sort((a, b) => midi(parse(a)) - midi(parse(b))) : c.choices;
+    work.innerHTML = `<div class="choice-row ${notes ? "notes" : short ? "" : "wide"}" role="group" aria-labelledby="qText">${list.map(v => choiceBtn(v, q)).join("")}</div>${notes ? '<p class="legend">Octave numbers: middle C is C4.</p>' : ""}`;
+  }
+  function renderControls() {
+    const q = Q[S.mode];
+    document.querySelectorAll(".modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
+    const finished = q.done || q.revealed;
+    nextBtn.textContent = finished ? "Next question" : "Skip";
+    nextBtn.classList.toggle("primary", !!finished);
+  }
+  function score(q, correct) {
+    if (q.tries > 0) return;
+    S.total++;
+    const sp = { mode: q.mode, c: q.c };
+    if (correct) { S.right++; S.streak++; S.misses = S.misses.filter(m => !sameSpec(m.c, q.c)); }
+    else { S.streak = 0; if (!S.misses.some(m => sameSpec(m.c, q.c))) S.misses.push(sp); }
+    save(); renderScore();
+  }
+  function choose(value) {
+    const q = Q[S.mode], c = q.c;
+    if (q.done) return;
+    const enh = c.picker && value !== q.correctValue && midi(parse(value)) === midi(parse(c.answer));
+    const correct = value === q.correctValue || enh;
+    score(q, correct);
+    q.tries++; q.done = true; q.chosen = value;
+    renderWork();
+    fb.innerHTML = msg(correct ? "good" : "bad", correct ? "Correct" : "Not quite", enh ? `${accHTML(value)} is the right pitch; it's usually spelled ${accHTML(c.answer)}.` : correct ? `${accHTML(c.answer)}.` : c.picker ? `You chose ${accHTML(value)}. The answer is ${accHTML(c.answer)}.` : `The answer is ${accHTML(c.answer)}.`);
+    ansBox.innerHTML = `<div class="answer">${c.staffAns ? `<div class="staff" id="ansStaff"></div>` : ""}${c.staffAnsCap ? `<p class="legend">${accHTML(c.staffAnsCap)}</p>` : ""}${c.play ? PLAY_BTN(c.playLabel || "Play", "a") : ""}<p class="explain">${accHTML(c.explain)}</p></div>`;
+    if (c.staffAns) drawStaff($("ansStaff"), c.staffAns);
+    autoPlay(q);
+    renderControls(); nextBtn.focus();
+  }
+  function reveal() { const q = Q[S.mode]; if (q.done) return; q.tries = 1; choose(q.correctValue); }
+  work.addEventListener("click", e => { if (Q[S.mode] && Q[S.mode].c.picker) return; const b = e.target.closest("[data-v]"); if (b && !b.disabled) choose(b.dataset.v); });
+
+  function clearAnswer() { fb.innerHTML = ""; ansBox.innerHTML = ""; }
+  function next(focus = true) { Q[S.mode] = newQuestion(S.mode); clearAnswer(); renderPrompt(); renderControls(); if (focus) { const h = $("qHead"); if (h) h.focus(); } }
+  function setMode(m) { if (S.mode === m) return; S.mode = m; save(); clearAnswer(); if (!Q[m] || Q[m].done) Q[m] = newQuestion(m); renderPrompt(); renderControls(); }
+
+  // ---------- Events & settings ----------
+  document.querySelectorAll(".modes [data-mode]").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+  nextBtn.onclick = () => next(true);
+  function renderSettings() {
+    document.querySelectorAll("[data-auto]").forEach(b => b.setAttribute("aria-pressed", String((S.settings.auto !== false) === (b.dataset.auto === "1"))));
+    document.querySelectorAll("[data-topic]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.topics[b.dataset.topic] !== false)));
+  }
+  const autoT = $("autoToggles"); if (autoT) autoT.onclick = e => { const b = e.target.closest("[data-auto]"); if (b) { S.settings.auto = b.dataset.auto === "1"; save(); renderSettings(); } };
+  const topT = $("topicToggles");
+  if (topT) {
+    topT.innerHTML = (FAM.topics || []).map(t => `<button class="tog" data-topic="${t.id}">${esc(t.name)}${t.sub ? ` <small>${esc(t.sub)}</small>` : ""}</button>`).join("");
+    topT.onclick = e => {
+      const b = e.target.closest("[data-topic]"); if (!b) return;
+      const t = b.dataset.topic, on = S.settings.topics[t] === false;
+      if (!on && Object.values(S.settings.topics).filter(v => v !== false).length === 1) return;
+      S.settings.topics[t] = on; save(); renderSettings(); MODES.forEach(m => Q[m] = newQuestion(m)); clearAnswer(); renderPrompt(); renderControls();
+    };
+  }
+  $("resetBtn").onclick = () => { S.misses = []; save(); $("resetBtn").textContent = "Review list cleared"; };
+  let armTimer = null;
+  $("scoreReset").onclick = () => {
+    const b = $("scoreReset");
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.innerHTML = 'Tap again to reset<span class="sr"> the score</span>'; armTimer = setTimeout(() => { b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>'; }, 3000); return; }
+    clearTimeout(armTimer); S.right = 0; S.total = 0; S.streak = 0; save(); renderScore(); b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>';
+  };
+  // Reference
+  document.querySelectorAll(".ref-slot").forEach(el => el.innerHTML = FAM.reference(H, esc, accHTML));
+  const dlg = $("refDialog"); let dlgReturn = null;
+  $("refBtn").onclick = () => { dlgReturn = document.activeElement; if (dlg.showModal) dlg.showModal(); else { $("refPanel").open = true; $("refPanel").scrollIntoView(); return; } $("refClose").focus(); };
+  $("refClose").onclick = () => dlg.close();
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener("close", () => { if (dlgReturn && dlgReturn.focus) dlgReturn.focus(); });
+
+  MODES.forEach(m => Q[m] = newQuestion(m));
+  renderSettings(); renderScore(); renderPrompt(); renderControls();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<body>
+
+<a class="skip" href="#practice">Skip to the practice question</a>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Instrument Transpositions</h1>
+      <p>Learn which instruments transpose and by how much, read transposed parts at concert pitch, write concert pitches for any instrument, and transpose key signatures.</p>
+    </div>
+    <div class="score">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+
+  <nav class="modes" aria-label="Practice mode">
+    <button data-mode="facts" aria-pressed="true"><b>Facts</b><small><span aria-hidden="true">keys · intervals</span><span class="sr">: which instruments transpose, their keys and intervals, and the terms</span></small></button>
+    <button data-mode="read" aria-pressed="false"><b>Read it</b><small><span aria-hidden="true">written → sounds</span><span class="sr">: read a transposed part and find the sounding pitch</span></small></button>
+    <button data-mode="write" aria-pressed="false"><b>Write it</b><small><span aria-hidden="true">concert → written</span><span class="sr">: write a concert pitch for a transposing instrument</span></small></button>
+    <button data-mode="keysig" aria-pressed="false"><b>Key sigs</b><small><span aria-hidden="true">concert ↔ part</span><span class="sr">: transpose key signatures between concert pitch and the part</span></small></button>
+  </nav>
+
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div class="hint" id="hintBox" hidden></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="hintBtn">Hint</button>
+      <button class="btn" id="chartBtn" aria-haspopup="dialog">Chart</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+      <div class="set-row" role="group" aria-labelledby="grp1"><span id="grp1">Instruments</span>
+        <div class="toggles" id="grpToggles">
+          <button class="tog" data-grp="cl">Clarinets <small>E♭, B♭, A, bass, contrabass</small></button>
+          <button class="tog" data-grp="sx">Saxophones <small>soprano, alto, tenor, baritone</small></button>
+          <button class="tog" data-grp="ww">Other woodwinds <small>alto flute, English horn</small></button>
+          <button class="tog" data-grp="br">Brass <small>trumpets, flugelhorn, horn, euphonium</small></button>
+          <button class="tog" data-grp="oct">Octave transposers <small>piccolo, glockenspiel, guitar, contrabass…</small></button>
+        </div>
+      </div>
+      <div class="set-row" role="group" aria-labelledby="grp2"><span id="grp2">Accidentals in the given note</span>
+        <div class="toggles" id="accToggles">
+          <button class="tog" data-acc="nat">Mostly naturals</button>
+          <button class="tog" data-acc="all">Any <small>adds sharps and flats</small></button>
+        </div>
+      </div>
+      <div class="set-row" role="group" aria-labelledby="grp3"><span id="grp3">Sound</span>
+        <div class="toggles" id="autoToggles">
+          <button class="tog" data-auto="1">Play the sounding pitch after each answer</button>
+          <button class="tog" data-auto="0">Only when I tap Play</button>
+        </div>
+      </div>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+
+  <details class="panel" id="chartPanel">
+    <summary>Transposition chart</summary>
+    <div class="panel-body"><div class="chart-slot"></div></div>
+  </details>
+
+  <details class="panel">
+    <summary>How transposition works here</summary>
+    <div class="panel-body">
+      <ol class="rules">
+        <li><b>Sounding pitch</b> is the pitch the instrument produces. <b>Written pitch</b> is the note in the part. <b>Concert pitch</b> is where the note name matches the standard pitch (C sounds as C); in practice it means the same as sounding pitch.</li>
+        <li><b>Reading a part:</b> move the written note the way the instrument sounds. Clarinet in B♭ sounds a M2 lower, so a written D sounds as C.</li>
+        <li><b>Writing a part:</b> go the other way. To get a concert C from a clarinet in B♭, write the D a M2 above.</li>
+        <li><b>The key of the instrument</b> is the pitch that sounds when it plays a written C: on a horn in F, a written C sounds as the F below.</li>
+        <li><b>Key signatures transpose with the notes.</b> Concert G major becomes A major for B♭ instruments. Horns, trumpets and timpani in older scores often have no key signature at all, but modern scores transpose their signatures like any other instrument.</li>
+        <li>Octave numbers use middle C = C4. Octave transposers (piccolo, guitar, contrabass…) keep the same note name and key signature and change only the octave.</li>
+      </ol>
+    </div>
+  </details>
+  </aside>
+  <footer class="credit">App by Adam Silverman</footer>
+</div>
+
+<dialog class="ref-dialog" id="chartDialog" aria-labelledby="chartTitle">
+  <div class="dlg-head">
+    <h2 id="chartTitle">Transposition chart</h2>
+    <button class="btn" id="chartClose">Close<span class="sr"> chart</span></button>
+  </div>
+  <div class="chart-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>

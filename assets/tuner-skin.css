@@ -1,0 +1,35 @@
+/* SilverApps — indie skin for Shadow Tuner (loaded after its own styles). */
+:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+  --bg:var(--fi-paper); --panel:var(--fi-card); --ink:var(--fi-ink); --muted:var(--fi-muted); --line:var(--fi-line);
+  --brass:var(--fi-red-dk); --good:var(--fi-green-dk); --warn:#8a5a00; --bad:var(--fi-red-dk); --band:rgba(169,210,122,.45);
+  --display:var(--fi-display); --body:var(--fi-serif); --mono:var(--fi-body);
+  color-scheme:light;
+}
+html,body{background:var(--fi-paper)!important;color:var(--fi-ink)}
+body{padding-top:0}
+.site-strip{margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 18px}
+header{border-top:2px solid var(--fi-red);padding-top:12px}
+h1{font:400 clamp(48px,9vw,76px)/.9 var(--fi-display);text-transform:none}
+h1 span{color:var(--fi-red-dk)}
+.chip{border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);color:var(--fi-ink);font-weight:900}
+.chip.live{background:var(--fi-green);color:var(--fi-ink);border-color:var(--fi-line)}
+.chip.err{background:var(--fi-red-pale);color:var(--fi-ink);border-color:var(--fi-red-dk)}
+.panel{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}
+.note{font-family:var(--fi-display)}
+.note.idle{color:#a89a8c}
+.cents,.freqs{font-family:var(--fi-body);font-weight:700}
+.label{font-weight:900;color:var(--fi-ink)}
+button.primary{border-radius:var(--fi-pill);background:var(--fi-red);color:var(--fi-ink);text-transform:none;letter-spacing:.01em;font-weight:700}
+button.primary:hover{background:var(--fi-ink);color:#fff}
+button.primary.on{background:var(--fi-ink);color:#fff}
+button.ghost{border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);color:var(--fi-ink);text-transform:none;letter-spacing:.01em;font-weight:700;font-size:13px}
+button.ghost[aria-pressed="true"]{background:var(--fi-ink);color:#fff;border-color:var(--fi-line)}
+select,input[type=number]{border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card)}
+input[type=range]{accent-color:var(--fi-ink)}
+.field label{font-weight:700}
+.field output{color:var(--fi-ink);font-weight:700}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--fi-red-dk)!important;outline-offset:2px}
+.sr-readout{font-weight:700}
+
+button.primary,button.ghost,.chip{font-family:var(--fi-body)}
+button.primary{color:#000}

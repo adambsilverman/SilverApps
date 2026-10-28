@@ -1,0 +1,235 @@
+<!-- title: Metronome | fs: 1 | desc: A practice metronome with tap tempo, traditional metronome markings, meters and groupings, accents, subdivisions, silent-bar and speed trainers. -->
+<style>
+.tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
+.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool h1 span{color:var(--fi-red-dk)}
+.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:18px 20px;display:grid;gap:12px}
+.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
+.big{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center}
+.bpm{text-align:center}
+.bpm output{display:block;font:400 clamp(90px,18vw,150px)/.85 var(--fi-display)}
+.bpm .term{font:italic 600 20px var(--fi-serif);color:var(--fi-red-dk)}
+.bpm .unit{font:15px var(--fi-serif);color:var(--fi-muted)}
+.round{width:64px;height:64px;border-radius:50%;border:1.5px solid var(--fi-line);background:var(--fi-card);font:400 34px var(--fi-display);cursor:pointer;color:var(--fi-ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tbtn{font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:9px 16px;min-height:44px;cursor:pointer}
+.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
+.tbtn.go{font-size:22px;padding:12px 30px;min-width:170px}
+.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.tbtn:focus-visible,.round:focus-visible,.mark:focus-visible,.beat:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.marks{display:flex;flex-wrap:wrap;gap:5px}
+.mark{font:700 15px var(--fi-ui);min-width:44px;min-height:38px;border-radius:9px;border:1.5px solid var(--fi-soft);background:var(--fi-paper);cursor:pointer;color:var(--fi-ink)}
+.mark[aria-pressed="true"]{background:var(--fi-ink);color:#fff;border-color:var(--fi-ink)}
+.beats{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:6px 0}
+.beat{width:58px;height:58px;border-radius:50%;border:2px solid var(--fi-line);background:var(--fi-paper);cursor:pointer;display:grid;place-items:center;font:400 22px var(--fi-display);color:var(--fi-ink);position:relative;transition:transform .06s}
+.beat[data-acc="3"]{background:var(--fi-red)} .beat[data-acc="2"]{background:#F3B3A5} .beat[data-acc="1"]{background:var(--fi-card)} .beat[data-acc="0"]{background:repeating-linear-gradient(45deg,#eee 0 6px,#fff 6px 12px);color:#999}
+.beat.grp{margin-left:14px}
+.beat.now{transform:scale(1.18);box-shadow:0 0 0 5px rgba(46,58,89,.35)}
+.beat .sub{position:absolute;bottom:-14px;display:flex;gap:3px}
+.beat .sub i{width:6px;height:6px;border-radius:50%;background:var(--fi-soft)}
+.beat .sub i.now{background:var(--fi-navy)}
+.legend2{font-size:.92rem;color:var(--fi-muted);margin:0}
+label.fld[hidden]{display:none}
+label.fld{display:grid;gap:4px;font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+select,input[type=number],input[type=text]{font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
+input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.flash{height:10px;border-radius:6px;background:var(--fi-soft);transition:background .05s}
+.flash.on{background:var(--fi-red)}
+.flash.on.soft{background:var(--fi-navy)}
+.status{font:600 16px var(--fi-serif)}
+@media (max-width:560px){.big{grid-template-columns:1fr 1fr}.bpm{grid-column:1/-1;order:-1}.beat{width:48px;height:48px}}
+</style>
+
+<main class="tool" id="main">
+  <h1>Metronome<span>.</span></h1>
+  <section class="panel2" aria-labelledby="tempoH">
+    <h2 id="tempoH" class="sr-only">Tempo</h2>
+    <div class="big">
+      <button class="round" id="down" type="button" aria-label="Slower: previous metronome marking">−</button>
+      <div class="bpm"><output id="bpmOut" aria-live="polite">96</output><div class="term" id="term">Andante</div><div class="unit" id="unitTxt">beats per minute</div></div>
+      <button class="round" id="up" type="button" aria-label="Faster: next metronome marking">+</button>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="tbtn primary go" id="go" type="button" aria-pressed="false">▶ Start</button>
+      <button class="tbtn go" id="tap" type="button">Tap tempo</button>
+    </div>
+    <div class="flash" id="flash" aria-hidden="true"></div>
+    <div class="row" style="justify-content:center">
+      <button class="tbtn" id="m1" type="button" aria-label="1 beat per minute slower">−1</button>
+      <input type="range" id="bpm" min="20" max="300" step="1" value="96" aria-label="Tempo in beats per minute">
+      <button class="tbtn" id="p1" type="button" aria-label="1 beat per minute faster">+1</button>
+    </div>
+    <p class="legend2">Traditional metronome markings (from the old pendulum metronomes). The − and + buttons step through these; −1 / +1 and the slider set any tempo.</p>
+    <div class="marks" id="marks" role="group" aria-label="Traditional metronome markings"></div>
+  </section>
+
+  <section class="panel2" aria-labelledby="meterH">
+    <h2 id="meterH">Meter and accents</h2>
+    <div class="grid2">
+      <label class="fld" for="meter">Meter
+        <select id="meter"></select></label>
+      <label class="fld" for="groups" id="groupsWrap">Grouping (e.g. 2+2+3)
+        <input type="text" id="groups" inputmode="numeric" value="2+2+3"></label>
+      <label class="fld" for="subdiv">Subdivide each beat
+        <select id="subdiv"><option value="1">No subdivision</option><option value="2">Eighths (2)</option><option value="3">Triplets (3)</option><option value="4">Sixteenths (4)</option><option value="5">Quintuplets (5)</option></select></label>
+      <label class="fld" for="sound">Sound
+        <select id="sound"><option value="click">Click</option><option value="wood">Woodblock</option><option value="beep">Beep</option><option value="cow">Cowbell</option><option value="voice">Count aloud (synth)</option></select></label>
+    </div>
+    <div class="beats" id="beats" role="group" aria-label="Beats in the bar. Activate a beat to change its accent."></div>
+    <p class="legend2">Tap a beat to change it: <b>accent</b> (red) → <b>medium</b> → <b>normal</b> → <b>silent</b> (striped).</p>
+    <label class="fld" for="vol">Volume <input type="range" id="vol" min="0" max="100" value="75"></label>
+  </section>
+
+  <section class="panel2" aria-labelledby="trainH">
+    <h2 id="trainH">Practice trainers</h2>
+    <div class="grid2">
+      <label class="fld" for="gapOn">Silent bars (keep the beat yourself)
+        <select id="gapOn"><option value="0">Off</option><option value="1-1">Play 1 bar, silent 1</option><option value="2-2">Play 2 bars, silent 2</option><option value="4-4">Play 4 bars, silent 4</option><option value="3-1">Play 3 bars, silent 1</option></select></label>
+      <label class="fld" for="rampBy">Speed trainer: add
+        <select id="rampBy"><option value="0">Off</option><option value="1">1 BPM</option><option value="2">2 BPM</option><option value="4">4 BPM</option><option value="mark">next marking</option></select></label>
+      <label class="fld" for="rampEvery">…every
+        <select id="rampEvery"><option value="1">bar</option><option value="2">2 bars</option><option value="4" selected>4 bars</option><option value="8">8 bars</option></select></label>
+      <label class="fld" for="rampTo">…up to (BPM)
+        <input type="number" id="rampTo" min="20" max="300" value="160"></label>
+    </div>
+    <p class="status" id="status" aria-live="polite">Stopped.</p>
+    <p class="legend2">Keyboard: Space starts and stops, T taps the tempo, ← → step through the markings, ↑ ↓ change by 1.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const MARKS = [40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 126, 132, 138, 144, 152, 160, 168, 176, 184, 192, 200, 208];
+  const TERMS = [[24, "Larghissimo"], [40, "Grave"], [46, "Largo"], [56, "Larghetto"], [66, "Adagio"], [76, "Andante"], [108, "Moderato"], [120, "Allegretto"], [132, "Allegro"], [168, "Vivace"], [176, "Presto"], [208, "Prestissimo"]];
+  const term = b => { let t = TERMS[0][1]; for (const [v, n] of TERMS) if (b >= v) t = n; return t; };
+  const METERS = [
+    ["2/4", [1, 1], "q"], ["3/4", [1, 1, 1], "q"], ["4/4", [1, 1, 1, 1], "q"], ["5/4", [1, 1, 1, 1, 1], "q"], ["6/4", [1, 1, 1, 1, 1, 1], "q"], ["2/2 (cut time)", [1, 1], "h"],
+    ["6/8 (2 beats)", [3, 3], "dq"], ["9/8 (3 beats)", [3, 3, 3], "dq"], ["12/8 (4 beats)", [3, 3, 3, 3], "dq"], ["6/8 (count all 6)", [1, 1, 1, 1, 1, 1], "e", [3, 3]],
+    ["5/8 (2+3)", [1, 1, 1, 1, 1], "e", [2, 3]], ["5/8 (3+2)", [1, 1, 1, 1, 1], "e", [3, 2]], ["7/8 (2+2+3)", [1, 1, 1, 1, 1, 1, 1], "e", [2, 2, 3]], ["7/8 (3+2+2)", [1, 1, 1, 1, 1, 1, 1], "e", [3, 2, 2]], ["Custom grouping (eighths)…", null, "e", "custom"],
+    ["1 (every beat the same)", [1], "q"],
+  ];
+  const UNIT = { q: "♩ quarter-note beats per minute", h: "𝅗𝅥 half-note beats per minute", dq: "♩. dotted-quarter beats per minute", e: "♪ eighth notes per minute" };
+  let S = { bpm: 96, meter: 2, subdiv: 1, sound: "click", vol: .75, accents: null, groups: "2+2+3" };
+  try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-metronome") || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem("silverapps-metronome", JSON.stringify(S)); } catch (e) {} };
+
+  // ---------- bar model: beats [{ sub, acc, grpStart }] ----------
+  let bar = [];
+  function buildBar(keepAcc) {
+    const M = METERS[S.meter]; let groups = M[3] || null, beats = M[1];
+    $("groupsWrap").hidden = M[3] !== "custom";
+    if (M[3] === "custom") { groups = (S.groups.match(/\d+/g) || ["2", "2", "3"]).map(Number).filter(n => n > 0 && n < 10).slice(0, 8); if (!groups.length) groups = [2, 2, 3]; beats = Array(groups.reduce((a, b) => a + b, 0)).fill(1); }
+    const starts = new Set(); if (groups) { let k = 0; groups.forEach(g => { starts.add(k); k += g; }); }
+    bar = beats.map((sub, i) => ({ sub: sub > 1 ? sub : (M[2] === "e" ? 1 : +S.subdiv), compound: sub > 1, acc: i === 0 ? 3 : (groups && starts.has(i)) ? 2 : 1, grpStart: groups ? starts.has(i) : false }));
+    if (keepAcc && S.accents && S.accents.length === bar.length) bar.forEach((b, i) => b.acc = S.accents[i]); else S.accents = bar.map(b => b.acc);
+    $("subdiv").disabled = M[2] === "e" || M[1].some(x => x > 1);
+    $("unitTxt").textContent = UNIT[M[2]];
+    drawBeats();
+  }
+  const ACCNAME = { 3: "accent", 2: "medium", 1: "normal", 0: "silent" };
+  function drawBeats() {
+    $("beats").innerHTML = bar.map((b, i) => `<button type="button" class="beat${b.grpStart && i ? " grp" : ""}" data-i="${i}" data-acc="${b.acc}" aria-label="Beat ${i + 1}: ${ACCNAME[b.acc]}">${i + 1}${b.sub > 1 ? `<span class="sub" aria-hidden="true">${"<i></i>".repeat(b.sub)}</span>` : ""}</button>`).join("");
+  }
+  $("beats").onclick = e => { const b = e.target.closest(".beat"); if (!b) return; const i = +b.dataset.i; bar[i].acc = (bar[i].acc + 3) % 4; S.accents = bar.map(x => x.acc); save(); drawBeats(); $("beats").querySelector(`[data-i="${i}"]`).focus(); };
+
+  // ---------- tempo ----------
+  function setBpm(v, announce) {
+    S.bpm = Math.max(20, Math.min(300, Math.round(v))); $("bpm").value = S.bpm; $("bpmOut").textContent = S.bpm; $("term").textContent = term(S.bpm);
+    document.querySelectorAll(".mark").forEach(m => m.setAttribute("aria-pressed", String(+m.dataset.v === S.bpm)));
+    save();
+  }
+  $("marks").innerHTML = MARKS.map(v => `<button type="button" class="mark" data-v="${v}" aria-pressed="false">${v}</button>`).join("");
+  $("marks").onclick = e => { const m = e.target.closest(".mark"); if (m) setBpm(+m.dataset.v); };
+  const nextMark = d => { if (d > 0) return MARKS.find(v => v > S.bpm) ?? Math.min(300, S.bpm + 8); const r = MARKS.filter(v => v < S.bpm); return r.length ? r[r.length - 1] : Math.max(20, S.bpm - 2); };
+  $("up").onclick = () => setBpm(nextMark(1)); $("down").onclick = () => setBpm(nextMark(-1));
+  $("p1").onclick = () => setBpm(S.bpm + 1); $("m1").onclick = () => setBpm(S.bpm - 1);
+  $("bpm").oninput = e => setBpm(+e.target.value);
+  let taps = [];
+  function tap() {
+    const now = performance.now(); taps = taps.filter(t => now - t < 2500); taps.push(now);
+    if (taps.length >= 2) { const d = []; for (let i = 1; i < taps.length; i++) d.push(taps[i] - taps[i - 1]); const avg = d.slice(-6).reduce((a, b) => a + b, 0) / Math.min(6, d.length); setBpm(60000 / avg); $("status").textContent = `Tapped: ${S.bpm} BPM (nearest marking ${MARKS.reduce((a, b) => Math.abs(b - S.bpm) < Math.abs(a - S.bpm) ? b : a)}).`; }
+    else $("status").textContent = "Keep tapping…";
+  }
+  $("tap").onclick = tap;
+
+  // ---------- sound ----------
+  let AC = null, master = null;
+  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
+  let noiseBuf = null;
+  function click(t, level, beatNo, isSub) {
+    if (level === 0) return;
+    const g = AC.createGain(); g.connect(master);
+    const amp = isSub ? .28 : level === 3 ? 1 : level === 2 ? .7 : .5;
+    const hi = level === 3 && !isSub, mid = level === 2 && !isSub;
+    if (S.sound === "click" || S.sound === "voice" && isSub) {
+      if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * .03, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6); }
+      const s = AC.createBufferSource(), bp = AC.createBiquadFilter(); s.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = hi ? 3800 : mid ? 2800 : isSub ? 1800 : 2200; bp.Q.value = 3; s.connect(bp); bp.connect(g); g.gain.value = amp * 2.2; s.start(t);
+    } else if (S.sound === "wood") {
+      const o = AC.createOscillator(); o.frequency.value = hi ? 1250 : mid ? 1050 : isSub ? 760 : 880; o.connect(g); g.gain.setValueAtTime(amp * .9, t); g.gain.exponentialRampToValueAtTime(.001, t + .06); o.start(t); o.stop(t + .08);
+    } else if (S.sound === "beep") {
+      const o = AC.createOscillator(); o.type = "square"; o.frequency.value = hi ? 1760 : mid ? 1320 : isSub ? 660 : 880; const lp = AC.createBiquadFilter(); lp.frequency.value = 3000; o.connect(lp); lp.connect(g); g.gain.setValueAtTime(amp * .25, t); g.gain.setValueAtTime(amp * .25, t + .05); g.gain.exponentialRampToValueAtTime(.001, t + .07); o.start(t); o.stop(t + .09);
+    } else if (S.sound === "cow") {
+      [540, 800].forEach(f => { const o = AC.createOscillator(); o.type = "square"; o.frequency.value = f * (hi ? 1.25 : isSub ? .8 : 1); const bp = AC.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 900; o.connect(bp); bp.connect(g); o.start(t); o.stop(t + .25); });
+      g.gain.setValueAtTime(amp * .35, t); g.gain.exponentialRampToValueAtTime(.001, t + .22);
+    } else if (S.sound === "voice") {
+      // pitched "counting" tones: each beat number gets its own pitch, the downbeat highest
+      const o = AC.createOscillator(); o.type = "triangle"; o.frequency.value = beatNo === 0 ? 988 : 523 + beatNo * 40; o.connect(g); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp * .6, t + .005); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.start(t); o.stop(t + .14);
+    }
+  }
+
+  // ---------- scheduler (look-ahead, sample-accurate) ----------
+  let running = false, timer = null, nextT = 0, beatI = 0, subI = 0, barNo = 0, rampCount = 0;
+  const visQ = [];
+  function beatDur() { return 60 / S.bpm; }
+  function silentBar(n) { const g = $("gapOn").value; if (g === "0") return false; const [p, s] = g.split("-").map(Number); return n % (p + s) >= p; }
+  function schedule() {
+    while (nextT < AC.currentTime + .12) {
+      const b = bar[beatI], silent = silentBar(barNo);
+      if (!silent) click(nextT, subI === 0 ? b.acc : (b.acc === 0 ? 0 : 1), beatI, subI > 0);
+      visQ.push({ t: nextT, beatI, subI, silent });
+      const subDur = beatDur() * (b.compound ? 1 / b.sub : 1 / b.sub);
+      nextT += subDur; subI++;
+      if (subI >= b.sub) { subI = 0; beatI++; if (beatI >= bar.length) { beatI = 0; barNo++; ramp(); } }
+    }
+  }
+  function ramp() {
+    const by = $("rampBy").value; if (by === "0") return;
+    rampCount++; if (rampCount % +$("rampEvery").value) return;
+    const to = +$("rampTo").value || 300; if (S.bpm >= to) return;
+    setBpm(Math.min(to, by === "mark" ? nextMark(1) : S.bpm + +by));
+    $("status").textContent = `Speed trainer: now ${S.bpm} BPM.`;
+  }
+  function draw() {
+    if (!running) return;
+    const now = AC.currentTime;
+    while (visQ.length && visQ[0].t <= now) {
+      const v = visQ.shift(), el = $("beats").querySelector(`[data-i="${v.beatI}"]`);
+      if (v.subI === 0) { $("beats").querySelectorAll(".beat.now").forEach(x => x.classList.remove("now")); if (el) el.classList.add("now"); const f = $("flash"); f.className = "flash on" + (bar[v.beatI].acc === 3 ? "" : " soft"); setTimeout(() => f.className = "flash", 90); if (v.silent && v.beatI === 0) $("status").textContent = "Silent bar: keep counting…"; else if (!v.silent && v.beatI === 0 && /Silent/.test($("status").textContent)) $("status").textContent = "Playing."; }
+      if (el) el.querySelectorAll(".sub i").forEach((d, k) => d.classList.toggle("now", k === v.subI));
+    }
+    requestAnimationFrame(draw);
+  }
+  function start() { ac(); running = true; beatI = 0; subI = 0; barNo = 0; rampCount = 0; visQ.length = 0; nextT = AC.currentTime + .08; timer = setInterval(schedule, 25); schedule(); requestAnimationFrame(draw); $("go").textContent = "■ Stop"; $("go").setAttribute("aria-pressed", "true"); $("status").textContent = `Playing ${METERS[S.meter][0]} at ${S.bpm} BPM.`; }
+  function stop() { running = false; clearInterval(timer); $("beats").querySelectorAll(".now").forEach(x => x.classList.remove("now")); $("go").textContent = "▶ Start"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
+  $("go").onclick = () => running ? stop() : start();
+
+  // ---------- settings ----------
+  $("meter").innerHTML = METERS.map((m, i) => `<option value="${i}">${m[0]}</option>`).join("");
+  $("meter").value = S.meter; $("subdiv").value = S.subdiv; $("sound").value = S.sound; $("vol").value = Math.round(S.vol * 100); $("groups").value = S.groups;
+  $("meter").onchange = e => { S.meter = +e.target.value; buildBar(false); save(); };
+  $("groups").onchange = e => { S.groups = e.target.value; buildBar(false); save(); };
+  $("subdiv").onchange = e => { S.subdiv = +e.target.value; buildBar(true); save(); };
+  $("sound").onchange = e => { S.sound = e.target.value; save(); };
+  $("vol").oninput = e => { S.vol = e.target.value / 100; if (master) master.gain.value = S.vol; save(); };
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input,select,textarea")) return;
+    if (e.code === "Space" && !e.target.closest("button")) { e.preventDefault(); running ? stop() : start(); }
+    else if (e.key === "t" || e.key === "T") tap();
+    else if (e.key === "ArrowRight") setBpm(nextMark(1)); else if (e.key === "ArrowLeft") setBpm(nextMark(-1));
+    else if (e.key === "ArrowUp") { e.preventDefault(); setBpm(S.bpm + 1); } else if (e.key === "ArrowDown") { e.preventDefault(); setBpm(S.bpm - 1); }
+  });
+  buildBar(true); setBpm(S.bpm);
+})();
+</script>

@@ -1,0 +1,203 @@
+<!-- title: Drone | fs: 1 | desc: A practice drone: one note or a stack of notes, in equal temperament or just intonation from the harmonic series. -->
+<style>
+.tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
+.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool h1 span{color:var(--fi-red-dk)}
+.tool>p{margin:0;max-width:64ch}
+.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:18px 20px;display:grid;gap:12px}
+.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tbtn{font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:9px 16px;min-height:44px;cursor:pointer}
+.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
+.tbtn.go{font-size:22px;padding:12px 30px;min-width:170px}
+.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.tbtn:focus-visible,.pc:focus-visible,.iv:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.pcs{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px}
+.pc{min-height:48px;border-radius:10px;border:1.5px solid var(--fi-line);background:var(--fi-paper);font:400 22px var(--fi-display);cursor:pointer;color:var(--fi-ink)}
+.pc.blk{background:#E9E1D6}
+.pc[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.ivs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.iv{min-height:56px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-paper);cursor:pointer;color:var(--fi-ink);display:grid;gap:1px;padding:6px 8px;text-align:left}
+.iv b{font:400 22px var(--fi-display)} .iv small{font:13px var(--fi-serif);color:var(--fi-muted)}
+.iv[aria-pressed="true"]{background:var(--fi-green);border-color:var(--fi-green-dk)}
+.iv[aria-pressed="true"] small{color:var(--fi-ink)}
+.iv.root{background:var(--fi-red);cursor:default}
+.iv.root small{color:var(--fi-ink)}
+label.fld[hidden]{display:none}
+label.fld{display:grid;gap:4px;font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+select,input[type=number]{font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
+input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,360px)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.seg{display:inline-flex;border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);overflow:hidden}
+.seg button{border:0;background:var(--fi-card);font:700 16px var(--fi-ui);text-transform:uppercase;padding:10px 16px;min-height:44px;cursor:pointer;color:var(--fi-ink)}
+.seg button[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+table.now{width:100%;border-collapse:collapse;font-size:.95rem}
+table.now th,table.now td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--fi-soft)}
+table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;color:var(--fi-muted)}
+.cents.flat{color:#2E5BA8} .cents.sharp{color:var(--fi-red-dk)}
+.viz{height:120px;border-radius:var(--fi-r-sm);background:var(--fi-paper);border:1.5px solid var(--fi-soft);overflow:hidden}
+.viz svg{width:100%;height:100%;display:block}
+.legend2{font-size:.92rem;color:var(--fi-muted);margin:0}
+.chords{display:flex;flex-wrap:wrap;gap:6px}
+@media (max-width:560px){.pcs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+</style>
+
+<main class="tool" id="main">
+  <h1>Drone<span>.</span></h1>
+  <p>Tune against a steady drone: one note, or a stack of notes. Compare <b>equal temperament</b> with <b>just intonation</b> (pure ratios from the harmonic series) and <b>Pythagorean tuning</b> (everything built from pure 3:2 fifths). Hear how just thirds are calm, Pythagorean thirds bright and wide, and how the same note changes when you tune from a different root.</p>
+
+  <section class="panel2" aria-labelledby="h1a">
+    <h2 id="h1a">Root</h2>
+    <div class="pcs" id="pcs" role="group" aria-label="Root note"></div>
+    <div class="grid2">
+      <label class="fld" for="octave">Octave <select id="octave"><option value="2">2 (low)</option><option value="3" selected>3</option><option value="4">4 (middle)</option><option value="5">5 (high)</option></select></label>
+      <label class="fld" for="tonic">Tune from (tuning root)
+        <select id="tonic"><option value="follow">The drone's root</option></select></label>
+      <label class="fld" for="a4">A4 reference (Hz) <input type="number" id="a4" min="400" max="480" step="1" value="440"></label>
+    </div>
+    <div class="row" style="justify-content:center"><button class="tbtn primary go" id="go" type="button" aria-pressed="false">▶ Start drone</button></div>
+    <p class="legend2" id="status" aria-live="polite">Stopped.</p>
+  </section>
+
+  <section class="panel2" aria-labelledby="h2a">
+    <h2 id="h2a">Notes in the drone</h2>
+    <div class="row"><span class="legend2">Tuning:</span>
+      <div class="seg" role="group" aria-label="Tuning"><button type="button" data-tune="et" aria-pressed="false">Equal temperament</button><button type="button" data-tune="ji" aria-pressed="true">Just intonation</button><button type="button" data-tune="py" aria-pressed="false">Pythagorean</button></div></div>
+    <p class="legend2" id="tuneNote"></p>
+    <div class="chords" role="group" aria-label="Quick stacks" id="presets"></div>
+    <div class="ivs" id="ivs" role="group" aria-label="Notes above the root. Activate to add or remove."></div>
+    <label class="fld" for="sev" id="sevWrap">Just minor 7th
+      <select id="sev"><option value="7/4">7:4 harmonic seventh (−31¢)</option><option value="16/9">16:9 (−4¢)</option><option value="9/5">9:5 (+18¢)</option></select></label>
+    <table class="now"><caption class="sr-only">Notes now sounding</caption><thead><tr><th scope="col">Note</th><th scope="col">Interval</th><th scope="col">Ratio (from tuning root)</th><th scope="col">vs. equal temperament</th><th scope="col">Frequency</th></tr></thead><tbody id="nowRows"></tbody></table>
+  </section>
+
+  <section class="panel2" aria-labelledby="h3a">
+    <h2 id="h3a">Sound</h2>
+    <div class="grid2">
+      <label class="fld" for="timbre">Timbre <select id="timbre"><option value="organ">Organ</option><option value="strings">Strings</option><option value="reed">Reed</option><option value="sine">Pure (sine)</option></select></label>
+      <label class="fld" for="vol">Volume <input type="range" id="vol" min="0" max="100" value="55"></label>
+      <label class="fld" for="pulse">Breathing <select id="pulse"><option value="0">Steady</option><option value="1">Slow swell</option></select></label>
+    </div>
+    <p class="legend2">Space starts and stops the drone. Use headphones if you're also using a tuner on the same device.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const PCN = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const spoken = s => s.replace("♯", " sharp").replace("♭", " flat");
+  // Just ratios from the harmonic series (5-limit, with a choice of 7th)
+  const IVS = [
+    { s: 0, n: "Root", r: [1, 1] }, { s: 1, n: "minor 2nd", r: [16, 15] }, { s: 2, n: "major 2nd", r: [9, 8] }, { s: 3, n: "minor 3rd", r: [6, 5] }, { s: 4, n: "major 3rd", r: [5, 4] },
+    { s: 5, n: "perfect 4th", r: [4, 3] }, { s: 6, n: "tritone", r: [45, 32] }, { s: 7, n: "perfect 5th", r: [3, 2] }, { s: 8, n: "minor 6th", r: [8, 5] }, { s: 9, n: "major 6th", r: [5, 3] },
+    { s: 10, n: "minor 7th", r: [7, 4] }, { s: 11, n: "major 7th", r: [15, 8] }, { s: 12, n: "octave", r: [2, 1] }, { s: 16, n: "major 10th", r: [5, 2] }, { s: 19, n: "12th (5th + 8ve)", r: [3, 1] },
+  ];
+  const PRESETS = [["Root only", [0]], ["Open fifth", [0, 7]], ["Root + octave", [0, 12]], ["Major triad", [0, 4, 7]], ["Minor triad", [0, 3, 7]], ["Dominant 7th", [0, 4, 7, 10]], ["Major 7th", [0, 4, 7, 11]], ["Sus4", [0, 5, 7]], ["Overtones: 8ve, 12th, 10th", [0, 12, 19, 16]]];
+  let S = { root: 2, octave: 3, a4: 440, tune: "ji", on: [0, 7], timbre: "organ", vol: .55, sev: "7/4", pulse: 0 };
+  try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-drone") || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem("silverapps-drone", JSON.stringify(S)); } catch (e) {} };
+  if (!("tonic" in S)) S.tonic = "follow";
+  // Ratios above the tuning root, by semitone (one octave). Just: 5-limit; Pythagorean: chains of pure fifths.
+  const JI = [[1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3], [45, 32], [3, 2], [8, 5], [5, 3], null, [15, 8]];
+  const PY = [[1, 1], [256, 243], [9, 8], [32, 27], [81, 64], [4, 3], [729, 512], [3, 2], [128, 81], [27, 16], [16, 9], [243, 128]];
+  const TNAME = { et: "equal temperament", ji: "just intonation", py: "Pythagorean tuning" };
+  const etHz = m => S.a4 * Math.pow(2, (m - 69) / 12);
+  const rootMidi = () => (S.octave + 1) * 12 + S.root;
+  const tonicPc = () => S.tonic === "follow" ? S.root : +S.tonic;
+  const tonicMidi = () => rootMidi() - ((S.root - tonicPc() + 12) % 12);
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  // ratio of a drone note above the tuning root, as [num, den] (octaves folded in)
+  function ratio(iv) {
+    const d = rootMidi() + iv.s - tonicMidi(), k = d % 12, o = Math.floor(d / 12);
+    const r = (S.tune === "py" ? PY : JI)[k] || S.sev.split("/").map(Number);
+    let n = r[0] * Math.pow(2, o), q = r[1]; const g = gcd(n, q); return [n / g, q / g];
+  }
+  const rootHz = () => etHz(rootMidi());
+  const hzOf = iv => { if (S.tune === "et") return etHz(rootMidi() + iv.s); const r = ratio(iv); return etHz(tonicMidi()) * r[0] / r[1]; };
+  const centsOff = iv => 1200 * Math.log2(hzOf(iv) / etHz(rootMidi() + iv.s));
+  const noteName = iv => PCN[(S.root + iv.s) % 12] + (S.octave + Math.floor((S.root + iv.s) / 12));
+
+  // ---------- audio ----------
+  let AC = null, master = null, voices = {}, running = false, lfo = null;
+  const WAVES = {};
+  function wave(kind) {
+    if (WAVES[kind]) return WAVES[kind];
+    const H = { organ: [1, .6, .35, .25, .12, .08, .05, .04], strings: [1, .55, .4, .3, .22, .16, .12, .09, .07, .05], reed: [1, .2, .7, .15, .5, .12, .35, .1, .2], sine: [1] }[kind];
+    const re = new Float32Array(H.length + 1), im = new Float32Array(H.length + 1); H.forEach((a, i) => im[i + 1] = a);
+    return WAVES[kind] = AC.createPeriodicWave(re, im);
+  }
+  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0; const comp = AC.createDynamicsCompressor(); comp.threshold.value = -18; master.connect(comp); comp.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); return AC; }
+  function voiceFor(iv) {
+    const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter();
+    o.setPeriodicWave(wave(S.timbre)); o2.setPeriodicWave(wave(S.timbre)); lp.type = "lowpass"; lp.frequency.value = S.timbre === "sine" ? 8000 : 3200;
+    const f = hzOf(iv); o.frequency.value = f; o2.frequency.value = f; o2.detune.value = S.timbre === "strings" ? 6 : 0;
+    const g2 = AC.createGain(); g2.gain.value = S.timbre === "strings" ? .5 : 0;
+    o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    g.gain.value = 0; o.start(); o2.start();
+    return { o, o2, g, iv };
+  }
+  function level() { const n = Math.max(1, S.on.length); return S.vol * .5 / Math.sqrt(n); }
+  function sync() {
+    if (!running) return;
+    const t = AC.currentTime;
+    IVS.forEach(iv => {
+      const want = S.on.includes(iv.s); let v = voices[iv.s];
+      if (want && !v) v = voices[iv.s] = voiceFor(iv);
+      if (v) {
+        const f = hzOf(iv); v.o.frequency.setTargetAtTime(f, t, .05); v.o2.frequency.setTargetAtTime(f, t, .05);
+        v.g.gain.setTargetAtTime(want ? level() * (iv.s === 0 ? 1 : .8) : 0, t, .25);
+        if (!want) { const dead = v; delete voices[iv.s]; setTimeout(() => { try { dead.o.stop(); dead.o2.stop(); } catch (e) {} }, 1500); }
+      }
+    });
+    master.gain.setTargetAtTime(1, t, .3);
+  }
+  function rebuildTimbre() { if (!running) return; Object.values(voices).forEach(v => { v.o.setPeriodicWave(wave(S.timbre)); v.o2.setPeriodicWave(wave(S.timbre)); }); }
+  function setPulse() {
+    if (!AC) return;
+    if (lfo) { try { lfo.o.stop(); } catch (e) {} lfo = null; }
+    if (S.pulse && running) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = .12; g.gain.value = .25; o.connect(g); g.connect(master.gain); o.start(); lfo = { o }; }
+  }
+  function start() { ac(); running = true; sync(); setPulse(); $("go").textContent = "■ Stop drone"; $("go").setAttribute("aria-pressed", "true"); status(); }
+  function stop() { running = false; if (master) master.gain.setTargetAtTime(0, AC.currentTime, .25); setTimeout(() => { if (!running) { Object.values(voices).forEach(v => { try { v.o.stop(); v.o2.stop(); } catch (e) {} }); voices = {}; if (lfo) { try { lfo.o.stop(); } catch (e) {} lfo = null; } } }, 1200); $("go").textContent = "▶ Start drone"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
+  $("go").onclick = () => running ? stop() : start();
+
+  // ---------- UI ----------
+  function status() { if (running) $("status").textContent = `Sounding: ${S.on.slice().sort((a, b) => a - b).map(s => spoken(noteName(IVS.find(i => i.s === s)))).join(", ")} (${TNAME[S.tune]}${S.tune !== "et" ? `, tuned from ${spoken(PCN[tonicPc()])}` : ""}).`; }
+  function render() {
+    $("pcs").innerHTML = PCN.map((n, i) => `<button type="button" class="pc${[1, 3, 6, 8, 10].includes(i) ? " blk" : ""}" data-pc="${i}" aria-pressed="${S.root === i}" aria-label="Root ${spoken(n)}">${n}</button>`).join("");
+    $("ivs").innerHTML = IVS.map(iv => iv.s === 0 ? `<div class="iv root" role="note"><b>${noteName(iv)}</b><small>root (always on)</small></div>` : `<button type="button" class="iv" data-s="${iv.s}" aria-pressed="${S.on.includes(iv.s)}"><b>${noteName(iv)}</b><small>${iv.n}</small></button>`).join("");
+    document.querySelectorAll("[data-tune]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tune === S.tune)));
+    $("presets").innerHTML = PRESETS.map((p, i) => `<button type="button" class="tbtn" data-pre="${i}">${p[0]}</button>`).join("");
+    $("sevWrap").hidden = S.tune !== "ji";
+    $("tonic").value = S.tonic;
+    const tn = PCN[tonicPc()];
+    $("tuneNote").textContent = S.tune === "et" ? "Every half step is exactly 100 cents; no note is favored." : S.tune === "ji" ? `Pure ratios from the harmonic series of ${tn}. Thirds and sixths are calm and beat-free; ${S.tonic === "follow" ? "change the tuning root to hear how other chords go out of tune." : "chords on other roots may sound rough."}` : `Every note comes from pure 3:2 fifths above or below ${tn}. Fifths are pure; major thirds are wide (+8¢) and bright.`;
+    const rows = S.on.slice().sort((a, b) => a - b).map(s => IVS.find(i => i.s === s)).map(iv => { const r = ratio(iv), c = S.tune === "et" ? 0 : centsOff(iv), cs = Math.abs(c) < .5 ? "0¢" : `${c > 0 ? "+" : "−"}${Math.abs(c).toFixed(1)}¢`; return `<tr><th scope="row">${noteName(iv)}</th><td>${iv.n}</td><td>${S.tune === "et" ? `2^(${iv.s}/12)` : `${r[0]}:${r[1]} above ${tn}`}</td><td class="cents ${c < -.5 ? "flat" : c > .5 ? "sharp" : ""}">${cs}${S.tune !== "et" && Math.abs(c) > .5 ? (c < 0 ? " (lower)" : " (higher)") : ""}</td><td>${hzOf(iv).toFixed(2)} Hz</td></tr>`; }).join("");
+    $("nowRows").innerHTML = rows;
+    status(); save();
+  }
+  // Waveform sketch of the combined drone: beating is visible in equal temperament, smooth in just intonation.
+  function drawViz() {
+    const svg = $("viz"), f0 = rootHz(), N = 600, T = 6 / f0 * 4; let d = "", mx = 0; const ys = [];
+    for (let i = 0; i <= N; i++) { const t = i / N * T * 40; let y = 0; S.on.forEach(s => { y += Math.sin(2 * Math.PI * hzOf(IVS.find(v => v.s === s)) * t); }); ys.push(y); mx = Math.max(mx, Math.abs(y)); }
+    ys.forEach((y, i) => d += `${i ? "L" : "M"}${i} ${60 - y / (mx || 1) * 50}`);
+    svg.innerHTML = `<path d="${d}" fill="none" stroke="${getComputedStyle(document.documentElement).getPropertyValue("--fi-navy")}" stroke-width="1.2"/>`;
+  }
+  $("pcs").onclick = e => { const b = e.target.closest("[data-pc]"); if (!b) return; S.root = +b.dataset.pc; render(); sync(); $("pcs").querySelector(`[data-pc="${S.root}"]`).focus(); };
+  $("ivs").onclick = e => { const b = e.target.closest("[data-s]"); if (!b) return; const s = +b.dataset.s; S.on = S.on.includes(s) ? S.on.filter(x => x !== s) : S.on.concat(s); if (!S.on.includes(0)) S.on.push(0); render(); sync(); $("ivs").querySelector(`[data-s="${s}"]`).focus(); };
+  $("presets").onclick = e => { const b = e.target.closest("[data-pre]"); if (!b) return; S.on = PRESETS[+b.dataset.pre][1].slice(); render(); sync(); };
+  document.querySelectorAll("[data-tune]").forEach(b => b.onclick = () => { S.tune = b.dataset.tune; render(); sync(); });
+  $("tonic").innerHTML = '<option value="follow">The drone\'s root (moves with it)</option>' + PCN.map((n, i) => `<option value="${i}">${n}</option>`).join("");
+  $("tonic").onchange = e => { S.tonic = e.target.value; render(); sync(); };
+  $("octave").value = S.octave; $("a4").value = S.a4; $("timbre").value = S.timbre; $("vol").value = Math.round(S.vol * 100); $("sev").value = S.sev; $("pulse").value = S.pulse;
+  $("octave").onchange = e => { S.octave = +e.target.value; render(); sync(); };
+  $("a4").onchange = e => { S.a4 = Math.max(400, Math.min(480, +e.target.value || 440)); e.target.value = S.a4; render(); sync(); };
+  $("timbre").onchange = e => { S.timbre = e.target.value; save(); rebuildTimbre(); };
+  $("vol").oninput = e => { S.vol = e.target.value / 100; save(); sync(); };
+  $("sev").onchange = e => { S.sev = e.target.value; render(); sync(); };
+  $("pulse").onchange = e => { S.pulse = +e.target.value; save(); setPulse(); };
+  document.addEventListener("keydown", e => { if (e.code === "Space" && !e.target.closest("input,select,textarea,button")) { e.preventDefault(); running ? stop() : start(); } });
+  render();
+})();
+</script>

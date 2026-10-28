@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score and Parts Preparation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;800&family=JetBrains+Mono:wght@500&family=Noto+Music&display=swap">
+<style>
+/* Layout: one practice card under a slim header (prompt → answer controls → feedback); settings and reference fold away below it. */
+:root {
+  --bg: #E8ECF1;
+  --surface: #FBFCFD;
+  --field: #F1F4F8;
+  --ink: #141A24;
+  --muted: #586376;
+  --line: #C9D1DC;
+  --brass: #9C6110;
+  --brass-soft: #F4E6CC;
+  --on-brass: #FFFFFF;
+  --good: #176845;
+  --good-soft: #D5EEE1;
+  --bad: #B3352E;
+  --bad-soft: #F7DCD9;
+  --warn: #8A5B00;
+  --warn-soft: #F6EBCB;
+  --display: "Big Shoulders Display", "Noto Music", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Noto Music", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "Noto Music", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+    --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+    --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1219; --surface: #161C26; --field: #10151D; --ink: #E6E9EF; --muted: #95A0B2; --line: #2B3443;
+  --brass: #E3AA4F; --brass-soft: #392D18; --on-brass: #1A1206;
+  --good: #5DC995; --good-soft: #15332A; --bad: #F2796E; --bad-soft: #3D1C1B; --warn: #E6C15E; --warn-soft: #383017;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.skip { position: absolute; left: 8px; top: -60px; background: var(--brass); color: var(--on-brass); padding: 10px 14px; border-radius: 8px; font-weight: 700; z-index: 10; }
+.skip:focus { top: 8px; }
+
+.wrap-aside { display: grid; gap: 14px; }
+.credit { text-align: center; color: var(--muted); font-size: .8125rem; letter-spacing: .02em; padding-top: 6px; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 56px; display: grid; gap: 14px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2.5rem; line-height: .95; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; max-width: 46ch; }
+.score { display: flex; gap: 18px; font-variant-numeric: tabular-nums; }
+.score div { display: grid; justify-items: end; line-height: 1; }
+.score b { font-family: var(--display); font-weight: 800; font-size: 1.9rem; }
+.score small { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: 4px; }
+.score-reset { align-self: center; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; min-height: 44px; min-width: 44px; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.score-reset.armed { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+
+.play-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.play { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--brass); background: transparent; color: var(--brass); border-radius: 99px; padding: 8px 16px; min-height: 44px; font-weight: 700; font-size: .9rem; }
+.play svg { width: 12px; height: 12px; fill: currentColor; }
+.play:active { background: var(--brass-soft); }
+.answer .play-row { justify-content: flex-start; }
+
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+.modes button { border: 0; background: transparent; border-radius: 9px; padding: 9px 10px; display: grid; gap: 1px; text-align: center; min-height: 44px; }
+.modes button b { font-family: var(--display); font-weight: 800; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+.modes button small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.modes button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.kicker { margin: 0; font-family: var(--mono); font-weight: 500; font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.kicker:focus { outline: none; }
+.kicker:focus-visible { outline: 3px solid var(--brass); outline-offset: 4px; }
+.prompt { min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.big { font-family: var(--display); font-weight: 800; line-height: 1; font-size: clamp(2.6rem, 11vw, 4.4rem); text-wrap: balance; }
+.big .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: .8em; }
+.q-text { font-size: 1.3rem; font-weight: 700; line-height: 1.6; max-width: 34ch; text-wrap: balance; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+
+.staff { width: min(100%, 470px); }
+.staff svg { display: block; width: 100%; height: auto; }
+.staff-msg { color: var(--muted); font-size: .9rem; padding: 40px 0; }
+
+.hint { background: var(--brass-soft); border-radius: 10px; padding: 10px 14px; font-size: .95rem; }
+.mono { font-family: var(--mono); font-size: .92em; }
+/* Scale-degree caret drawn in CSS: the combining circumflex renders unevenly across fonts. */
+.sd { position: relative; display: inline-block; }
+.sd::before { content: "^"; position: absolute; left: 50%; top: -.55em; transform: translateX(-50%); font-size: .8em; font-weight: 400; }
+
+.field label { display: block; font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 6px; }
+.field input { width: 100%; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; font-family: var(--mono); font-size: 1.2rem; }
+.field input:focus { border-color: var(--brass); outline: none; }
+.field input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.field .help { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+
+.pad { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.pad button { min-height: 44px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; padding: 0 2px; }
+.pad button.accb { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.25rem; }
+.pad button.util { font-family: var(--body); font-weight: 700; font-size: .85rem; color: var(--muted); }
+.pad button:active { background: var(--brass-soft); }
+
+.choices { display: grid; gap: 12px; }
+.choice-group { display: grid; gap: 6px; }
+.choice-group > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.choice-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.choice-row.wide { grid-template-columns: 1fr; }
+.choice-row.sig { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.choice { position: relative; min-height: 48px; background: var(--field); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; font-weight: 700; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.choice-row.sig .choice { justify-content: center; text-align: center; padding: 6px 2px; font-family: var(--display); font-size: 1.25rem; }
+.choice-row.sig .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.1rem; }
+.choice:hover:not(:disabled) { border-color: var(--brass); }
+.choice:active:not(:disabled) { background: var(--brass-soft); }
+.choice.right { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.choice:disabled:not(.right):not(.wrong) { color: var(--muted); }
+.choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { font-family: var(--mono); font-size: .8125rem; white-space: nowrap; }
+.choice-row.sig .choice > span:first-child { overflow-wrap: normal; }
+.choice .mark { position: absolute; top: 1px; right: 4px; font-size: .75rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 16px; font-weight: 700; min-height: 44px; }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--on-brass); min-width: 110px; }
+.btn.ghost { margin-left: auto; }
+
+.feedback { display: grid; gap: 12px; }
+.feedback:empty { display: none; }
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 700; }
+.pill { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; padding: 4px 9px; border-radius: 99px; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.note-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--display); font-weight: 800; font-size: 1.25rem; padding: 2px 10px; border-radius: 8px; }
+.chip.ok { background: var(--good-soft); color: var(--good); }
+.chip.enh { background: var(--warn-soft); color: var(--warn); }
+.chip.no { background: var(--bad-soft); color: var(--bad); }
+.legend { font-size: .9rem; color: var(--muted); margin: 0; }
+.explain { margin: 0; max-width: 62ch; }
+
+#answerBox:empty { display: none; }
+.answer { display: grid; gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.answer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.answer-head h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.answer .staff { width: min(100%, 470px); }
+.degs { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 4px; }
+.deg { border-top: 3px solid var(--line); padding-top: 6px; text-align: center; min-width: 0; }
+.deg i { display: block; font-style: normal; font-family: var(--mono); font-size: .8125rem; color: var(--muted); }
+.deg.char i { color: var(--brass); font-weight: 700; }
+.deg.char i::after { content: "*"; }
+.deg b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.15; }
+.deg.ok { border-color: var(--good); }
+.deg.enh { border-color: var(--warn); }
+.deg.miss { border-color: var(--bad); }
+.deg em { display: block; font-style: normal; font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; }
+
+details.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+details.panel summary { padding: 14px 18px; min-height: 44px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+details.panel summary::-webkit-details-marker { display: none; }
+details.panel summary::after { content: "+"; font-family: var(--mono); color: var(--muted); }
+details.panel[open] summary::after { content: "−"; }
+.panel-body { padding: 0 18px 18px; display: grid; gap: 16px; }
+.panel-body h2 { margin: 6px 0 0; font-size: 1rem; }
+.set-row { display: grid; gap: 8px; }
+.set-row > span { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.tog { border: 1px solid var(--line); background: var(--field); border-radius: 99px; padding: 7px 14px; min-height: 44px; font-size: .92rem; }
+.tog[aria-pressed="true"] { background: var(--brass-soft); border-color: var(--brass); color: var(--ink); font-weight: 700; }
+.tog[aria-pressed="true"]::before { content: "✓ "; }
+.tog small { font-family: var(--mono); font-size: .8125rem; color: var(--muted); margin-left: 4px; }
+.set-note { font-size: .85rem; color: var(--muted); margin: 0; }
+.reset { justify-self: start; background: none; border: 0; padding: 0 4px; min-height: 44px; min-width: 44px; color: var(--muted); text-decoration: underline; font-size: .88rem; }
+
+.rules { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 64ch; }
+.rules li::marker { color: var(--brass); }
+.ref { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ref caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+.ref th, .ref td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ref th[scope="col"] { font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 500; }
+.ref td.mono { white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.ref-dialog { width: min(720px, calc(100vw - 24px)); max-height: calc(100vh - 32px); border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.ref-dialog::backdrop { background: rgba(10, 14, 20, .55); }
+.ref-dialog[open] { display: grid; gap: 12px; }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: -18px; background: var(--surface); padding-block: 4px; }
+.dlg-head h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; line-height: 1.05; }
+@media (max-width: 420px) { .ref-dialog { padding: 14px; } .dlg-head { top: -14px; } .dlg-head h2 { font-size: 1.15rem; } }
+/* Narrow screens: each scale becomes a small stacked card instead of a wide row. */
+@media (max-width: 560px) {
+  .ref thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ref, .ref tbody, .ref tr, .ref th, .ref td { display: block; }
+  .ref tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .ref th, .ref td { border: 0; padding: 1px 0; }
+  .ref td { display: grid; grid-template-columns: 7.5em 1fr; gap: 8px; }
+  .ref td::before { content: attr(data-label); font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 2px; }
+  .ref td.mono { white-space: normal; }
+}
+
+@media (max-width: 420px) {
+  .card { padding: 16px; }
+  .brand h1 { font-size: 2.1rem; }
+  .deg b { font-size: 1.15rem; }
+  .btn.ghost { margin-left: 0; }
+  .choice-row { grid-template-columns: 1fr 1fr; }
+  .choice-row.wide { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .prompt > * { animation: rise .28s ease-out both; }
+  @keyframes rise { from { transform: translateY(6px); opacity: .4; } to { transform: none; opacity: 1; } }
+}
+@media (forced-colors: active) {
+  .choice.right, .choice.wrong, .tog[aria-pressed="true"], .modes button[aria-pressed="true"] { border: 3px solid CanvasText; }
+}
+/* Instrument Transpositions additions */
+.ins { display: inline-block; font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1; text-wrap: balance; }
+.staff.solo { width: min(100%, 240px); }
+.choice-row.notes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-row.notes .choice { justify-content: center; text-align: center; font-family: var(--display); font-size: 1.5rem; }
+.choice-row.notes .choice .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: 1.2rem; }
+.pair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.pair figure { margin: 0; display: grid; justify-items: center; gap: 2px; width: min(46%, 220px); }
+.pair .staff { width: 100%; }
+.pair figcaption { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
+.pair .arrow { font-size: 1.6rem; color: var(--muted); }
+.ref + .ref, .table-wrap + .table-wrap { margin-top: 14px; }
+@media (max-width: 420px) { .choice-row.notes { grid-template-columns: 1fr 1fr; } .pair figure { width: 100%; } .pair .arrow { display: none; } }
+
+.nw { white-space: nowrap; }
+
+.q-text { max-width: 44ch; }
+.choice-row.wide .choice { text-align: left; }
+.picker { display: grid; gap: 10px; }
+.pk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pk-lab { font-family: var(--mono); font-size: .8125rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); min-width: 6.5em; }
+.pk { min-width: 44px; min-height: 44px; border: 2px solid var(--line); background: var(--field); border-radius: 10px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.pk .acc { font-family: "Noto Music", var(--body); font-weight: 400; }
+.pk.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pk.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.pk.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.pk-now { margin-right: auto; }
+@media (max-width: 420px) { .pk-lab { min-width: 100%; } }
+
+@media (min-width: 640px) { .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }
+.modes.m3 button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#practice">Skip to the practice question</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Score and Parts Preparation</h1>
+      <p>What a professional score and set of parts must include, and the typesetting conventions players and conductors expect.</p>
+    </div>
+    <div class="score">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <nav class="modes m3" aria-label="Practice mode">
+    <button data-mode="score" aria-pressed="true"><b>The score</b><small><span aria-hidden="true">pages · names · bars</span><span class="sr">: what a score must include and how it&#x27;s laid out</span></small></button>
+    <button data-mode="parts" aria-pressed="false"><b>The parts</b><small><span aria-hidden="true">turns · cues · rests</span><span class="sr">: what parts must include</span></small></button>
+    <button data-mode="type" aria-pressed="false"><b>Typesetting</b><small><span aria-hidden="true">dynamics · tempo · text</span><span class="sr">: common typesetting conventions and mistakes</span></small></button>
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+<p class="set-note">Missed questions come back for review now and then.</p>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"><li>Score and parts go through a second proofreader before they reach players.</li><li>Cues go in parts (after 8+ bars of rest), never in the score.</li></ol></div>
+  </details>
+  </aside>
+  <footer class="credit">App by Adam Silverman</footer>
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script>
+window.FAM = (() => {
+  const F = (q, a, w, why) => ({ q, a, w, why });
+  const SCORE = [
+    F("What belongs on a score's cover page?", "title, composer's name and year of composition", ["the instrument list and program note", "the first page of music", "the publisher's price list"], "The inside page has the instrument list, duration and program note."),
+    F("What belongs on the inside page of a score?", "the list of instruments, duration and a program note", ["the title only", "the composer's biography only", "a table of contents of the parts"], "The cover has title, composer and year."),
+    F("How should instrument names appear on the first page of a score?", "full names, to the left of each staff", ["abbreviated names", "no names at all", "names above each staff"], "Later pages use abbreviated names."),
+    F("On later pages of a score, instrument names should be…", "abbreviated (omitted for solos and small ensembles)", ["written out in full again", "left out for every ensemble", "printed in bold capitals"], "Abbreviate for ensembles larger than quartets."),
+    F("Where do bar numbers go in a score?", "at the start of each system, above the top staff (and above the strings in orchestral music)", ["every five bars on every staff", "below the bottom staff only", "only at rehearsal letters"], "Rehearsal letters needn't be used alongside bar numbers, except in multi-movement works."),
+    F("In a multi-movement work, which restart in each movement?", "bar numbers (rehearsal letters keep going)", ["rehearsal letters (bar numbers keep going)", "both", "neither"], "Rehearsal letters continue through the whole composition."),
+    F("What paper size suits orchestral or band scores?", "legal (8.5″ × 14″) or tabloid (11″ × 17″)", ["letter only", "A5", "index cards"], "Small-ensemble scores can be letter size."),
+    F("Who should proofread a score?", "a qualified person other than the composer", ["the composer alone", "the notation software", "nobody: software is reliable"], "They should check the music, balance, ranges, transpositions and appearance. Parts too."),
+    F("How should a score be printed?", "double-sided and bound", ["single-sided on loose pages", "on one long scroll", "only as a PDF"], "Application scores must always be bound."),
+    F("Music submitted to a competition or graduate school must…", "always be bound (spiral, comb, etc.)", ["be on loose pages", "be handwritten", "include only the first page"], "Binding is essential for applications."),
+    F("Where do tempo markings, rehearsal letters and bar numbers go in a score?", "over the top staff (and over Violin I in an orchestra)", ["over every staff", "under the bottom staff", "only in the parts"], "They should never appear over each staff; they do appear in each part."),
+    F("If the final system has only one bar, you should…", "fit it onto the previous system or narrow the bar", ["leave it stretched across the page", "delete the bar", "add an empty system"], "Systems should be full of music from side to side."),
+    F("For an ensemble with 5–10 staves, the score should usually be…", "landscape, with staves sized to fill the page", ["portrait with one system per page", "on index cards", "on legal paper in portrait, half empty"], "Five or fewer staves: multiple systems in portrait. More than ten: consider legal paper."),
+    F("Two trumpets on separate staves should be named…", "“Trumpet 1 in B♭” and “Trumpet 2 in B♭”", ["“Trumpet in B♭” on both", "“Trumpet” and “Another trumpet”", "nothing"], "Instrument names should never be identical on two staves."),
+    F("Scores are usually sent to ensembles as…", "PDFs, which are also used in rehearsal", ["handwritten originals", "audio files", "notation-software files only"], "Performers may still need printed parts."),
+  ];
+  const PARTS = [
+    F("Where does the instrument name go on a part?", "top left of the first page; top center on later pages", ["bottom right of every page", "only on the last page", "in the title"], "Parts also need the title and composer's name."),
+    F("What must parts have at every page turn?", "enough rest to turn the page", ["a fermata", "a key change", "a cue"], "Even with tablets, assume printed parts."),
+    F("How many staves per page should a part have?", "eight to twelve, depending on density", ["three or four", "twenty or more", "exactly sixteen"], "Legibility comes first."),
+    F("In parts, bar numbers should appear…", "at the start of each staff system", ["every five bars", "only at rehearsal letters", "never"], "They and rehearsal letters must match the score."),
+    F("Multi-bar rests in parts are shown with…", "an H-bar with the number of bars", ["a separate whole rest in each bar", "an empty page", "a fermata"], "A bar-number range for the rest is also helpful."),
+    F("Cues must appear when an instrument rests for more than…", "eight bars", ["one bar", "two bars", "thirty-two bars"], "They go in the parts, never in the score."),
+    F("Cues belong…", "in the parts only, never in the score", ["in the score only", "in both score and parts", "on a separate cue sheet"], "In the score those bars are simply rests."),
+    F("A good cue is…", "musically relevant, audible to the player, and in the key of their part", ["any loud passage", "in concert pitch regardless of the part", "the conductor's beat pattern"], "Cues appear in small notes above the rest, with the cued instrument's name."),
+    F("Cue notes in a part are written…", "in small notes above whole-bar rests, labeled with the instrument", ["full size in place of the rests", "below the staff in parentheses", "as text only"], "Many notation programs have a paste-as-cue command."),
+    F("What staff size is most readable for all instruments?", "about 8.5 mm from bottom line to top", ["about 3 mm", "about 20 mm", "whatever fills the page"], "Parts must be legible from the player's distance to the stand."),
+    F("Parts should never be…", "on loose pages", ["double-sided", "letter size", "in portrait format"], "Tape-bind them or fold an 11″ × 17″ booklet."),
+    F("A two-page part is best printed…", "side by side on one tabloid sheet, so no page turn is needed", ["on two loose letter sheets", "double-sided on one letter sheet", "in landscape, one page per sheet"], "Fold it with the music facing out so it's easy to find in a folder."),
+    F("How many copies of parts are needed?", "as many as the instrumental forces require", ["one per section", "one for the conductor only", "two per piece"], "Duplicate parts for every player (or string stand)."),
+    F("Ideally, professional orchestra and band parts are printed on…", "10″ × 13″ paper", ["letter paper", "A5 paper", "11″ × 17″ unfolded"], "Exceptions are made in most situations."),
+  ];
+  const TYPE = [
+    F("Where must a dynamic marking be placed at minimum?", "under each instrument's first note, and the first note after a rest of more than a bar", ["only at the start of the piece in the top staff", "under every note", "under rests before entrances"], "Dynamics never go under rests or empty bars."),
+    F("Dynamics on vocal staves go…", "above the staff, to avoid the lyrics", ["below the staff, as usual", "inside the staff", "only in the piano part"], "Instrumental dynamics go below."),
+    F("Dynamics should reflect…", "the character wanted for that instrument", ["only which line is foreground", "the loudest instrument in the bar", "the conductor's preference"], "Using dynamics to separate foreground from accompaniment is rarely right."),
+    F("How are main tempo indications typeset?", "bold, with sentence capitalization (Allegro ma non troppo)", ["italic lowercase (allegro)", "all capitals (ALLEGRO)", "small plain text"], "E.g. Adagio, Moderato, Tempo I, Fast."),
+    F("How are tempo changes typeset?", "not capitalized: accel., a tempo, rit., più mosso", ["bold capitals: Accel.", "in boxes", "the same as the main tempo"], "Only principal tempos get sentence capitals in bold."),
+    F("Dynamic markings are printed in…", "bold italics (mp)", ["plain capitals (MP)", "regular roman type", "underlined text"], "Use the program's dynamic or expression text, not plain text."),
+    F("Which spelling is correct for a crescendo marking?", "cresc.", ["Cresc.", "cres.", "CRESC."], "crescendo or cresc. — lowercase."),
+    F("Instrumental effects like mute on, st. mute, open, sul pont. should be…", "lowercase, not capitalized", ["capitalized", "in bold capitals", "boxed"], "Don't capitalize instrumental effects."),
+    F("Ties and slurs are…", "different: a tie joins the same pitch, a slur shapes articulation", ["the same thing", "both only for strings", "interchangeable in parts"], "Notation programs enter them differently."),
+    F("A pick-up bar needs…", "rests of the right duration for instruments that don't play", ["whole rests for everyone", "no rests at all", "a fermata"], "Whole rests must not be used in a pick-up bar."),
+    F("Which of these terms is normally NOT italicized?", "pizz.", ["dolce", "espr.", "semplice"], "arco, pizz., div., unis. are usually roman; dolce, espr., semplice, cresc., sim. are commonly italic."),
+    F("Which of these is commonly italicized?", "dolce", ["arco", "div.", "unis."], "Less common terms are generally italicized; check published scores when in doubt."),
+    F("Scores must be legible with…", "no overlapping or unclear elements, and type large enough for a conductor", ["the smallest possible staff size", "as many systems per page as possible", "colored notes for each section"], "Professional standards."),
+    F("Staves on the page should be…", "centered, with sensible margins and not spread out", ["crowded at the top", "spread out to fill extra pages", "aligned to the left edge"], "Systems shouldn't just fill the top half of a page."),
+  ];
+  const fromList = (H, list, kicker, topic) => { const f = H.rnd(list); return H.mc(f.q, f.a, f.w, f.why, { kicker, topic }); };
+  return {
+    key: "score-parts",
+    modes: [{ id: "score", kicker: "The score" }, { id: "parts", kicker: "The parts" }, { id: "type", kicker: "Typesetting" }],
+    make(mode, H) { return fromList(H, mode === "score" ? SCORE : mode === "parts" ? PARTS : TYPE, { score: "The score", parts: "The parts", type: "Typesetting" }[mode], mode); },
+    reference() {
+      return `<ul class="rules"><li><b>Score:</b> cover (title, composer, year); inside page (instruments, duration, program note); full names first page, abbreviated after; bar numbers at each system; double-sided and bound.</li>
+      <li><b>Parts:</b> name top left (then top center); rests at page turns; 8–12 staves per page; bar numbers each system; H-bars; cues after 8+ bars of rest (parts only); about 8.5 mm staves; never loose pages.</li>
+      <li><b>Typesetting:</b> tempo, rehearsal letters and bar numbers over the top staff (and Violin I); dynamics under first notes, never under rests, bold italic; main tempos bold with sentence capitals; tempo changes and effects lowercase; ties ≠ slurs; pick-up bars get real rests.</li></ul>`;
+    },
+  };
+})();
+</script>
+<script>
+(() => {
+  // ===== Orchestration family trainer engine. Content comes from window.FAM (strings.js, winds.js, percussion.js). =====
+  const FAM = window.FAM;
+  const LET = "CDEFGAB", NAT = [0, 2, 4, 5, 7, 9, 11];
+  const ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
+  const SPOKEN_ACC = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const accHTML = s => esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>');
+  const speak = s => String(s).replace(/𝄫/g, " double flat").replace(/𝄪/g, " double sharp").replace(/♭/g, " flat").replace(/♯/g, " sharp").replace(/♮/g, " natural").replace(/π/g, "down-bow").replace(/\bV\b(?= )/g, "V");
+
+  // ---------- notes: { l, a, step } with C4 = step 28 ----------
+  const mk = (step, a = 0) => ({ l: ((step % 7) + 7) % 7, a, step });
+  const oct = n => Math.floor(n.step / 7);
+  const midi = n => 12 * (oct(n) + 1) + NAT[((n.step % 7) + 7) % 7] + n.a;
+  function up(n, st, se) { const step = n.step + st, l = ((step % 7) + 7) % 7; return { l, a: midi(n) + se - (12 * (Math.floor(step / 7) + 1) + NAT[l]), step }; }
+  const nm = n => LET[n.l] + ACC[n.a] + oct(n);
+  const nmSpoken = n => LET[n.l] + SPOKEN_ACC[n.a] + " " + oct(n);
+  const parse = s => { const m = /^([A-G])(♭|♯|b|#)?(-?\d)$/.exec(s); const l = LET.indexOf(m[1]); return mk(+m[3] * 7 + l, m[2] === "♯" || m[2] === "#" ? 1 : m[2] ? -1 : 0); };
+  const okNote = n => Math.abs(n.a) <= 1 && !(n.a === 1 && (n.l === 2 || n.l === 6)) && !(n.a === -1 && (n.l === 3 || n.l === 0));
+
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // A multiple-choice question; wrong answers are de-duplicated and trimmed to three.
+  const mc = (text, answer, wrong, explain, extra) => {
+    const w = shuffle([...new Set(wrong.map(String))].filter(v => v !== String(answer))).slice(0, 3);
+    return Object.assign({ text, choices: shuffle([String(answer), ...w]), answer: String(answer), explain }, extra || {});
+  };
+  const H = { oct, mk, up, nm, nmSpoken, parse, midi, okNote, rnd, shuffle, mc, LET, ACC };
+
+  // ---------- Staff (VexFlow); notes may be { n, head: "diamond" | "normal", circle } ----------
+  function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const GLYPH = { "-1": "b", "0": "n", "1": "#" };
+  function drawStaff(el, o) {
+    el._args = o; el.innerHTML = "";
+    if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Reload the page.</p>'; return; }
+    const VF = Vex.Flow, ink = cssVar("--ink");
+    const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    const stave = new VF.Stave(4, 30, 400);
+    stave.addClef(o.clef || "treble");
+    const sx = stave.getNoteStartX(), groups = o.groups || [o.notes || []];
+    const W = Math.round(sx + 26 + groups.length * 62), Hh = 170;
+    stave.setWidth(W - 8); r.resize(W, Hh);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    stave.setStyle({ fillStyle: ink, strokeStyle: ink }); stave.setContext(ctx).draw();
+    const sns = groups.map(g => {
+      const ns = g.slice().sort((a, b) => a.n.step - b.n.step);
+      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: ns.map(x => LET[x.n.l].toLowerCase() + "/" + oct(x.n)), duration: "w" });
+      sn.setStyle({ fillStyle: ink, strokeStyle: ink });
+      if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      ns.forEach((x, i) => {
+        if (x.n.a !== 0) sn.addModifier(new VF.Accidental(GLYPH[x.n.a]), i);
+        if (x.head === "diamond") sn.setKeyStyle(i, { fillStyle: "rgba(0,0,0,0)", strokeStyle: "rgba(0,0,0,0)" });
+      });
+      if (ns.some(x => x.circle)) sn.addModifier(new VF.Annotation("o").setVerticalJustification(1), 0);
+      sn._ns = ns; return sn;
+    });
+    const voice = new VF.Voice({ num_beats: 4 * sns.length, beat_value: 4 }).addTickables(sns);
+    new VF.Formatter().joinVoices([voice]).format([voice], stave.getNoteEndX() - stave.getNoteStartX() - 16);
+    voice.draw(ctx, stave);
+    // Hollow diamond noteheads, drawn by hand so they sit exactly on the line or space.
+    sns.forEach(sn => sn._ns.forEach((x, i) => {
+      if (x.head !== "diamond") return;
+      const y = sn.getYs()[i], cx = sn.getNoteHeadBeginX() + 8, w = 6.5, h = 5.2;
+      ctx.beginPath(); ctx.moveTo(cx - w, y); ctx.lineTo(cx, y - h); ctx.lineTo(cx + w, y); ctx.lineTo(cx, y + h); ctx.closePath();
+      ctx.setLineWidth(1.6); ctx.setStrokeStyle(ink); ctx.stroke();
+    }));
+    const svg = el.querySelector("svg");
+    if (svg) {
+      let vb = `0 0 ${W} ${Hh}`;
+      try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 8} ${bb.width + 8} ${bb.height + 16}`; } catch (e) {}
+      svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
+      svg.style.width = "100%"; svg.style.height = "auto";
+      svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
+      svg.setAttribute("aria-label", o.label || "Staff");
+    }
+  }
+  function redrawStaves() { document.querySelectorAll(".staff").forEach(el => el._args && drawStaff(el, el._args)); }
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
+
+  // ---------- Sound (Web Audio): a soft bowed/organ-like tone, or a plain sine for harmonics ----------
+  let AC = null, bus = null;
+  function audio() {
+    if (AC) { if (AC.state === "suspended") AC.resume(); return AC; }
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    AC = new C(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(AC.destination); AC._out = comp; return AC;
+  }
+  function newBus() { if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => old.disconnect(), 400); } bus = AC.createGain(); bus.connect(AC._out); return bus; }
+  function tone(out, m, t0, dur, pure) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (pure ? 2 : 6), 7000); g.connect(out); lp.connect(g);
+    const parts = pure ? [[1, 1]] : [[1, 1], [2, .5], [3, .32], [4, .2], [5, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a * (f < 90 ? .9 : .55) / parts.length * 2; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .5); });
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.32, t0 + .08); g.gain.setTargetAtTime(.25, t0 + .1, .3); g.gain.setTargetAtTime(0, t0 + dur, .12);
+  }
+  function play(p) { if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .05; (p.seq || [p.m]).forEach((m, i) => tone(out, m, t + i * (p.gap || .7), p.dur || 1.1, p.pure)); }
+  function autoPlay(q) { if (S.settings.auto !== false && q.c.play) play(q.c.play); }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (b && Q[S.mode]) play(b.dataset.play === "a" ? Q[S.mode].c.play : Q[S.mode].c.playQ); });
+  const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>${label}</button></div>`;
+
+  // ---------- State ----------
+  const MODES = FAM.modes.map(m => m.id);
+  const DEFAULTS = { auto: true, topics: Object.fromEntries((FAM.topics || []).map(t => [t.id, true])) };
+  let S = { mode: MODES[0], settings: JSON.parse(JSON.stringify(DEFAULTS)), right: 0, total: 0, streak: 0, misses: [] };
+  try { const saved = JSON.parse(localStorage.getItem(FAM.key) || "null"); if (saved) S = Object.assign(S, saved, { settings: Object.assign({}, S.settings, saved.settings, { topics: Object.assign({}, DEFAULTS.topics, (saved.settings || {}).topics) }) }); } catch (e) {}
+  if (!MODES.includes(S.mode)) S.mode = MODES[0];
+  const save = () => { try { localStorage.setItem(FAM.key, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
+  const Q = Object.fromEntries(MODES.map(m => [m, null]));
+  const sameSpec = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const topicOn = t => !t || !FAM.topics || S.settings.topics[t] !== false;
+  H.topicOn = topicOn;
+
+  function newQuestion(mode) {
+    const prev = Q[mode];
+    const review = S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
+    if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
+    for (let i = 0; i < 40; i++) {
+      const c = FAM.make(mode, H);
+      if (c && (c.picker || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || i > 30)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
+    }
+    const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
+  }
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const promptEl = $("prompt"), fb = $("feedback"), ansBox = $("answerBox"), work = $("work"), nextBtn = $("nextBtn");
+  function renderScore() { $("scRight").textContent = S.right; $("scTotal").textContent = S.total; $("scStreak").textContent = S.streak; $("scoreText").textContent = `Score: ${S.right} correct out of ${S.total} answered. Streak: ${S.streak}.`; }
+  function msg(cls, label, text) { return `<div class="verdict"><span class="pill ${cls}">${label}</span><span>${text}</span></div>`; }
+  const modeInfo = m => FAM.modes.find(x => x.id === m);
+
+  function renderPrompt() {
+    const q = Q[S.mode], c = q.c;
+    const tag = q.review ? ' <span class="pill warn">review</span>' : "";
+    let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
+    if (c.big) h += `<div class="ins">${accHTML(c.big)}</div>`;
+    h += `<p class="q-text" id="qText">${accHTML(c.text)}</p>`;
+    if (c.staff) h += `<div class="staff solo" id="promptStaff"></div>`;
+    if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
+    promptEl.innerHTML = h;
+    if (c.staff) drawStaff($("promptStaff"), c.staff);
+    renderWork();
+  }
+  function choiceBtn(value, q) {
+    let cls = "choice", mark = "";
+    if (q.done) {
+      if (value === q.correctValue) { cls += " right"; mark = `<span class="mark"><span aria-hidden="true">✓</span><span class="sr">correct answer</span></span>`; }
+      else if (value === q.chosen) { cls += " wrong"; mark = `<span class="mark"><span aria-hidden="true">✗</span><span class="sr">your answer, incorrect</span></span>`; }
+    }
+    const sr = /^[A-G][♭♯]?-?\d$/.test(value) ? `<span aria-hidden="true">${accHTML(value)}</span><span class="sr">${esc(nmSpoken(parse(value)))}</span>` : accHTML(value);
+    return `<button class="${cls}" data-v="${esc(value)}"${q.done ? " disabled" : ""}><span>${sr}</span>${mark}</button>`;
+  }
+  // Pitch + octave picker: any letter, any accidental, any normal octave.
+  function renderPicker(q) {
+    const c = q.c, P = q.pick || (q.pick = { l: null, a: 0, o: null });
+    const ans = parse(c.answer), ch = q.chosen ? parse(q.chosen) : null;
+    const mark = (kind, v) => {
+      if (!q.done) return "";
+      const right = kind === "l" ? v === ans.l : kind === "a" ? v === ans.a : v === oct(ans);
+      const mine = ch && (kind === "l" ? v === ch.l : kind === "a" ? v === ch.a : v === oct(ch));
+      return right ? " right" : mine ? " wrong" : "";
+    };
+    const btn = (kind, v, label, sr) => `<button class="pk${P[kind] === v ? " on" : ""}${mark(kind, v)}" data-pk="${kind}" data-val="${v}" aria-pressed="${P[kind] === v}"${q.done ? " disabled" : ""}><span aria-hidden="true">${label}</span>${sr ? `<span class="sr">${sr}</span>` : ""}</button>`;
+    const octs = c.picker.octaves || [1, 2, 3, 4, 5, 6, 7];
+    const ready = P.l !== null && P.o !== null;
+    work.innerHTML = `<div class="picker" role="group" aria-labelledby="qText">
+      <div class="pk-row" role="group" aria-label="Note letter"><span class="pk-lab" aria-hidden="true">Note</span>${LET.split("").map((L, i) => btn("l", i, L, "")).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Accidental"><span class="pk-lab" aria-hidden="true">Accidental</span>${[[-1, "♭", "flat"], [0, "♮", "natural"], [1, "♯", "sharp"]].map(([v, g, sr]) => btn("a", v, `<span class="acc">${g}</span>`, sr)).join("")}</div>
+      <div class="pk-row" role="group" aria-label="Octave number"><span class="pk-lab" aria-hidden="true">Octave</span>${octs.map(o => btn("o", o, String(o), `octave ${o}`)).join("")}</div>
+      <div class="pk-row"><span class="pk-now" aria-live="polite">${ready ? `Your answer: <b>${accHTML(LET[P.l] + ACC[P.a] + P.o)}</b>` : "Choose a note and an octave."}</span>${q.done ? "" : `<button class="btn primary" id="pkCheck"${ready ? "" : " disabled"}>Check</button>`}</div>
+      <p class="legend">Octave numbers: middle C is C4; each octave number starts on C.</p></div>`;
+  }
+  work.addEventListener("click", e => {
+    const q = Q[S.mode]; if (!q || !q.c.picker || q.done) return;
+    const b = e.target.closest("[data-pk]");
+    if (b) { q.pick[b.dataset.pk] = +b.dataset.val; renderPicker(q); const again = work.querySelector(`[data-pk="${b.dataset.pk}"][data-val="${b.dataset.val}"]`); if (again) again.focus(); return; }
+    if (e.target.closest("#pkCheck")) { const P = q.pick; choose(LET[P.l] + ACC[P.a] + P.o); }
+  });
+  function renderWork() {
+    const q = Q[S.mode], c = q.c;
+    if (c.picker) return renderPicker(q);
+    const notes = c.choices.every(v => /^[A-G][♭♯]?-?\d$/.test(v));
+    const short = !notes && c.choices.every(v => v.length <= 18);
+    const list = notes ? c.choices.slice().sort((a, b) => midi(parse(a)) - midi(parse(b))) : c.choices;
+    work.innerHTML = `<div class="choice-row ${notes ? "notes" : short ? "" : "wide"}" role="group" aria-labelledby="qText">${list.map(v => choiceBtn(v, q)).join("")}</div>${notes ? '<p class="legend">Octave numbers: middle C is C4.</p>' : ""}`;
+  }
+  function renderControls() {
+    const q = Q[S.mode];
+    document.querySelectorAll(".modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
+    const finished = q.done || q.revealed;
+    nextBtn.textContent = finished ? "Next question" : "Skip";
+    nextBtn.classList.toggle("primary", !!finished);
+  }
+  function score(q, correct) {
+    if (q.tries > 0) return;
+    S.total++;
+    const sp = { mode: q.mode, c: q.c };
+    if (correct) { S.right++; S.streak++; S.misses = S.misses.filter(m => !sameSpec(m.c, q.c)); }
+    else { S.streak = 0; if (!S.misses.some(m => sameSpec(m.c, q.c))) S.misses.push(sp); }
+    save(); renderScore();
+  }
+  function choose(value) {
+    const q = Q[S.mode], c = q.c;
+    if (q.done) return;
+    const enh = c.picker && value !== q.correctValue && midi(parse(value)) === midi(parse(c.answer));
+    const correct = value === q.correctValue || enh;
+    score(q, correct);
+    q.tries++; q.done = true; q.chosen = value;
+    renderWork();
+    fb.innerHTML = msg(correct ? "good" : "bad", correct ? "Correct" : "Not quite", enh ? `${accHTML(value)} is the right pitch; it's usually spelled ${accHTML(c.answer)}.` : correct ? `${accHTML(c.answer)}.` : c.picker ? `You chose ${accHTML(value)}. The answer is ${accHTML(c.answer)}.` : `The answer is ${accHTML(c.answer)}.`);
+    ansBox.innerHTML = `<div class="answer">${c.staffAns ? `<div class="staff" id="ansStaff"></div>` : ""}${c.staffAnsCap ? `<p class="legend">${accHTML(c.staffAnsCap)}</p>` : ""}${c.play ? PLAY_BTN(c.playLabel || "Play", "a") : ""}<p class="explain">${accHTML(c.explain)}</p></div>`;
+    if (c.staffAns) drawStaff($("ansStaff"), c.staffAns);
+    autoPlay(q);
+    renderControls(); nextBtn.focus();
+  }
+  function reveal() { const q = Q[S.mode]; if (q.done) return; q.tries = 1; choose(q.correctValue); }
+  work.addEventListener("click", e => { if (Q[S.mode] && Q[S.mode].c.picker) return; const b = e.target.closest("[data-v]"); if (b && !b.disabled) choose(b.dataset.v); });
+
+  function clearAnswer() { fb.innerHTML = ""; ansBox.innerHTML = ""; }
+  function next(focus = true) { Q[S.mode] = newQuestion(S.mode); clearAnswer(); renderPrompt(); renderControls(); if (focus) { const h = $("qHead"); if (h) h.focus(); } }
+  function setMode(m) { if (S.mode === m) return; S.mode = m; save(); clearAnswer(); if (!Q[m] || Q[m].done) Q[m] = newQuestion(m); renderPrompt(); renderControls(); }
+
+  // ---------- Events & settings ----------
+  document.querySelectorAll(".modes [data-mode]").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+  nextBtn.onclick = () => next(true);
+  function renderSettings() {
+    document.querySelectorAll("[data-auto]").forEach(b => b.setAttribute("aria-pressed", String((S.settings.auto !== false) === (b.dataset.auto === "1"))));
+    document.querySelectorAll("[data-topic]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.topics[b.dataset.topic] !== false)));
+  }
+  const autoT = $("autoToggles"); if (autoT) autoT.onclick = e => { const b = e.target.closest("[data-auto]"); if (b) { S.settings.auto = b.dataset.auto === "1"; save(); renderSettings(); } };
+  const topT = $("topicToggles");
+  if (topT) {
+    topT.innerHTML = (FAM.topics || []).map(t => `<button class="tog" data-topic="${t.id}">${esc(t.name)}${t.sub ? ` <small>${esc(t.sub)}</small>` : ""}</button>`).join("");
+    topT.onclick = e => {
+      const b = e.target.closest("[data-topic]"); if (!b) return;
+      const t = b.dataset.topic, on = S.settings.topics[t] === false;
+      if (!on && Object.values(S.settings.topics).filter(v => v !== false).length === 1) return;
+      S.settings.topics[t] = on; save(); renderSettings(); MODES.forEach(m => Q[m] = newQuestion(m)); clearAnswer(); renderPrompt(); renderControls();
+    };
+  }
+  $("resetBtn").onclick = () => { S.misses = []; save(); $("resetBtn").textContent = "Review list cleared"; };
+  let armTimer = null;
+  $("scoreReset").onclick = () => {
+    const b = $("scoreReset");
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.innerHTML = 'Tap again to reset<span class="sr"> the score</span>'; armTimer = setTimeout(() => { b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>'; }, 3000); return; }
+    clearTimeout(armTimer); S.right = 0; S.total = 0; S.streak = 0; save(); renderScore(); b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>';
+  };
+  // Reference
+  document.querySelectorAll(".ref-slot").forEach(el => el.innerHTML = FAM.reference(H, esc, accHTML));
+  const dlg = $("refDialog"); let dlgReturn = null;
+  $("refBtn").onclick = () => { dlgReturn = document.activeElement; if (dlg.showModal) dlg.showModal(); else { $("refPanel").open = true; $("refPanel").scrollIntoView(); return; } $("refClose").focus(); };
+  $("refClose").onclick = () => dlg.close();
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener("close", () => { if (dlgReturn && dlgReturn.focus) dlgReturn.focus(); });
+
+  MODES.forEach(m => Q[m] = newQuestion(m));
+  renderSettings(); renderScore(); renderPrompt(); renderControls();
+})();
+</script>
+
+</body>
+</html>

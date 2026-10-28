@@ -1,0 +1,136 @@
+{
+  "site": "SilverApps for Music Training",
+  "groups": [
+    {
+      "title": "Lessons",
+      "apps": [
+        {
+          "file": "intervals-what-why-how.html",
+          "name": "Intervals: What, Why and How",
+          "blurb": "An interactive lesson: what intervals are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Intervals"
+        }
+      ]
+    },
+    {
+      "title": "Harmony & Theory",
+      "apps": [
+        {
+          "file": "chord-figures-and-symbols.html",
+          "name": "Chord Figures and Symbols",
+          "blurb": "Spell triads and seventh chords, read them on the grand staff, turn figured bass into chord symbols, and label inversions.",
+          "class": true,
+          "topic": "Triads & sevenths"
+        },
+        {
+          "file": "chord-extension-practicer.html",
+          "name": "Chord Extensions",
+          "blurb": "Spell 9th, 11th, 13th and altered chords from their symbols, and name them from the staff.",
+          "class": true,
+          "topic": "Extended chords"
+        },
+        {
+          "file": "modes-trainer.html",
+          "name": "Modes",
+          "blurb": "Spell modes, name them from the staff, find modal key signatures with PADMIL, and review modal pitches.",
+          "class": true,
+          "topic": "Scales & modes"
+        },
+        {
+          "file": "modulation-trainer.html",
+          "name": "Key Modulation",
+          "blurb": "Name the modulation method, find and label pivot chords, and judge key relationships.",
+          "class": true,
+          "topic": "Keys & modulation"
+        }
+      ]
+    },
+    {
+      "title": "Rhythm",
+      "apps": [
+        {
+          "file": "rhythm-notation-trainer.html",
+          "name": "Rhythm Notation",
+          "blurb": "Complete bars, name meters, fix beaming, and spot syncopation, hemiola and anacrusis.",
+          "class": true,
+          "topic": "Rhythm & meter"
+        }
+      ]
+    },
+    {
+      "title": "Orchestration",
+      "apps": [
+        {
+          "file": "orchestration-strings.html",
+          "name": "Strings",
+          "blurb": "Violin to bass: open strings and string numbers, natural and artificial harmonics, bowings and color effects.",
+          "class": true,
+          "topic": "Bowed strings"
+        },
+        {
+          "file": "orchestration-winds-brass.html",
+          "name": "Winds & Brass",
+          "blurb": "Woodwind and brass instruments, score order and scoring shorthand, valves and partials, mutes and techniques.",
+          "class": true,
+          "topic": "Winds and brass"
+        },
+        {
+          "file": "orchestration-percussion.html",
+          "name": "Percussion",
+          "blurb": "Drums, mallets and metals: materials, beaters, playing logistics and percussion notation.",
+          "class": true,
+          "topic": "Percussion"
+        },
+        {
+          "file": "score-and-parts.html",
+          "name": "Score and Parts Preparation",
+          "blurb": "What professional scores and parts must include, and the typesetting conventions players expect.",
+          "class": true,
+          "topic": "Notation & engraving"
+        },
+        {
+          "file": "orchestration-foreign-terms.html",
+          "name": "Orchestration Foreign Terms",
+          "blurb": "Instrument names and score terms in English, French, German and Italian.",
+          "class": true,
+          "topic": "Score terms"
+        },
+        {
+          "file": "instrument-transpositions.html",
+          "name": "Instrument Transpositions",
+          "blurb": "Which instruments transpose and by how much: read parts at concert pitch, write for any instrument, and transpose key signatures.",
+          "class": true,
+          "topic": "Transposing instruments"
+        }
+      ]
+    },
+    {
+      "title": "Practice Tools",
+      "apps": [
+        {
+          "file": "metronome.html",
+          "name": "Metronome",
+          "blurb": "Tap a tempo or pick a traditional metronome marking; set meters, groupings, accents and subdivisions; silent-bar and speed trainers.",
+          "class": false,
+          "topic": "Tempo & pulse"
+        },
+        {
+          "file": "drone.html",
+          "name": "Drone",
+          "blurb": "A steady drone on one note or a chord, in equal temperament or just intonation from the harmonic series.",
+          "class": false,
+          "topic": "Intonation"
+        },
+        {
+          "file": "shadow-tuner.html",
+          "name": "Shadow Tuner",
+          "blurb": "A tuner that sings a reference pitch back to you while you play or sing.",
+          "class": false,
+          "topic": "Intonation"
+        }
+      ]
+    }
+  ]
+}

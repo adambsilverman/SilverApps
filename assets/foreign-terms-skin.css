@@ -1,0 +1,115 @@
+/* SilverApps — indie skin for Orchestration Foreign Terms (loaded after its own styles).
+   Foreign words keep their real capitalisation (German nouns!) — no text-transform on terms. */
+:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+  --paper:var(--fi-paper); --sheet:var(--fi-card); --ink:var(--fi-ink); --muted:var(--fi-muted); --rule:var(--fi-line); --staff:#a89a8c;
+  --accent:var(--fi-navy); --accent-soft:var(--fi-gray); --on-accent:#fff; --gold:var(--fi-red-dk); --gold-soft:var(--fi-red-pale);
+  --good:var(--fi-green-dk); --good-soft:var(--fi-green-pale); --bad:var(--fi-red-dk); --bad-soft:var(--fi-red-pale);
+  --display:var(--fi-display); --body:var(--fi-serif); --mono:var(--fi-body);
+  color-scheme:light;
+}
+html,body{background:var(--fi-paper)!important;color:var(--fi-ink)}
+body{padding-top:0}
+.site-strip{margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 18px}
+.wrap :is(button,.pill,.iconbtn,.opt,.seg button,.accents button,.btn,.classbar,.tbar,.bar,.tag,.misses span,.toast){border-radius:var(--fi-pill)!important}
+.wrap :is(.card,.notice,.mode,details,.feedback,.rowcard div,.qr){border-radius:var(--fi-r)!important}
+.wrap :is(input,select,.codein,.typed input){border-radius:var(--fi-r-sm)!important}
+.wrap .howlist .hn{border-radius:50%!important}
+.credit,.foot+.credit{display:none}
+.eyebrow{font-weight:900;color:var(--fi-ink);letter-spacing:.1em}
+h1{font-family:var(--fi-display);text-transform:none;font-size:clamp(40px,7vw,68px);line-height:.92}
+h1 em{font-style:normal;color:var(--fi-red-dk)}
+h2{font-family:var(--fi-display);text-transform:none;font-size:clamp(30px,4.6vw,46px);line-height:.95}
+header{border-top:2px solid var(--fi-red);padding-top:12px}
+.iconbtn{border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);text-transform:none;letter-spacing:.01em;font-weight:700;font-size:12.5px}
+.iconbtn:hover{background:var(--fi-ink);color:#fff}
+.tally b{font-family:var(--fi-display);font-size:34px}
+.tally span{font-weight:900;color:var(--fi-ink)}
+.tally.streak b{color:var(--fi-red-dk)}
+.pill{background:var(--fi-card);border:1.5px solid var(--fi-line);font-weight:700}
+.card{border:1.5px solid var(--fi-line)}
+.label-sm{font-weight:900;color:var(--fi-ink)}
+.notice{border-left:6px solid var(--fi-red);background:var(--fi-gray);color:var(--fi-ink)}
+/* home tiles = colour blocks */
+.mode{border:0;padding:22px;color:var(--fi-ink)}
+.modes .mode:nth-child(1){background:var(--fi-red)}
+.modes .mode:nth-child(2){background:var(--fi-green)}
+.modes .mode:nth-child(3){background:var(--fi-ink);color:#fff}
+.modes .mode:nth-child(3) span:last-child,.modes .mode:nth-child(3) .who{color:#e6e6e6}
+.mode .who{color:var(--fi-ink);font-weight:900}
+.mode b{font-family:var(--fi-display);text-transform:none;font-size:36px;line-height:.95}
+.mode span:last-child{color:var(--fi-ink)}
+.mode:hover{box-shadow:0 12px 26px -12px rgba(40,25,10,.55);transform:translateY(-2px)}
+.modes .mode:nth-child(3):hover{box-shadow:6px 6px 0 var(--fi-red)}
+/* settings */
+details.settings{border:1.5px solid var(--fi-line)}
+details.settings summary{font-family:var(--fi-display);font-weight:400;text-transform:none;font-size:24px}
+.seg button{border:1.5px solid var(--fi-line);color:var(--fi-ink);font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--fi-ink);color:#fff;border-color:var(--fi-line)}
+/* question */
+.bar{background:var(--fi-soft)}.bar i{background:var(--fi-red)}
+.qlabel{font-family:var(--fi-display);font-size:clamp(44px,8vw,72px);line-height:1}
+.qlabel small{font-weight:900;color:var(--fi-ink)}
+.tag{background:var(--fi-ink);color:#fff;font-weight:900}
+.opt{border:1.5px solid var(--fi-line);font-weight:700}
+button.opt:hover:not(:disabled){background:var(--fi-gray);border-color:var(--fi-line)}
+.opt kbd{border:1.5px solid var(--fi-line);color:var(--fi-ink)}
+.opt.sel{border-color:var(--fi-line);box-shadow:inset 0 0 0 2px var(--fi-line);background:var(--fi-gray)}
+.opt.right{background:var(--fi-green);border-color:var(--fi-line);color:var(--fi-ink)}
+.opt.right .fill{background:rgba(0,0,0,.12)}
+.opt.wrong{background:var(--fi-card);border-color:var(--fi-red-dk);border-style:dashed}
+.opt .pct{color:var(--fi-ink)}
+.opt .fill{background:var(--fi-soft)}
+.typed input{border:1.5px solid var(--fi-line);font-weight:700}
+.typed input:focus{border-color:var(--fi-red-dk)}
+.typed input.right{background:var(--fi-green);border-color:var(--fi-line);color:var(--fi-ink)}
+.accents button{border:1.5px solid var(--fi-line)}
+.btn{background:var(--fi-red);border:2px solid var(--fi-red);color:var(--fi-ink);text-transform:none;letter-spacing:.01em;font-weight:700}
+.btn:hover:not(:disabled){background:var(--fi-ink);border-color:var(--fi-line);color:#fff}
+.btn.ghost{background:var(--fi-card);border-color:var(--fi-line);color:var(--fi-ink)}
+.btn:disabled{background:var(--fi-gray);border-color:#cfcfcf;color:#6b6b6b;opacity:1}
+.feedback{border-left:6px solid var(--fi-line);background:var(--fi-gray)}
+.feedback.ok{background:var(--fi-green-pale);border-left-color:var(--fi-green)} .feedback.no{background:var(--fi-red-pale);border-left-color:var(--fi-red)}
+.feedback.ok .verdict,.feedback.no .verdict{color:var(--fi-ink);font-family:var(--fi-display);font-weight:400;text-transform:none;font-size:28px}
+.rowcard div{border:1.5px solid var(--fi-line)}
+.rowcard div.hit{outline:3px solid var(--fi-red);outline-offset:-1px}
+.rowcard b{font-weight:900;color:var(--fi-ink)}
+.big-pct{font-family:var(--fi-display);color:var(--fi-ink);font-size:80px}
+/* live */
+.joincode{font-family:var(--fi-display);color:var(--fi-ink);letter-spacing:.06em;font-size:clamp(80px,12vw,160px);border-top:2px solid var(--fi-red);display:inline-block;padding-top:4px}
+.qr{border:1.5px solid var(--fi-line)}
+.counter .n,.timer{font-family:var(--fi-display);font-size:80px}
+.timer.low{color:var(--fi-red-dk)}
+.tbar{background:var(--fi-soft)}.tbar i{background:var(--fi-ink)}.tbar.low i{background:var(--fi-red)}.tbar .mark{background:var(--fi-ink);width:3px}
+.ring .bg{stroke:#e6e6e6}.ring .fg{stroke:var(--fi-red)}
+.goal{border:1.5px solid var(--fi-line);padding:10px 12px}
+.goal .tbar i{background:var(--fi-red)}
+.classbar{border:1.5px solid var(--fi-line);height:40px;font-family:var(--fi-display);font-weight:400;font-size:24px}
+.classbar .g{background:var(--fi-green);color:var(--fi-ink)}
+.classbar .b{background:var(--fi-red);color:var(--fi-ink)}
+.recap .r .mb{background:var(--fi-soft)}.recap .r .mb i{background:var(--fi-ink)}
+.misses span{background:var(--fi-red-pale);border:1px solid var(--fi-red-dk)}
+.howlist .hn{background:var(--fi-ink);color:#fff;font-family:var(--fi-display);font-size:18px}
+.howlist b{font-family:var(--fi-display);font-weight:400;text-transform:none;font-size:22px}
+.howlist span.hd{color:var(--fi-ink)}
+.codein{font-family:var(--fi-display);border:1.5px solid var(--fi-line)}
+.pulse{background:var(--fi-red)}
+.timesup{font-family:var(--fi-display);text-transform:none;color:var(--fi-red-dk)}
+.toast{background:var(--fi-ink);color:#fff;box-shadow:6px 6px 0 var(--fi-red)}
+.foot{color:var(--fi-ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline-color:var(--fi-red-dk)}
+
+/* ---- warm-paper finish ---- */
+.card{border-radius:var(--fi-r)!important;box-shadow:var(--fi-shadow)}
+.mode{border-radius:var(--fi-r)!important}
+.modes .mode:nth-child(3){background:var(--fi-navy)}
+.modes .mode:nth-child(3):hover{box-shadow:0 12px 26px -12px rgba(40,25,10,.55)}
+.btn,.iconbtn,.seg button,.pill{border-radius:var(--fi-pill)!important;font-family:var(--fi-body)}
+.btn{text-transform:none;letter-spacing:.01em}
+.iconbtn{text-transform:none;letter-spacing:.01em;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--fi-navy);border-color:var(--fi-navy)}
+.opt{font-family:var(--fi-serif);font-weight:600}
+.opt.wrong{background:var(--fi-red-pale);border-style:solid}
+.qlabel{font-family:var(--fi-serif);font-weight:600;font-size:clamp(36px,6.5vw,56px)}
+.feedback.ok .verdict,.feedback.no .verdict{text-transform:none}
+.eyebrow,.label-sm,.tally span,.qlabel small,.rowcard b{color:var(--fi-muted)}
+.tag{background:var(--fi-navy)}
