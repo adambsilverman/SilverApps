@@ -31,7 +31,7 @@ These are included unmodified (or minified) and remain under their authors' lice
 | QR Code Generator for JavaScript, © Kazuhiko Arase | `assets/qrcode.js` | MIT (“QR Code” is a trademark of DENSO WAVE) |
 | League Gothic, Schibsted Grotesk, Literata, Barlow Condensed | `assets/fonts/` | SIL Open Font License 1.1 |
 | Satisfy (site title font) | `assets/fonts/title.woff2` | Apache License 2.0 |
-| Noto Music (loaded from Google Fonts) | music symbols | SIL Open Font License 1.1 |
+| Noto Music, © The Noto Project Authors | `assets/fonts/noto-music.woff2` and Google Fonts (music symbols) | SIL Open Font License 1.1 |
 
 ## Sources
 

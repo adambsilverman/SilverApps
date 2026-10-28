@@ -21,7 +21,7 @@ def rep(old, new, count=1):
 rep("<title>Chord Lab Live — by Adam Silverman</title>", f"<title>{NAME} · {SITE}</title>")
 rep('content="Chord Lab Live: a class theory game made by Adam Silverman."', f'content="{NAME}: a class theory game by Adam Silverman — part of {SITE}."')
 rep('<button class="brand" id="brandbtn" title="Main screen"><div class="logo">♮</div><span>Chord Lab Live</span></button>',
-    '<a class="brand" id="brandbtn" href="index.html" aria-label="SilverApps for Music Training — all SilverApps"><div class="logo" aria-hidden="true">♮</div><span>SilverApps<span class="lbl-long"> for Music Training</span></span></a>')
+    '<a class="brand" id="brandbtn" href="index.html" aria-label="SilverApps for Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png" alt="" width="118" height="30"><span class="lbl-long site-sub">for Music Training</span></a>')
 rep("$('#brandbtn').onclick = goHome;", "")
 rep("<h1>Chords, figures & symbols — live.</h1>", f"<h1>{NAME}</h1>")
 # --- link back to the front page from the app's own top bar ---

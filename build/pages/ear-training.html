@@ -1,0 +1,335 @@
+<!-- title: Ear Training | sound: 1 | vex: 1 | desc: Ear training practice: sing intervals above given notes, identify chord qualities, sing short melodic patterns, and take melodic dictation. -->
+<style>
+.lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
+.lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.lesson-head h1 span{color:var(--fi-red-dk)}
+.lesson-head p{max-width:60ch;margin:10px 0 0}
+.steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:18px 0 12px}
+.steps button{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;min-height:36px;min-width:36px;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:4px 11px;cursor:pointer}
+.steps button[aria-current="step"]{background:var(--fi-ink);color:#fff}
+.steps button.seen:not([aria-current]){background:var(--fi-green-pale)}
+.slide{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:22px 24px;display:grid;gap:14px}
+.slide[hidden]{display:none}
+.slide h2{font:400 clamp(32px,5vw,46px)/1 var(--fi-display);margin:0}
+.slide .kick{font:700 13px var(--fi-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--fi-muted);margin:0}
+.slide p{margin:0;max-width:64ch}
+.fig{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:12px;overflow:hidden}
+.fig svg{display:block;width:100%;height:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbtn{font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:9px 16px;min-height:44px;cursor:pointer}
+.lbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk);color:var(--fi-ink)}
+.lbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.lbtn:focus-visible,.steps button:focus-visible,.key:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.readout{font:400 clamp(26px,4.4vw,38px)/1.05 var(--fi-display)}
+.readout small{display:block;font:15px/1.4 var(--fi-serif);color:var(--fi-muted)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.note{font-size:.95rem;color:var(--fi-muted)}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:18px 0 12px}
+.tabs button{border:1.5px solid var(--fi-line);background:var(--fi-card);border-radius:14px;padding:10px 8px;min-height:64px;cursor:pointer;color:var(--fi-ink);display:grid;gap:2px;text-align:center}
+.tabs button b{font:400 24px/1 var(--fi-display)} .tabs button small{font:13px var(--fi-serif);color:var(--fi-muted)}
+.tabs button[aria-pressed="true"]{background:var(--fi-ink);color:#fff} .tabs button[aria-pressed="true"] small{color:#e8e1d8}
+.prompt2{text-align:center;display:grid;gap:8px;justify-items:center}
+.ask{font:400 clamp(34px,6vw,54px)/1 var(--fi-display);margin:0}
+.ask small{display:block;font:16px/1.4 var(--fi-serif);color:var(--fi-muted);margin-top:6px}
+.meter{width:min(100%,520px);display:grid;gap:6px}
+.meter .bar{position:relative;height:16px;border-radius:999px;background:linear-gradient(90deg,#FBE3DA,#E7F2D6 40%,#A9D27A 50%,#E7F2D6 60%,#FBE3DA)}
+.meter .needle{position:absolute;top:-6px;width:4px;height:28px;border-radius:2px;background:var(--fi-ink);left:50%;transition:left .08s}
+.meter .now{font:400 30px var(--fi-display);text-align:center;min-height:1.1em}
+.meter .now small{font:14px var(--fi-serif);color:var(--fi-muted)}
+.dots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.dots span{min-width:52px;padding:8px 6px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);font:700 17px var(--fi-serif);text-align:center}
+.dots span i{display:block;font:700 12px var(--fi-ui);font-style:normal;color:var(--fi-muted)}
+.dots span.cur{outline:3px solid var(--fi-navy);outline-offset:2px}
+.dots span.ok{background:var(--fi-green)} .dots span.no{background:var(--fi-red-pale)}
+.opts2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%}
+.opts2 button{min-height:52px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);font:600 17px var(--fi-serif);cursor:pointer;color:var(--fi-ink)}
+.opts2 button.right{background:var(--fi-green)} .opts2 button.wrong{background:var(--fi-red-pale);border-color:var(--fi-red-dk)}
+.degpad{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:4px;width:100%}
+.degpad button{min-height:56px;border-radius:10px;border:1.5px solid var(--fi-line);background:var(--fi-card);cursor:pointer;color:var(--fi-ink);display:grid;place-items:center;padding:2px}
+.degpad button b{font:700 16px var(--fi-serif)} .degpad button small{font:12px var(--fi-ui)}
+.fb2{min-height:1.5em;font:600 18px var(--fi-serif);text-align:center}
+.fb2.good{color:var(--fi-green-dk)} .fb2.bad{color:var(--fi-red-dk)}
+.vf svg{width:100%;height:auto;display:block}
+.vf{width:min(100%,560px)}
+.settings2{display:flex;flex-wrap:wrap;gap:14px;align-items:end}
+label.f2{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+select{font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
+.micstat{font:600 15px var(--fi-serif);color:var(--fi-muted)}
+.sd{position:relative;display:inline-block}.sd::before{content:"^";position:absolute;left:50%;top:-.55em;transform:translateX(-50%);font-size:.8em;font-weight:400}
+@media (max-width:640px){.tabs{grid-template-columns:1fr 1fr}.degpad{grid-template-columns:repeat(6,minmax(0,1fr))}}
+</style>
+<script src="assets/progress.js"></script>
+
+<main class="lesson" id="main">
+  <header class="lesson-head">
+    <h1>Ear <span>Training</span></h1>
+    <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. Use headphones so the microphone hears only you.</p>
+  </header>
+  <nav class="tabs" aria-label="Exercise" id="tabs">
+    <button type="button" data-t="sing" aria-pressed="true"><b>Sing intervals</b><small>above a given note</small></button>
+    <button type="button" data-t="chord" aria-pressed="false"><b>Chord quality</b><small>major, minor, dim, aug, 7ths</small></button>
+    <button type="button" data-t="pat" aria-pressed="false"><b>Sing patterns</b><small>short melodies</small></button>
+    <button type="button" data-t="dict" aria-pressed="false"><b>Dictation</b><small>write what you hear</small></button>
+  </nav>
+  <section class="slide" id="card" aria-live="off">
+    <div class="settings2" id="settings"></div>
+    <div class="prompt2" id="prompt"></div>
+    <div class="row" id="ctrls" style="justify-content:center"></div>
+    <p class="fb2" id="fb" aria-live="polite"></p>
+    <p class="micstat" id="mic" aria-live="polite"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const LET = "CDEFGAB", NAT = [0, 2, 4, 5, 7, 9, 11], ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
+  const PCN = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const nameM = m => PCN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  const say = s => s.replace("♯", " sharp").replace("♭", " flat");
+
+  // ---------- state & settings ----------
+  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major" };
+  try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-ear") || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem("silverapps-ear", JSON.stringify(S)); } catch (e) {} };
+  if (window.SAprogress) SAprogress.init({ id: "eartraining", name: "Ear Training", before: ".fi-credit" });
+  const record = (cat, ok) => { if (window.SFX) SFX.play(ok); if (window.SAprogress) SAprogress.record(cat, ok); };
+
+  // ---------- sound ----------
+  let AC = null, bus = null;
+  function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); const c = AC.createDynamicsCompressor(); c.threshold.value = -14; c.connect(AC.destination); AC._o = c; } if (AC.state === "suspended") AC.resume(); return AC; }
+  function newBus() { if (bus) { const o = bus; o.gain.setTargetAtTime(0, AC.currentTime, .03); setTimeout(() => o.disconnect(), 300); } bus = AC.createGain(); bus.connect(AC._o); return bus; }
+  function note(out, m, t, d, v = .3) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(f * 8, 8000), t); lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + 1); g.connect(out); lp.connect(g);
+    [[1, 1], [2, .4], [3, .18], [4, .08]].forEach(([h, a]) => { const o = AC.createOscillator(); o.type = h === 1 ? "triangle" : "sine"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a; o.connect(og); og.connect(lp); o.start(t); o.stop(t + d + .8); });
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .01); g.gain.setTargetAtTime(v * .35, t + .02, .35); g.gain.setTargetAtTime(0, t + d, .15);
+  }
+  // events: [ [midis], start, dur ] ; returns total seconds
+  function play(events) { if (!ac()) return 0; const out = newBus(), t0 = AC.currentTime + .06; let end = 0; events.forEach(([ms, st, du]) => { (Array.isArray(ms) ? ms : [ms]).forEach(m => note(out, m, t0 + st, du, Array.isArray(ms) && ms.length > 1 ? .2 : .32)); end = Math.max(end, st + du); }); return end + .3; }
+  const seqEv = (ms, gap = .6, du = .55, t = 0) => ms.map((m, i) => [m, t + i * gap, du]);
+
+  // ---------- microphone + pitch (YIN) ----------
+  let mic = null, an = null, buf = null, cmnd = null, listening = false, raf = 0;
+  async function micOn() {
+    if (mic) return true;
+    ac();
+    try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { $("mic").textContent = "Microphone blocked or unavailable. Allow the microphone for this site, or use the ‘Check myself’ buttons."; return false; }
+    const src = AC.createMediaStreamSource(mic); an = AC.createAnalyser(); an.fftSize = 2048; src.connect(an); buf = new Float32Array(2048); cmnd = new Float32Array(2048);
+    $("mic").textContent = "Microphone on."; return true;
+  }
+  function detect() {
+    an.getFloatTimeDomainData(buf); const b = buf, sr = AC.sampleRate;
+    let sum = 0; for (let i = 0; i < b.length; i++) sum += b[i] * b[i];
+    const db = 20 * Math.log10(Math.sqrt(sum / b.length) + 1e-12); if (db < -50) return null;
+    const W = 1024, tMin = Math.max(2, Math.floor(sr / 1100)), tMax = Math.min(b.length - W - 1, Math.floor(sr / 70));
+    let run = 0; cmnd[0] = 1;
+    for (let t = 1; t <= tMax; t++) { let s = 0; for (let i = 0; i < W; i++) { const d = b[i] - b[i + t]; s += d * d; } run += s; cmnd[t] = run ? s * t / run : 1; }
+    let tau = -1, best = tMin;
+    for (let t = tMin; t <= tMax; t++) { if (cmnd[t] < cmnd[best]) best = t; if (tau < 0 && cmnd[t] < 0.12) { while (t + 1 <= tMax && cmnd[t + 1] < cmnd[t]) t++; tau = t; } }
+    if (tau < 0) { if (cmnd[best] < 0.25) tau = best; else return null; }
+    for (const k of [3, 2]) { const c0 = Math.round(tau / k); if (c0 < tMin + 1) continue; let mm = c0; for (let t = Math.max(tMin, c0 - 3); t <= Math.min(tMax - 1, c0 + 3); t++) if (cmnd[t] < cmnd[mm]) mm = t; if (cmnd[mm] < 0.18 && cmnd[mm] < cmnd[tau] + 0.05) { tau = mm; break; } }
+    const a = cmnd[tau - 1], c = cmnd[tau], d2 = cmnd[tau + 1] ?? c, den = a + d2 - 2 * c, shift = den ? (a - d2) / (2 * den) : 0;
+    const f = sr / (tau + Math.max(-1, Math.min(1, shift))); return 69 + 12 * Math.log2(f / 440);
+  }
+  // Listen for a sequence of target pitches (any octave). onProgress(i, sungMidi, diffSemis); onDone()
+  function listen(targets, onProgress, onDone) {
+    stopListen(); listening = true; let i = 0, hold = 0, last = performance.now();
+    const step = now => {
+      if (!listening) return;
+      const dt = (now - last) / 1000; last = now;
+      const m = detect();
+      if (m != null) {
+        const diff = ((m - targets[i] + 6) % 12 + 12) % 12 - 6;   // octave-equivalent distance in semitones
+        onProgress(i, m, diff);
+        if (Math.abs(diff) < 0.4) { hold += dt; if (hold > 0.35) { i++; hold = 0; if (i >= targets.length) { listening = false; onDone(); return; } onProgress(i, null, null); } }
+        else hold = Math.max(0, hold - dt);
+      } else { hold = Math.max(0, hold - dt * 2); onProgress(i, null, null); }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+  function stopListen() { listening = false; cancelAnimationFrame(raf); }
+  const meterHTML = `<div class="meter" aria-hidden="true"><div class="bar"><div class="needle" id="needle"></div></div><div class="now" id="now"></div></div>`;
+  function showMeter(m, diff) {
+    const n = $("needle"), w = $("now"); if (!n) return;
+    if (m == null) { w.innerHTML = "<small>Sing when you're ready…</small>"; n.style.left = "50%"; return; }
+    n.style.left = Math.max(2, Math.min(98, 50 + diff * 40)) + "%";
+    w.innerHTML = `${nameM(Math.round(m))} <small>${Math.abs(diff) < .4 ? "on target" : diff > 0 ? "too high" : "too low"}</small>`;
+  }
+
+  // ---------- staff (VexFlow) ----------
+  const SPL = [[0, 0], [0, 1], [1, 0], [2, -1], [2, 0], [3, 0], [3, 1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
+  function staffOf(box, notes, o = {}) {   // notes: [{l,a,o}] or null for blanks
+    box.innerHTML = ""; if (!window.Vex || !Vex.Flow) { box.textContent = notes.map(n => n ? LET[n.l] + ACC[n.a] : "?").join(" "); return; }
+    const VF = Vex.Flow, ink = css("--fi-ink"), W = 70 + (o.ks != null ? 60 : 0) + notes.length * 52; const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, 140);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const st = new VF.Stave(4, 18, W - 8); st.addClef(o.clef || "treble"); if (o.ks) st.addKeySignature(o.ks); st.setContext(ctx).draw();
+    const sig = o.sigAcc || [0, 0, 0, 0, 0, 0, 0], seen = {};
+    const sns = notes.map((n, i) => {
+      if (!n) return new VF.GhostNote({ duration: "q" });
+      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: [LET[n.l].toLowerCase() + "/" + n.o], duration: "q" });
+      const c = o.colors && o.colors[i] ? css(o.colors[i]) : ink; sn.setStyle({ fillStyle: c, strokeStyle: c });
+      const k = n.o * 7 + n.l, implied = k in seen ? seen[k] : sig[n.l];
+      if (n.a !== implied) sn.addModifier(new VF.Accidental({ "-1": "b", "0": "n", "1": "#" }[n.a] || "n"), 0); seen[k] = n.a; return sn;
+    });
+    const voice = new VF.Voice({ num_beats: notes.length, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(sns);
+    new VF.Formatter().joinVoices([voice]).format([voice], st.getNoteEndX() - st.getNoteStartX() - 10); voice.draw(ctx, st);
+    const svg = box.querySelector("svg"); try { const bb = svg.getBBox(); svg.setAttribute("viewBox", `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`); } catch (e) {}
+    svg.removeAttribute("width"); svg.removeAttribute("height"); svg.removeAttribute("style"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", o.label || "Staff");
+  }
+
+  // ================= 1. SING INTERVALS =================
+  const IVS = [[1, "minor 2nd", "m2"], [2, "major 2nd", "M2"], [3, "minor 3rd", "m3"], [4, "major 3rd", "M3"], [5, "perfect 4th", "P4"], [7, "perfect 5th", "P5"], [8, "minor 6th", "m6"], [9, "major 6th", "M6"], [10, "minor 7th", "m7"], [11, "major 7th", "M7"], [12, "octave", "P8"], [6, "tritone", "TT"]];
+  const IVSETS = { steps: [1, 2], thirds: [3, 4], p: [5, 7, 12], six: [8, 9], seven: [10, 11], easy: [2, 4, 5, 7, 12], all: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12] };
+  let SI = null;
+  function singNew() {
+    const pool = IVSETS[S.ivs] || IVSETS.all, semis = rnd(pool), iv = IVS.find(x => x[0] === semis);
+    const base = S.voice === "high" ? 55 + Math.floor(Math.random() * 10) : 43 + Math.floor(Math.random() * 10);   // G3–E4 or G2–E3
+    SI = { base, target: base + semis, iv, tries: 0, done: false };
+    $("prompt").innerHTML = `<p class="ask">Sing a ${iv[1]} above<small>The given note is ${nameM(base)} (any octave is fine for your answer).</small></p>${meterHTML}`;
+    $("ctrls").innerHTML = `<button class="lbtn primary" id="siGo" type="button">🎤 Listen to me</button><button class="lbtn" id="siPlay" type="button">▶ Given note</button><button class="lbtn" id="siShow" type="button">Show answer</button><button class="lbtn" id="siNext" type="button">Next ›</button>`;
+    $("fb").textContent = ""; $("fb").className = "fb2";
+    $("siPlay").onclick = () => play([[base, 0, 1.2]]);
+    $("siGo").onclick = async () => { if (!(await micOn())) { selfCheck(); return; } const t = play([[base, 0, 1.0]]); $("fb").textContent = "Listen… then sing."; setTimeout(() => { $("fb").textContent = "Sing now."; listen([SI.target], (i, m, d) => showMeter(m, d), () => singDone(true)); }, t * 1000); };
+    $("siShow").onclick = () => { stopListen(); if (!SI.done) { SI.done = true; record("Sing intervals · " + iv[1], false); } $("fb").className = "fb2 bad"; $("fb").innerHTML = `The answer is ${nameM(SI.target)}: listen.`; play([[base, 0, .9], [SI.target, 1, 1.2], [[base, SI.target], 2.4, 1.4]]); };
+    $("siNext").onclick = () => { stopListen(); singNew(); };
+    play([[base, 0, 1.2]]);
+  }
+  function singDone(ok) {
+    if (SI.done) return; SI.done = true; record("Sing intervals · " + SI.iv[1], ok);
+    $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = ok ? `Yes! That's a ${SI.iv[1]} above ${nameM(SI.base)}.` : "Not this time.";
+    if (ok) setTimeout(() => play([[[SI.base, SI.target], 0, 1.4]]), 300);
+  }
+  function selfCheck() {
+    $("ctrls").insertAdjacentHTML("beforeend", `<button class="lbtn" id="scHear" type="button">▶ Hear the answer</button><button class="lbtn" id="scYes" type="button">I sang it right</button><button class="lbtn" id="scNo" type="button">I missed it</button>`);
+    $("scHear").onclick = () => play([[SI.base, 0, .9], [SI.target, 1, 1.2]]);
+    $("scYes").onclick = () => singDone(true); $("scNo").onclick = () => singDone(false);
+  }
+
+  // ================= 2. CHORD QUALITY =================
+  const TRI = [["Major", [0, 4, 7]], ["Minor", [0, 3, 7]], ["Diminished", [0, 3, 6]], ["Augmented", [0, 4, 8]]];
+  const SEV = [["Dominant 7th", [0, 4, 7, 10]], ["Major 7th", [0, 4, 7, 11]], ["Minor 7th", [0, 3, 7, 10]], ["Half-diminished 7th", [0, 3, 6, 10]], ["Diminished 7th", [0, 3, 6, 9]]];
+  const WHY = { Major: "major 3rd + minor 3rd: bright", Minor: "minor 3rd + major 3rd: dark", Diminished: "two minor 3rds: tense, unstable", Augmented: "two major 3rds: dreamy, unresolved", "Dominant 7th": "major triad + minor 7th: wants to resolve", "Major 7th": "major triad + major 7th: lush", "Minor 7th": "minor triad + minor 7th: mellow", "Half-diminished 7th": "diminished triad + minor 7th", "Diminished 7th": "three minor 3rds: very tense" };
+  let CQ = null;
+  function chordNew() {
+    const pool = S.chords === "triads" ? TRI : S.chords === "sevenths" ? SEV : TRI.concat(SEV), c = rnd(pool), root = 52 + Math.floor(Math.random() * 9);
+    CQ = { c, notes: c[1].map(x => root + x), done: false, pool };
+    $("prompt").innerHTML = `<p class="ask">What quality is this chord?<small>Listen to the whole sound, then to how the notes stack.</small></p><div class="opts2" id="cqOpts">${pool.map(([n]) => `<button type="button" data-v="${esc(n)}">${n}</button>`).join("")}</div>`;
+    $("ctrls").innerHTML = `<button class="lbtn primary" id="cqBlock" type="button">▶ Chord</button><button class="lbtn" id="cqArp" type="button">▶ Broken (low to high)</button><button class="lbtn" id="cqNext" type="button">Next ›</button>`;
+    $("fb").textContent = ""; $("fb").className = "fb2";
+    $("cqBlock").onclick = () => play([[CQ.notes, 0, 1.6]]); $("cqArp").onclick = () => play(seqEv(CQ.notes, .45, .5).concat([[CQ.notes, CQ.notes.length * .45 + .1, 1.4]]));
+    $("cqNext").onclick = chordNew;
+    $("cqOpts").onclick = e => { const b = e.target.closest("[data-v]"); if (!b || CQ.done) return; CQ.done = true; const ok = b.dataset.v === CQ.c[0]; record("Chord quality · " + (CQ.c[1].length === 3 ? "triads" : "7th chords"), ok);
+      $("cqOpts").querySelectorAll("button").forEach(x => { x.disabled = true; if (x.dataset.v === CQ.c[0]) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); });
+      $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = `${ok ? "Yes!" : "Not quite."} ${CQ.c[0]}: ${WHY[CQ.c[0]]}.`; play(seqEv(CQ.notes, .35, .4).concat([[CQ.notes, CQ.notes.length * .35 + .1, 1.4]])); };
+    S.chordPlay === "arp" ? $("cqArp").click() : $("cqBlock").click();
+  }
+
+  // ================= 3 & 4. MELODIC PATTERNS =================
+  const KEYS = [["C", 60, [0, 0, 0, 0, 0, 0, 0], "C"], ["D", 62, [1, 0, 0, 1, 0, 0, 0], "D"], ["F", 65, [0, 0, 0, 0, 0, 0, -1], "F"], ["G", 67, [0, 0, 0, 1, 0, 0, 0], "G"], ["B♭", 58, [0, 0, -1, 0, 0, 0, -1], "Bb"], ["E♭", 63, [0, 0, -1, 0, 0, -1, -1], "Eb"]];
+  const MAJ = [0, 2, 4, 5, 7, 9, 11], HMIN = [0, 2, 3, 5, 7, 8, 11];
+  const SOLM = ["do", "re", "mi", "fa", "sol", "la", "ti"], SOLm = ["do", "re", "me", "fa", "sol", "le", "ti"];
+  const DEGS = [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7];   // 5̣ 6̣ 7̣ 1 … 7 8 (index from tonic, 0 = 1̂)
+  const degLabel = d => { const k = ((d % 7) + 7) % 7; return `${k + 1}${d < 0 ? "̣" : d >= 7 ? "′" : ""}`; };
+  const degSolf = d => (S.mode === "minor" ? SOLm : SOLM)[((d % 7) + 7) % 7];
+  function makePattern(len) {
+    for (let g = 0; g < 200; g++) {
+      const out = [rnd([0, 0, 2, 4])];
+      while (out.length < len) {
+        const p = out[out.length - 1], mv = Math.random() < .7 ? rnd([-1, 1, -1, 1, -2, 2]) : rnd([-4, -3, 3, 4]);
+        const n = p + mv; if (n < -3 || n > 7) continue;
+        if (Math.abs(mv) > 2 && ![0, 2, 4, 7, -3].includes(((n % 7) + 7) % 7 === 0 ? 0 : n) && ![0, 2, 4].includes(((n % 7) + 7) % 7)) continue;
+        out.push(n);
+      }
+      if (len >= 3 && ![0, 2, 4, 7].includes(out[out.length - 1]) && Math.random() < .7) continue;
+      return out;
+    }
+    return [0, 1, 2, 0].slice(0, len);
+  }
+  function keyCtx() { const k = rnd(KEYS); const scale = S.mode === "minor" ? HMIN : MAJ; return { k, scale, tonic: k[1] < 60 ? k[1] + 12 : k[1] }; }
+  const degMidi = (ctx, d) => ctx.tonic + 12 * Math.floor(d / 7) + ctx.scale[((d % 7) + 7) % 7];
+  function degNote(ctx, d) {   // spelled note in the key
+    const tl = LET.indexOf(ctx.k[0][0]), ta = ctx.k[0][1] === "♭" ? -1 : 0, l = (tl + d % 7 + 7) % 7, m = degMidi(ctx, d);
+    const o = Math.floor((m - NAT[l]) / 12) - 1; let a = m - (12 * (o + 1) + NAT[l]); if (a > 2) a -= 12; if (a < -2) a += 12; return { l, a, o };
+  }
+  const minorSig = k => { // harmonic-minor patterns use the parallel minor key signature: 3 flats more than major
+    const order = [6, 2, 5, 1, 4, 0, 3], s = k[2].slice(); let n = 3; for (const l of [6, 2, 5, 1, 4, 0, 3]) { if (n === 0) break; if (s[l] === 1) { s[l] = 0; n--; } } for (const l of order) { if (n === 0) break; if (s[l] === 0) { s[l] = -1; n--; } } return s; };
+  const VFMIN = { C: "Cm", D: "Dm", F: "Fm", G: "Gm", Bb: "Bbm", Eb: "Ebm" };
+  const refEvents = ctx => [[[degMidi(ctx, 0), degMidi(ctx, 2), degMidi(ctx, 4)], 0, 1.1], [degMidi(ctx, 0), 1.3, .7]];
+  let PT = null;
+  function patNew(dict) {
+    const ctx = keyCtx(), degs = makePattern(+S.len), ms = degs.map(d => degMidi(ctx, d)), notes = degs.map(d => degNote(ctx, d));
+    PT = { ctx, degs, ms, notes, dict, ans: [], done: false, keyName: `${ctx.k[0]} ${S.mode}` };
+    const ks = S.mode === "minor" ? VFMIN[ctx.k[3]] : ctx.k[3], sigAcc = S.mode === "minor" ? minorSig(ctx.k) : ctx.k[2];
+    PT.ks = ks; PT.sigAcc = sigAcc;
+    if (!dict) {
+      $("prompt").innerHTML = `<p class="ask">Sing this pattern<small>Key: ${PT.keyName}. Hear the tonic chord, then sing each note (any octave).</small></p>
+        <div class="vf" id="ptStaff"></div><div class="dots" id="ptDots">${degs.map((d, i) => `<span data-i="${i}">${degSolf(d)}<i>${degLabel(d)}</i></span>`).join("")}</div>${meterHTML}`;
+      staffOf($("ptStaff"), notes, { ks, sigAcc, label: `Key of ${PT.keyName}: ${degs.map(degSolf).join(", ")}.` });
+      $("ctrls").innerHTML = `<button class="lbtn primary" id="ptGo" type="button">🎤 Listen to me</button><button class="lbtn" id="ptRef" type="button">▶ Tonic chord</button><button class="lbtn" id="ptHear" type="button">▶ Hear the pattern</button><button class="lbtn" id="ptNext" type="button">Next ›</button>`;
+      $("ptRef").onclick = () => play(refEvents(ctx));
+      $("ptHear").onclick = () => { if (!PT.done) { PT.done = true; PT.heard = true; } play(refEvents(ctx).concat(seqEv(ms, .6, .55, 2.3))); };
+      $("ptGo").onclick = async () => { if (!(await micOn())) { patSelf(); return; } const t = play(refEvents(ctx)); $("fb").textContent = "Listen… then sing."; setTimeout(() => { $("fb").textContent = "Sing now."; const dots = [...$("ptDots").children]; dots[0].classList.add("cur");
+        listen(ms, (i, m, d) => { dots.forEach((x, k) => { x.classList.toggle("cur", k === i); x.classList.toggle("ok", k < i); }); showMeter(m, d); }, () => { dots.forEach(x => { x.classList.remove("cur"); x.classList.add("ok"); }); patDone(true); }); }, t * 1000); };
+      $("ptNext").onclick = () => { stopListen(); patNew(false); };
+      play(refEvents(ctx));
+    } else {
+      $("prompt").innerHTML = `<p class="ask">Write the melody<small>Key: ${PT.keyName}. The first note is given. Tap the scale degrees you hear.</small></p>
+        <div class="vf" id="ptStaff"></div><div class="dots" id="ptDots"></div>
+        <div class="degpad" role="group" aria-label="Scale degrees">${DEGS.map(d => `<button type="button" data-d="${d}" aria-label="${degSolf(d)}, scale degree ${degLabel(d).replace("̣", " low").replace("′", " high")}"><b>${degSolf(d)}</b><small>${degLabel(d)}</small></button>`).join("")}</div>`;
+      PT.ans = [degs[0]];
+      $("ctrls").innerHTML = `<button class="lbtn primary" id="dcPlay" type="button">▶ Play</button><button class="lbtn" id="dcBack" type="button">⌫ Undo</button><button class="lbtn" id="dcCheck" type="button">Check</button><button class="lbtn" id="dcNext" type="button">Next ›</button>`;
+      const redraw = (colors) => { staffOf($("ptStaff"), PT.ans.map(d => degNote(ctx, d)).concat(Array(Math.max(0, degs.length - PT.ans.length)).fill(null)), { ks, sigAcc, colors, label: `Your answer: ${PT.ans.map(degSolf).join(", ")}.` });
+        $("ptDots").innerHTML = degs.map((d, i) => `<span class="${colors ? (PT.ans[i] === d ? "ok" : "no") : ""}">${PT.ans[i] != null ? degSolf(PT.ans[i]) : "?"}<i>${PT.ans[i] != null ? degLabel(PT.ans[i]) : "&nbsp;"}</i></span>`).join(""); };
+      redraw();
+      document.querySelector(".degpad").onclick = e => { const b = e.target.closest("[data-d]"); if (!b || PT.done || PT.ans.length >= degs.length) return; PT.ans.push(+b.dataset.d); play([[degMidi(ctx, +b.dataset.d), 0, .5]]); redraw(); };
+      $("dcBack").onclick = () => { if (!PT.done && PT.ans.length > 1) { PT.ans.pop(); redraw(); } };
+      $("dcPlay").onclick = () => play(refEvents(ctx).concat(seqEv(ms, .7, .6, 2.3)));
+      $("dcCheck").onclick = () => { if (PT.done) return; if (PT.ans.length < degs.length) { $("fb").className = "fb2"; $("fb").textContent = `Enter all ${degs.length} notes first.`; return; }
+        PT.done = true; const ok = PT.ans.every((d, i) => d === degs[i]); record(`Dictation · ${S.len} notes`, ok); redraw(PT.ans.map((d, i) => d === degs[i] ? "--fi-green-dk" : "--fi-red-dk"));
+        $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = ok ? "Yes! Every note right." : `The melody was ${degs.map(degSolf).join(" – ")} (${degs.map(degLabel).join(" ")}).`;
+        if (!ok) setTimeout(() => staffOf($("ptStaff"), notes, { ks, sigAcc, label: `Answer: ${degs.map(degSolf).join(", ")}.` }), 1500); };
+      $("dcNext").onclick = () => patNew(true);
+      $("dcPlay").click();
+    }
+    $("fb").textContent = ""; $("fb").className = "fb2";
+  }
+  function patDone(ok) {
+    if (PT.done && !PT.heard) return; const wasHeard = PT.heard; PT.done = true;
+    if (!wasHeard) record(`Sing patterns · ${S.len} notes`, ok);
+    $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = ok ? (wasHeard ? "Matched (after hearing it first)." : "Yes! Every note in tune.") : "Not this time.";
+    PT.heard = false;
+  }
+  function patSelf() {
+    $("ctrls").insertAdjacentHTML("beforeend", `<button class="lbtn" id="psYes" type="button">I sang it right</button><button class="lbtn" id="psNo" type="button">I missed it</button>`);
+    $("psYes").onclick = () => patDone(true); $("psNo").onclick = () => patDone(false);
+  }
+
+  // ---------- tabs & settings ----------
+  const SET = {
+    sing: () => `<label class="f2" for="sIv">Intervals<select id="sIv">${[["easy", "Common (M2, M3, P4, P5, P8)"], ["steps", "2nds"], ["thirds", "3rds"], ["p", "4ths, 5ths, octaves"], ["six", "6ths"], ["seven", "7ths"], ["all", "All"]].map(([v, t]) => `<option value="${v}" ${S.ivs === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f2" for="sVo">Your voice<select id="sVo"><option value="high" ${S.voice === "high" ? "selected" : ""}>Higher (treble)</option><option value="low" ${S.voice === "low" ? "selected" : ""}>Lower (bass)</option></select></label>`,
+    chord: () => `<label class="f2" for="sCh">Chords<select id="sCh">${[["triads", "Triads (M, m, dim, aug)"], ["sevenths", "Seventh chords"], ["both", "Both"]].map(([v, t]) => `<option value="${v}" ${S.chords === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f2" for="sCp">Play first as<select id="sCp"><option value="block" ${S.chordPlay === "block" ? "selected" : ""}>Block chord</option><option value="arp" ${S.chordPlay === "arp" ? "selected" : ""}>Broken chord</option></select></label>`,
+    pat: () => patSet(), dict: () => patSet(),
+  };
+  const patSet = () => `<label class="f2" for="sLen">Notes<select id="sLen">${[3, 4, 5, 6].map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>`;
+  const START = { sing: singNew, chord: chordNew, pat: () => patNew(false), dict: () => patNew(true) };
+  function setTab(t, startNow) {
+    stopListen(); S.tab = t; save();
+    document.querySelectorAll("#tabs [data-t]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
+    $("settings").innerHTML = SET[t]();
+    $("settings").onchange = e => { const id = e.target.id, v = e.target.value; if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; save(); START[S.tab](); };
+    $("mic").textContent = (t === "sing" || t === "pat") ? (mic ? "Microphone on." : "The app will ask to use your microphone. Any octave counts, so sing where it's comfortable.") : "";
+    if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
+  }
+  $("tabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) setTab(b.dataset.t, false); };
+  setTab(S.tab, false);
+})();
+</script>

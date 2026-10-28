@@ -7,15 +7,30 @@ e = html.escape
 COLORS = ["red", "green", "black", "purple"]
 
 tiles, k = [], 0
-for g in cfg["groups"]:
+HOW = """<ul class="how"><li><b>Practice solo</b>Open any app and start — it explains each answer and brings missed items back for review.</li>
+      <li><b>Host a class game</b>On the projector, open an app and choose <i>Host a class game</i>. You pick each question; the class answers anonymously.</li>
+      <li><b>Join from any device</b>On a phone, tablet or laptop, open the same app, tap <i>Join a game</i>, and enter the room code (or scan the QR code).</li></ul>"""
+def group_html(g, n, level):
+    global k
     cards = []
     for a in g["apps"]:
         c = COLORS[k % len(COLORS)]; k += 1
         badge = f'<span class="badge">{e(a["badge"])}</span>' if a.get("badge") else ('<span class="badge">Solo + class game</span>' if a["class"] else '<span class="badge">Solo tool</span>')
         cards.append(f'''<li><a class="tile t-{c}" href="{e(a["file"])}"><span class="course">{e(a["topic"])}</span>
           <span class="tname">{e(a["name"])}</span><span class="blurb">{e(a["blurb"])}</span>{badge}<span class="go" aria-hidden="true">Open ▸</span></a></li>''')
-    tiles.append(f'''<section class="group" aria-labelledby="g{len(tiles)}"><h2 id="g{len(tiles)}">{e(g["title"])}</h2>
-      <ul class="tiles">{"".join(cards)}</ul></section>''')
+    return f'''<section class="group {'sub' if level == 3 else ''}" aria-labelledby="g{n}"><h{level} id="g{n}">{e(g["title"])}</h{level}>
+      <ul class="tiles">{"".join(cards)}</ul></section>'''
+done_drills = False
+for n, g in enumerate(cfg["groups"]):
+    if g.get("drills"):
+        if not done_drills:
+            done_drills = True
+            drills = [x for x in cfg["groups"] if x.get("drills")]
+            inner = "".join(group_html(x, f"{n}-{i}", 3) for i, x in enumerate(drills))
+            tiles.append(f'''<section class="drills" aria-labelledby="gdrills"><h2 id="gdrills">Drills and Games</h2>
+      <p class="lead">Every drill works three ways:</p>{HOW}{inner}</section>''')
+        continue
+    tiles.append(group_html(g, n, 2))
 
 page = f'''<!doctype html>
 <html lang="en" data-theme="light">
@@ -36,6 +51,9 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .how li{{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);padding:14px 16px;box-shadow:var(--fi-shadow);line-height:1.5}}
 .how b{{display:block;font-family:var(--fi-display);font-weight:400;font-size:30px;line-height:1;margin-bottom:4px}}
 @media (max-width:760px){{.how{{grid-template-columns:1fr}}}}
+.drills>h2{{font-family:var(--fi-display);font-weight:400;font-size:clamp(46px,6vw,70px);margin:40px 0 4px;border-top:2px solid var(--fi-red);padding-top:10px;line-height:.95}}
+.lead{{margin:6px 0 0;font-size:18px}}
+.group.sub h3{{font-family:var(--fi-display);font-weight:400;font-size:clamp(34px,4vw,46px);margin:30px 0 12px;line-height:.95}}
 .group h2{{font-family:var(--fi-display);font-weight:400;font-size:clamp(40px,5vw,58px);margin:34px 0 12px;border-top:2px solid var(--fi-red);padding-top:10px;line-height:.95}}
 .tiles{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}}
 .tile{{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;height:100%;padding:20px;border-radius:var(--fi-r);text-decoration:none;color:var(--fi-ink);box-shadow:var(--fi-shadow);transition:transform .12s, box-shadow .12s}}
@@ -56,12 +74,10 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 <main id="main">
   <section class="hero"><h1>SilverApps <span>for Music Training</span></h1>
     <p>Apps for review, practice and skill building in music theory, ear training and performance. Practice on your own with instant feedback, or run any trainer live with a whole class on student devices.</p>
-    <ul class="how"><li><b>Practice solo</b>Open any app and start — it explains each answer and brings missed items back for review.</li>
-      <li><b>Host a class game</b>On the projector, open an app and choose <i>Host a class game</i>. You pick each question; the class answers anonymously.</li>
-      <li><b>Join from any device</b>On a phone, tablet or laptop, open the same app, tap <i>Join a game</i>, and enter the room code (or scan the QR code).</li></ul>
   </section>
   {"".join(tiles)}
   <p class="prof">For instructors: students can make a completion report in any trainer ("Your progress" panel). <a href="verify.html">Check a student's report</a>.</p>
+  <p class="prof">Privacy: this site may count visits anonymously (which app, and the approximate city, state and country) to see how it is used. It sets no cookies and records no names; progress and completion reports stay on your own device until you choose to send them.</p>
   <p class="prof">© 2025–2026 Adam Silverman. Shared under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license">CC BY-NC-SA 4.0</a>: free to use and adapt for non-commercial teaching with credit to Adam Silverman (adambsilverman.com). See LICENSE.md.</p>
 </main>
 {CREDIT}

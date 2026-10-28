@@ -18,6 +18,8 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Percussion | percussion instruments, beaters and logistics, notation |
 | Score and Parts Preparation | professional scores, parts and typesetting |
 | Intervals: What, Why and How | interactive lesson on intervals |
+| Modes: Same Notes, New Home | interactive lesson on diatonic and non-diatonic modes |
+| Ear Training | sing intervals and patterns, chord qualities, melodic dictation |
 | Metronome | tap tempo, traditional markings, meters, accents, trainers |
 | Drone | drone notes and chords in equal temperament or just intonation |
 | Shadow Tuner | tuner with a sung-back reference pitch |

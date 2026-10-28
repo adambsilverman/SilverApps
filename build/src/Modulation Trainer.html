@@ -313,6 +313,7 @@ details.panel[open] summary::after { content: "−"; }
         <li><b>Pivot modulation.</b> Label the pivot chord with two stacked Roman numerals: the top shows its function in the old key, the bottom its function in the new key. Write the new key's name at the pivot; all later numerals belong to the new key.</li>
         <li><b>Enharmonic pivot.</b> Stack both chord spellings above the staff, including the one that isn't notated, and stack the numerals below. A respelled dim7 changes its root, so its inversion figures can change too (B in the bass is the root of B°7 but the third of G♯°7).</li>
         <li><b>Direct modulation.</b> Write the new key's name under the beat where the new key's harmony begins. Turnaround chords that set up the new key belong to the new key; they aren't pivots.</li>
+        <li><b>Minor keys.</b> Numerals in minor follow natural minor: <span class="rn">III</span>, <span class="rn">VI</span> and <span class="rn">VII</span> are the major chords a minor 3rd, minor 6th and minor 7th above the tonic, with no flat (in A minor, C major is <span class="rn">III</span>). The raised leading tone gives <span class="rn">V</span> and <span class="rn">vii°</span>. A flat appears only for chords borrowed into a <em>major</em> key (<span class="rn">♭III</span>, <span class="rn">♭VI</span>).</li>
         <li><b>Tonicization.</b> No new key name: use secondary numerals such as <span class="rn">V<span class="fig2"><span>6</span><span>5</span></span>/V</span> in the home key. A tonicized V before a half cadence isn't a modulation.</li>
       </ol>
     </div>
@@ -463,7 +464,7 @@ details.panel[open] summary::after { content: "−"; }
   const FIGWORD = { "7": " seven", "6": " six", "64": " six-four", "65": " six-five", "43": " four-three", "42": " four-two" };
   function rnSpoken(s) {
     const { base, fig, sec: sc } = rnParts(s);
-    return speak(base).replace("+6", " augmented sixth") + (FIGWORD[fig] || "") + (sc ? " of " + speak(sc.slice(1)) : "");
+    return speak(base.replace(/^♭/, "flat ")).replace("+6", " augmented sixth") + (FIGWORD[fig] || "") + (sc ? " of " + speak(sc.slice(1)) : "");
   }
   const rnA = s => `<span aria-hidden="true">${rnHTML(s)}</span><span class="sr">${esc(rnSpoken(s))}</span>`;
   const stackHTML = (top, bot) => `<span class="stack" aria-hidden="true"><span>${rnHTML(top)}</span><span>${rnHTML(bot)}</span></span><span class="sr">${esc(rnSpoken(top))} over ${esc(rnSpoken(bot))}</span>`;
@@ -505,7 +506,7 @@ details.panel[open] summary::after { content: "−"; }
   function genChromatic() {
     const v = rint(7);
     const maj = () => pickKey(false);
-    if (v === 0) { // Lady Madonna: I in the old key = ♭III in the new
+    if (v === 0) { // I in the old key = ♭III in the new
       const k1 = maj(), k2 = move(k1, -2, -3, false);
       return { type: "chromatic", k1, k2, chords: [O(T(k1)), O(dc(k1, "V", 1)), P(T(k1), mkc(rootIn(k2, 3, -1), "M", "♭III"), k2), Nw(dc(k2, "IV")), Nw(dc(k2, "V7")), Nw(T(k2))] };
     }
@@ -527,11 +528,11 @@ details.panel[open] summary::after { content: "−"; }
     }
     if (v === 5) { // IV = Neapolitan
       const k1 = maj(), k2 = move(k1, 2, 4, Math.random() < .5);
-      return { type: "chromatic", k1, k2, chords: [O(T(k1)), O(dc(k1, "V", 1)), P(dc(k1, "IV"), mkc(rootIn(k2, 2, -1), "M", "N"), k2, { inv: 1 }), ann(Nw(dc(k2, tonicRn(k2), 2)), "cad. 6/4"), Nw(dc(k2, "V7")), Nw(T(k2))] };
+      return { type: "chromatic", k1, k2, chords: [O(T(k1)), O(dc(k1, "V", 1)), P(dc(k1, "IV"), mkc(rootIn(k2, 2, -1), "M", "♭II"), k2, { inv: 1 }), ann(Nw(dc(k2, tonicRn(k2), 2)), "cad. 6/4"), Nw(dc(k2, "V7")), Nw(T(k2))] };
     }
     // minor: VI = Neapolitan of the dominant key
     const k1 = pickKey(true), k2 = move(k1, 4, 7, Math.random() < .5);
-    return { type: "chromatic", k1, k2, chords: [O(T(k1)), O(dc(k1, "iv")), P(dc(k1, "VI"), mkc(rootIn(k2, 2, -1), "M", "N"), k2, { inv: 1 }), ann(Nw(dc(k2, tonicRn(k2), 2)), "cad. 6/4"), Nw(dc(k2, "V7")), Nw(T(k2))] };
+    return { type: "chromatic", k1, k2, chords: [O(T(k1)), O(dc(k1, "iv")), P(dc(k1, "VI"), mkc(rootIn(k2, 2, -1), "M", "♭II"), k2, { inv: 1 }), ann(Nw(dc(k2, tonicRn(k2), 2)), "cad. 6/4"), Nw(dc(k2, "V7")), Nw(T(k2))] };
   }
 
   function genEnharmonic() {
@@ -546,7 +547,7 @@ details.panel[open] summary::after { content: "−"; }
       const pd1 = k1.minor ? "iv" : "IV", pd2 = k2.minor ? "iv" : "IV";
       return { type: "enharmonic", sub: "dim7", k1, k2, chords: [O(T(k1)), O(dc(k1, pd1)), P(a, b, k2, { show, inv: rint(3) }), Nw(T(k2)), Nw(dc(k2, pd2)), Nw(dc(k2, "V7")), Nw(T(k2))] };
     }
-    if (Math.random() < .5) { // V7 of the old key = Ger+6 of the key a half step lower (Schubert's return from the Neapolitan)
+    if (Math.random() < .5) { // V7 of the old key = Ger+6 of the key a half step lower
       const k1 = pickKey(false), k2 = move(k1, -1, -1, Math.random() < .5);
       const a = dc(k1, "V7"), b = mkc(rootIn(k2, 6, k2.minor ? 0 : -1), "Ger", "Ger+6");
       if (!samePcs(a.tones, b.tones)) return null;
@@ -967,7 +968,7 @@ details.panel[open] summary::after { content: "−"; }
   const TYPES = [
     { id: "direct", name: "Direct (phrase) modulation", short: "Direct", spot: "A cadence ends one phrase; the next phrase starts in the new key with no shared chord. Turnaround chords may soften the shift. Up a half or whole step before a last chorus: the truck driver's gear change.", label: "Write the new key's name under the first chord in the new key." },
     { id: "diatonic", name: "Pivot: diatonic common chord", short: "Diatonic common chord", spot: "One chord is diatonic in both keys. Find the first chord foreign to the old key and step back one (back past a cadential 6/4 of the new key). The most routine method.", label: "Stack the pivot's numerals: old key over new key." },
-    { id: "chromatic", name: "Pivot: chromatic common chord", short: "Chromatic common chord", spot: "The hinge chord is diatonic in one key but borrowed or chromatic in the other, e.g. C as I in C and ♭III in A (Lady Madonna). Used for more distant keys.", label: "Stacked numerals, with the chromatic one (♭III, ♭VI, iv, N…)." },
+    { id: "chromatic", name: "Pivot: chromatic common chord", short: "Chromatic common chord", spot: "The hinge chord is diatonic in one key but borrowed or chromatic in the other, e.g. C as I in C major and ♭III in A major. Used for more distant keys.", label: "Stacked numerals, with the chromatic one (♭III, ♭VI, iv, ♭II…)." },
     { id: "enharmonic", name: "Pivot: enharmonic common chord", short: "Enharmonic common chord", spot: "A fully diminished seventh, or a Ger+6 that sounds like a dominant seventh, is respelled and resolves in the new key: same sound, new identity.", label: "Both spellings stacked above; stacked numerals below (the inversion can change)." },
     { id: "commontone", name: "Pivot: common tone", short: "Common tone", spot: "Only a single tone links the keys, often held alone; keys are often a chromatic third apart; the tone may be respelled. Rare: use it only when no common chord exists.", label: "No pivot numerals; the new key's name at its first chord." },
     { id: "shift", name: "Pivot: chord-quality shift", short: "Chord-quality shift", spot: "A chord keeps its root but changes quality (tonic → dom7, major ↔ minor, major → Ger+6), redirecting the music. The common tone is the root.", label: "Stack the numerals where the chord works in both keys." },
@@ -1061,7 +1062,6 @@ details.panel[open] summary::after { content: "−"; }
     const figs = sevF.includes(fig) ? sevF : triadF;
     if (/°/.test(base) && sevF.includes(fig)) figs.filter(f => f !== fig).forEach(f => out.push(base + (f ? "^" + f : "") + sc));
     if (base === "Ger+6") return ["V^7", "It+6", "Fr+6"];
-    if (base === "N") return ["♭II" + (fig ? "^" + fig : ""), "IV" + (fig ? "^" + fig : ""), "ii" + (fig ? "^" + fig : "")];
     const m = /^(♭?)([ivIV]+)(°|ø)?$/.exec(base);
     if (!m) return out;
     const [, flat, num, qual] = m, up = num === num.toUpperCase(), idx = ROM.indexOf(num.toUpperCase());
@@ -1069,7 +1069,7 @@ details.panel[open] summary::after { content: "−"; }
     if (qual) { out.push(mk("", "ii", qual)); return out; }
     out.push(mk(flat, up ? num.toLowerCase() : num.toUpperCase(), ""));
     [-2, -1, 1, 2].forEach(d => { const n = ROM[(idx + d + 7) % 7]; out.push(mk("", up ? n : n.toLowerCase(), "")); });
-    if (up) out.push(mk(flat ? "" : "♭", num, ""));
+    // No ♭/♮ twins (♭III vs III): in minor keys numerals follow natural minor (III = the major chord a m3 above the tonic), so a flat-only difference would be confusing.
     return out;
   }
   function labelChoices(p) {
@@ -1135,29 +1135,29 @@ details.panel[open] summary::after { content: "−"; }
     ["How do you label a direct modulation?", "Write the new key's name under the beat where its harmony begins", ["Stack two numerals on the first new chord", "Bracket the last chord of the old key", "Write nothing until the next cadence"], "All later numerals reflect the new key."],
     ["To locate a diatonic pivot chord, find the first harmony that doesn't belong to the old key, then…", "go back one chord: if it's diatonic in both keys, it's the pivot", ["go forward one chord", "label that chord as the pivot", "go back to the previous cadence"], "That first foreign harmony usually needs an accidental."],
     ["The first chromatic chord is V of the new key, preceded by its cadential 6/4. Where is the pivot?", "Before the cadential 6/4", ["On the cadential 6/4", "On the V chord", "There isn't one"], "The cadential 6/4 is part of the new key, so the pivot precedes it."],
-    ["In “Lady Madonna,” the C chord is I in C major and ___ in A major.", "♭III", ["III", "♭VI", "vi"], "A chromatic pivot chord, used for a remote modulation with no true diatonic common chord."],
+    ["A C major chord is I in C major and ___ in A major.", "♭III", ["V", "♭VI", "vi"], "A chromatic pivot chord, used for a remote modulation with no true diatonic common chord."],
     ["Why can a fully diminished seventh chord serve as an enharmonic pivot?", "Respelled, any of its tones can become the root, so it can lead to different tonics", ["It contains a perfect fifth", "It belongs to every major key", "It never needs to resolve"], "All its tones are a minor third (or augmented second) apart, so it sounds the same however it's spelled."],
     ["A dim7 chord has a strong tendency to resolve to the tone…", "a half step above its root", ["a whole step below its root", "a fifth above its root", "a tritone away from its root"], "Dim7 chords function as “seven of” something."],
     ["Respelling one tone of a German +6 (the one a +6 above the bass) turns it into…", "a dominant seventh chord", ["a diminished seventh chord", "an Italian +6", "a minor seventh chord"], "Same sound, different tendency tones."],
-    ["Respelled as a dom7, a Ger+6 becomes V⁷ of which chord?", "♭II, the Neapolitan", ["V", "IV", "vi"], "That's why it links a key with its Neapolitan key. Schubert: changing C♭ to B♮ turns D♭7 into a Ger+6 in F minor."],
+    ["Respelled as a dom7, a Ger+6 becomes V⁷ of which chord?", "♭II, the Neapolitan", ["V", "IV", "vi"], "That's why it links a key with its Neapolitan key: in F minor, D♭7 is V⁷ of G♭ (♭II), and respelling its C♭ as B♮ makes it the Ger+6 of F minor."],
     ["Common-tone modulations often connect chords whose roots are…", "a chromatic third apart", ["a perfect fifth apart", "a whole step apart", "the same"], "A third apart but not diatonic, such as C major and A♭ major."],
-    ["In “Reach Out I'll Be There,” the A♯ (third of the F♯ tonic) becomes B♭, the root of the new tonic. This is…", "an enharmonic common-tone modulation", ["a direct modulation", "a chord-quality shift", "a sequence"], "The shared tone is respelled at the point of modulation."],
+    ["The A♯ (third of an F♯ major tonic) is held and becomes B♭, the root of the new tonic. This is…", "an enharmonic common-tone modulation", ["a direct modulation", "a chord-quality shift", "a sequence"], "The shared tone is respelled at the point of modulation."],
     ["When is a modulation best called “by sequence”?", "When a repeating pattern passes through chords that function clearly in neither key", ["Whenever a sequence appears", "When the melody repeats exactly", "When the key changes at a new phrase"], "Most modulating sequences can simply be labeled as common-chord modulations."],
-    ["Modulating sequences are most traditionally found in…", "Baroque music, as in Vivaldi", ["1980s pop ballads", "twelve-bar blues", "Gregorian chant"], "Billy Joel's sequence (D♭ → E♭) is a modern example, with a tritone substitution."],
+    ["Modulating sequences are most traditionally found in…", "Baroque music", ["1980s pop ballads", "twelve-bar blues", "Gregorian chant"], "Pop songs use them too, sometimes with a tritone substitution."],
     ["In a chord-quality shift, which part of the chord is the common tone?", "The root", ["The third", "The fifth", "The seventh"], "It's more like a common-tone modulation than a common-chord one."],
     ["Turning the tonic triad into a dominant seventh most often modulates…", "from the dominant key back to the tonic, or to the subdominant", ["to the relative minor", "up a half step", "to the parallel minor"], "A dominant seventh built on the tonic leads to IV."],
-    ["A German +6 built from a major chord has tendency tones (♯4̂ and ♭6̂) that point to…", "5̂ of the new key", ["1̂ of the old key", "3̂ of the new key", "the leading tone"], "The bass falls a half step to the new dominant, confirmed by a cadence. Beethoven's Fifth: a Ger+6 on A♭ moves to I6/4 in C major."],
+    ["A German +6 built from a major chord has tendency tones (♯4̂ and ♭6̂) that point to…", "5̂ of the new key", ["1̂ of the old key", "3̂ of the new key", "the leading tone"], "The bass falls a half step to the new dominant, confirmed by a cadence. For example, a Ger+6 on A♭ moves to I6/4 in C major."],
     ["A pivot area has a sustained common tone, and the whole chord there is diatonic in both keys. Call it…", "a common-chord modulation", ["a common-tone modulation", "a direct modulation", "a sequence"], "Common-chord modulations are routine; the whole chord outranks a single shared tone."],
     ["Common-tone modulations are…", "rare, so the term is reserved for cases with no diatonic common chord", ["the most common kind of modulation", "always between closely related keys", "the same as direct modulations"], "Use it when only a single tone links the chords at the border."],
     ["A dim7 respelled for the new key also shares a tone with the next chord. Best label?", "Enharmonic pivot chord modulation", ["Common-tone modulation", "Direct modulation", "Tonicization"], "The whole respelled chord is the more relevant tool."],
     ["When a dim7 is respelled as an enharmonic pivot, what else can change in its label?", "Its inversion", ["Its quality", "Its key signature", "Nothing"], "B in the bass is the root of B°7 but the third of G♯°7 (first inversion)."],
     ["How is an enharmonic pivot labeled?", "Both chord spellings stacked above, and stacked numerals (old key over new) below", ["Only the notated spelling, with one numeral", "With a bracket and the word “enharmonic”", "Only with the new key's numeral"], "Show the spelling that isn't notated too."],
-    ["What's a truck driver's gear change?", "A sudden direct modulation up a half or whole step, often before the final chorus", ["A pivot through the dominant", "A slow modulation by sequence", "A move to the parallel minor"], "Bon Jovi's “Livin' on a Prayer” has one at 3:21."],
+    ["What's a truck driver's gear change?", "A sudden direct modulation up a half or whole step, often before the final chorus", ["A pivot through the dominant", "A slow modulation by sequence", "A move to the parallel minor"], "It lifts the energy without any pivot: the new key simply starts."],
     ["Where are modulations usually found in a piece's form?", "At sectional boundaries", ["Only in the first phrase", "Only at the final cadence", "Only in introductions"], "Binary and ternary forms often use contrasting, closely related keys for their sections."],
     ["When several modulation methods seem to apply, choose…", "the most evident method, favoring the more typical paradigm", ["the rarest method", "the method with the most accidentals", "always the common-tone method"], "A process of elimination works best."],
     ["The term “turnaround” is most often heard in…", "jazz", ["Baroque counterpoint", "Gregorian chant", "serialism"], "It can apply to much music: chords after a cadence that keep things moving or set up a new key."],
-    ["In Paul Simon's “Kodachrome,” the chords after “away” lead back to E major using which chord as a pivot?", "F♯m", ["A", "C♯", "B"], "B | E | A | C♯m | F♯m | B: F♯m works in both A major and E major."],
-    ["In Beethoven's Pathétique excerpt, the F♯°7 first acts as vii°4/3 in G minor. When it returns…", "the same-sounding chord resolves into E minor", ["it resolves to G major", "it becomes a Ger+6", "it's held as a common tone"], "A dim7 can be heard (and spelled) as leading to a different tonic."],
+    ["The progression B | E | A | C♯m | F♯m | B moves from A major back to E major. Which chord is the pivot?", "F♯m", ["A", "C♯m", "B"], "F♯m is vi in A major and ii in E major, and it leads to B (V in E)."],
+    ["An F♯°7 first acts as vii°4/3 in G minor. Respelled as D♯°7, the same-sounding chord…", "resolves into E minor", ["resolves to G major", "becomes a Ger+6", "is held as a common tone"], "A dim7 can be heard (and spelled) as leading to a different tonic."],
   ];
   const makeConcept = () => { const f = rnd(FACTS); return mc(f[0], f[1], f[2], f[3]); };
 

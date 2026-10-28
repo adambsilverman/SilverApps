@@ -219,3 +219,7 @@ body.lc-fs .lc-timer{font-size:clamp(90px,11vw,170px)}
 .lc-label,.label-sm,.eyebrow,.kicker{font-size:13.5px!important}
 .skip-link{position:absolute;left:8px;top:-60px;z-index:50;background:var(--fi-ink);color:#fff;padding:10px 14px;border-radius:var(--fi-r-sm);font:700 15px var(--fi-ui)}
 .skip-link:focus{top:8px}
+/* small SilverApps logo in the top bar */
+.site-logo{height:30px;width:auto;display:block}
+.site-home .site-sub,.brand .site-sub{font-family:var(--fi-title);font-size:26px;line-height:1;color:var(--fi-ink);white-space:nowrap}
+@media (max-width:760px){.site-home .site-sub,.brand .site-sub{display:none}}

@@ -8,6 +8,10 @@ for f in sorted((ROOT / "build" / "pages").glob("*.html")):
     s = f.read_text(encoding="utf-8")
     m = re.match(r"<!--(.*?)-->\s*", s, re.S); meta = dict(kv.split(":", 1) for kv in m.group(1).split("|")); meta = {k.strip(): v.strip() for k, v in meta.items()}
     body = s[m.end():]
+    if meta.get("vex") == "1":   # inline the same VexFlow build the trainers use (Bravura music font included)
+        src = (ROOT / "build" / "src" / "Modes Trainer.html").read_text(encoding="utf-8").split("\n")
+        vex = "\n".join(src[351:360]); assert vex.startswith("<script>") and "VexFlow" in vex
+        body = vex + "\n" + body
     page = f'''<!doctype html>
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

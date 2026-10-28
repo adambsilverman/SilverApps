@@ -168,6 +168,15 @@ details summary{cursor:pointer;font-weight:600}
 .goal .mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
 .cats{margin-top:14px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip.fchip{padding:8px 16px}
+.focusset{border:0;padding:0;margin:0 0 14px}
+.focus-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+.focus-opt{position:relative;display:block;cursor:pointer}
+.focus-opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.focus-opt span{display:grid;place-items:center;min-height:56px;border:2px solid var(--line);border-radius:14px;background:#fff;font-weight:700;font-size:17px;text-align:center;padding:6px}
+.focus-opt input:checked + span{background:var(--ink);color:#fff;border-color:var(--ink)}
+.focus-opt input:focus-visible + span{outline:3px solid var(--accent);outline-offset:2px}
+@media (max-width:560px){.focus-row{grid-template-columns:1fr 1fr}}
 .chip{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px 8px 8px;font-weight:600;font-size:15px;min-height:42px}
 .chip .num{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#ece5d6;font-size:13px}
 .chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -608,13 +617,27 @@ const DRILLS = {
   3:{title:'Figured bass → symbol', short:'Figured bass', desc:'Turn a bass note plus figures into a chord symbol.'},
   4:{title:'Figure + symbol', short:'Analysis', desc:'In a key, choose the inversion figure and the chord symbol for a 4-note chord.'},
 };
+/* Chord focus: all chords, triads only, seventh chords only, or inversions only (chosen at setup or with the focus chips) */
+let FOCUS = 'all';
+const FOCI = [['all','All chords'],['triads','Triads'],['sevenths','Seventh chords'],['inversions','Inversions']];
+const focusType = (triP, noSus) => { const T = noSus ? TRIADS.filter(t => t !== 'sus4') : TRIADS; return FOCUS==='triads' ? pick(T) : FOCUS==='sevenths' ? pick(SEVENTHS) : (Math.random() < triP ? pick(FOCUS==='inversions' ? TRIADS.filter(t => t !== 'sus4') : T) : pick(SEVENTHS)); };
+const focusSeventh = p => FOCUS==='triads' ? false : FOCUS==='sevenths' ? true : Math.random() < p;
 let qCounter = 0;
 const mkId = () => Date.now().toString(36) + '-' + (qCounter++);
 
 function genDrill1(opt){
-  const type = Math.random() < 0.42 ? pick(TRIADS) : pick(SEVENTHS);
+  const type = focusType(0.42, FOCUS==='inversions');
   const root = goodRoot(type, opt.roots);
-  const tones = chordTones(root, type), s = symOf(root, type), names = tones.map(nm);
+  const tones0 = chordTones(root, type), s0 = symOf(root, type);
+  if (FOCUS === 'inversions'){
+    const fam = TYPES[type].fam, inv = 1 + rnd(fam === 3 ? 2 : 3);
+    const tones = tones0.slice(inv).concat(tones0.slice(0, inv)), names = tones.map(nm), s = s0 + '/' + nm(tones0[inv]);
+    return { id:mkId(), drill:1, kind:'spell', bassFirst:true, slots:tones.length,
+      prompt:`Spell <span class="sym" role="img" aria-label="${escRaw(sayChord(s))}">${esc(s)}</span>`, sub:`${nm(root)} ${TYPES[type].name}, ${['','1st','2nd','3rd'][inv]} inversion — tap the notes from the bass up`,
+      answer:names, answerText:names.join(' – '),
+      explain:`${s0} is ${tones0.map(nm).join(' – ')}. The slash puts ${nm(tones0[inv])} (the ${['root','3rd','5th','7th'][inv]}) in the bass, so from the bass up: ${names.join(' – ')} (${['','1st','2nd','3rd'][inv]} inversion).` };
+  }
+  const tones = tones0, s = s0, names = tones.map(nm);
   return { id:mkId(), drill:1, kind:'spell', slots:tones.length,
     prompt:`Spell <span class="sym" role="img" aria-label="${escRaw(sayChord(s))}">${esc(s)}</span>`, sub:`${nm(root)} ${TYPES[type].name} — tap the notes, root first`,
     answer:names, answerText:names.join(' – '),
@@ -622,12 +645,12 @@ function genDrill1(opt){
 }
 
 function genDrill2(opt){
-  const type = Math.random() < 0.45 ? pick(TRIADS) : pick(SEVENTHS);
+  const type = focusType(0.45, FOCUS==='inversions');
   const root = goodRoot(type, opt.roots);
   const tones = chordTones(root, type);
   const fam = TYPES[type].fam;
-  // about 40% inverted (never sus4), so students decide whether a slash is needed
-  const inv = (type !== 'sus4' && Math.random() < 0.4) ? 1 + rnd(fam === 3 ? 2 : 3) : 0;
+  // about 40% inverted (never sus4), so students decide whether a slash is needed; always inverted in the Inversions focus
+  const inv = (type !== 'sus4' && (FOCUS==='inversions' || Math.random() < 0.4)) ? 1 + rnd(fam === 3 ? 2 : 3) : 0;
   const bassTone = tones[inv];
   const upper = fam === 7 ? tones.filter((_,i) => i !== inv) : tones.slice();   // 7ths: bass note not repeated in the treble
   const treble = closeAbove(upper, fam === 7 ? 62 : 60);
@@ -656,16 +679,16 @@ function genDrill3(opt){
   const wantAlt = Math.random() < 0.3;
   for (let tries=0; tries<400; tries++){
     const k = wantAlt ? pick(KEYS.filter(x => x.m==='min')) : (Math.random()<0.7 ? pick(KEYS.filter(x=>x.m==='maj')) : pick(KEYS.filter(x=>x.m==='min')));
-    const seventh = Math.random() < 0.45;
+    const seventh = focusSeventh(0.45);
     let deg = rnd(7);
     if (wantAlt && Math.random() < 0.8) deg = pick([4,6]);
     if (k.m==='maj' && seventh && deg===6 && Math.random()<0.5) continue;
     const ch = diatonic(k, deg, seventh);
     if (!ch.type || ch.type === 'aug' ) continue;
     const fam = TYPES[ch.type].fam;
-    const inv = fam===3 ? pick([0,1,1,2]) : rnd(4);
+    const inv = FOCUS==='inversions' ? 1 + rnd(fam===3 ? 2 : 3) : fam===3 ? pick([0,1,1,2]) : rnd(4);
     const fr = figRowsFor(k, ch, inv);
-    if (fr.altered !== wantAlt) continue;
+    if (fr.altered !== wantAlt && tries < 300) continue;
     const bass = ch.tones[inv];
     const ans = slashSym(ch, inv);
     // distractors
@@ -701,12 +724,12 @@ function genDrill3(opt){
 function genDrill4(opt){
   for (let tries=0; tries<300; tries++){
     const k = pick(KEYS);
-    const seventh = Math.random() < 0.5;
+    const seventh = focusSeventh(0.5);
     const deg = rnd(7);
     const ch = diatonic(k, deg, seventh);
     if (!ch.type || ch.type==='aug') continue;
     const fam = TYPES[ch.type].fam;
-    const inv = rnd(fam===3 ? 3 : 4);
+    const inv = FOCUS==='inversions' ? 1 + rnd(fam===3 ? 2 : 3) : rnd(fam===3 ? 3 : 4);
     const bassN = placeLow(ch.tones[inv]);
     let upper = fam===3 ? ch.tones.slice() : ch.tones.filter((_,i)=>i!==inv);
     const rot = rnd(upper.length); upper = upper.slice(rot).concat(upper.slice(0,rot));
@@ -754,9 +777,13 @@ function genOne(active, roots, seen, rot){
 }
 /* Category chips: toggle which kinds of challenge come next */
 function chipsHTML(active, label){
-  return `<div class="cats"><div class="label">${label}</div><div class="chips">${Object.entries(DRILLS).map(([k,d]) =>
+  return `<div class="cats"><div class="label">Chords</div><div class="chips" role="group" aria-label="Chord focus">${FOCI.map(([v,t]) =>
+    `<button class="chip fchip ${FOCUS===v?'on':''}" data-focus="${v}" aria-pressed="${FOCUS===v}">${t}</button>`).join('')}</div>
+    <div class="label" style="margin-top:10px">${label}</div><div class="chips">${Object.entries(DRILLS).map(([k,d]) =>
     `<button class="chip ${active.includes(+k)?'on':''}" data-cat="${k}" aria-pressed="${active.includes(+k)}"><span class="num">${k}</span>${esc(d.short)}</button>`).join('')}</div></div>`;
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-focus]'); if (!b) return; FOCUS = b.dataset.focus;
+  document.querySelectorAll('[data-focus]').forEach(x => { const on = x.dataset.focus === FOCUS; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); });
 function bindChips(root, getActive, setActive){
   root.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
     const k = +b.dataset.cat; let a = getActive().slice();
@@ -802,7 +829,7 @@ function grade(q, ans){
   if (q.kind === 'spell'){
     if (!Array.isArray(ans) || ans.length !== q.answer.length) return {ok:false};
     const A = ans.slice().sort().join(','), B = q.answer.slice().sort().join(',');
-    return {ok: A === B};
+    return {ok: A === B && (!q.bassFirst || ans[0] === q.answer[0])};
   }
   if (q.kind === 'fig'){
     const f = ans.fig === q.answer.fig, base = ans.sym === q.answer.sym, sl = (ans.slash || '') === (q.answer.slash || '');
@@ -1206,6 +1233,9 @@ function home(){
 
 function setupForm(title, cta, live){
   return `<div class="card"><h2>${title}</h2>
+    <fieldset class="field focusset"><legend class="label">What do you want to drill?</legend><div class="focus-row">
+      ${FOCI.map(([v,t]) => `<label class="focus-opt"><input type="radio" name="focus" value="${v}" ${v===FOCUS?'checked':''}><span>${t}</span></label>`).join('')}
+    </div><p class="small muted" style="margin:6px 0 0">Triads: 3-note chords only. Seventh chords: 4-note chords only. Inversions: every chord has a note other than the root in the bass.</p></fieldset>
     <div class="field"><span class="label">${live ? 'Starting categories (you can switch any time during the game)' : 'Categories (you can switch while practicing)'}</span><div class="checks">
       ${Object.entries(DRILLS).map(([k,d]) => `<label class="check"><input type="checkbox" name="drill" value="${k}" checked><span><b>${k}. ${esc(d.title)}</b><small>${esc(d.desc)}</small></span></label>`).join('')}
     </div></div>
@@ -1222,6 +1252,7 @@ function setupForm(title, cta, live){
 }
 function readSetup(){
   const drills = [...app.querySelectorAll('input[name=drill]:checked')].map(i => +i.value);
+  const f = app.querySelector('input[name=focus]:checked'); FOCUS = f ? f.value : 'all';
   return {drills, count: $('#cnt') ? +$('#cnt').value : 0, roots: $('#roots').value, secs: $('#secs') ? +$('#secs').value : 0, goal: $('#goal') ? +$('#goal').value : 70};
 }
 

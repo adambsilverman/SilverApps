@@ -11,11 +11,19 @@
           "class": false,
           "badge": "Interactive lesson",
           "topic": "Intervals"
+        },
+        {
+          "file": "modes-same-notes-new-home.html",
+          "name": "Modes: Same Notes, New Home",
+          "blurb": "An interactive lesson: relative and parallel modes, major and minor families, PADMIL, modal key signatures, modes by ear, and modes beyond the diatonic.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Modes"
         }
       ]
     },
     {
-      "title": "Harmony & Theory",
+      "title": "Harmony & Theory Drills",
       "apps": [
         {
           "file": "chord-figures-and-symbols.html",
@@ -45,10 +53,11 @@
           "class": true,
           "topic": "Keys & modulation"
         }
-      ]
+      ],
+      "drills": true
     },
     {
-      "title": "Rhythm",
+      "title": "Rhythm Drills",
       "apps": [
         {
           "file": "rhythm-notation-trainer.html",
@@ -57,10 +66,11 @@
           "class": true,
           "topic": "Rhythm & meter"
         }
-      ]
+      ],
+      "drills": true
     },
     {
-      "title": "Orchestration",
+      "title": "Orchestration Drills",
       "apps": [
         {
           "file": "orchestration-strings.html",
@@ -104,11 +114,20 @@
           "class": true,
           "topic": "Transposing instruments"
         }
-      ]
+      ],
+      "drills": true
     },
     {
-      "title": "Practice Tools",
+      "title": "Ear Training & Practice Tools",
       "apps": [
+        {
+          "file": "ear-training.html",
+          "name": "Ear Training",
+          "topic": "Ear training & sight-singing",
+          "blurb": "Sing intervals above a given note and short melodic patterns (the app listens), name chord qualities, and take melodic dictation.",
+          "class": false,
+          "badge": "Solo practice · uses mic"
+        },
         {
           "file": "metronome.html",
           "name": "Metronome",

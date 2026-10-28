@@ -1,5 +1,6 @@
-<!-- title: Intervals: What, Why and How | sound: 1 | desc: An interactive lesson on intervals: what they are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music. -->
+<!-- title: Intervals: What, Why and How | sound: 1 | vex: 1 | desc: An interactive lesson on intervals: what they are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music. -->
 <style>
+@font-face{font-family:"SA Music";src:url(assets/fonts/noto-music.woff2) format("woff2");font-display:block}
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
 .lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
 .lesson-head h1 span{color:var(--fi-red-dk)}
@@ -81,6 +82,19 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 .scrow.ok{background:var(--fi-green-pale)} .scrow.bad{background:var(--fi-card)}
 .scrow.bad .lets span{background:var(--fi-card)} .scrow.bad .lets span.x{background:var(--fi-red-pale)}
 .sclab{margin:0;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.04em}
+#kbTrio,#sqTrio,#ssTrio{margin-top:4px}
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
+.trio-cell.let{grid-column:1/-1}
+.trio-cell{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:10px 12px;display:grid;gap:6px}
+.trio-lab{margin:0;font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--fi-muted)}
+.trio-cap{margin:0;font:700 15px var(--fi-ui);color:var(--fi-navy)}
+.trio svg{width:100%;height:auto;display:block}
+.trio-kb{max-width:360px}
+.trio-vf svg{width:100%;height:auto;display:block}
+.trio-sub{display:flex;justify-content:space-around;margin:0;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;color:var(--fi-muted);padding-left:18%}
+.samekey{display:grid;grid-template-columns:1fr minmax(240px,360px);gap:12px;align-items:center}.samekey .note{margin:0}
+@media (max-width:560px){.samekey{grid-template-columns:1fr}}
+.estaff .trio{grid-template-columns:1fr}.estaff .trio-cell{background:var(--fi-card);padding:6px 8px}
 @media (max-width:560px){.enh{grid-template-columns:1fr}.eq{font-size:28px}}
 @media (max-width:560px){.slide{padding:16px}.chord{grid-template-columns:1fr}.stack{width:100%}.kb{height:120px}.key{font-size:10px}}
 </style>
@@ -101,6 +115,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
       <div class="kb" id="kb" role="group" aria-label="Keyboard from C4 to B5. Choose two keys to measure the interval between them."></div>
     </div>
     <div class="row"><div class="readout" id="kbRead" aria-live="polite"></div></div>
+    <div id="kbTrio"></div>
     <div class="row"><button class="lbtn primary" id="kbPlay" type="button">▶ Play the two notes</button><button class="lbtn" id="kbReset" type="button">Start over</button></div>
     <p class="note">Tap any two keys. The measuring tape counts the half steps between them.</p>
   </section>
@@ -114,6 +129,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
       <svg id="sqSvg" viewBox="0 0 640 190" role="img" aria-labelledby="sqDesc"><desc id="sqDesc"></desc></svg>
     </div>
     <div class="row"><div class="readout" id="sqRead" aria-live="polite"></div></div>
+    <div id="sqTrio"></div>
     <div class="row"><button class="lbtn primary" id="sqPlay" type="button">▶ Play</button></div>
     <p class="note">Count letters for the size (the top row), then half steps for the quality (the bottom row).</p>
   </section>
@@ -131,6 +147,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
       <button class="lbtn primary" id="ssPlay" type="button">▶ Play</button>
     </div>
     <div class="readout" id="ssRead" aria-live="polite"></div>
+    <div id="ssTrio"></div>
   </section>
 
   <section class="slide" data-title="Spelling counts" hidden>
@@ -290,8 +307,9 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
       band.style.left = x1 + "%"; band.style.width = Math.max(.5, x2 - x1) + "%"; band.style.setProperty("--hs", n ? ((x2 - x1) / n * kb.getBoundingClientRect().width / 100) + "px" : "20px");
       lab.style.left = (x1 + x2) / 2 + "%"; lab.textContent = `${n} half step${n === 1 ? "" : "s"}`;
       $("kbRead").innerHTML = `${nameOf(a)} → ${nameOf(b)}: ${n} half step${n === 1 ? "" : "s"}<small>${IV[n] ? "a " + IV[n] : ""}${n === 6 ? " (augmented 4th or diminished 5th)" : ""}</small>`;
+      trio("kbTrio", fromMidiName(a), fromMidiName(b), { keyboard: false });
       if (play) seq([a, b], .55);
-    } else { band.style.width = "0"; lab.textContent = "pick a second key"; $("kbRead").innerHTML = `${nameOf(pick[0])}<small>Now choose a second key.</small>`; if (play) seq([pick[0]]); }
+    } else { $("kbTrio").innerHTML = ""; band.style.width = "0"; lab.textContent = "pick a second key"; $("kbRead").innerHTML = `${nameOf(pick[0])}<small>Now choose a second key.</small>`; if (play) seq([pick[0]]); }
   }
   kb.addEventListener("click", e => { const k = e.target.closest(".key"); if (!k) return; const m = +k.dataset.m; pick = pick.length === 2 ? [m] : pick[0] === m ? [m] : [pick[0], m]; drawKb(true); });
   $("kbPlay").onclick = () => { if (pick.length === 2) { const [a, b] = pick.slice().sort((x, y) => x - y); seq([a, b, [a, b]], .55); } };
@@ -432,6 +450,62 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   $("atPlay").onclick = () => { const S = SHAPES[shape]; seq(S.line ? S.play : S.play.concat([S.play]), S.line ? .3 : .38); };
   SL("Atonal music").onshow = drawAt;
 
+  // ---------- one interval, three views: letters, staff, keyboard ----------
+  const TL = "CDEFGAB", TN = [0, 2, 4, 5, 7, 9, 11], TG = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" }, TS = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
+  const tStep = n => n.o * 7 + n.l, tMidi = n => 12 * (n.o + 1) + TN[n.l] + n.a, tName = n => TL[n.l] + TG[n.a], tSpoken = n => TL[n.l] + TS[n.a] + " " + n.o;
+  const fromMidiName = m => { const s = NAMES[m % 12]; return { l: TL.indexOf(s[0]), a: s[1] === "♯" ? 1 : s[1] === "♭" ? -1 : 0, o: Math.floor(m / 12) - 1 - (s === "B♯" ? 1 : 0) }; };
+  // Engraved staff via VexFlow (Bravura music font): melodic interval, bar line, harmonic interval.
+  const VFK = n => TL[n.l].toLowerCase() + "/" + n.o;
+  const VFA = { "-2": "bb", "-1": "b", "1": "#", "2": "##" };
+  function staffSVG(lo, hi, label) {
+    const box = document.createElement("div"); box.className = "trio-vf";
+    if (!window.Vex || !Vex.Flow) { box.textContent = `${tName(lo)}${lo.o} – ${tName(hi)}${hi.o}`; return box; }
+    const VF = Vex.Flow, ink = css("--fi-ink");
+    document.body.appendChild(box); // VexFlow needs the element in the page to measure
+    const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(360, 150);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const st = new VF.Stave(4, 18, 350); st.addClef("treble"); st.setStyle({ fillStyle: ink, strokeStyle: ink }); st.setContext(ctx).draw();
+    const note = keys => { const ns = keys.slice().sort((a, b) => tStep(a) - tStep(b)), sn = new VF.StaveNote({ clef: "treble", keys: ns.map(VFK), duration: "w" });
+      ns.forEach((n, i) => { if (n.a) sn.addModifier(new VF.Accidental(VFA[n.a]), i); }); sn.setStyle({ fillStyle: ink, strokeStyle: ink }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink }); return sn; };
+    const ticks = [note([lo]), note([hi]), new VF.BarNote(), note([lo, hi])];
+    const voice = new VF.Voice({ num_beats: 12, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(ticks);
+    new VF.Formatter().joinVoices([voice]).format([voice], st.getNoteEndX() - st.getNoteStartX() - 20);
+    voice.draw(ctx, st);
+    const svg = box.querySelector("svg");
+    try { const bb = svg.getBBox(); svg.setAttribute("viewBox", `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`); } catch (e) {}
+    svg.removeAttribute("width"); svg.removeAttribute("height"); svg.removeAttribute("style"); svg.style.width = "100%"; svg.style.height = "auto"; svg.setAttribute("role", "img"); svg.setAttribute("aria-label", label); svg.setAttribute("focusable", "false"); svg.classList.add("trio-staff");
+    box.remove();
+    const cap = document.createElement("p"); cap.className = "trio-sub"; cap.innerHTML = "<span>melodic</span><span>harmonic</span>"; box.appendChild(cap);
+    return box;
+  }
+  function kbSVG(lo, hi, label) {
+    const m1 = tMidi(lo), m2 = tMidi(hi), start = Math.min(60, m1 - (m1 % 12) ), whites = []; let k = start; while (whites.length < 15) { if (![1, 3, 6, 8, 10].includes(k % 12)) whites.push(k); k++; }
+    const end = whites[whites.length - 1], KW = 22, W = whites.length * KW + 2, H = 104, X = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": label, class: "trio-kb" });
+    const xOf = {}; whites.forEach((m, i) => { xOf[m] = 1 + i * KW; el("rect", { x: 1 + i * KW, y: 22, width: KW, height: 78, rx: 3, fill: m === m1 || m === m2 ? css("--fi-red") : "#fff", stroke: css("--fi-line"), "stroke-width": 1.2 }, X); });
+    for (let m = start; m <= end; m++) if ([1, 3, 6, 8, 10].includes(m % 12)) { const x = xOf[m - 1] + KW - 7; xOf[m] = x; el("rect", { x, y: 22, width: 14, height: 48, rx: 2, fill: m === m1 || m === m2 ? css("--fi-red-dk") : css("--fi-ink") }, X); }
+    const cx = m => xOf[m] + ([1, 3, 6, 8, 10].includes(m % 12) ? 7 : KW / 2);
+    if (xOf[m1] != null && xOf[m2] != null) {
+      for (let m = m1; m < m2; m++) { const a = cx(m), b = cx(m + 1); el("path", { d: `M${a} 18 Q${(a + b) / 2} 4 ${b} 18`, fill: "none", stroke: css("--fi-navy"), "stroke-width": 1.6 }, X); }
+      const t = el("text", { x: (cx(m1) + cx(m2)) / 2, y: 12, "text-anchor": "middle", "font-size": 0, fill: "none" }, X); t.textContent = "";
+    }
+    [lo, hi].forEach(n => { const m = tMidi(n); if (xOf[m] == null) return; const t = el("text", { x: cx(m), y: [1, 3, 6, 8, 10].includes(m % 12) ? 64 : 94, "text-anchor": "middle", "font-size": [1, 3, 6, 8, 10].includes(m % 12) ? 8.5 : 11, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: "#fff" }, X); t.textContent = tName(n); });
+    return X;
+  }
+  // container, lo, hi, opts { letters, staff, keyboard }
+  function trio(box, lo, hi, opts = {}) {
+    if (typeof box === "string") box = $(box);
+    if (!box) return;
+    const size = tStep(hi) - tStep(lo) + 1, semis = tMidi(hi) - tMidi(lo);
+    box.innerHTML = ""; box.className = "trio";
+    if (opts.letters !== false) {
+      const L = document.createElement("div"); L.className = "trio-cell let";
+      L.innerHTML = `<p class="trio-lab">Letters</p><div class="lets">${Array.from({ length: size }, (_, k) => { const st = tStep(lo) + k, n = k === 0 ? lo : k === size - 1 ? hi : { l: ((st % 7) + 7) % 7, a: 0 }; return `<span>${k === 0 || k === size - 1 ? tName(n) : TL[n.l]}<i>${k + 1}</i></span>`; }).join("")}</div><p class="trio-cap">${size} letter${size > 1 ? "s" : ""}</p>`;
+      box.appendChild(L);
+    }
+    if (opts.staff !== false) { const S = document.createElement("div"); S.className = "trio-cell"; S.innerHTML = `<p class="trio-lab">Staff</p>`; S.appendChild(staffSVG(lo, hi, `Treble staff: ${tSpoken(lo)} then ${tSpoken(hi)}, then both together.`)); box.appendChild(S); }
+    if (opts.keyboard !== false) { const K = document.createElement("div"); K.className = "trio-cell"; K.innerHTML = `<p class="trio-lab">Keyboard</p>`; K.appendChild(kbSVG(lo, hi, `Keyboard with ${tSpoken(lo)} and ${tSpoken(hi)} highlighted, ${semis} half steps apart.`)); const c = document.createElement("p"); c.className = "trio-cap"; c.textContent = `${semis} half step${semis === 1 ? "" : "s"}`; K.appendChild(c); box.appendChild(K); }
+  }
+
   // ---------- size & quality, stretch & squeeze, spelling ----------
   const LET = "CDEFGAB", NATS = [0, 2, 4, 5, 7, 9, 11];
   const AG = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" }, AS = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
@@ -474,6 +548,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     for (let k = 0; k < n; k++) { el("rect", { x: 40 + k * w, y: 148, width: w - 3, height: 26, rx: 5, fill: "#9FB7E8", stroke: css("--fi-navy"), "stroke-width": 1 }, svg); svgText(svg, 40 + k * w + (w - 3) / 2, 166, String(k + 1), { "font-size": 12, "font-family": "Barlow Condensed, sans-serif", "font-weight": 700 }); }
     svgText(svg, 40 + n * w + 8, 167, `${r.semis} half step${r.semis === 1 ? "" : "s"}`, { "text-anchor": "start", "font-family": "Barlow Condensed, sans-serif", "font-size": 16, "font-weight": 700 });
     $("sqRead").innerHTML = `${nmL(lo)} up to ${nmL(hi)}: <span style="color:var(--fi-red-dk)">${r.name}</span> (${r.ab})<small>${r.size} letter${r.size > 1 ? "s" : ""} = ${SIZE[r.size]}; ${r.semis} half steps = ${r.q || "an unusual quality"}</small>`;
+    trio("sqTrio", lo, hi, { letters: false });
     $("sqDesc").textContent = `${nmS(lo)} up to ${nmS(hi)} spans ${r.size} letter names (a ${SIZE[r.size]}) and ${r.semis} half steps, so it is a ${r.name}.`;
     if (play) seq([midiL(lo), midiL(hi), [midiL(lo), midiL(hi)]], .5);
   }
@@ -504,6 +579,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     const t = ssTop(), r = analyze(lo, t);
     $("ssRead").innerHTML = `C–${nmL(t)}: ${r.name}<small>Still a ${SIZE[SS.size]} (the letters C and ${LET[t.l]} don't change); ${r.semis} half steps.</small>`;
     $("ssDesc").textContent = `${fam ? "Perfect" : "Major and minor"} family of ${SIZE[SS.size]}s above C: ${boxes.map(b => `C to ${nmS({ l: (SS.size - 1) % 7, a: b.a })} is ${b.r.name}, ${b.r.semis} half steps`).join("; ")}. Currently showing ${r.name}.`;
+    trio("ssTrio", lo, t);
     $("ssDown").disabled = SS.a <= rng[0]; $("ssUp").disabled = SS.a >= rng[rng.length - 1];
     if (play) seq([60, midiL(t), [60, midiL(t)]], .5);
   }
@@ -519,13 +595,17 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   function enCard(lo, top) {
     const r = analyze(lo, top), n = r.size, letters = Array.from({ length: n }, (_, k) => LET[(lo.l + k) % 7]);
     letters[0] = nmL(lo); letters[n - 1] = nmL(top);
-    return `<div class="ecard"><b>${nmL(lo)} – ${nmL(top)}</b><div class="lets">${letters.map((L, k) => `<span>${L}<i>${k + 1}</i></span>`).join("")}</div><p>${n} letters → <b>${SIZE[n]}</b><br>${r.semis} half steps → <b style="color:var(--fi-red-dk)">${r.name} (${r.ab})</b></p></div>`;
+    return `<div class="ecard" data-lo="${lo.l},${lo.a},${lo.o}" data-hi="${top.l},${top.a},${top.o}"><b>${nmL(lo)} – ${nmL(top)}</b><div class="estaff"></div><div class="lets">${letters.map((L, k) => `<span>${L}<i>${k + 1}</i></span>`).join("")}</div><p>${n} letters → <b>${SIZE[n]}</b><br>${r.semis} half steps → <b style="color:var(--fi-red-dk)">${r.name} (${r.ab})</b></p></div>`;
   }
   function drawPair(play) {
     const p = PAIRS[pairI], lo = { l: p[0][0], a: p[0][1], o: 4 };
     const mk = q => ({ l: q[0], a: q[1], o: 4 + (q[2] || 0) + (q[0] < p[0][0] ? 1 : 0) });
     const A = mk(p[1]), B = mk(p[2]);
     $("enhBox").innerHTML = enCard(lo, A) + `<div class="eq" aria-hidden="true">=<small>same sound</small></div>` + enCard(lo, B) + `<div class="row" style="grid-column:1/-1"><button type="button" class="lbtn primary" id="enPlay">▶ Play both: they sound identical</button></div>`;
+    $("enhBox").querySelectorAll(".ecard").forEach(c => { const [l1, a1, o1] = c.dataset.lo.split(",").map(Number), [l2, a2, o2] = c.dataset.hi.split(",").map(Number); trio(c.querySelector(".estaff"), { l: l1, a: a1, o: o1 }, { l: l2, a: a2, o: o2 }, { letters: false, keyboard: false }); });
+    const kbx = document.createElement("div"); kbx.style.gridColumn = "1/-1"; kbx.className = "samekey"; $("enhBox").insertBefore(kbx, $("enhBox").lastElementChild);
+    kbx.innerHTML = `<p class="note">On the keyboard, ${nmL(A)} and ${nmL(B)} are the <b>same key</b>. Only the spelling (and so the interval name) differs.</p><div></div>`;
+    trio(kbx.lastElementChild, lo, A, { letters: false, staff: false });
     document.querySelectorAll("[data-pair]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.pair === pairI)));
     $("enPlay").onclick = () => seq([[midiL(lo), midiL(A)], [midiL(lo), midiL(B)]], .9);
     if (play) $("enPlay").click();
