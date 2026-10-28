@@ -66,6 +66,9 @@
 .opts2 button.right{background:var(--fi-green)} .opts2 button.wrong{background:var(--fi-red-pale);border-color:var(--fi-red-dk)}
 .degpad{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:4px;width:100%}
 .degpad button{min-height:56px;border-radius:10px;border:1.5px solid var(--fi-line);background:var(--fi-card);cursor:pointer;color:var(--fi-ink);display:grid;place-items:center;padding:2px}
+.inrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}.inrow .pl{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.lbtn.sm{font-size:14px;padding:6px 12px;min-height:40px}
+.dots span.given{background:var(--fi-paper);border-style:dashed}
 .degpad.seven{grid-template-columns:repeat(7,minmax(0,1fr))}
 .accrow{justify-content:center}.accrow .lbtn{min-width:52px;font-size:20px}
 .clickstaff{cursor:crosshair;border-radius:10px}.clickstaff:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:3px}
@@ -218,7 +221,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const sig = o.sigAcc || [0, 0, 0, 0, 0, 0, 0], seen = {};
     const sns = notes.map((n, i) => {
       if (!n) return new VF.GhostNote({ duration: "q" });
-      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: [LET[n.l].toLowerCase() + "/" + n.o], duration: "q" });
+      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: [LET[n.l].toLowerCase() + "/" + n.o], duration: "q", auto_stem: true });
       const c = n.ghost ? "#A89C8E" : o.colors && o.colors[i] ? css(o.colors[i]) : ink; sn.setStyle({ fillStyle: c, strokeStyle: c });
       if (n.ghost && sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: c, fillStyle: c });
       const k = n.o * 7 + n.l, implied = k in seen ? seen[k] : sig[n.l];
@@ -366,7 +369,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const INPUTS = [["movable", "Movable-do solfège"], ["fixed", "Fixed-do solfège"], ["names", "Note names in the key"], ["chrom", "Note names, any accidental"], ["staff", "Click on the staff"]];
   const midiOf = n => 12 * (n.o + 1) + NAT[n.l] + n.a, diatOf = n => n.o * 7 + n.l;
   const sameNote = (a, b) => a && b && a.l === b.l && a.a === b.a;
-  function dictation(ctx, degs, ms, notes, ks, sigAcc) {
+  function dictation(ctx, degs, ms, notes, ks, sigAcc, keep) {
     const mode = S.input, tonicN = degNote(ctx, 0), n = degs.length;
     const scaleAcc = [0, 0, 0, 0, 0, 0, 0]; for (let d = 0; d < 7; d++) { const x = degNote(ctx, d); scaleAcc[x.l] = x.a; }
     const degOf = x => diatOf(x) - diatOf(tonicN);
@@ -374,7 +377,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const nameTxt = x => mode === "movable" ? degSolf(degOf(x)) : mode === "fixed" ? FIXED[x.l] + ACC[x.a] : LET[x.l] + ACC[x.a];
     const sayTxt = x => nameTxt(x).replace("♯", " sharp").replace("♭", " flat").replace("♮", " natural");
     const near = (l, a) => { const prev = PT.ans[PT.ans.length - 1]; let best = null; for (let o = prev.o - 1; o <= prev.o + 1; o++) { const c = { l, a, o }, d = Math.abs(midiOf(c) - midiOf(prev)); if (!best || d < best.d || (d === best.d && midiOf(c) > midiOf(best.c))) best = { c, d }; } return best.c; };
-    PT.ans = [notes[0]]; PT.acc = null; PT.cur = diatOf(notes[0]);
+    PT.ans = keep && keep.length ? keep : [notes[0]]; PT.acc = null; PT.cur = diatOf(PT.ans[PT.ans.length - 1]);
     const hint = { movable: "Tap the solfège syllables you hear.", fixed: "Tap the fixed-do syllables you hear (do = C).", names: "Tap the note names you hear.", chrom: "Choose an accidental if needed, then tap the letter.", staff: "Click the staff where each note goes (or use ↑ ↓ and Enter). The key signature applies unless you choose an accidental." }[mode];
     let pad = "";
     if (mode === "movable") pad = `<div class="degpad" role="group" aria-label="Solfège">${DEGS.map(d => `<button type="button" data-d="${d}" aria-label="${degSolf(d)}, scale degree ${degLabel(d).replace("̣", " low").replace("′", " high")}"><b>${degSolf(d)}</b><small>${degLabel(d)}</small></button>`).join("")}</div>`;
@@ -383,16 +386,17 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       pad = `<div class="row accrow" role="group" aria-label="Accidental for the next note">${(mode === "staff" ? [["key", "Key signature"]] : []).concat([["-1", "♭"], ["0", "♮"], ["1", "♯"]]).map(([v, t]) => `<button type="button" class="lbtn" data-acc="${v}" aria-pressed="false" ${t.length === 1 ? `aria-label="${{ "♭": "flat", "♮": "natural", "♯": "sharp" }[t]}"` : ""}>${t}</button>`).join("")}</div>`
         + (mode === "chrom" ? `<div class="degpad seven" role="group" aria-label="Letter names">${[0, 1, 2, 3, 4, 5, 6].map(l => `<button type="button" data-l="${l}"><b>${LET[l]}</b></button>`).join("")}</div>` : "");
     }
-    $("prompt").innerHTML = `<p class="ask">Write the melody<small>Key: ${PT.keyName}. The first note is given. ${hint}</small></p>
+    $("prompt").innerHTML = `<p class="ask">Write the melody<small>Key: ${PT.keyName}. The first note, <b>${nameTxt(notes[0])}</b>, is given. ${hint}</small></p>
+      <div class="inrow" role="group" aria-label="Answer with"><span class="pl">Answer with</span>${INPUTS.map(([v, t]) => `<button type="button" class="lbtn sm" data-in="${v}" aria-pressed="${v === mode}">${t}</button>`).join("")}</div>
       <div class="vf${mode === "staff" ? " clickstaff" : ""}" id="ptStaff" ${mode === "staff" ? `tabindex="0" aria-describedby="stHelp"` : ""}></div>${mode === "staff" ? `<p class="sr" id="stHelp">Staff input. Up and down arrows choose a pitch, Enter adds it, Backspace removes the last note.</p><p class="sr" id="stLive" aria-live="polite"></p>` : ""}
       <div class="dots" id="ptDots"></div>${pad}`;
-    $("ctrls").innerHTML = `<button class="lbtn primary" id="dcPlay" type="button">▶ Play</button><button class="lbtn" id="dcBack" type="button">⌫ Undo</button><button class="lbtn" id="dcCheck" type="button">Check</button><button class="lbtn" id="dcNext" type="button">Next ›</button>`;
+    $("ctrls").innerHTML = `<button class="lbtn primary" id="dcPlay" type="button">▶ Play</button><button class="lbtn" id="dcFirst" type="button">▶ First note</button><button class="lbtn" id="dcBack" type="button">⌫ Undo</button>${mode === "staff" ? "" : `<button class="lbtn" id="dcUp" type="button" aria-label="Move the last note up an octave">Octave ↑</button><button class="lbtn" id="dcDn" type="button" aria-label="Move the last note down an octave">Octave ↓</button>`}<button class="lbtn" id="dcCheck" type="button">Check</button><button class="lbtn" id="dcNext" type="button">Next ›</button>`;
     let geo = null;
     const cursorNote = () => { const l = ((PT.cur % 7) + 7) % 7, o = Math.floor(PT.cur / 7), a = PT.acc == null || PT.acc === "key" ? sigAcc[l] : +PT.acc; return { l, a, o }; };
     const redraw = colors => {
       const shown = PT.ans.slice(); if (mode === "staff" && !PT.done && PT.ans.length < n) shown.push(Object.assign(cursorNote(), { ghost: true }));
       geo = staffOf($("ptStaff"), shown.concat(Array(Math.max(0, n - shown.length)).fill(null)), { ks, sigAcc, colors, fixed: mode === "staff", label: `Your answer: ${PT.ans.map(nameTxt).join(", ")}.` });
-      $("ptDots").innerHTML = degs.map((d, i) => `<span class="${colors ? (sameNote(PT.ans[i], notes[i]) ? "ok" : "no") : ""}">${PT.ans[i] ? nameIn(PT.ans[i]) : "?<i>&nbsp;</i>"}</span>`).join("");
+      $("ptDots").innerHTML = degs.map((d, i) => `<span class="${colors ? (sameNote(PT.ans[i], notes[i]) ? "ok" : "no") : i === 0 ? "given" : ""}">${PT.ans[i] ? nameIn(PT.ans[i]) : "?<i>&nbsp;</i>"}</span>`).join("");
       document.querySelectorAll(".accrow [data-acc]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.acc === String(PT.acc ?? (mode === "staff" ? "key" : "0")))));
     };
     const add = x => { if (PT.done || PT.ans.length >= n) return; PT.ans.push(x); PT.acc = null; PT.cur = diatOf(x); play([[midiOf(x), 0, .5]]); redraw(); if ($("stLive")) $("stLive").textContent = `Added ${sayTxt(x)}.`; };
@@ -413,6 +417,10 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
         else if (e.key === "Backspace") { e.preventDefault(); $("dcBack").click(); }
       };
     }
+    document.querySelector(".inrow").onclick = e => { const b = e.target.closest("[data-in]"); if (!b || b.dataset.in === S.input) return; S.input = b.dataset.in; save(); const keep = PT.ans.slice(); dictation(ctx, degs, ms, notes, ks, sigAcc, keep); };
+    $("dcFirst").onclick = () => play([[midiOf(notes[0]), 0, .9]]);
+    const shift = k => { if (PT.done || PT.ans.length < 2) return; const x = PT.ans[PT.ans.length - 1], y = { l: x.l, a: x.a, o: x.o + k }; if (diatOf(y) < 3 * 7 || diatOf(y) > 6 * 7) return; PT.ans[PT.ans.length - 1] = y; PT.cur = diatOf(y); play([[midiOf(y), 0, .5]]); redraw(); };
+    if ($("dcUp")) { $("dcUp").onclick = () => shift(1); $("dcDn").onclick = () => shift(-1); }
     $("dcBack").onclick = () => { if (!PT.done && PT.ans.length > 1) { PT.ans.pop(); PT.cur = diatOf(PT.ans[PT.ans.length - 1]); redraw(); } };
     $("dcPlay").onclick = () => play(refEvents(ctx).concat(seqEv(ms, .7, .6, 2.3)));
     $("dcCheck").onclick = () => {
@@ -422,7 +430,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       if (!ok) setTimeout(() => staffOf($("ptStaff"), notes, { ks, sigAcc, fixed: mode === "staff", label: `Answer: ${notes.map(nameTxt).join(", ")}.` }), 1500);
     };
     $("dcNext").onclick = () => patNew(true);
-    $("dcPlay").click();
+    if (!keep) $("dcPlay").click();
   }
   function patDone(ok) {
     if (PT.done && !PT.heard) return; const wasHeard = PT.heard; PT.done = true;
@@ -443,7 +451,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       <label class="f2" for="sCp">Play first as<select id="sCp"><option value="block" ${S.chordPlay === "block" ? "selected" : ""}>Block chord</option><option value="arp" ${S.chordPlay === "arp" ? "selected" : ""}>Broken chord</option></select></label>`,
     pat: () => patSet(), dict: () => patSet(),
   };
-  const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sIn">Answer with<select id="sIn">${INPUTS.map(([v, t]) => `<option value="${v}" ${S.input === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<label class="f2" for="sLen">Notes<select id="sLen">${[3, 4, 5, 6].map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+  const patSet = () => `<label class="f2" for="sLen">Notes<select id="sLen">${[3, 4, 5, 6].map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>
       <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sSt">Start on<select id="sSt"><option value="tonic" ${S.start === "tonic" ? "selected" : ""}>The tonic</option><option value="any" ${S.start === "any" ? "selected" : ""}>Any scale degree</option></select></label>`;

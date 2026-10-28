@@ -1,4 +1,4 @@
-<!-- title: Modes: Same Notes, New Home | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). -->
+<!-- title: Modes: The Simple Truth | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). -->
 <style>
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
 .lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -60,6 +60,8 @@
 .padmil .arr{font:700 18px var(--fi-ui);color:var(--fi-muted)}
 .sig{font:400 32px var(--fi-display)}
 .pcs2{display:flex;flex-wrap:wrap;gap:4px}
+label.fld2{display:flex;gap:10px;align-items:center;font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.05em}
+label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0;padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
 .big2{font:400 clamp(28px,4.6vw,40px)/1.05 var(--fi-display)}
 .big2 small{display:block;font:15px/1.4 var(--fi-serif);color:var(--fi-muted)}
 .chg{color:var(--fi-red-dk)}
@@ -69,7 +71,7 @@
 
 <main class="lesson" id="main">
   <header class="lesson-head">
-    <h1>Modes: <span>Same Notes, New Home</span></h1>
+    <h1>Modes: <span>The Simple Truth</span></h1>
     <p>A mode is a scale defined by its pattern of whole and half steps around a tonic. Step through the lesson, listen to every mode, and compare it with major and minor. Use the arrow keys or the buttons to move between steps.</p>
   </header>
   <ol class="steps" id="steps" aria-label="Lesson steps"></ol>
@@ -77,8 +79,9 @@
 
   <section class="slide" data-title="Relative modes">
     <p class="kick">1 · What</p><h2>Same notes, different home</h2>
-    <p>The <b>diatonic modes</b> are seven different seven-note scales made by starting on each degree of the diatonic scale while keeping the same notes. Use only the white keys and choose a different starting note: each one gives a different <b>pattern of whole (W) and half (H) steps</b>, so each sounds different, even though the notes are the same.</p>
-    <div class="row" role="group" aria-label="Starting note" id="relBtns"></div>
+    <p>The <b>diatonic modes</b> are seven different seven-note scales made by starting on each degree of the diatonic scale while keeping the same notes. Choose a major scale (C major is the white keys), then choose which of its degrees is the tonic: each one gives a different <b>pattern of whole (W) and half (H) steps</b>, so each sounds different, even though the notes are the same.</p>
+    <div class="row"><label class="fld2" for="relKey">Notes of<select id="relKey"></select></label></div>
+    <div class="row" role="group" aria-label="Tonic degree" id="relBtns"></div>
     <div class="big2" id="relRead" aria-live="polite"></div>
     <div class="view2"><div class="cell"><p class="lab">Staff</p><div id="relStaff"></div></div><div class="cell"><p class="lab">Keyboard</p><div id="relKb"></div><div class="steps2" id="relSteps" aria-label="Step pattern"></div></div></div>
     <div class="row"><button class="lbtn primary" id="relPlay" type="button">▶ Play the mode</button></div>
@@ -104,7 +107,7 @@
   <section class="slide" data-title="PADMIL" hidden>
     <p class="kick">4 · How: PADMIL</p><h2>PADMIL: one note at a time</h2>
     <p>Line up the six common modes so each differs from its neighbor by a single note: <b>P</b>hrygian → <b>A</b>eolian → <b>D</b>orian → <b>M</b>ixolydian → <b>I</b>onian → <b>L</b>ydian. Each step to the right <b>raises one scale degree by a half step</b>, which adds one sharp or removes one flat. PADMIL is the circle of fifths in disguise. Locrian fits on the far left: lower <span class='sd'>5</span> of Phrygian.</p>
-    <div class="pickrow" role="group" aria-label="Tonic"><span class="pl">Tonic</span><span id="pdTon"></span></div>
+    <div class="row"><label class="fld2" for="pdTon">Tonic<select id="pdTon"></select></label></div>
     <div class="padmil" role="group" aria-label="Modes in PADMIL order" id="pdBtns"></div>
     <div class="row"><button class="lbtn" id="pdLeft" type="button">‹ Lower one note</button><button class="lbtn" id="pdRight" type="button">Raise one note ›</button><button class="lbtn primary" id="pdPlay" type="button">▶ Play</button></div>
     <div class="big2" id="pdRead" aria-live="polite"></div>
@@ -289,16 +292,28 @@
   document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select")) return; if (e.key === "ArrowRight") go(cur + 1, true); if (e.key === "ArrowLeft") go(cur - 1, true); });
 
   // 1. relative modes
-  let rel = "D";
-  const relOf = L => MODES.find(m => m.rel === L);
+  // parent major keys: [label, letter, accidental, key-signature count]
+  const PARENTS = [["C", 0, 0, 0], ["G", 4, 0, 1], ["D", 1, 0, 2], ["A", 5, 0, 3], ["E", 2, 0, 4], ["B", 6, 0, 5], ["F♯", 3, 1, 6], ["F", 3, 0, -1], ["B♭", 6, -1, -2], ["E♭", 2, -1, -3], ["A♭", 5, -1, -4], ["D♭", 1, -1, -5], ["G♭", 4, -1, -6]];
+  const DEG_MODES = ["ionian", "dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"];
+  const ORD = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th"];
+  let relKey = 0, relDeg = 1;
+  try { const v = JSON.parse(localStorage.getItem("silverapps-modes-rel") || "null"); if (v) { relKey = v[0]; relDeg = v[1]; } } catch (e) {}
+  $("relKey").innerHTML = PARENTS.map((p, i) => `<option value="${i}">${p[0]} major (${p[3] === 0 ? "no sharps or flats" : Math.abs(p[3]) + (p[3] > 0 ? " sharp" : " flat") + (Math.abs(p[3]) > 1 ? "s" : "")})</option>`).join("");
+  const relNotes = () => {
+    const P = PARENTS[relKey], pt = { l: P[1], a: P[2], o: 4 }, m = BY[DEG_MODES[relDeg]], t0 = spell(pt, relDeg, MAJ[relDeg]);
+    const t = { l: t0.l, a: t0.a, o: t0.l >= 5 ? 3 : 4 }; return { P, m, t, ns: scale(t, m.deg) };
+  };
   function drawRel(play) {
-    const t = { l: LET.indexOf(rel), a: 0, o: LET.indexOf(rel) >= 5 ? 3 : 4 }, m = relOf(rel), ns = scale(t, m.deg);
-    btnRow("relBtns", LET.split("").map(L => [L, `${L} → ${relOf(L).name}`]), rel, v => { rel = v; drawRel(true); });
-    $("relRead").innerHTML = `${rel} ${m.name}<small>White keys only, from ${rel} to ${rel}: ${m.fam} 3rd above the tonic.</small>`;
-    staff("relStaff", ns); keyboard("relKb", ns); $("relSteps").innerHTML = stepsHTML(m.deg);
+    const { P, m, t, ns } = relNotes(), pt = { l: P[1], a: P[2], o: 4 };
+    $("relKey").value = relKey;
+    btnRow("relBtns", DEG_MODES.map((id, i) => [String(i), `${i + 1} → ${nm(spell(pt, i, MAJ[i]))} ${BY[id].name}`]), String(relDeg), v => { relDeg = +v; save(); drawRel(true); });
+    $("relRead").innerHTML = `${nm(t)} ${m.name}<small>The notes of ${P[0]} major, from its ${ORD[relDeg]} degree (${nm(t)}) to ${nm(t)}: ${m.fam} 3rd above the tonic.</small>`;
+    staff("relStaff", ns, { ks: P[3], label: `${nm(t)} ${m.name}, with the key signature of ${P[0]} major: ${ns.map(sp).join(", ")}.` }); keyboard("relKb", ns); $("relSteps").innerHTML = stepsHTML(m.deg);
     if (play) playScale(ns);
   }
-  $("relPlay").onclick = () => { const t = { l: LET.indexOf(rel), a: 0, o: LET.indexOf(rel) >= 5 ? 3 : 4 }; playScale(scale(t, relOf(rel).deg)); };
+  const save = () => { try { localStorage.setItem("silverapps-modes-rel", JSON.stringify([relKey, relDeg])); } catch (e) {} };
+  $("relKey").onchange = e => { relKey = +e.target.value; save(); drawRel(true); };
+  $("relPlay").onclick = () => playScale(relNotes().ns);
   SL("Relative modes").onshow = () => drawRel(false);
 
   // 2. parallel modes on C
@@ -331,19 +346,21 @@
   SL("Major or minor?").onshow = () => drawFam(false);
 
   // 4. PADMIL
-  const TONICS = [["C", { l: 0, a: 0 }], ["D", { l: 1, a: 0 }], ["E♭", { l: 2, a: -1 }], ["E", { l: 2, a: 0 }], ["F", { l: 3, a: 0 }], ["G", { l: 4, a: 0 }], ["A", { l: 5, a: 0 }], ["B♭", { l: 6, a: -1 }]];
+  const TONICS = [["C", { l: 0, a: 0 }], ["C♯", { l: 0, a: 1 }], ["D♭", { l: 1, a: -1 }], ["D", { l: 1, a: 0 }], ["D♯", { l: 1, a: 1 }], ["E♭", { l: 2, a: -1 }], ["E", { l: 2, a: 0 }], ["F", { l: 3, a: 0 }], ["F♯", { l: 3, a: 1 }], ["G♭", { l: 4, a: -1 }], ["G", { l: 4, a: 0 }], ["G♯", { l: 4, a: 1 }], ["A♭", { l: 5, a: -1 }], ["A", { l: 5, a: 0 }], ["A♯", { l: 5, a: 1 }], ["B♭", { l: 6, a: -1 }], ["B", { l: 6, a: 0 }]];
+  $("pdTon").innerHTML = TONICS.map(([n]) => `<option value="${n}">${n}</option>`).join("");
+  $("pdTon").onchange = e => { pdT = e.target.value; drawPd(true); };
   const LETF = [0, 2, 4, -1, 1, 3, 5], majSig = t => LETF[t.l] + 7 * t.a;
   let pdT = "C", pdI = 5;
   const tonicOf = name => { const t = TONICS.find(x => x[0] === name)[1]; return { l: t.l, a: t.a, o: t.l >= 5 ? 3 : 4 }; };
   function drawPd(play) {
-    btnRow("pdTon", TONICS.map(([n]) => [n, n]), pdT, v => { pdT = v; drawPd(true); }, "pkb");
+    $("pdTon").value = pdT;
     $("pdBtns").innerHTML = PADMIL.map((id, i) => `${i ? '<span class="arr" aria-hidden="true">→</span>' : ""}<button type="button" data-i="${i}" aria-pressed="${i === pdI}">${id === "locrian" ? "Lo" : BY[id].name[0]}</button>`).join("");
     const t = tonicOf(pdT), m = BY[PADMIL[pdI]], ns = scale(t, m.deg), ks = majSig(t) + m.ks;
     const prev = pdI > 0 ? BY[PADMIL[pdI - 1]] : null, ch = prev ? m.deg.map((v, i) => v !== prev.deg[i]).concat([false]) : null;
     const RAISE = { 1: "<span class='sd'>5</span> (SE → SOL)", 2: "<span class='sd'>2</span> (RA → RE)", 3: "<span class='sd'>6</span> (LE → LA)", 4: "<span class='sd'>3</span> (ME → MI)", 5: "<span class='sd'>7</span> (TE → TI)", 6: "<span class='sd'>4</span> (FA → FI)" };
-    $("pdRead").innerHTML = `${nm(t)} ${m.name}: ${Math.abs(ks) > 7 ? "—" : ks === 0 ? "no sharps or flats" : `${Math.abs(ks)} ${ks > 0 ? "sharp" : "flat"}${Math.abs(ks) > 1 ? "s" : ""}`}<small>${prev ? `From ${prev.name}, raise ${RAISE[pdI]} by a half step (shown in red).` : "Locrian: the far left. Lower <span class='sd'>5</span> of Phrygian to get here."}</small>`;
+    $("pdRead").innerHTML = `${nm(t)} ${m.name}: ${Math.abs(ks) > 7 ? `${Math.abs(ks)} ${ks > 0 ? "sharps" : "flats"} (impractical)` : ks === 0 ? "no sharps or flats" : `${Math.abs(ks)} ${ks > 0 ? "sharp" : "flat"}${Math.abs(ks) > 1 ? "s" : ""}`}<small>${prev ? `From ${prev.name}, raise ${RAISE[pdI]} by a half step (shown in red).` : "Locrian: the far left. Lower <span class='sd'>5</span> of Phrygian to get here."}</small>`;
     $("pdBtns").querySelectorAll("button").forEach(b => b.setAttribute("aria-label", BY[PADMIL[+b.dataset.i]].name));
-    if (Math.abs(ks) <= 7) staff("pdStaff", ns, { ks, colors: ch, label: `${nm(t)} ${m.name} with a key signature of ${ks} ${ks >= 0 ? "sharps" : "flats"}.` }); else $("pdStaff").textContent = "That key signature would need double sharps or flats.";
+    if (Math.abs(ks) <= 7) staff("pdStaff", ns, { ks, colors: ch, label: `${nm(t)} ${m.name} with a key signature of ${ks} ${ks >= 0 ? "sharps" : "flats"}.` }); else $("pdStaff").textContent = `A key signature can hold at most 7 ${ks > 0 ? "sharps" : "flats"}, so ${nm(t)} ${m.name} is usually written enharmonically instead (try ${ks > 0 ? "the flat" : "the sharp"} spelling of this tonic).`;
     keyboard("pdKb", ns, { red: ch ? ns.filter((n, i) => ch[i]) : [] });
     $("pdLeft").disabled = pdI === 0; $("pdRight").disabled = pdI === PADMIL.length - 1;
     if (play) playScale(ns);

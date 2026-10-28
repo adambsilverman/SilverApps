@@ -13,9 +13,9 @@
           "topic": "Intervals"
         },
         {
-          "file": "modes-same-notes-new-home.html",
-          "name": "Modes: Same Notes, New Home",
-          "blurb": "An interactive lesson: relative and parallel modes, major and minor families, PADMIL, modal key signatures, modes by ear, and modes beyond the diatonic.",
+          "file": "modes-the-simple-truth.html",
+          "name": "Modes: The Simple Truth",
+          "blurb": "An interactive lesson: the same notes from any degree of any major scale, parallel modes, major and minor families, PADMIL in any key, modal key signatures, naming modes by ear from scales and chord progressions, and modes beyond the diatonic.",
           "class": false,
           "badge": "Interactive lesson",
           "topic": "Modes"
@@ -65,6 +65,14 @@
           "blurb": "Complete bars, name meters, fix beaming, and spot syncopation, hemiola and anacrusis.",
           "class": true,
           "topic": "Rhythm & meter"
+        },
+        {
+          "file": "rhythm-performance.html",
+          "name": "Rhythm Performance",
+          "topic": "Rhythm & meter",
+          "blurb": "Read a rhythm, hear the count-in, then tap or clap it. Every note is checked for timing, with levels from quarter notes to syncopation and triplets.",
+          "class": false,
+          "badge": "Solo practice"
         }
       ],
       "drills": true
