@@ -11,9 +11,17 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Modes | modes, PADMIL key signatures, modal pitches |
 | Key Modulation | modulation types, pivot chords, key relationships |
 | Secondary Function Chords | secondary dominants, leading-tone chords and pre-dominants |
-| Chromatic Chords | mode mixture, the Neapolitan, augmented sixth chords |
+| Chromatic Chords | mode mixture, the Neapolitan, augmented sixth chords, chromatic mediants |
 | Voice Motion and Polyphony | motion types, parallels, SATB spacing, textures |
 | Rhythm Notation | meters, beaming, syncopation, hemiola, anacrusis |
+| Keys, Scale Degrees and Tendency Tones | scale-degree names, tendency tones, major vs. relative minor |
+| Harmonic Succession | chord functions, progression and retrogression, phrase model, embellishing chords |
+| Cadences | authentic, half, plagal and deceptive cadences, closure |
+| Non-Chord Tones | passing, neighbor, appoggiatura, suspension and more |
+| Part-Writing | four-voice errors, doubling, tendency tones, resolving V⁷ |
+| Motive and Sequence | motive permutations, tonal and real sequences |
+| Phrases and Phrase Combinations | periods, phrase groups, sentences |
+| Musical Forms | binary to sonata form, song sections |
 | Rhythm Performance | tap or clap written rhythms, with timing feedback |
 | Orchestration Foreign Terms | instrument names & score terms in four languages |
 | Instrument Transpositions | transposing instruments, reading and writing parts, key signatures |
@@ -26,6 +34,7 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Understanding Secondary Function Chords | interactive lesson |
 | Understanding Chromatic Chords | interactive lesson: mode mixture, Neapolitan, augmented sixths |
 | Understanding Voice Motion and Polyphony | interactive lesson |
+| Lessons for every drill above | each new drill has a matching interactive lesson; Extended and Altered Chords, Modulation and Rhythm Notation have lessons too |
 | Ear Training | sing intervals and patterns, chord qualities, melodic dictation |
 | Metronome | tap tempo, traditional markings, meters, accents, trainers |
 | Drone | drone notes and chords in equal temperament or just intonation |

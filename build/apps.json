@@ -2,7 +2,8 @@
   "site": "SilverApps for Music Training",
   "groups": [
     {
-      "title": "Lessons",
+      "title": "Foundations",
+      "lessons": true,
       "apps": [
         {
           "file": "intervals-what-why-how.html",
@@ -21,6 +22,52 @@
           "topic": "Modes"
         },
         {
+          "file": "keys-and-scale-degrees-lesson.html",
+          "name": "Understanding Keys, Scale Degrees and Tendency Tones",
+          "blurb": "An interactive lesson: scale-degree names, the subtonic and leading tone, stable and tendency tones and how they resolve, and telling a key from its relative major or minor.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Keys"
+        },
+        {
+          "file": "rhythm-notation-lesson.html",
+          "name": "Understanding Rhythm Notation",
+          "blurb": "An interactive lesson: showing the beat, common errors, beaming, ties and slurs, rhythm terms from syncopation to metric modulation, and notating lyrics.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Rhythm"
+        }
+      ]
+    },
+    {
+      "title": "Harmony",
+      "lessons": true,
+      "apps": [
+        {
+          "file": "harmonic-succession-lesson.html",
+          "name": "Understanding Harmonic Succession",
+          "blurb": "An interactive lesson: chord functions, the progression chart, the phrase model, circle progressions, retrogressions, chord streams, and structural vs. embellishing chords.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Progression"
+        },
+        {
+          "file": "cadences-lesson.html",
+          "name": "Understanding Cadences",
+          "blurb": "An interactive lesson: authentic (perfect and imperfect), half, plagal, deceptive and other cadences, degrees of closure, elision and turnarounds, in four voices in any key.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Cadences"
+        },
+        {
+          "file": "non-chord-tones-lesson.html",
+          "name": "Understanding Non-Chord Tones",
+          "blurb": "An interactive lesson: passing and neighbor tones, appoggiaturas, escape tones, suspensions and their figures, retardations, anticipations, double neighbors and pedal tones.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Non-chord tones"
+        },
+        {
           "file": "secondary-function-chords-lesson.html",
           "name": "Understanding Secondary Function Chords",
           "blurb": "An interactive lesson: name the chord, read its quality, find its target and write the Roman numeral for secondary dominants, leading-tone chords and pre-dominants, with examples to play in any key.",
@@ -31,11 +78,33 @@
         {
           "file": "chromatic-chords-lesson.html",
           "name": "Understanding Chromatic Chords",
-          "blurb": "An interactive lesson in three parts: mode mixture and the Picardy third, the Neapolitan (♭II), and Italian, French and German augmented sixth chords, with examples to play in any key.",
+          "blurb": "An interactive lesson in four parts: mode mixture and the Picardy third, the Neapolitan (♭II), Italian, French and German augmented sixth chords, and chromatic mediants, with examples to play in any key.",
           "class": false,
           "badge": "Interactive lesson",
           "topic": "Chromatic harmony"
         },
+        {
+          "file": "extended-and-altered-chords-lesson.html",
+          "name": "Understanding Extended and Altered Chords",
+          "blurb": "An interactive lesson: seventh chords, 6, add and sus chords, 9ths, 11ths and 13ths, altered tones, writing chord symbols, omissions and N.C.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Extended chords"
+        },
+        {
+          "file": "modulation-lesson.html",
+          "name": "Understanding Modulation",
+          "blurb": "An interactive lesson: modulation vs. tonicization, closely related keys, pivot chords of every kind, direct modulation and turnarounds.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Keys & modulation"
+        }
+      ]
+    },
+    {
+      "title": "Voice Leading",
+      "lessons": true,
+      "apps": [
         {
           "file": "voice-motion-and-polyphony-lesson.html",
           "name": "Understanding Voice Motion and Polyphony",
@@ -43,11 +112,50 @@
           "class": false,
           "badge": "Interactive lesson",
           "topic": "Voice leading & texture"
+        },
+        {
+          "file": "part-writing-lesson.html",
+          "name": "Understanding Part-Writing",
+          "blurb": "An interactive lesson: melodic principles, spacing and doubling, tendency tones, parallels, connecting triads, and resolving V⁷ and vii°⁷ in four voices.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Part-writing"
         }
       ]
     },
     {
-      "title": "Harmony & Theory Drills",
+      "title": "Melody, Phrase and Form",
+      "lessons": true,
+      "apps": [
+        {
+          "file": "motive-and-sequence-lesson.html",
+          "name": "Understanding Motive and Sequence",
+          "blurb": "An interactive lesson: motives and how they change (transposition, inversion, retrograde, augmentation, fragmentation), and tonal, real and modified sequences.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Motive"
+        },
+        {
+          "file": "phrases-lesson.html",
+          "name": "Understanding Phrases and Phrase Combinations",
+          "blurb": "An interactive lesson: phrases and sub-phrases, the sentence, periods, phrase groups, three-phrase and double periods.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Phrase"
+        },
+        {
+          "file": "forms-lesson.html",
+          "name": "Understanding Musical Forms",
+          "blurb": "An interactive lesson: binary, ternary, strophic and song forms, rondo, variations, sonata form and the sections of popular songs, with listening examples.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Form"
+        }
+      ]
+    },
+    {
+      "title": "Keys, Scales and Chords",
+      "drills": true,
       "apps": [
         {
           "file": "chord-figures-and-symbols.html",
@@ -71,11 +179,38 @@
           "topic": "Scales & modes"
         },
         {
-          "file": "modulation-trainer.html",
-          "name": "Key Modulation",
-          "blurb": "Name the modulation method, find and label pivot chords, and judge key relationships.",
+          "file": "keys-and-scale-degrees.html",
+          "name": "Keys, Scale Degrees and Tendency Tones",
+          "blurb": "Name scale degrees and their pitches, resolve tendency tones, and tell a key from its relative major or minor.",
           "class": true,
-          "topic": "Keys & modulation"
+          "topic": "Keys"
+        }
+      ]
+    },
+    {
+      "title": "Harmony Drills",
+      "drills": true,
+      "apps": [
+        {
+          "file": "harmonic-succession.html",
+          "name": "Harmonic Succession",
+          "blurb": "Chord functions, progression vs. retrogression, the phrase model, embellishing chords, and circle progressions and chord streams.",
+          "class": true,
+          "topic": "Progression"
+        },
+        {
+          "file": "cadences.html",
+          "name": "Cadences",
+          "blurb": "Name cadences in four voices and by ear, read them from chord symbols, and judge their closure.",
+          "class": true,
+          "topic": "Cadences"
+        },
+        {
+          "file": "non-chord-tones.html",
+          "name": "Non-Chord Tones",
+          "blurb": "Name and find non-chord tones in melodies, label suspension figures, and review how each type is approached and left.",
+          "class": true,
+          "topic": "Non-chord tones"
         },
         {
           "file": "secondary-function-chords.html",
@@ -87,19 +222,65 @@
         {
           "file": "chromatic-chords.html",
           "name": "Chromatic Chords",
-          "blurb": "Label and spell borrowed, Neapolitan and augmented sixth chords in any key, find them in progressions, and tell borrowed chords from secondary ones.",
+          "blurb": "Label and spell borrowed, Neapolitan and augmented sixth chords in any key, find them in progressions, tell borrowed chords from secondary ones, and work with chromatic mediants.",
           "class": true,
           "topic": "Chromatic harmony"
         },
+        {
+          "file": "modulation-trainer.html",
+          "name": "Key Modulation",
+          "blurb": "Name the modulation method, find and label pivot chords, and judge key relationships.",
+          "class": true,
+          "topic": "Keys & modulation"
+        }
+      ]
+    },
+    {
+      "title": "Voice Leading Drills",
+      "drills": true,
+      "apps": [
         {
           "file": "voice-motion-and-polyphony.html",
           "name": "Voice Motion and Polyphony",
           "blurb": "Name motion types, spot parallel 5ths and octaves, check SATB ranges and spacing, and identify textures by ear.",
           "class": true,
           "topic": "Voice leading & texture"
+        },
+        {
+          "file": "part-writing.html",
+          "name": "Part-Writing",
+          "blurb": "Find the error in four-voice writing, choose doublings, resolve tendency tones, and recognize the ways to resolve V⁷.",
+          "class": true,
+          "topic": "Part-writing"
         }
-      ],
-      "drills": true
+      ]
+    },
+    {
+      "title": "Melody, Phrase and Form Drills",
+      "drills": true,
+      "apps": [
+        {
+          "file": "motive-and-sequence.html",
+          "name": "Motive and Sequence",
+          "blurb": "Name how a motive is changed and tell tonal, real and modified sequences apart.",
+          "class": true,
+          "topic": "Motive"
+        },
+        {
+          "file": "phrases.html",
+          "name": "Phrases and Phrase Combinations",
+          "blurb": "Name how two phrases combine on the staff, read phrase diagrams, and review phrase terms.",
+          "class": true,
+          "topic": "Phrase"
+        },
+        {
+          "file": "forms.html",
+          "name": "Musical Forms",
+          "blurb": "Name forms from their plans and by ear, review sonata form, and identify the sections of popular songs.",
+          "class": true,
+          "topic": "Form"
+        }
+      ]
     },
     {
       "title": "Rhythm Drills",

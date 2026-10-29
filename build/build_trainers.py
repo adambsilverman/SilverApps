@@ -104,6 +104,32 @@ APPS = [
        show="q.tries = 1; choose(q.correctValue); relabel();"),
 ]
 
+# harmony / theory lesson + drill apps from build/harmony/assemble.py: (source, output, id, name)
+HARM = [
+  ("Non-Chord Tones.html", "non-chord-tones.html", "nct", "Non-Chord Tones"),
+  ("Non-Chord Tones Lesson.html", "non-chord-tones-lesson.html", "nct-lesson", "Understanding Non-Chord Tones"),
+  ("Cadences.html", "cadences.html", "cadences", "Cadences"),
+  ("Cadences Lesson.html", "cadences-lesson.html", "cadences-lesson", "Understanding Cadences"),
+  ("Harmonic Succession.html", "harmonic-succession.html", "harmsucc", "Harmonic Succession"),
+  ("Part-Writing.html", "part-writing.html", "partwriting", "Part-Writing"),
+  ("Part-Writing Lesson.html", "part-writing-lesson.html", "partwriting-lesson", "Understanding Part-Writing"),
+  ("Keys and Scale Degrees.html", "keys-and-scale-degrees.html", "keys", "Keys, Scale Degrees and Tendency Tones"),
+  ("Keys and Scale Degrees Lesson.html", "keys-and-scale-degrees-lesson.html", "keys-lesson", "Understanding Keys, Scale Degrees and Tendency Tones"),
+  ("Motive and Sequence.html", "motive-and-sequence.html", "motive", "Motive and Sequence"),
+  ("Motive and Sequence Lesson.html", "motive-and-sequence-lesson.html", "motive-lesson", "Understanding Motive and Sequence"),
+  ("Phrases.html", "phrases.html", "phrases", "Phrases and Phrase Combinations"),
+  ("Phrases Lesson.html", "phrases-lesson.html", "phrases-lesson", "Understanding Phrases and Phrase Combinations"),
+  ("Forms.html", "forms.html", "forms", "Musical Forms"),
+  ("Forms Lesson.html", "forms-lesson.html", "forms-lesson", "Understanding Musical Forms"),
+  ("Extended and Altered Chords Lesson.html", "extended-and-altered-chords-lesson.html", "extlesson", "Understanding Extended and Altered Chords"),
+  ("Modulation Lesson.html", "modulation-lesson.html", "modlesson", "Understanding Modulation"),
+  ("Rhythm Notation Lesson.html", "rhythm-notation-lesson.html", "rhythmlesson", "Understanding Rhythm Notation"),
+  ("Harmonic Succession Lesson.html", "harmonic-succession-lesson.html", "harmsucc-lesson", "Understanding Harmonic Succession"),
+]
+APPS += [dict(src=a, out=b, id=c, name=d, labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
+              render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
+              show="q.tries = 1; choose(q.correctValue); relabel();") for a, b, c, d in HARM]
+
 SCORE_HOOK = ("if (!(window.LiveClass && LiveClass.active)) { %(sfxcall)s"
               "if (window.SAprogress && q.tries === 0 && !q.revealed) SAprogress.record(__saLabel(S.mode), correct); }\n    "
               "if (window.LiveClass && LiveClass.active && LiveClass.answered(correct)) return;")

@@ -328,7 +328,7 @@ details.panel[open] summary::after { content: "−"; }
 .lfigs.one { grid-template-columns: 1fr; }
 .dimc { display: inline-block; width: .4em; height: .4em; border: .09em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .55em; margin: 0 .04em 0 .03em; }
 
-@media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
+@media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
 <link rel="stylesheet" href="assets/indie.css"><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
@@ -731,10 +731,10 @@ window.FAM = (() => {
   function diat(k, d, seventh = false, bass = 0) {
     const r = deg(k, d), t3 = up(r, 2, 0), t = [0, 2, 4, 6].slice(0, seventh ? 4 : 3).map(s => deg(k, d + s));
     if (k.mode === "minor" && (d === 5 || d === 7)) { const lt = up(k.scale[6], 0, 1); t.forEach((n, i) => { if (samePC(n, k.scale[6])) t[i] = N(lt.l, lt.a, 4); }); }
-    const iv = t.map(n => mod(pc(n) - pc(r), 12)).join(",");
+    const iv = t.map(n => mod(pc(n) - pc(t[0]), 12)).join(",");
     const q = { "0,4,7": "M", "0,3,7": "m", "0,3,6": "d", "0,4,8": "A", "0,4,7,10": "7", "0,4,7,11": "M7", "0,3,7,10": "m7", "0,3,6,10": "h7", "0,3,6,9": "o7", "0,3,7,11": "mM7", "0,4,8,11": "AM7" }[iv] || "M";
     void t3;
-    return QUAL[q] ? chord(r, q, bass) : Object.assign({ tones: t, q, bass, sym: nm(r) + "?" });
+    return QUAL[q] ? chord(t[0], q, bass) : Object.assign({ tones: t, q, bass, sym: nm(t[0]) + "?" });
   }
   const isChromatic = (k, c) => c.tones.some(n => !inKey(k, n));
   const FIG3 = ["", "6", "64"], FIG7 = ["7", "65", "43", "42"];
@@ -817,7 +817,8 @@ window.FAM = (() => {
     const v = realize(o.chords);
     return { type: "grand", vf: o.key ? o.key.vf : "C", sig: o.key ? o.key.sig : {}, cols: v.map((x, i) => ({ t: x.upper.map(nmO), b: [nmO(x.bass)], lab: o.labels ? o.labels[i] : null, sym: o.syms ? o.syms[i] : null, hl: o.hl === i || (Array.isArray(o.hl) && o.hl.includes(i)) })), label: o.label || "" };
   }
-  const playOf = spec => ({ chords: spec.cols.map(c => c.t.concat(c.b).map(s => midi(parse(s)))) });
+  const playOf = spec => spec.type === "score" ? scorePlay(spec) : spec.type === "voices" ? { chords: spec.cols.map(c => ["t", "a", "tn", "b"].flatMap(f => c[f] || []).map(s => midi(parse(s)))), timbre: "voice", gap: spec.gap || 1 } : ({ chords: spec.cols.map(c => c.t.concat(c.b).map(s => midi(parse(s)))) });
+  const wideOf = spec => spec.type === "score" || spec.cols.length > 1 ? "wide" : "solo";
 
   // ---------- Staff drawing (VexFlow) ----------
   function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
@@ -825,6 +826,7 @@ window.FAM = (() => {
   function drawStaff(el, o) {
     el._args = o; el.innerHTML = "";
     if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Reload the page.</p>'; return; }
+    if (o.type === "score") return drawScore(el, o);
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222";
     const cols = o.cols, n = cols.length, voiced = o.type === "voices";
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
@@ -872,12 +874,13 @@ window.FAM = (() => {
       const NS = "http://www.w3.org/2000/svg";
       const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
       const yTop = tr.getYForLine(0), yBot = bs.getYForLine(4);
+      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
       cols.forEach((c, i) => {
         const sn = notesAt[i].find(x => x.getAbsoluteX) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
         if (c.hl) mk("rect", { x: x - 22, y: yTop - 34, width: 46, height: yBot - yTop + 68, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
-        if (c.lab) rnSVG(mk, svg, x, yBot + 46, c.lab, ink);
+        if (c.lab) rnSVG(mk, svg, x, Math.max(yBot + 46, yLow + 26), c.lab, ink);
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
-        if (c.tag) { const t = mk("text", { x, y: yBot + 66, "text-anchor": "middle", "font-size": 13, "font-family": "'Barlow Condensed', sans-serif", fill: ink }, svg); t.textContent = c.tag; }
+        if (c.tag) { const t = mk("text", { x, y: Math.max(yBot + 66, yLow + 46), "text-anchor": "middle", "font-size": 13, "font-family": "'Barlow Condensed', sans-serif", fill: ink }, svg); t.textContent = c.tag; }
       });
       let vb = `0 0 ${W} ${Ht}`;
       try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
@@ -907,6 +910,146 @@ window.FAM = (() => {
       return `${o.cols.length > 1 ? "Chord " + (i + 1) + (c.hl ? " (highlighted)" : "") + ": " : ""}${parts}${c.lab ? `, labeled ${rnSpoken(c.lab)}` : ""}`;
     }).join(". ") + ".";
   }
+  // ---------- Measured notation (VexFlow): melodies, rhythms, two-voice and grand-staff passages ----------
+  // spec: { type: "score", vf, sig, time: "4/4", clefs: ["treble", "bass"] | ["treble"] | ["percussion"], bpm,
+  //         bars: [ { t: [voice, voice?], b: [voice, voice?] } ], final: true, label }
+  // voice = [ note ]; note = { k: ["C5"] (or [] for a rest), d: "q" | "h" | "w" | "8" | "16" (+ "d" for each dot),
+  //   tie, lab (under the lowest staff), sym (chord symbol above), tag (text above), n (number above), ly (lyric),
+  //   hl (circle the note), hlc (shade the whole column), bs: "x" (start a bracket labeled x), be (end the bracket) }
+  const DURQ = { w: 4, h: 2, q: 1, "8": .5, "16": .25 };
+  const durOf = d => { const m = /^(w|h|q|8|16)(d*)$/.exec(d); let b = DURQ[m[1]], add = b; for (let i = 0; i < m[2].length; i++) { add /= 2; b += add; } return b; };
+  const staffIds = o => (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");
+  function drawScore(el, o) {
+    const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
+    const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
+    const rest = { treble: "b/4", bass: "d/3", percussion: "b/4" };
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.includes("d") ? 8 : 0) + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
+    const barW = bar => Math.max(70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
+    const MAXW = o.rowW || 680, rows = [];
+    let cur = [], w = 0;
+    o.bars.forEach((b, i) => { const bw = barW(b) + (cur.length ? 0 : headW(i === 0)); if (cur.length && w + bw > MAXW) { rows.push(cur); cur = []; w = 0; } cur.push(i); w += cur.length === 1 ? barW(b) + headW(i === 0) : bw; });
+    if (cur.length) rows.push(cur);
+    const all = o.bars.flatMap(b => ids.flatMap(id => (b[id] || []).flat()));
+    const has = f => all.some(n => n[f]);
+    const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") ? 22 : 0) + (has("bs") ? 26 : 0);
+    const gap = clefs.length > 1 ? (has("ly") ? 120 : 96) : 0;
+    const rowH = above + 20 + gap + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
+    const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
+    const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    r.resize(totalW, rows.length * rowH + 10);
+    const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const meta = [], ties = [], last = {};   // last note per staff+voice (for ties)
+    const st = s => (s.setStyle && s.setStyle({ fillStyle: ink, strokeStyle: ink }), s);
+    rows.forEach((row, ri) => {
+      let x = 8; const y0 = ri * rowH + above + 10;
+      const rowStaves = [];
+      row.forEach((bi, j) => {
+        const bar = o.bars[bi], bw = barW(bar) + (j ? 0 : headW(bi === 0));
+        const staves = clefs.map((c, si) => { const s = new VF.Stave(x, y0 + si * gap, bw); if (j === 0) { s.addClef(c); if (c !== "percussion" && o.vf && o.vf !== "C" && o.vf !== "Am") s.addKeySignature(o.vf); } if (bi === 0 && o.time !== null) s.addTimeSignature(time); if (bi === o.bars.length - 1 && o.final !== false) s.setEndBarType(VF.Barline.type.END); return s; });
+        staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
+        if (clefs.length > 1) { const types = j === 0 ? ["brace", "singleLeft"] : []; if (j === row.length - 1) types.push(bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight"); else types.push("singleRight"); types.forEach(t => { const c = new VF.StaveConnector(staves[0], staves[1]); c.setType(t); st(c); c.setContext(ctx).draw(); }); }
+        const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
+        const vlist = [], beams = [];
+        clefs.forEach((c, si) => {
+          const id = ids[si], vs = bar[id] || [], acc = {};
+          vs.forEach((voice, vi) => {
+            const stem = vs.length > 1 ? (vi ? -1 : 1) : 0;
+            const notes = voice.map(n => {
+              const isRest = !n.k.length;
+              const keys = isRest ? [rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
+              const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest });
+              if (!isRest && c !== "percussion") keys.forEach((y, ki) => {
+                const kk = y.p.l + "/" + y.p.o, cur = kk in acc ? acc[kk] : ((o.sig && o.sig[y.p.l]) || 0);
+                const tiedIn = last[si + ":" + vi] && last[si + ":" + vi].tie && last[si + ":" + vi].sn && last[si + ":" + vi].n.k.includes(n.k[0]);
+                if (cur !== y.p.a && !tiedIn) sn.addModifier(new VF.Accidental(VFACC[y.p.a]), ki);
+                acc[kk] = y.p.a;
+              });
+              if (n.d.includes("d")) VF.Dot.buildAndAttach([sn], { all: true });
+              st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+              const L = last[si + ":" + vi];
+              if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length });
+              last[si + ":" + vi] = { sn, tie: n.tie, row: ri, n };
+              meta.push({ sn, n, si, ri, staves });
+              return sn;
+            });
+            const v = new VF.Voice({ num_beats: +time.split("/")[0], beat_value: +time.split("/")[1] }).setMode(VF.Voice.Mode.SOFT).addTickables(notes);
+            vlist.push({ v, s: staves[si], si });
+            if (c !== "percussion" || true) { try { const bm = VF.Beam.generateBeams(notes, Object.assign({ groups: VF.Beam.getDefaultBeamGroups(time) }, stem ? { stem_direction: stem } : {})); beams.push(...bm); } catch (e) {} }
+          });
+        });
+        const fmt = new VF.Formatter();
+        clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
+        if (vlist.length) fmt.format(vlist.map(x => x.v), Math.max(20, staves[0].getNoteEndX() - startX - 12));
+        vlist.forEach(x => x.v.draw(ctx, x.s));
+        beams.forEach(b => { st(b); b.setContext(ctx).draw(); });
+        rowStaves.push(staves);
+        x += bw;
+      });
+    });
+    ties.forEach(t => {
+      const idx = [...Array(t.n).keys()];
+      const mkTie = (a, b) => { const tie = new VF.StaveTie({ first_note: a, last_note: b, first_indices: idx, last_indices: idx }); st(tie); tie.setContext(ctx).draw(); };
+      if (t.ra === t.rb) mkTie(t.a, t.b); else { mkTie(t.a, null); mkTie(null, t.b); }
+    });
+    const svg = el.querySelector("svg");
+    if (!svg) return;
+    const NS = "http://www.w3.org/2000/svg";
+    const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
+    const txt = (x, y, s, at) => { const t = mk("text", Object.assign({ x, y, "text-anchor": "middle", "font-size": 15, "font-family": "'Schibsted Grotesk', Arial, sans-serif", fill: ink }, at || {}), svg); t.textContent = s; return t; };
+    const brOpen = {}, rowTop = {};
+    meta.forEach(({ sn, si, ri, staves }) => { if (si) return; const ys = sn.getYs ? sn.getYs() : []; rowTop[ri] = Math.min(rowTop[ri] ?? staves[0].getYForLine(0), staves[0].getYForLine(0), ...ys.map(y => y - (sn.getStemDirection && sn.getStemDirection() === 1 && sn.getDuration() !== "w" ? 34 : 6))); });
+    const hasN = has("n"), hasTag = all.some(n => n.tag), hasSym = has("sym");
+    meta.forEach(({ sn, n, si, ri, staves }) => {
+      const x = sn.getAbsoluteX() + 6, top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
+      const nY = rowTop[ri] - 12, tagY = nY - (hasN ? 18 : 0), symY = tagY - (hasTag ? 20 : 0) - (hasN || hasTag ? 4 : 12), brY = symY - (hasSym ? 24 : 0) - 2;
+      if (n.hlc) mk("rect", { x: x - 20, y: top - 26, width: 42, height: bot - top + 52, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
+      if (n.hl) ys.forEach(y => mk("ellipse", { cx: x, cy: y, rx: 12, ry: 9, fill: "none", stroke: cssVar("--fi-red-dk") || "#b33", "stroke-width": 2.4 }, svg));
+      if (n.n != null) txt(x, si ? bot + 26 : nY, String(n.n), { "font-size": 13, "font-weight": 700 });
+      if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
+      if (n.sym) txt(x, symY, n.sym, { "font-size": 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
+      if (n.lab) rnSVG(mk, svg, x, bot + 44, n.lab, ink);
+      if (n.ly != null) txt(x, staves[si].getYForLine(4) + 34, n.ly, { "font-size": 15, "font-family": "Literata, serif" });
+      if (n.bs) brOpen[si + ":" + n.bs] = { x: x - 10, ri, label: n.bs };
+      if (n.be) { const key = Object.keys(brOpen).find(k2 => k2.startsWith(si + ":") && (n.be === true || k2 === si + ":" + n.be)); if (key) { const b = brOpen[key]; delete brOpen[key]; const yb = brY - 6; mk("path", { d: `M${b.x} ${yb + 7} V${yb} H${x + 12} V${yb + 7}`, fill: "none", stroke: ink, "stroke-width": 1.6 }, svg); txt(b.x + 2, yb - 5, b.label, { "text-anchor": "start", "font-size": 15, "font-weight": 700, "font-style": "italic", "font-family": "Literata, serif" }); } }
+    });
+    let vb = `0 0 ${totalW} ${rows.length * rowH}`;
+    try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
+    svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
+    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.maxWidth = Math.round(Math.min(totalW, MAXW + 20) * 1.25) + "px";
+    svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
+    svg.setAttribute("aria-label", o.label || describeScore(o));
+  }
+  const DURNAME = { w: "whole note", h: "half note", q: "quarter note", "8": "eighth note", "16": "sixteenth note" };
+  function describeScore(o) {
+    const ids = staffIds(o), clefs = o.clefs || ["treble", "bass"];
+    const sp = s => { const x = parse(s); return nmSpoken(x) + " " + x.o; };
+    const nd = n => { const m = /^(w|h|q|8|16)(d*)$/.exec(n.d); const d = (m[2] ? "dotted " : "") + DURNAME[m[1]]; return (n.k.length ? (clefs[0] === "percussion" ? "" : n.k.map(sp).join(" ") + " ") + d : d.replace("note", "rest")) + (n.tie ? " tied" : "") + (n.tag ? ` (${n.tag})` : "") + (n.hl ? " (circled)" : "") + (n.ly ? ` “${n.ly}”` : "") + (n.lab ? `, ${rnSpoken(n.lab)}` : ""); };
+    const kd = o.vf && o.vf !== "C" && clefs[0] !== "percussion" ? `key signature of ${speak(nm(parse(o.vf.replace(/m$/, "").replace("b", "♭").replace("#", "♯"))))}${o.vf.endsWith("m") ? " minor" : " major"}, ` : "";
+    return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
+  }
+  // events [midi, start, length, velocity] for a score spec (ties joined)
+  function scorePlay(o) {
+    const spb = 60 / (o.bpm || 100), ev = [], ids = staffIds(o), perc = (o.clefs || [])[0] === "percussion";
+    ids.forEach((id, si) => { for (let vi = 0; vi < 2; vi++) {
+      let t = 0, held = null, barStart = 0;
+      o.bars.forEach(b => {
+        const voice = (b[id] || [])[vi]; t = barStart;
+        if (voice) voice.forEach(n => {
+          const d = durOf(n.d) * spb;
+          if (n.k.length) {
+            if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
+            else { const evs = n.k.map(s => [perc ? 76 : midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length)]); ev.push(...evs); held = { k: n.k.join(), evs }; }
+            if (!n.tie) held = null;
+          } else held = null;
+          t += d;
+        });
+        barStart += Math.max(...ids.map(id2 => Math.max(0, ...((b[id2] || []).map(v => v.reduce((s, n) => s + durOf(n.d), 0)))))) * spb;
+      });
+    } });
+    return { ev, timbre: o.timbre };
+  }
+
   function redrawStaves() { document.querySelectorAll(".staff").forEach(el => el._args && drawStaff(el, el._args)); }
 
   // ---------- Sound (Web Audio): soft keyboard tone; chords, progressions, or free events [midi, start, length] ----------
@@ -937,7 +1080,166 @@ window.FAM = (() => {
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
   const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}">${PLAY_SVG}${esc(label)}</button></div>`;
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC };
+  // ---------- Four-part (SATB) voicing and part-writing checks ----------
+  const SR = { S: [60, 79], A: [55, 74], T: [48, 67], B: [40, 62] };
+  const ltPC = k => mod(pc(k.tonic) + 11, 12);
+  // all acceptable four-part voicings of chord c (bass = c.tones[c.bass]); opts.loose keeps faulty ones too (for error drills)
+  function satbCands(k, c, opts = {}) {
+    const T = c.tones, n = T.length, out = [];
+    const place = (t, r) => { const res = []; for (let o = 1; o <= 6; o++) { const x = N(t.l, t.a, o), m = midi(x); if (m >= r[0] && m <= r[1]) res.push(x); } return res; };
+    const ext = opts.loose ? 2 : 0, R = v => [SR[v][0] - ext, SR[v][1] + ext];
+    const Bs = place(T[c.bass], R("B"));
+    const lt = ltPC(k), sev = n === 4 ? pc(T[3]) : -1;
+    for (const B of Bs) for (let si = 0; si < n; si++) for (let ai = 0; ai < n; ai++) for (let ti = 0; ti < n; ti++) {
+      const idx = [si, ai, ti, c.bass], has = i => idx.includes(i);
+      for (const S of place(T[si], R("S"))) for (const A of place(T[ai], R("A"))) for (const Tn of place(T[ti], R("T"))) {
+        const m = [midi(S), midi(A), midi(Tn), midi(B)];
+        if (!(m[0] > m[1] && m[1] > m[2] && m[2] > m[3])) { if (!opts.loose) continue; }
+        if (m[3] > m[2] || m[2] - m[3] > 26 || m[0] === m[1] || m[1] === m[2]) continue;
+        const v = { S, A, T: Tn, B, m, idx, cost: 0, flags: [] };
+        if (m[0] < m[1] || m[1] < m[2]) v.flags.push("cross");
+        if (m[0] - m[1] > 12 || m[1] - m[2] > 12) v.flags.push("space");
+        if (!has(0)) v.flags.push("noroot");
+        if (!has(1)) v.flags.push("no3");
+        if (n === 4 && !has(3)) v.flags.push("no7");
+        const cnt = i => idx.filter(x => x === i).length, pcs = idx.map(i => pc(T[i]));
+        if (pcs.filter(p => p === lt).length > 1 && T.some(t => pc(t) === lt)) v.flags.push("dblLT");
+        if (sev >= 0 && cnt(3) > 1) v.flags.push("dbl7");
+        if (["S", "A", "T", "B"].some((x, i) => m[i] < SR[x][0] || m[i] > SR[x][1])) v.flags.push("range");
+        if (v.flags.length && !opts.loose) continue;
+        // doubling preferences
+        if (n === 3) {
+          const dbl = [0, 1, 2].find(i => cnt(i) > 1);
+          if (cnt(0) === 3) v.cost += 3;
+          else if (c.bass === 0) v.cost += dbl === 0 ? 0 : dbl === 2 ? 2 : 5;
+          else if (c.bass === 1) v.cost += dbl === 1 ? (c.q === "d" ? 0 : 3) : 0;
+          else v.cost += dbl === 2 ? 0 : 4;
+          if (c.q === "d" && c.bass === 0) v.cost += 2;
+        } else if (!has(2)) v.cost += 1;
+        v.dcost = v.cost;
+        v.cost += Math.abs(m[0] - 71) * .12 + Math.abs(m[1] - 64) * .06 + Math.abs(m[2] - 57) * .06;   // comfortable registers
+        if (opts.sop != null && si !== opts.sop) continue;
+        out.push(v);
+      }
+    }
+    return out;
+  }
+  const letterStep = n => n.o * 7 + n.l;
+  // interval between two notes: [letter steps, semitones]
+  const ivl = (lo, hi) => [letterStep(hi) - letterStep(lo), midi(hi) - midi(lo)];
+  const perfectOf = (lo, hi) => { const [st, se] = ivl(lo, hi); if (st % 7 === 4 && se % 12 === 7) return "5"; if (st % 7 === 0 && se % 12 === 0) return "8"; return null; };
+  const VN = ["S", "A", "T", "B"], VNAMES = { S: "soprano", A: "alto", T: "tenor", B: "bass" };
+  // part-writing problems moving from voicing v1 (chord c1) to v2 (chord c2); returns [{ code, text }]
+  function pwIssues(k, c1, v1, c2, v2) {
+    const out = [], add = (code, text) => out.push({ code, text });
+    const lt = ltPC(k), n1 = VN.map(x => v1[x]), n2 = VN.map(x => v2[x]);
+    for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+      const p1 = perfectOf(n1[j], n1[i]), p2 = perfectOf(n2[j], n2[i]);
+      const di = midi(n2[i]) - midi(n1[i]), dj = midi(n2[j]) - midi(n1[j]);
+      if (p1 && p1 === p2 && (di || dj)) {
+        const nm5 = p1 === "5" ? "5ths" : (letterStep(n1[i]) === letterStep(n1[j]) ? "unisons" : "octaves");
+        if (Math.sign(di) === Math.sign(dj) && di && dj) add(p1 === "5" ? "par5" : "par8", `parallel ${nm5} between the ${VNAMES[VN[j]]} and ${VNAMES[VN[i]]}`);
+        else if (di && dj) add(p1 === "5" ? "con5" : "con8", `consecutive ${nm5} by contrary motion between the ${VNAMES[VN[j]]} and ${VNAMES[VN[i]]}`);
+      }
+    }
+    const ds = midi(v2.S) - midi(v1.S), db = midi(v2.B) - midi(v1.B), pOut = perfectOf(v2.B, v2.S);
+    if (pOut && ds && db && Math.sign(ds) === Math.sign(db) && Math.abs(ds) > 2 && perfectOf(v1.B, v1.S) !== pOut) add(pOut === "5" ? "dir5" : "dir8", `direct (hidden) ${pOut === "5" ? "5th" : "octave"}: the outer voices move in the same direction into a perfect ${pOut === "5" ? "5th" : "octave"} with a leap in the soprano`);
+    const dom = [5, 7].includes(c1.deg) || c1.dom, tonicNext = c2.deg === 1 || c2.deg === 6;
+    VN.forEach((x, i) => {
+      const a = v1[x], b = v2[x], d = midi(b) - midi(a), st = letterStep(b) - letterStep(a);
+      if (dom && tonicNext && pc(a) === lt && x === "S" && !(st === 1 && d === 1)) add("lt", `the leading tone (${nm(a)}) in the soprano doesn't resolve up to the tonic`);
+      if (c1.tones.length === 4 && pc(a) === pc(c1.tones[3]) && !(st === -1 && (d === -1 || d === -2)) && !(d === 0 && c2.keep7)) add("sev", `the chordal 7th (${nm(a)}) in the ${VNAMES[x]} doesn't resolve down by step`);
+      if (st === 1 && d === 3 || st === -1 && d === -3) add("aug2", `the ${VNAMES[x]} leaps an augmented 2nd (${nm(a)}–${nm(b)})`);
+      if (Math.abs(d) > 12 || (x !== "B" && Math.abs(st) === 6)) add("leap", `the ${VNAMES[x]} leaps ${Math.abs(d) > 12 ? "more than an octave" : "a 7th"}`);
+    });
+    for (let i = 0; i < 3; i++) { if (midi(v2[VN[i + 1]]) > midi(v1[VN[i]]) || midi(v2[VN[i]]) < midi(v1[VN[i + 1]])) { add("overlap", `the ${VNAMES[VN[i]]} and ${VNAMES[VN[i + 1]]} overlap`); break; } }
+    return out;
+  }
+  const HARD = ["par5", "par8", "con5", "con8", "dir5", "dir8", "lt", "sev", "aug2", "leap"];
+  // voice a progression in four parts: chords (with .deg set where known); opts.sop: soprano tone index for the last chord
+  function satb(k, chords, opts = {}) {
+    const C = chords.map((c, i) => satbCands(k, c, { sop: i === chords.length - 1 ? opts.sop : (opts.sops || [])[i] }));
+    if (C.some(x => !x.length)) return null;
+    let prev = C[0].map(v => ({ v, cost: v.cost + Math.random() * 3 + (opts.firstS != null ? Math.abs(v.m[0] - opts.firstS) * .3 : Math.abs(v.m[0] - 70) * .15), back: null }));
+    const layers = [prev];
+    for (let i = 1; i < C.length; i++) {
+      const cur = C[i].map(v => {
+        let best = null;
+        for (const p of prev) {
+          if (p.cost === Infinity) continue;
+          const iss = pwIssues(k, chords[i - 1], p.v, chords[i], v);
+          if (iss.some(x => HARD.includes(x.code))) continue;
+          const mv = [0, 1, 2].reduce((t, j) => { const d = Math.abs(v.m[j] - p.v.m[j]); return t + d + (d > 5 ? 4 : 0); }, 0);
+          const c = p.cost + v.cost + mv + (iss.length ? 6 : 0) + Math.random() * 1.2;
+          if (!best || c < best.cost) best = { v, cost: c, back: p };
+        }
+        return best || { v, cost: Infinity, back: null };
+      });
+      layers.push(cur); prev = cur;
+    }
+    let end = prev.filter(x => x.cost < Infinity).sort((a, b) => a.cost - b.cost)[0];
+    if (!end) return null;
+    const res = []; for (let x = end; x; x = x.back) res.unshift(x.v);
+    return res;
+  }
+  // voices-spec columns from satb() output
+  const satbCols = (vs, labs) => vs.map((v, i) => ({ t: [nmO(v.S)], a: [nmO(v.A)], tn: [nmO(v.T)], b: [nmO(v.B)], lab: labs ? labs[i] : null }));
+  const satbPlay = (vs, gap) => ({ chords: vs.map(v => v.m), timbre: "voice", gap: gap || 1 });
+
+
+  // flat note lists → bars. staffs: { t: [voice, voice?], b: [...] }; note: { k: ["C5"] or [], q: length in quarter notes, ...marks }.
+  // Notes that cross a barline are split and tied; marks stay on the first piece. pickup: length of an incomplete first bar.
+  const QD = [[4, "w"], [3, "hd"], [2, "h"], [1.5, "qd"], [1, "q"], [.75, "8d"], [.5, "8"], [.25, "16"]];
+  function toBars(staffs, per = 4, pickup = 0) {
+    const bars = [];
+    Object.entries(staffs).forEach(([id, voices]) => voices.forEach((flat, vi) => {
+      let bi = 0, room = pickup || per;
+      flat.forEach(n0 => {
+        let left = n0.q, first = true;
+        while (left > 1e-6) {
+          const take = Math.min(left, room);
+          let rem = take; const parts = [];
+          while (rem > 1e-6) { const f = QD.find(([v]) => v <= rem + 1e-6); parts.push(f[1]); rem -= f[0]; }
+          parts.forEach((d, pi) => {
+            const lastPiece = left - take < 1e-6 && pi === parts.length - 1;
+            const n = Object.assign({}, first ? n0 : { k: n0.k }, { d }); delete n.q; delete n.be; first = false;
+            if (!lastPiece) { if (n0.k.length) n.tie = true; } else { n.tie = n0.tie; if (n0.be) n.be = n0.be; }
+            const b = bars[bi] = bars[bi] || {}; (b[id] = b[id] || []); (b[id][vi] = b[id][vi] || []).push(n);
+          });
+          left -= take; room -= take;
+          if (room < 1e-6) { bi++; room = per; }
+        }
+      });
+    }));
+    return bars;
+  }
+  // a close, root-position-or-inverted triad/7th for the left hand (bass clef), as note names
+  function lh(c, lo = 41) {
+    const b = c.tones[c.bass]; let o = 2; while (midi(N(b.l, b.a, o)) < lo) o++; while (midi(N(b.l, b.a, o)) >= lo + 12) o--;
+    const out = [N(b.l, b.a, o)];
+    for (let i = 1; i < c.tones.length; i++) { const t = c.tones[(c.bass + i) % c.tones.length]; let x = N(t.l, t.a, out[i - 1].o); while (midi(x) <= midi(out[i - 1])) x = N(x.l, x.a, x.o + 1); out.push(x); }
+    return out.map(nmO);
+  }
+
+
+  // chord token like "5", "57", "26", "164", "765" (degree + optional figure) → diatonic chord with .rn and .deg
+  const TINV = { "": 0, "6": 1, "64": 2, "7": 0, "65": 1, "43": 2, "42": 3 };
+  function tok(k, t) {
+    const m = /^(\d)(7|65|43|42|64|6)?$/.exec(t), d = +m[1], f = m[2] || "", sev = ["7", "65", "43", "42"].includes(f);
+    const c = Object.assign(diat(k, d, sev, TINV[f]), { deg: d });
+    let rn = rnOf(k, d);
+    if (sev && c.q === "h7") rn = rn.replace("°", "") + "ø";
+    c.rn = rn + f;
+    return c;
+  }
+
+
+  // voice a list of chord tokens in four parts (tries a few times); o.sop: soprano tone index for the last chord
+  function voiceToks(k, toks, o = {}) { for (let i = 0; i < 8; i++) { const chords = toks.map(t => typeof t === "string" ? tok(k, t) : t), vs = satb(k, chords, o); if (vs) return { k, chords, vs }; } return null; }
+  const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
+  function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
+
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, tok, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);
@@ -976,7 +1278,7 @@ window.FAM = (() => {
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${c.bigFmt ? fmtVal(c.big, c.bigFmt) : rich(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${rich(c.text)}</p>`;
-    if (c.staff) h += `<div class="staff ${c.staff.cols.length > 1 ? "wide" : "solo"}" id="promptStaff"></div>`;
+    if (c.staff) h += `<div class="staff ${wideOf(c.staff)}" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;
     if (c.staff) drawStaff($("promptStaff"), c.staff);
@@ -1021,7 +1323,7 @@ window.FAM = (() => {
     renderWork();
     const A = fmtVal(c.answer, c.fmt);
     fb.innerHTML = msg(correct ? "good" : "bad", correct ? "Correct" : "Not quite", correct ? `${A}.` : `You chose ${fmtVal(value, c.fmt)}. The answer is ${A}.`);
-    ansBox.innerHTML = `<div class="answer">${c.staffAns ? `<div class="staff ${c.staffAns.cols.length > 1 ? "wide" : "solo"}" id="ansStaff"></div>` : ""}${c.play ? PLAY_BTN(c.playLabel || "Play", "a") : ""}<p class="explain">${rich(c.explain)}</p></div>`;
+    ansBox.innerHTML = `<div class="answer">${c.staffAns ? `<div class="staff ${wideOf(c.staffAns)}" id="ansStaff"></div>` : ""}${c.play ? PLAY_BTN(c.playLabel || "Play", "a") : ""}<p class="explain">${rich(c.explain)}</p></div>`;
     if (c.staffAns) drawStaff($("ansStaff"), c.staffAns);
     if (S.settings.auto && c.play) play(c.play);
     renderControls(); nextBtn.focus();
@@ -1089,7 +1391,7 @@ window.FAM = (() => {
     const i = Math.min(LS.step, L.steps.length - 1), st = L.steps[i];
     const k = st.keyed ? lessonKey(st) : null;
     figs = {};
-    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (spec.cols && spec.type !== "voices" ? playOf(spec) : null) }; return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${spec.cols.length > 1 ? "wide" : "solo"}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}</figure>`; };
+    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : playOf(spec)) }; return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}</figure>`; };
     const sound = (p, label) => { const id = "s" + Object.keys(figs).length; figs[id] = { play: p }; return `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(label || "Play")}</button>`; };
     const body = richHTML(st.render(H, k, { fig, sound, rich, rn: rnHTML, sym: symHTML }));
     const keyRow = st.keyed ? `<div class="lkeys" role="group" aria-label="Choose a key">${st.keyed === "both" ? ["major", "minor"].map(m => `<button class="lk mode" data-lmode="${m}" aria-pressed="${LS.mode === m}">${m}</button>`).join("") + '<span class="lk-sep" aria-hidden="true"></span>' : ""}${KEYS[LS.mode].map(n => `<button class="lk" data-lkey="${esc(n)}" aria-pressed="${LS.key === n}"><span aria-hidden="true">${accHTML(n)}</span><span class="sr">${esc(speak(n))} ${LS.mode}</span></button>`).join("")}</div>` : "";
@@ -1134,8 +1436,7 @@ window.FAM = (() => {
   H.play = play; H.drawStaff = drawStaff;
   window.__harm = { H, FAM, newQuestion };   // for automated tests
 
-  MODES.forEach(m => Q[m] = newQuestion(m));
-  renderSettings(); renderScore(); renderPrompt(); renderControls();
+  if (MODES.length) { MODES.forEach(m => Q[m] = newQuestion(m)); renderSettings(); renderScore(); renderPrompt(); renderControls(); }
   let v0 = "lesson"; try { v0 = localStorage.getItem(VKEY) || "lesson"; } catch (e) {}
   if (/[?&]solo=1/.test(location.search) || /join=/.test(location.hash)) v0 = "drills";
   if (window.SA_PAGE) v0 = SA_PAGE.view;   // separate lesson and drill pages

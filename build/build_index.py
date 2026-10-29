@@ -20,15 +20,20 @@ def group_html(g, n, level):
           <span class="tname">{e(a["name"])}</span><span class="blurb">{e(a["blurb"])}</span>{badge}<span class="go" aria-hidden="true">Open ▸</span></a></li>''')
     return f'''<section class="group {'sub' if level == 3 else ''}" aria-labelledby="g{n}"><h{level} id="g{n}">{e(g["title"])}</h{level}>
       <ul class="tiles">{"".join(cards)}</ul></section>'''
-done_drills = False
+done = set()
 for n, g in enumerate(cfg["groups"]):
-    if g.get("drills"):
-        if not done_drills:
-            done_drills = True
-            drills = [x for x in cfg["groups"] if x.get("drills")]
-            inner = "".join(group_html(x, f"{n}-{i}", 3) for i, x in enumerate(drills))
-            tiles.append(f'''<section class="drills" aria-labelledby="gdrills"><h2 id="gdrills">Drills and Games</h2>
+    kind = "drills" if g.get("drills") else "lessons" if g.get("lessons") else None
+    if kind:
+        if kind not in done:
+            done.add(kind)
+            subs = [x for x in cfg["groups"] if x.get(kind)]
+            inner = "".join(group_html(x, f"{n}-{i}", 3) for i, x in enumerate(subs))
+            if kind == "drills":
+                tiles.append(f'''<section class="drills" aria-labelledby="gdrills"><h2 id="gdrills">Drills and Games</h2>
       <p class="lead">Every drill works three ways:</p>{HOW}{inner}</section>''')
+            else:
+                tiles.append(f'''<section class="drills lessons" aria-labelledby="glessons"><h2 id="glessons">Lessons</h2>
+      <p class="lead">Step-by-step interactive lessons with examples to see and hear. Each one links to its drills.</p>{inner}</section>''')
         continue
     tiles.append(group_html(g, n, 2))
 

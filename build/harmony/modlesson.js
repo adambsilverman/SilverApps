@@ -1,0 +1,56 @@
+window.FAM = (() => {
+  // ===== Modulation: lesson only (the drills are the Key Modulation app). Engine: build/harmony/engine.js =====
+  const tbl = (head, rows) => `<div class="ltable-wrap"><table class="ltable"><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const rel = (H, k) => {
+    const dom = H.key(H.nm(k.scale[4]), k.mode === "minor" ? "minor" : "major"), sub = H.key(H.nm(k.scale[3]), k.mode);
+    const relk = k.mode === "major" ? H.key(H.nm(k.scale[5]), "minor") : H.key(H.nm(k.scale[2]), "major");
+    const r2 = x => x.mode === "major" ? H.key(H.nm(x.scale[5]), "minor") : H.key(H.nm(x.scale[2]), "major");
+    return { dom, sub, relk, domRel: r2(dom), subRel: r2(sub) };
+  };
+  // a pivot-chord modulation from k to its dominant key, voiced in four parts
+  function pivotEx(H, k) {
+    const d = H.key(H.nm(k.scale[4]), "major");
+    const chords = [H.tok(k, "1"), H.tok(k, "4"), Object.assign(H.tok(k, "6"), { deg: 0 }), Object.assign(H.tok(d, "57"), { deg: 5 }), Object.assign(H.tok(d, "1"), { deg: 1 })];
+    for (let i = 0; i < 8; i++) { const vs = H.satb(d, chords, { sop: 0 }); if (vs) return { d, chords, vs }; }
+    return null;
+  }
+  const lesson = { defMode: "major", steps: [
+    { title: "Modulation and tonicization", kick: "Changing key", render: () => `<p><b>Modulation</b> is moving from one key (tonal center) to another. In classical music it's often a major dramatic feature and a structural pillar of forms like sonata and rounded binary.</p>
+      <p><b>Tonicization</b> emphasizes a new tonal center briefly, without establishing it. The difference: a modulation must be <b>confirmed by a cadence</b> in the new key. A key or chord tonicized mid-phrase, with no confirming cadence, isn't a modulation.</p>
+      <ul><li>A <b>pivot modulation</b> happens within a phrase: one chord (or pitch) works in both the old and the new key: the <b>pivot chord</b> (or pivot tone).</li><li>A <b>direct modulation</b> (phrase modulation) happens when a new phrase or section simply begins in a new key. One or more <b>turnaround chords</b> may soften it, but they aren't pivots: they don't function within the original phrase.</li></ul>` },
+    { title: "How far?", kick: "Closely related keys", keyed: "both", render: (H, k) => {
+      const r = rel(H, k);
+      return `<p>Modulations between <b>closely related keys</b> (key signatures differing by no more than one accidental) sound subtler than those to distantly related keys, because more tones are shared.</p>
+        <p>Closely related to <b>${k.label}</b>: its dominant (<b>${r.dom.label}</b>), subdominant (<b>${r.sub.label}</b>) and relative (<b>${r.relk.label}</b>), plus the relatives of the dominant and subdominant (<b>${r.domRel.label}</b>, <b>${r.subRel.label}</b>).</p>
+        <p>All five are closely related, but in common-practice music the most common destinations are the dominant, the subdominant and the relative key.</p>`
+        + H.check(`Which key is closely related to ${k.label}?`, r.relk.label, [H.key(H.nm(H.up(k.tonic, 1, 1)), "major").label, H.key(H.nm(H.up(k.tonic, 0, 1)), k.mode).label, H.key(H.nm(H.up(k.tonic, 2, 4)), "major").label], "Relative keys share the key signature.");
+    } },
+    { title: "Finding and labeling", kick: "Start key vs. final cadence", keyed: "major", render: (H, k, U) => {
+      const x = pivotEx(H, k);
+      const fig = x ? U.fig({ type: "voices", vf: k.vf, sig: k.sig, cols: H.satbCols(x.vs, ["I", "IV", "vi = ii", "V7", "I"]).map((c, i) => Object.assign(c, i === 2 ? { hl: true } : {})) }, `${k.label}: I – IV – <b>vi</b>, which is also <b>ii</b> in ${x.d.label} – then V⁷ – I in ${x.d.label}. The highlighted chord is the pivot.`, { play: H.satbPlay(x.vs, .95) }) : "";
+      return `<p>The most reliable way to find a modulation: compare the starting key of a phrase or section with the key of its <b>final cadence</b>. A <b>half cadence</b> ends on V but doesn't mean a modulation to the dominant. It's often easiest to hear the key change first, then study the score for the exact point and method.</p>
+        <ul><li><b>Direct modulation:</b> write the new key name (“G major: I”) under the beat where the new key's harmony begins; Roman numerals after that are in the new key.</li><li><b>Pivot modulation:</b> label the pivot chord with two Roman numerals stacked vertically (old key on top, new key below), then continue in the new key.</li></ul>` + fig;
+    } },
+    { title: "Pivot chords", kick: "Diatonic common chords", render: () => `<p>A pivot modulation by <b>diatonic common chord</b> happens within a phrase: it begins in one key and ends in another. To find the pivot:</p>
+      <ol><li>Find the first harmony that doesn't belong to the old key (it will need an accidental).</li><li>Go back one chord. If it's diatonic to both keys, it's the pivot.</li></ol>
+      <p>One major exception: if the first chromatic chord is the new key's dominant, preceded by its cadential ⁶₄, the ⁶₄ already belongs to the new key, and the pivot comes before it.</p>
+      <p>From C major to G major, Am can pivot: vi in C, ii in G. (What some sources call “altered common chord” modulations are the chord-quality shifts below.)</p>` },
+    { title: "Chromatic and enharmonic pivots", kick: "Remote keys", render: () => `<p>A <b>chromatic pivot chord</b> helps with remote keys that share no true common chord. In the Beatles' <i>Lady Madonna</i>, C is I in C major and ♭III in A major.</p>
+      <p>An <b>enharmonic pivot chord</b> has a double identity based on respelling:</p>
+      <ul><li>The <b>fully diminished seventh</b> is all minor 3rds, and its 7th up to the next root is an augmented 2nd (enharmonically a m3). Four sounding tones (A♯/B♭, C♯/D♭, E/F♭, G) make four different dim7 chords, each with a different root. A dim7 chord is “seven of” something, pulling toward the note a half step above its root, so respelling it can lead to a new tonic. In Beethoven's <i>Pathétique</i> Sonata, an F♯°7 is first vii°⁴₃ in G minor; when the music repeats, the same sound resolves to E minor instead.</li>
+      <li>The <b>German +6</b> respelled is a dominant seventh, so it can link a key and its Neapolitan (the Ger+6 becomes V⁷/♭II). Schubert returns from a Neapolitan key this way: changing C♭ to B♮ turns a D♭7 into a Ger+6 in F minor.</li></ul>` },
+    { title: "Common tones, sequences, quality shifts", kick: "More pivots", render: () => `<ul><li><b>Common-tone pivot:</b> one shared tone binds chords with a chromatic 3rd relationship (roots a 3rd apart, not diatonic). With a respelled note, it's an <b>enharmonic common-tone modulation</b>: in <i>Reach Out I'll Be There</i>, the A♯ (3rd of the tonic chord) becomes the root of a B♭ major tonic.</li>
+      <li><b>Sequence:</b> a melodic gesture repeated higher or lower with a moving harmonic pattern may pass through chords that belong to neither key: a <b>sequential modulation</b> (though most modulating sequences can be labeled as common-chord modulations). Billy Joel's <i>She's Always a Woman</i> moves from D♭ to E♭ major along a circle progression (with a tritone substitution, C♭ to F7); Vivaldi's Concerto in A minor, RV 356, has classic modulating sequences.</li>
+      <li><b>Chord-quality shift</b> (chromatic alteration): a diatonic chord changes a note, and its function, keeping the root as the common tone.
+        <ul><li><b>Tonic to dominant 7th:</b> I becomes I⁷ (a V⁷ of IV), often to go from the dominant key back to the tonic, or to the subdominant (Schubert, Arpeggione Sonata, mvt. 3).</li><li><b>Major chord to +6:</b> a major chord becomes an augmented sixth whose ♯4̂ and ♭6̂ point to 5̂ of the new key (Beethoven, Symphony No. 5: a Ger+6 on A♭, enharmonically A♭7, moves to I⁶₄ in C major).</li><li><b>Major to minor</b> (or the reverse), as in Schubert's “Der Wegweiser.”</li></ul></li></ul>` },
+    { title: "Direct modulation and turnarounds", kick: "Between phrases", render: () => `<p>A <b>direct modulation</b> uses no common chord. It can happen mid-phrase, but more often between phrases: the new phrase just starts in the new key (as in <i>I Will Always Love You</i>). Pop's <b>truck driver's gear change</b> is a sudden direct modulation up a half or whole step, often before the final chorus (<i>Livin' on a Prayer</i>, at 3:21). A direct or pivot modulation may also return to the home key for a repeated verse (<i>Paparazzi</i>).</p>
+      <p><b>Turnaround</b> chords come <i>after</i> a cadence: they keep things moving in the same key (often ii–V), quickly tonicize the key of the next phrase, or simply turn the tonic into a dom7 to lead to the subdominant. Paul Simon's <i>Kodachrome</i> has both kinds:</p>
+      ${tbl(["Section", "Chords"], [["Verse (E major)", "{sym:E} | {sym:E7} | {sym:A} | {sym:A} | {sym:F♯m} | {sym:B} | {sym:E} | {sym:F♯m} {sym:B} (a non-modulating turnaround after the cadence)"], ["Chorus (A major)", "{sym:A} {sym:C♯} | {sym:F♯} | {sym:Bm} | {sym:E} | {sym:A} | {sym:D} | {sym:B} | {sym:E} | {sym:A} {sym:C♯} | {sym:F♯} …"], ["End of chorus", "{sym:B} | {sym:E} | {sym:A} | {sym:C♯m} | {sym:F♯m} | {sym:B} — back to E major, with F♯m as the pivot"]])}
+      <p><b>Tonicization</b> is a weaker reference to a new key within a phrase, with no cadence there. The dominant is often tonicized just before a half cadence: that's <i>not</i> a modulation, so label the chord as a secondary dominant (as in Schumann's <i>The Happy Farmer</i>).</p>` },
+    { title: "Modulation and form", kick: "Where it happens", render: () => `<p>Modulation usually shapes a piece's form and often comes at section boundaries.</p>
+      <ul><li><b>Classical music:</b> sectional forms (binary, ternary) commonly use contrasting, closely related keys for their sections.</li><li><b>Pop music:</b> verses and choruses may be in different keys; truck driver's gear changes lift a final chorus; modulations may bring a repeated verse back home.</li></ul>`
+      + "" },
+    { title: "Quick check", kick: "Then practice", render: (H) => H.check("What confirms a modulation (rather than a tonicization)?", "a cadence in the new key", ["a secondary dominant", "an accidental", "a key signature change"], "No cadence in the new key: just a tonicization.") + H.check("To find a pivot chord, find the first chord that doesn't fit the old key, then…", "go back one chord and check that it fits both keys", ["go forward one chord", "look for the cadential ⁶₄ only", "count the sharps"], "The pivot is diatonic to both keys.") + H.check("A sudden key change up a half or whole step before a final chorus is called…", "a truck driver's gear change", ["a pivot modulation", "a chromatic mediant", "a turnaround"], "A direct modulation for energy.") + H.check("Which chord can be respelled to lead to four different keys?", "the fully diminished seventh", ["the dominant seventh", "the major triad", "the half-diminished seventh"], "Any of its tones can be heard as the root.") },
+  ] };
+  return { key: "silverapps-modlesson-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
+})();
