@@ -308,9 +308,9 @@ details.panel[open] summary::after { content: "−"; }
 .lq .opt.right { background: var(--fi-green, #A9D27A); } .lq .opt.wrong { background: var(--bad-soft); border-color: var(--bad); border-style: dashed; }
 .lq .lfb { min-height: 1.4em; }
 .steprow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.steprow span { padding: 4px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 700; }
-.steprow span.hot { background: var(--hl); }
-.steprow i { font-style: normal; color: var(--muted); }
+.steprow > span { padding: 4px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 700; font-size: 1.1rem; }
+.steprow > span.hot { background: var(--hl); }
+.steprow > i { font-style: normal; color: var(--muted); }
 .tagrow { display: flex; flex-wrap: wrap; gap: 6px; }
 .tagrow button { font: 600 16px var(--body); border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); padding: 6px 14px; min-height: 44px; cursor: pointer; color: var(--ink); }
 .tagrow button[aria-pressed="true"] { background: var(--ink); color: #fff; }
@@ -418,6 +418,7 @@ window.FAM = (() => {
   // ===== Keys, Scale Degrees and Tendency Tones. Engine: build/harmony/engine.js =====
   const DN = ["tonic", "supertonic", "mediant", "subdominant", "dominant", "submediant", "leading tone"];
   const SOL = { major: ["do", "re", "mi", "fa", "sol", "la", "ti"], minor: ["do", "re", "me", "fa", "sol", "le", "te"] };
+  const ALLMAJ = ["C", "G", "D", "A", "E", "B", "G♭", "D♭", "A♭", "E♭", "B♭", "F"];
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const art = s => (/^[aeiou]/i.test(s) ? "an " : "a ") + s;
   // degree index 0–6 (and 7 = raised 7th in minor) → note
@@ -440,8 +441,9 @@ window.FAM = (() => {
       const n = H.nm(noteOf(H, k, idx)), nm = nameOf(k, idx);
       const all = (k.mode === "minor" ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6]);
       const why = `${cap(nm)} = ${idx === 7 ? "raised 7̂" : (idx + 1) + "̂"} in ${k.label}: ${n}.${idx === 6 && k.mode === "minor" ? " The 7th degree as in the key signature is the subtonic." : idx === 7 ? " Raised a half step (as in harmonic minor), the 7th degree is the leading tone." : ""}`;
-      if (mode === "pitch") return H.mc(`What pitch is the ${nm} in ${k.label}?`, n, all.map(i => H.nm(noteOf(H, k, i))), why, { kicker: "Name the pitch" });
-      return H.mc(`In ${k.label}, ${n} is the…`, nm, all.map(i => nameOf(k, i)), why, { kicker: "Name the degree" });
+      // every pitch (or degree name) of the key is a choice, in scale order
+      if (mode === "pitch") return Object.assign(H.mc(`What pitch is the ${nm} in ${k.label}?`, n, [], why, { kicker: "Name the pitch" }), { choices: all.map(i => H.nm(noteOf(H, k, i))) });
+      return Object.assign(H.mc(`In ${k.label}, ${n} is the…`, nm, [], why, { kicker: "Name the degree" }), { choices: all.map(i => nameOf(k, i)) });
     }
     if (mode === "tend") {
       const r = Math.random();
@@ -464,7 +466,7 @@ window.FAM = (() => {
       return H.mc(`Where does ${art(t)} tend to resolve?`, a, TEND.map(x => x[1]), cap(w) + ".", { kicker: "Tendency tones" });
     }
     if (mode === "key") {
-      const minor = Math.random() < .5, kMaj = H.key(H.rnd(["C", "G", "D", "F", "B♭", "E♭", "A"]), "major");
+      const minor = Math.random() < .5, kMaj = H.key(H.rnd(ALLMAJ), "major");
       const rel = H.key(H.nm(kMaj.scale[5]), "minor"), k = minor ? rel : kMaj;
       const toks = H.rnd(minor ? [["1", "4", "5", "1"], ["1", "26", "57", "1"], ["1", "6", "4", "5", "1"], ["1", "4", "164", "57", "1"]] : [["1", "4", "5", "1"], ["1", "26", "57", "1"], ["1", "6", "2", "5", "1"], ["1", "4", "164", "57", "1"]]);
       const x = H.voiceToks(k, toks, { sop: 0 });
@@ -473,7 +475,10 @@ window.FAM = (() => {
       const lt = H.nm(H.up(rel.scale[6], 0, 1));
       const why = minor ? `It begins and ends on ${rel.scale[0] && H.nm(rel.scale[0])} minor chords, with a V–i cadence, and the raised leading tone ${lt} appears as an accidental: ${rel.label}.` : `It begins and ends on ${H.nm(kMaj.scale[0])} major chords with a V–I cadence, and there's no ${lt} (the raised 7th of ${rel.label}): ${kMaj.label}.`;
       const other = H.key(H.nm(kMaj.scale[4]), "major");
-      return H.mc(`Same key signature, two possible keys. What key is this in?`, k.label, [minor ? kMaj.label : rel.label, H.rnd([other.label, H.key(H.nm(other.scale[5]), "minor").label])], why, { kicker: "Which key?", staff: spec, staffAns: Object.assign(H.satbSpec(x), { vf: kMaj.vf, sig: kMaj.sig }), playQ: H.satbPlay(x.vs, .85), playQLabel: "Play", nWrong: 2 });
+      void other;
+      // every major and minor key is a choice: majors around the circle of fifths, then their relative minors
+      const allKeys = ALLMAJ.map(n => n + " major").concat(ALLMAJ.map(n => H.nm(H.key(n, "major").scale[5]) + " minor"));
+      return Object.assign(H.mc(`Same key signature, two possible keys. What key is this in?`, k.label, [], why, { kicker: "Which key?", staff: spec, staffAns: Object.assign(H.satbSpec(x), { vf: kMaj.vf, sig: kMaj.sig }), playQ: H.satbPlay(x.vs, .85), playQLabel: "Play" }), { choices: allKeys });
     }
     const [q, a, w, y] = H.rnd(FACTS);
     return H.mc(q, a, w, y, { kicker: "Concepts" });
