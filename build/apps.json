@@ -36,29 +36,6 @@
           "class": true
         },
         {
-          "name": "Extended and Altered Chords",
-          "topic": "Extended chords",
-          "blurb": "9ths, 11ths, 13ths, altered tones and how to write chord symbols.",
-          "lesson": "extended-and-altered-chords-lesson.html",
-          "drills": "chord-extension-practicer.html",
-          "class": true
-        }
-      ]
-    },
-    {
-      "id": "harmony",
-      "title": "Harmony",
-      "color": "green",
-      "topics": [
-        {
-          "name": "Harmonic Succession",
-          "topic": "Progression",
-          "blurb": "Chord functions, the progression chart, the phrase model, embellishing chords.",
-          "lesson": "harmonic-succession-lesson.html",
-          "drills": "harmonic-succession.html",
-          "class": true
-        },
-        {
           "name": "Cadences",
           "topic": "Cadences",
           "blurb": "Authentic, half, plagal and deceptive cadences, and how closed they sound.",
@@ -72,6 +49,29 @@
           "blurb": "Passing and neighbor tones, appoggiaturas, suspensions and more.",
           "lesson": "non-chord-tones-lesson.html",
           "drills": "non-chord-tones.html",
+          "class": true
+        },
+        {
+          "name": "Extended and Altered Chords",
+          "topic": "Extended chords",
+          "blurb": "9ths, 11ths, 13ths, altered tones and how to write chord symbols.",
+          "lesson": "extended-and-altered-chords-lesson.html",
+          "drills": "chord-extension-practicer.html",
+          "class": true
+        }
+      ]
+    },
+    {
+      "id": "harmony",
+      "title": "Advanced Harmony",
+      "color": "green",
+      "topics": [
+        {
+          "name": "Harmonic Succession",
+          "topic": "Progression",
+          "blurb": "Chord functions, the progression chart, the phrase model, embellishing chords.",
+          "lesson": "harmonic-succession-lesson.html",
+          "drills": "harmonic-succession.html",
           "class": true
         },
         {

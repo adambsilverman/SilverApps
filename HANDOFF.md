@@ -177,6 +177,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-10-29 (z12)** — Front page: Cadences and Non-Chord Tones moved from Harmony to Foundations; the Harmony section is now titled “Advanced Harmony” (its id stays `harmony`).
 - **2026-10-29 (z11)** — Front page redesigned (`build/build_index.py`, `build/apps.json`). `apps.json` now has `sections` (id, title, color) with `topics`; each topic is one card with up to three links: `lesson`, `drills` (with `class: true` when the drills have the class game) or `open` (tools), plus an optional `note`. Each section has one card color (red, green, navy, purple). At the top: jump links to each section and a “Find a topic” search that filters cards as you type (count announced to screen readers); the class-game instructions and the completion-report link moved into a collapsed “For instructors” panel. The page is about half as long as before (≈4,400 px vs. ≈8,000 px at 1000 px wide). To add an app: add or extend a topic in `apps.json`.
 - **2026-10-29 (z10)** — Lesson flow rows (`.steprow`, e.g. the progression chart iii → vi → IV/ii → V/vii° → I): the box style now applies only to each step, not to the spans inside Roman numerals, which had drawn nested boxes around every numeral.
 - **2026-10-29 (z9)** — Keys, Scale Degrees and Tendency Tones, “Which key?”: all 24 major and minor keys are choices (12 majors around the circle of fifths, then their relative minors), and the passages now use all 12 key signatures.
