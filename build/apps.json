@@ -21,6 +21,14 @@
           "lesson": "intervals-what-why-how.html"
         },
         {
+          "name": "Major and Minor Scales",
+          "topic": "Scales & modes",
+          "blurb": "Major and minor scales, key signatures and why we use them, relative and parallel keys.",
+          "lesson": "major-and-minor-scales-lesson.html",
+          "drills": "major-and-minor-scales.html",
+          "class": true
+        },
+        {
           "name": "Keys, Scale Degrees and Tendency Tones",
           "topic": "Keys",
           "blurb": "Scale-degree names, tendency tones, and telling major from relative minor.",
@@ -173,6 +181,14 @@
           "blurb": "Note and rest values, dots, ties, meter, triplets and other tuplets.",
           "lesson": "note-values-lesson.html",
           "drills": "note-values.html",
+          "class": true
+        },
+        {
+          "name": "Meter and Beaming",
+          "topic": "Rhythm & meter",
+          "blurb": "Simple, compound, asymmetrical and mixed meter, beaming, pick-ups, syncopation and hemiola.",
+          "lesson": "meter-lesson.html",
+          "drills": "meter.html",
           "class": true
         },
         {

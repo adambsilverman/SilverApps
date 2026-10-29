@@ -7,7 +7,8 @@ window.FAM = (() => {
   // percussion-staff bars from tokens like "q", "8r", "8~", "8t1" (triplet group 1)
   const tokN = x => { const rest = /r/.test(x), tie = /~/.test(x), tu = (/t(\d)/.exec(x) || [])[1], d = x.replace(/[r~]|t\d/g, ""); return Object.assign({ k: rest ? [] : [P], d, tie }, tu ? { tu: "g" + tu } : {}); };
   const rh = (time, bars, o = {}) => ({ type: "score", clefs: ["percussion"], time, vf: "C", sig: {}, bpm: o.bpm || 90, final: o.final, bars: bars.map(b => ({ t: [b.split(" ").map(tokN)] })) });
-  const fig = (U, sp, cap, o) => U.fig(sp, cap, Object.assign({ small: true }, o || {}));
+  // every rhythm figure plays with a click on the beat; o.play === false for silent figures
+  const fig = (U, sp, cap, o) => U.fig(sp, cap, Object.assign({ small: true, play: window.__harm ? window.__harm.H.withClick(sp) : null }, o || {}));
   const METERS = [["2/4", "simple duple", 2, "quarter"], ["3/4", "simple triple", 3, "quarter"], ["4/4", "simple quadruple", 4, "quarter"], ["2/2", "simple duple (cut time)", 2, "half"], ["6/8", "compound duple", 2, "dotted quarter"], ["9/8", "compound triple", 3, "dotted quarter"], ["12/8", "compound quadruple", 4, "dotted quarter"], ["3/8", "simple triple", 3, "eighth"]];
 
   // incomplete bars: fill all but one value
@@ -43,7 +44,9 @@ window.FAM = (() => {
     ["A duplet in 6/8 is…", "two notes in the time of three eighths (one beat)", ["two beats", "a dotted rhythm", "two tied eighths"], "The compound-meter version of a tuplet."],
     ["The British name for a quarter note is…", "crotchet", ["quaver", "minim", "semibreve"], "Quaver = eighth, minim = half, semibreve = whole, semiquaver = sixteenth."],
     ["The British name for an eighth note is…", "quaver", ["crotchet", "semiquaver", "minim"], "A semiquaver is a sixteenth."],
-    ["A whole rest by itself in a bar of 3/4 means…", "rest for the whole bar", ["rest for four beats", "an error", "rest for one beat"], "The whole rest fills any complete bar."],
+    ["A whole rest by itself in a bar of 3/4 means…", "rest for the whole bar", ["rest for four beats", "an error", "rest for one beat"], "The whole rest (bar rest) fills any complete bar, centered in it."],
+    ["Where does a whole-bar rest go?", "centered in the bar", ["on beat 1", "at the end of the bar", "above the staff"], "A bar rest is centered, whatever the meter."],
+    ["Which bars end with a bar line?", "every bar, including the last bar of each line", ["only the last bar of the piece", "only bars with notes", "every other bar"], "The end of the piece gets a final (thin–thick) bar line."],
     ["Beams group notes…", "by beat, so the meter is visible", ["by pitch", "always in fours", "only in pairs"], "In 6/8, beam in threes; in 2/4 and 3/4, in twos (or by beat)."],
     ["Notes that occur at the same moment in different parts are…", "vertically aligned", ["written slightly apart", "aligned only if they're the same pitch", "joined with a tie"], "Line up beats across every staff of a system."],
     ["Stem direction: a note above the middle line has its stem…", "down (on the left)", ["up (on the right)", "either way, randomly", "no stem"], "Below the middle line, stems go up; on the middle line, usually down."],
@@ -67,7 +70,7 @@ window.FAM = (() => {
       if (!x) return null;
       const sp = rh(x.ts, [x.shown.join(" ")], { final: false });
       const full = rh(x.ts, [x.order.join(" ")]); full.bars[0].t[0][x.gap].hl = true;
-      return H.mc(`This bar of ${x.ts} is missing one value. Which single note completes it?`, V[x.miss][2], VAL.slice(0, 8).map(v => v[2]), `The bar holds ${x.ts === "6/8" ? "six eighths (two dotted-quarter beats)" : x.ts.split("/")[0] + " quarter-note beats"}; the notes shown add up to ${frac(x.shown.reduce((t, p) => t + V[p][1], 0) * (x.ts === "6/8" ? 2 : 1))} ${x.ts === "6/8" ? "eighths" : "beats"}, so a ${V[x.miss][2]} completes it (circled).`, { kicker: "Complete the bar", staff: sp, staffAns: full, playQ: H.scorePlay(full), playQLabel: "Play the full bar", topic: "meter" });
+      return H.mc(`This bar of ${x.ts} is missing one value. Which single note completes it?`, V[x.miss][2], VAL.slice(0, 8).map(v => v[2]), `The bar holds ${x.ts === "6/8" ? "six eighths (two dotted-quarter beats)" : x.ts.split("/")[0] + " quarter-note beats"}; the notes shown add up to ${frac(x.shown.reduce((t, p) => t + V[p][1], 0) * (x.ts === "6/8" ? 2 : 1))} ${x.ts === "6/8" ? "eighths" : "beats"}, so a ${V[x.miss][2]} completes it (circled).`, { kicker: "Complete the bar", staff: sp, staffAns: full, playQ: H.withClick(full), playQLabel: "Play the full bar with the beat", topic: "meter" });
     }
     if (mode === "tuplet") {
       const kind = H.rnd(["8t", "qt", "16t", "dup"]);
@@ -96,11 +99,20 @@ window.FAM = (() => {
 
   const lesson = { steps: [
     { title: "Note values", kick: "Halving and halving again", render: (H, k, U) => `<p>Each note value is half the one before it: one <b>whole note</b> = two <b>halves</b> = four <b>quarters</b> = eight <b>eighths</b> = sixteen <b>sixteenths</b>.</p>`
-      + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false })
+      + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
       + `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">American</th><th scope="col">British</th><th scope="col">In 4/4</th></tr></thead><tbody><tr><td>whole note</td><td>semibreve</td><td>4 beats</td></tr><tr><td>half note</td><td>minim</td><td>2</td></tr><tr><td>quarter note</td><td>crotchet</td><td>1</td></tr><tr><td>eighth note</td><td>quaver</td><td>½</td></tr><tr><td>sixteenth note</td><td>semiquaver</td><td>¼</td></tr></tbody></table></div>` },
     { title: "Parts of a note", kick: "Heads, stems, flags, beams", render: () => `<ul><li><b>Notehead</b>: open (whole and half notes) or filled (quarter and shorter).</li><li><b>Stem</b>: every value shorter than a whole note has one. Notes above the middle line take stems <b>down</b> (on the left of the head); below it, <b>up</b> (on the right); on the middle line, usually down.</li><li><b>Flags</b>: one for an eighth, two for a sixteenth, and so on.</li><li><b>Beams</b> replace flags to group notes by beat, so the meter is easy to see.</li></ul>` },
-    { title: "Rests", kick: "Measured silence", render: (H, k, U) => U.fig(rh("4/4", ["wr", "hr hr", "qr qr qr qr", "8r 8r 8r 8r 8r 8r 8r 8r"]), "Whole, half, quarter and eighth rests: each matches its note value.", { small: false })
-      + `<p>The whole rest hangs from the 4th line; the half rest sits on the 3rd line (“a hat”). A <b>whole rest alone in a bar means rest for the whole bar</b>, in any meter.</p>` },
+    { title: "Rests", kick: "Measured silence", render: (H, k, U) => U.fig(rh("4/4", ["hr hr", "qr qr qr qr", "8r 8r 8r 8r 8r 8r 8r 8r", "16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r"]), "Half, quarter, eighth and sixteenth rests: each matches its note value.", { small: false, play: false })
+      + `<p>The half rest sits on the 3rd line (“a hat”); the whole rest hangs from the 4th line (“a hole”). Rests follow the same rule as notes: show the beats. In 4/4, two quarter rests (not a half rest) fill beats 2–3, so the middle of the bar stays visible.</p>` },
+    { title: "Bar lines and bar rests", kick: "Every bar is complete", render: (H, k, U) => {
+      const bars = rh("3/4", ["q q q", "wr", "h q"]); bars.bars[1].t[0][0].center = true;
+      const bars2 = rh("6/8", ["qd qd", "wr", "q 8 qd"]); bars2.bars[1].t[0][0].center = true;
+      return `<ul><li><b>Every bar ends with a bar line</b>, including the last bar on each line (system) of music. The very end of a piece gets a <b>final bar line</b> (thin–thick); a <b>double bar line</b> (two thin lines) marks the end of a section.</li>
+        <li>A bar must contain exactly the number of beats the time signature says (except a pick-up and the bar that balances it).</li>
+        <li>A <b>bar rest</b> (the whole-rest symbol) means “rest for the whole bar” in <b>any</b> meter, even 3/4 or 6/8, where a whole note wouldn't fit. It's <b>centered</b> in the bar, not placed on beat 1.</li>
+        <li>Several silent bars in a part become a <b>multi-bar rest</b>: a thick bar with the number of bars above it.</li></ul>
+        <div class="lfigs">${fig(U, bars, "3/4: a centered bar rest fills the middle bar")}${fig(U, bars2, "6/8: the same symbol, still a full bar")}</div>`;
+    } },
     { title: "Dots and ties", kick: "Longer values", render: (H, k, U) => `<p>A <b>dot</b> adds half of the note's value: a dotted half = 2 + 1 = 3 beats; a dotted quarter = 1 + ½ = 1½. A <b>second dot</b> adds half of the first dot: a double-dotted half = 2 + 1 + ½ = 3½.</p>
       <div class="lfigs">${fig(U, rh("4/4", ["hd q"]), "Dotted half + quarter")}${fig(U, rh("4/4", ["h~ q q"]), "The same rhythm with a tie")}${fig(U, rh("4/4", ["qd 8 qd 8"]), "Dotted quarter + eighth, twice")}${fig(U, rh("4/4", ["hdd 8"]), "Double-dotted half + eighth")}</div>
       <p>A <b>tie</b> joins two notes of the same pitch into one sound. Ties can cross bar lines (dots can't), and they keep the beat visible inside a bar.</p>`

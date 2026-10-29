@@ -128,6 +128,10 @@ HARM = [
   ("Reading Pitch Lesson.html", "reading-pitch-lesson.html", "pitch-lesson", "Understanding Clefs and Pitch Reading"),
   ("Note Values.html", "note-values.html", "notevalues", "Note Values and Rhythm"),
   ("Note Values Lesson.html", "note-values-lesson.html", "notevalues-lesson", "Understanding Note Values and Rhythm"),
+  ("Meter.html", "meter.html", "meter", "Meter and Beaming"),
+  ("Meter Lesson.html", "meter-lesson.html", "meter-lesson", "Understanding Meter and Beaming"),
+  ("Scales.html", "major-and-minor-scales.html", "scales", "Major and Minor Scales"),
+  ("Scales Lesson.html", "major-and-minor-scales-lesson.html", "scales-lesson", "Understanding Major and Minor Scales"),
   ("Harmonic Succession Lesson.html", "harmonic-succession-lesson.html", "harmsucc-lesson", "Understanding Harmonic Succession"),
 ]
 APPS += [dict(src=a, out=b, id=c, name=d, labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",

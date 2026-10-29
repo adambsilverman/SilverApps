@@ -76,7 +76,7 @@
 .lout { min-height: 2em; }
 @media (max-width: 520px) { .lslide { padding: 16px 14px; } .viewtabs button b { font-size: 1.5rem; } }
 .sd { position: relative; display: inline-block; }
-.sd::before { content: "^"; position: absolute; left: 0; right: 0; top: -.62em; text-align: center; font-size: .85em; line-height: 1; }
+.sd::before { content: "^"; position: absolute; left: 0; right: 0; top: -.5em; text-align: center; font-size: .75em; line-height: 1; }
 .lsteps .lpart { flex-basis: 100%; font: 700 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px; }
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }

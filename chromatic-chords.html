@@ -318,7 +318,7 @@ details.panel[open] summary::after { content: "−"; }
 .lout { min-height: 2em; }
 @media (max-width: 520px) { .lslide { padding: 16px 14px; } .viewtabs button b { font-size: 1.5rem; } }
 .sd { position: relative; display: inline-block; }
-.sd::before { content: "^"; position: absolute; left: 0; right: 0; top: -.62em; text-align: center; font-size: .85em; line-height: 1; }
+.sd::before { content: "^"; position: absolute; left: 0; right: 0; top: -.5em; text-align: center; font-size: .75em; line-height: 1; }
 .lsteps .lpart { flex-basis: 100%; font: 700 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px; }
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }
@@ -1345,7 +1345,7 @@ window.FAM = (() => {
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.includes("d") ? 8 : 0) + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
-    const barW = bar => Math.max(o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    const barW = bar => (bar.time ? 26 : 0) + Math.max(o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
     const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
     const MAXW = o.rowW || 680, rows = [];
     let cur = [], w = 0;
@@ -1362,12 +1362,15 @@ window.FAM = (() => {
     const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
     const meta = [], ties = [], last = {};   // last note per staff+voice (for ties)
     const st = s => (s.setStyle && s.setStyle({ fillStyle: ink, strokeStyle: ink }), s);
+    let curT = time;   // the meter in force (bars can change it with bar.time)
     rows.forEach((row, ri) => {
       let x = 8; const y0 = ri * rowH + above + 10;
       const rowStaves = [];
       row.forEach((bi, j) => {
         const bar = o.bars[bi], bw = barW(bar) + (j ? 0 : headW(bi === 0));
-        const staves = clefs.map((c, si) => { const s = new VF.Stave(x, y0 + si * gap, bw); if (j === 0) { s.addClef(c); if (c !== "percussion" && o.vf && o.vf !== "C" && o.vf !== "Am") s.addKeySignature(o.vf); } if (bi === 0 && o.time !== null) s.addTimeSignature(time); if (bi === o.bars.length - 1 && o.final !== false) s.setEndBarType(VF.Barline.type.END); return s; });
+        if (bar.time) curT = bar.time;
+        const nextT = j === row.length - 1 && o.bars[bi + 1] && o.bars[bi + 1].time;   // cautionary time signature at the end of the line
+        const staves = clefs.map((c, si) => { const s = new VF.Stave(x, y0 + si * gap, bw); if (j === 0) { s.addClef(c); if (c !== "percussion" && o.vf && o.vf !== "C" && o.vf !== "Am") s.addKeySignature(o.vf); } if ((bi === 0 && o.time !== null) || (bi > 0 && bar.time)) s.addTimeSignature(curT); if (nextT && s.setEndTimeSignature) s.setEndTimeSignature(nextT); if (bar.dbl) s.setEndBarType(VF.Barline.type.DOUBLE); if (bi === o.bars.length - 1 && o.final !== false) s.setEndBarType(VF.Barline.type.END); return s; });
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
         if (clefs.length > 1) { const types = j === 0 ? ["brace", "singleLeft"] : []; if (j === row.length - 1) types.push(bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight"); else types.push("singleRight"); types.forEach(t => { const c = new VF.StaveConnector(staves[0], staves[1]); c.setType(t); st(c); c.setContext(ctx).draw(); }); }
         const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
@@ -1380,7 +1383,7 @@ window.FAM = (() => {
               if (n.ghost) { const gn = new VF.GhostNote({ duration: n.d }); last[si + ":" + vi] = null; return gn; }   // invisible placeholder
               const isRest = !n.k.length;
               const keys = isRest ? [rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
-              const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest });
+              const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest, align_center: !!n.center });   // n.center: a whole-bar rest centered in the bar
               if (!isRest && c !== "percussion") keys.forEach((y, ki) => {
                 const kk = y.p.l + "/" + y.p.o, cur = kk in acc ? acc[kk] : ((o.sig && o.sig[y.p.l]) || 0);
                 const tiedIn = last[si + ":" + vi] && last[si + ":" + vi].tie && last[si + ":" + vi].sn && last[si + ":" + vi].n.k.includes(n.k[0]);
@@ -1397,9 +1400,11 @@ window.FAM = (() => {
             });
             const tg = {}; voice.forEach((n, i) => { if (n.tu) (tg[n.tu] = tg[n.tu] || []).push(i); });   // tuplets: notes sharing n.tu; n.tun notes in the time of n.tuo
             Object.values(tg).forEach(ix => { const n0 = voice[ix[0]]; tuplets.push(new VF.Tuplet(ix.map(i => notes[i]), { num_notes: n0.tun || ix.length, notes_occupied: n0.tuo || 2, bracketed: true })); });
-            const v = new VF.Voice({ num_beats: +time.split("/")[0], beat_value: +time.split("/")[1] }).setMode(VF.Voice.Mode.SOFT).addTickables(notes);
+            const v = new VF.Voice({ num_beats: +curT.split("/")[0], beat_value: +curT.split("/")[1] }).setMode(VF.Voice.Mode.SOFT).addTickables(notes);
             vlist.push({ v, s: staves[si], si });
-            if (c !== "percussion" || true) { try { const bm = VF.Beam.generateBeams(notes, Object.assign({ groups: VF.Beam.getDefaultBeamGroups(time) }, stem ? { stem_direction: stem } : {})); beams.push(...bm); } catch (e) {} }
+            // beams: explicit groups (n.bm ids), none (o.beam === false), custom groups (bar.groups / o.groups like ["3/8", "2/8"]) or the meter's defaults
+            if (voice.some(n => n.bm)) { const bg = {}; voice.forEach((n, i) => { if (n.bm) (bg[n.bm] = bg[n.bm] || []).push(notes[i]); }); Object.values(bg).forEach(g => { if (g.length > 1) beams.push(new VF.Beam(g)); }); }
+            else if (o.beam !== false && bar.beam !== false) { try { const gs = bar.groups || o.groups; const bm = VF.Beam.generateBeams(notes, Object.assign({ groups: gs ? gs.map(g => new VF.Fraction(...g.split("/").map(Number))) : VF.Beam.getDefaultBeamGroups(curT) }, stem ? { stem_direction: stem } : {})); beams.push(...bm); } catch (e) {} }
           });
         });
         const fmt = new VF.Formatter();
@@ -1452,6 +1457,22 @@ window.FAM = (() => {
     const nd = n => { const m = /^(w|h|q|8|16)(d*)$/.exec(n.d); const d = (m[2] ? "dotted " : "") + DURNAME[m[1]]; return (n.k.length ? (clefs[0] === "percussion" ? "" : n.k.map(sp).join(" ") + " ") + d : d.replace("note", "rest")) + (n.tie ? " tied" : "") + (n.tag ? ` (${n.tag})` : "") + (n.hl ? " (circled)" : "") + (n.ly ? ` “${n.ly}”` : "") + (n.lab ? `, ${rnSpoken(n.lab)}` : ""); };
     const kd = o.vf && o.vf !== "C" && clefs[0] !== "percussion" ? `key signature of ${speak(nm(parse(o.vf.replace(/m$/, "").replace("b", "♭").replace("#", "♯"))))}${o.vf.endsWith("m") ? " minor" : " major"}, ` : "";
     return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
+  }
+  // a metronome click on every beat of a score spec (pick-up bars start mid-bar), merged with the music
+  function withClick(o, p) {
+    p = p || scorePlay(o);
+    const spb = 60 / (o.bpm || 100), ids = staffIds(o), ev = (p.ev || []).slice();
+    const barLen = b => Math.max(...ids.map(id => Math.max(0, ...((b[id] || []).map(v => v.reduce((s2, n) => s2 + durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1), 0))))));
+    let t = 0, T = o.time || "4/4";
+    o.bars.forEach((b, i) => {
+      if (b.time) T = b.time;
+      const [num, den] = T.split("/").map(Number), full = num * 4 / den;
+      const beat = den === 8 && num % 3 === 0 && num > 3 ? 1.5 : den === 8 ? .5 : 4 / den;
+      const len = barLen(b) || full, start = i === 0 && len < full - 1e-9 ? full - len : 0;
+      for (let q = Math.ceil(start / beat - 1e-9) * beat; q < full - 1e-9; q += beat) ev.push([q < 1e-9 ? 96 : 89, t + (q - start) * spb, .05, q < 1e-9 ? .5 : .32]);
+      t += len * spb;
+    });
+    return Object.assign({}, p, { ev });
   }
   // events [midi, start, length, velocity] for a score spec (ties joined)
   function scorePlay(o) {
@@ -1664,7 +1685,7 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, tok, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);

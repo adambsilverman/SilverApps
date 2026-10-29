@@ -7,7 +7,9 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | App | Topic |
 |---|---|
 | Reading Pitch | treble, bass, alto, tenor and grand staff, clef history, alignment |
-| Note Values and Rhythm | note values, dots, ties, meter, triplets and tuplets |
+| Note Values and Rhythm | note values, dots, ties, bar rests, meter, triplets and tuplets |
+| Meter and Beaming | simple, compound, asymmetrical and mixed meter, beaming, pick-ups, syncopation, hemiola |
+| Major and Minor Scales | major and minor scales, key signatures and why we use them, relative and parallel keys |
 | Chord Figures and Symbols | triads & seventh chords, grand staff, figured bass, inversions |
 | Chord Extensions | 9th, 11th, 13th and altered chords |
 | Modes | modes, PADMIL key signatures, modal pitches |
