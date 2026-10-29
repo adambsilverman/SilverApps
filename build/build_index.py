@@ -4,38 +4,36 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from common import *
 cfg = json.loads((ROOT / "build" / "apps.json").read_text(encoding="utf-8"))
 e = html.escape
-COLORS = ["red", "green", "black", "purple"]
-
-tiles, k = [], 0
-HOW = """<ul class="how"><li><b>Practice solo</b>Open any app and start — it explains each answer and brings missed items back for review.</li>
-      <li><b>Host a class game</b>On the projector, open an app and choose <i>Host a class game</i>. You pick each question; the class answers anonymously.</li>
-      <li><b>Join from any device</b>On a phone, tablet or laptop, open the same app, tap <i>Join a game</i>, and enter the room code (or scan the QR code).</li></ul>"""
-def group_html(g, n, level):
-    global k
-    cards = []
-    for a in g["apps"]:
-        c = COLORS[k % len(COLORS)]; k += 1
-        badge = f'<span class="badge">{e(a["badge"])}</span>' if a.get("badge") else ('<span class="badge">Solo + class game</span>' if a["class"] else '<span class="badge">Solo tool</span>')
-        cards.append(f'''<li><a class="tile t-{c}" href="{e(a["file"])}"><span class="course">{e(a["topic"])}</span>
-          <span class="tname">{e(a["name"])}</span><span class="blurb">{e(a["blurb"])}</span>{badge}<span class="go" aria-hidden="true">Open ▸</span></a></li>''')
-    return f'''<section class="group {'sub' if level == 3 else ''}" aria-labelledby="g{n}"><h{level} id="g{n}">{e(g["title"])}</h{level}>
-      <ul class="tiles">{"".join(cards)}</ul></section>'''
-done = set()
-for n, g in enumerate(cfg["groups"]):
-    kind = "drills" if g.get("drills") else "lessons" if g.get("lessons") else None
-    if kind:
-        if kind not in done:
-            done.add(kind)
-            subs = [x for x in cfg["groups"] if x.get(kind)]
-            inner = "".join(group_html(x, f"{n}-{i}", 3) for i, x in enumerate(subs))
-            if kind == "drills":
-                tiles.append(f'''<section class="drills" aria-labelledby="gdrills"><h2 id="gdrills">Drills and Games</h2>
-      <p class="lead">Every drill works three ways:</p>{HOW}{inner}</section>''')
-            else:
-                tiles.append(f'''<section class="drills lessons" aria-labelledby="glessons"><h2 id="glessons">Lessons</h2>
-      <p class="lead">Step-by-step interactive lessons with examples to see and hear. Each one links to its drills.</p>{inner}</section>''')
-        continue
-    tiles.append(group_html(g, n, 2))
+HOW = """<ul class="how"><li><b>Practice solo</b>Open any drill and start: it explains each answer and brings missed items back for review.</li>
+      <li><b>Host a class game</b>On the projector, open a drill and choose <i>Host a class game</i>. You pick each question; the class answers anonymously.</li>
+      <li><b>Join from any device</b>On a phone, tablet or laptop, open the same drill, tap <i>Join a game</i>, and enter the room code (or scan the QR code).</li></ul>"""
+def card(t, color):
+    btns = []
+    if t.get("lesson"): btns.append(f'<a class="btn" href="{e(t["lesson"])}">Lesson<span class="sr">: {e(t["name"])}</span></a>')
+    if t.get("drills"): btns.append(f'<a class="btn" href="{e(t["drills"])}">Drills<span class="sr">: {e(t["name"])}</span></a>')
+    if t.get("open"): btns.append(f'<a class="btn" href="{e(t["open"])}">Open<span class="sr"> {e(t["name"])}</span></a>')
+    note = t.get("note") or ("Drills include a class game" if t.get("class") else "")
+    words = " ".join([t["name"], t["topic"], t["blurb"]]).lower()
+    return f'''<li class="card t-{color}" data-q="{e(words)}"><span class="course">{e(t["topic"])}</span>
+        <h3 class="tname">{e(t["name"])}</h3><p class="blurb">{e(t["blurb"])}</p>
+        <div class="btns">{"".join(btns)}</div>{f'<p class="note">{e(note)}</p>' if note else ""}</li>'''
+tiles = []
+for sec in cfg["sections"]:
+    tiles.append(f'''<section class="group" id="{sec["id"]}" aria-labelledby="h-{sec["id"]}"><h2 id="h-{sec["id"]}"><span class="dot t-{sec["color"]}" aria-hidden="true"></span>{e(sec["title"])}</h2>
+      <ul class="tiles">{"".join(card(t, sec["color"]) for t in sec["topics"])}</ul></section>''')
+jump = "".join(f'<li><a href="#{s["id"]}"><span class="dot t-{s["color"]}" aria-hidden="true"></span>{e(s["title"])}</a></li>' for s in cfg["sections"])
+SEARCH_JS = """<script>
+(function () {
+  var box = document.getElementById("find"), out = document.getElementById("findCount");
+  if (!box) return;
+  box.addEventListener("input", function () {
+    var q = box.value.trim().toLowerCase(), n = 0;
+    document.querySelectorAll(".card").forEach(function (c) { var hit = !q || c.getAttribute("data-q").indexOf(q) >= 0; c.hidden = !hit; if (hit) n++; });
+    document.querySelectorAll(".group").forEach(function (g) { g.hidden = !g.querySelector(".card:not([hidden])"); });
+    out.textContent = q ? (n ? n + (n === 1 ? " topic matches." : " topics match.") : "No topics match. Try another word.") : "";
+  });
+})();
+</script>"""
 
 page = f'''<!doctype html>
 <html lang="en" data-theme="light">
@@ -52,24 +50,40 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .hero h1{{font-family:var(--fi-title);font-weight:400;font-size:clamp(52px,9vw,108px);line-height:1.02;margin:0}}
 .hero h1 span{{color:var(--fi-red-dk)}}
 .hero p{{font-size:19px;max-width:62ch;line-height:1.55;margin:14px 0 0}}
-.how{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0 6px;padding:0;list-style:none}}
-.how li{{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);padding:14px 16px;box-shadow:var(--fi-shadow);line-height:1.5}}
-.how b{{display:block;font-family:var(--fi-display);font-weight:400;font-size:30px;line-height:1;margin-bottom:4px}}
+.how{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 6px;padding:0;list-style:none}}
+.how li{{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);padding:14px 16px;line-height:1.5}}
+.how b{{display:block;font-family:var(--fi-display);font-weight:400;font-size:28px;line-height:1;margin-bottom:4px}}
 @media (max-width:760px){{.how{{grid-template-columns:1fr}}}}
-.drills>h2{{font-family:var(--fi-display);font-weight:400;font-size:clamp(46px,6vw,70px);margin:40px 0 4px;border-top:2px solid var(--fi-red);padding-top:10px;line-height:.95}}
-.lead{{margin:6px 0 0;font-size:18px}}
-.group.sub h3{{font-family:var(--fi-display);font-weight:400;font-size:clamp(34px,4vw,46px);margin:30px 0 12px;line-height:.95}}
-.group h2{{font-family:var(--fi-display);font-weight:400;font-size:clamp(40px,5vw,58px);margin:34px 0 12px;border-top:2px solid var(--fi-red);padding-top:10px;line-height:.95}}
-.tiles{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}}
-.tile{{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;height:100%;padding:20px;border-radius:var(--fi-r);text-decoration:none;color:var(--fi-ink);box-shadow:var(--fi-shadow);transition:transform .12s, box-shadow .12s}}
-.tile:hover,.tile:focus-visible{{transform:translateY(-3px);box-shadow:0 14px 28px -12px rgba(40,25,10,.55)}}
-.tile:focus-visible{{outline:3px solid var(--fi-red-dk);outline-offset:3px}}
-.t-red{{background:var(--fi-red);color:#000}} .t-green{{background:var(--fi-green)}} .t-black{{background:var(--fi-navy);color:#fff}} .t-purple{{background:var(--fi-purple);color:#fff}}
+.tools{{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin:22px 0 0;padding:14px 0;border-top:2px solid var(--fi-red);border-bottom:1px solid var(--fi-soft)}}
+.jump{{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0;flex:1 1 520px}}
+.jump a{{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:4px 14px;border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);background:var(--fi-card);color:var(--fi-ink);font:700 15px var(--fi-ui);text-decoration:none}}
+.jump a:hover{{background:var(--fi-gray)}}
+.jump a:focus-visible,.find input:focus-visible,.btn:focus-visible,.inst summary:focus-visible{{outline:3px solid var(--fi-red-dk);outline-offset:2px}}
+.dot{{display:inline-block;width:14px;height:14px;border-radius:50%;flex:none;border:1.5px solid var(--fi-ink)}}
+.find{{display:flex;flex-direction:column;gap:4px;flex:0 1 300px}}
+@media (max-width:640px){{.find{{order:-1;flex:1 1 100%}}}}
+.find label{{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.04em}}
+.find input{{font:17px var(--fi-serif);padding:9px 14px;border:1.5px solid var(--fi-ink);border-radius:var(--fi-pill);background:var(--fi-card);color:var(--fi-ink);min-height:44px;box-sizing:border-box;width:100%}}
+.count{{margin:6px 0 0;min-height:1.2em;font-weight:700}}
+.inst{{margin:14px 0 0;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);padding:0 16px}}
+.inst summary{{cursor:pointer;padding:12px 0;font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em}}
+.inst p{{margin:4px 0 12px;line-height:1.5}}
+.group h2{{display:flex;align-items:center;gap:12px;font-family:var(--fi-display);font-weight:400;font-size:clamp(38px,5vw,54px);margin:34px 0 12px;line-height:.95}}
+.group h2 .dot{{width:22px;height:22px}}
+.group{{scroll-margin-top:90px}}
+.tiles{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}}
+.card{{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}
+.card[hidden],.group[hidden]{{display:none}}
+.t-red{{background:var(--fi-red);color:#000}} .t-green{{background:var(--fi-green);color:#000}} .t-black{{background:var(--fi-navy);color:#fff}} .t-purple{{background:var(--fi-purple);color:#fff}}
 .course{{font-size:14px;text-transform:uppercase}}
-.tname{{font-family:var(--fi-display);font-size:42px;line-height:.95}}
-.blurb{{line-height:1.5;flex:1}}
-.badge{{align-self:flex-start;border:1.5px solid currentColor;border-radius:var(--fi-pill);padding:3px 10px;font-weight:700;font-size:14px;text-transform:uppercase}}
-.go{{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em}}
+.tname{{font-family:var(--fi-display);font-weight:400;font-size:36px;line-height:.95;margin:0}}
+.blurb{{line-height:1.45;margin:0;flex:1}}
+.btns{{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}}
+.btn{{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:96px;padding:0 18px;border-radius:var(--fi-pill);border:2px solid currentColor;color:inherit;text-decoration:none;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;box-sizing:border-box}}
+.btn:hover{{background:rgba(255,255,255,.35)}} .t-black .btn:hover,.t-purple .btn:hover{{background:rgba(255,255,255,.18)}}
+.btn:first-child{{background:var(--fi-card);color:var(--fi-ink);border-color:var(--fi-card)}}
+.note{{margin:0;font-size:14px}}
+.sr{{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .prof{{margin:34px 0 0;padding-top:12px;border-top:1px solid var(--fi-soft);color:var(--fi-muted)}}
 .prof a{{color:var(--fi-red-dk);font-weight:700}}
 </style>
@@ -78,14 +92,20 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 {strip_html(full_screen=False)}
 <main id="main">
   <section class="hero"><h1>SilverApps <span>for Music Training</span></h1>
-    <p>Apps for review, practice and skill building in music theory, ear training and performance. Practice on your own with instant feedback, or run any trainer live with a whole class on student devices.</p>
+    <p>Apps for review, practice and skill building in music theory, ear training and performance. Each topic has an interactive lesson, drills with instant feedback, or both. Every drill can also run live as a class game on student devices.</p>
   </section>
+  <nav class="tools" aria-label="Topics">
+    <ul class="jump">{jump}</ul>
+    <div class="find" role="search"><label for="find">Find a topic</label><input id="find" type="search" placeholder="e.g. cadence, modes, strings" autocomplete="off"></div>
+  </nav>
+  <p class="count" id="findCount" aria-live="polite"></p>
+  <details class="inst"><summary>For instructors: running a class game</summary>{HOW}<p>Students can also make a completion report in any drill (“Your progress” panel). <a href="verify.html">Check a student's report</a>.</p></details>
   {"".join(tiles)}
-  <p class="prof">For instructors: students can make a completion report in any trainer ("Your progress" panel). <a href="verify.html">Check a student's report</a>.</p>
   <p class="prof">Privacy: this site may count visits anonymously (which app, and the approximate city, state and country) to see how it is used. It sets no cookies and records no names; progress and completion reports stay on your own device until you choose to send them.</p>
   <p class="prof">© 2025–2026 Adam Silverman. Shared under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license">CC BY-NC-SA 4.0</a>: free to use and adapt for non-commercial teaching with credit to Adam Silverman (adambsilverman.com). See LICENSE.md.</p>
 </main>
 {CREDIT}
+{SEARCH_JS}
 </body>
 </html>
 '''
