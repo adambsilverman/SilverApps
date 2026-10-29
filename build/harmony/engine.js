@@ -8,7 +8,8 @@
   const SPOKEN_ACC = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const sdHTML = s => s.replace(/(\d)\u0302(?![^<]*>)/g, '<span class="sd">$1</span>');   // scale-degree numbers with a caret
-  const accHTML = s => sdHTML(esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>'));
+  const dimHTML = s => s.replace(/°(?![^<]*>)/g, '<span class="dimc" aria-hidden="true"></span>');   // ° drawn as a clear circle
+  const accHTML = s => dimHTML(sdHTML(esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>')));
   const speak = s => String(s).replace(/𝄫/g, " double flat").replace(/𝄪/g, " double sharp").replace(/♭/g, " flat").replace(/♯/g, " sharp").replace(/♮/g, " natural").replace(/△/g, " major ").replace(/ø/g, " half-diminished ").replace(/°/g, " diminished ").replace(/\s+/g, " ").trim();
   const mod = (x, m) => ((x % m) + m) % m;
 
@@ -106,9 +107,9 @@
   const symHTML = t => `<span class="csym" role="img" aria-label="${esc(speak(t))}"><span aria-hidden="true">${accHTML(t)}</span></span>`;
   const fmtVal = (v, f) => f === "rn" ? rnHTML(v) : f === "sym" ? symHTML(v) : accHTML(v);
   // inline markup in content text: {rn:V7/V} and {sym:F♯°7/A}
-  const rich = s => sdHTML(esc(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t.replace(/&amp;/g, "&"))).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯♮𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>');
+  const rich = s => dimHTML(sdHTML(esc(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t.replace(/&amp;/g, "&"))).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯♮𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>'));
   // the same inline markup inside HTML that is already escaped (lesson bodies): leaves tags and attributes alone
-  const richHTML = s => sdHTML(String(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t)).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>');
+  const richHTML = s => dimHTML(sdHTML(String(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t)).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>'));
   const plain = s => String(s).replace(/\{rn:([^}]+)\}/g, (_, t) => t).replace(/\{sym:([^}]+)\}/g, (_, t) => t);
 
   // ---------- voicing: keyboard style (bass in the left hand, three notes in the right hand) ----------

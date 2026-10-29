@@ -162,7 +162,15 @@
       const I = H.chord(k.tonic, "M");
       return `<p>Mixture works the other way too. The <b>Picardy third</b> is a <b>major tonic</b> in a minor key, usually at the very end of a piece or phrase. (Where the name comes from has been lost to history.) Label it <b>I</b>.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 6), H.diat(k, 2, false, 1), H.diat(k, 5), I], labels: ["i", "VI", "ii°6", "V", "I"], syms: [], hl: 4 }), `${k.label}: i – VI – ii°⁶ – V – I`)
-      + `<p>The opposite, a <b>minor tonic</b> in a major key, is much rarer. Dr. Silverman's name for it: the “<b>Mercury third</b>,” after Freddie Mercury, who used one in a famous stadium anthem.</p>`;
+      + `<p>The opposite, a <b>minor tonic</b> in a major key, is much rarer. It has a name too: see the next step.</p>`;
+    } },
+    { title: "The Mercury third", kick: "A term by Adam Silverman", keyed: "major", defKey: "F", render: (H, k, U) => {
+      const b7 = bor(H, k, BOR[8], 1), b3 = bor(H, k, BOR[3]), i = bor(H, k, BOR[0]), I = H.diat(k, 1), IV = H.diat(k, 4), V7 = H.diat(k, 5, true);
+      return `<p>If a major tonic in a minor key is a Picardy third, what do you call the opposite: a <b>minor tonic chord (i) arriving in a major-key context</b>? Dr. Adam Silverman calls it the <b>Mercury third</b>, after Freddie Mercury, Queen's singer, who wrote one into the end of the chorus of <i>We Are the Champions</i>. (Dr. Silverman suggests the name; please pass it on!)</p>
+      <p>In that chorus, the music is clearly in a major key (F major in the published version): every diatonic chord appears, and only at the end do borrowed chords take over. The last bars move through ${U.rn("♭VII6")} (with color tones added) and ${U.rn("♭III")} to land on a <b>minor</b> tonic, ${U.rn("i")}, where the listener expects a bright major one. The minor tonic also reaches back toward the minor-key verse that comes next.</p>`
+      + U.fig(H.grand({ key: k, chords: [I, IV, V7, I, b7.c, b3.c, i.c], labels: ["I", "IV", "V7", "I", b7.rn, "♭III", "i"], syms: [I, IV, V7, I, b7.c, b3.c, i.c].map(c => c.sym), hl: 6 }), `${k.label}: an original progression with the same borrowed ending, ${b7.rn.replace("6", "⁶")} – ♭III – i. The final chord is the Mercury third.`)
+      + `<div class="callout"><b>Picardy third vs. Mercury third</b>Picardy third: minor key, ends on a <i>major</i> tonic (I). Mercury third: major key, ends on a <i>minor</i> tonic (i). Both are mode mixture applied to the tonic chord itself.</div>`
+      + H.check(`In ${k.label}, a phrase full of major-key chords ends on {sym:${i.c.sym}}. What is it called?`, "a Mercury third", ["a Picardy third", "a Neapolitan", "a secondary dominant"], "A minor tonic in a major key: Adam Silverman's “Mercury third.”");
     } },
     { title: "Quick check", kick: "Before the drills", keyed: "major", defKey: "E♭", render: (H, k) => {
       const a = bor(H, k, BOR[7]), b = bor(H, k, BOR[4]), c = bor(H, k, BOR[8]);

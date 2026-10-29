@@ -8,8 +8,8 @@
    ===================================================================== */
 /* Accidentals (♭ ♮ ♯ 𝄪 𝄫) and the diminished sign (°, drawn as a clear circle) in running text: the text fonts don't have them, so every font stack starts with this tiny font
    (Noto Music glyphs with letter-like side spacing and centered on the text line). "Noto Music" is self-hosted for the same reason. */
-@font-face{font-family:"SA Accidentals";src:url(fonts/sa-accidentals.woff2) format("woff2");unicode-range:U+B0,U+266D-266F,U+1D12A-1D12B;font-display:block}
-@font-face{font-family:"Noto Music";src:url(fonts/sa-accidentals.woff2) format("woff2");unicode-range:U+266D-266F,U+1D12A-1D12B;font-display:block}
+@font-face{font-family:"SA Accidentals";src:url(fonts/sa-accidentals.woff2?v=4) format("woff2");unicode-range:U+B0,U+266D-266F,U+1D12A-1D12B;font-display:block}
+@font-face{font-family:"Noto Music";src:url(fonts/sa-accidentals.woff2?v=4) format("woff2");unicode-range:U+266D-266F,U+1D12A-1D12B;font-display:block}
 @font-face{font-family:"Noto Music";src:url(fonts/noto-music.woff2) format("woff2");unicode-range:U+0-266C,U+2670-1D129,U+1D12C-10FFFF;font-display:swap}
 @font-face{font-family:"League Gothic";src:url(fonts/league-gothic.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Schibsted Grotesk";src:url(fonts/schibsted-grotesk-400.woff2) format("woff2");font-weight:400;font-display:swap}

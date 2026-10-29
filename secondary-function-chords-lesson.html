@@ -322,9 +322,11 @@ details.panel[open] summary::after { content: "−"; }
 .lsteps .lpart { flex-basis: 100%; font: 700 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px; }
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }
-.rn .rq.dim { width: .3em; height: .3em; border: .075em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .62em; line-height: normal; margin: 0 .04em 0 .03em; }
+.rn .rq.dim { width: .38em; height: .38em; border: .09em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .62em; line-height: normal; margin: 0 .04em 0 .03em; }
 .other-page { margin: 4px 0 14px; font: 700 15px var(--mono); }
 .other-page a { color: var(--ink); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.lfigs.one { grid-template-columns: 1fr; }
+.dimc { display: inline-block; width: .4em; height: .4em; border: .09em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .55em; margin: 0 .04em 0 .03em; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -437,8 +439,8 @@ window.FAM = (() => {
     return { c, rn, fn, d, T, target: TGT_RN[k.mode][d - 1] };
   }
   // No diminished triads: a °-triad is both vii°/x and ii°/y (e.g. vii°/IV = ii°/ii), so it can't be labeled without more context.
-  // Secondary leading-tone chords are always fully diminished 7ths; pre-dominants are ø7 (or minor / m7 when the target is major).
-  const QUALS = { dom: ["7", "7", "M"], lt: ["o7"], pd: ["m", "m7", "h7"] };
+  // Secondary leading-tone chords are always fully diminished 7ths. Secondary pre-dominants: ii or ii7 (minor, m7) when the target is major; iiø7 only when the target is minor.
+  const QUALS = { dom: ["7", "7", "M"], lt: ["o7"], pd: ["m", "m7"] };
   // Same notes as a chord that has another common explanation? (borrowed from the parallel mode, melodic-minor IV / ii,
   // Picardy I in minor): then a chord-symbol question without context would have two right answers, so skip it.
   function otherReading(H, k, c) {
@@ -457,7 +459,7 @@ window.FAM = (() => {
     for (let i = 0; i < 80; i++) {
       const f = fn || pickFn(H), d = H.rnd(TARGETS[k.mode]);
       let qs = QUALS[f];
-      if (f === "pd") qs = tMajor(k, d) ? ["m", "m7", "h7"] : ["h7"];
+      if (f === "pd") qs = tMajor(k, d) ? ["m", "m7"] : ["h7"];
       const q = H.rnd(qs), sev = H.QUAL[q].length === 4, inv = Math.random() < .45 ? 0 : Math.floor(Math.random() * (sev ? 4 : 2));
       const s = sec(H, k, f, d, inv, q);
       if (!okSpell(s.c) || !H.isChromatic(k, s.c) || otherReading(H, k, s.c)) continue;
@@ -483,8 +485,10 @@ window.FAM = (() => {
     const chords = [H.diat(k, 1), diatChord(H, k, fill), s.c], labels = [TGT_RN[k.mode][0], TGT_RN[k.mode][fill - 1], "?"];
     // a secondary leading-tone chord or pre-dominant is always followed by the secondary dominant of the same target
     if (s.fn !== "dom") { const v = domOf(H, k, s.d); chords.push(v.c); labels.push(v.rn); }
-    chords.push(tgt); labels.push(s.target);
-    if (s.d === 5) { chords.push(H.diat(k, 1)); labels.push(TGT_RN[k.mode][0]); }
+    // every pattern ends with a cadence: authentic (V7–I) or a half cadence on V7 (never on a plain V)
+    const V7 = H.diat(k, 5, true);
+    if (s.d === 5) { chords.push(V7); labels.push("V7"); } else { chords.push(tgt, V7); labels.push(s.target, "V7"); }
+    if (Math.random() < .65) { chords.push(H.diat(k, 1)); labels.push(TGT_RN[k.mode][0]); }
     return { chords, labels };
   }
   const domOf = (H, k, d) => sec(H, k, "dom", d, 0, "7");
@@ -549,7 +553,7 @@ window.FAM = (() => {
     return `<div class="ltable-wrap"><table class="ltable"><caption class="sr">Chord quality and secondary function</caption><thead><tr><th scope="col">Quality</th><th scope="col">Function</th><th scope="col">Label</th><th scope="col">Target root</th></tr></thead><tbody>
       <tr><td>major, or any dom7 (other than V⁷)</td><td>secondary dominant</td><td>${H.rnHTML("V/x")}, ${H.rnHTML("V7/x")}</td><td>P4 above the root</td></tr>
       <tr><td>fully diminished 7th (°7)</td><td>secondary leading-tone</td><td>${H.rnHTML("vii°7/x")}</td><td>m2 above the root</td></tr>
-      <tr><td>minor, m7 or half-diminished (ø7)</td><td>secondary pre-dominant</td><td>${H.rnHTML("ii/x")}, ${H.rnHTML("iiø7/x")}</td><td>M2 below the root</td></tr></tbody></table></div>
+      <tr><td>minor or m7 (target is a major chord); half-diminished ø7 (target is a minor chord)</td><td>secondary pre-dominant</td><td>${H.rnHTML("ii/x")}, ${H.rnHTML("ii7/x")}; ${H.rnHTML("iiø7/x")}</td><td>M2 below the root</td></tr></tbody></table></div>
       <div class="ltable-wrap"><table class="ltable"><caption class="sr">Inversion figures</caption><thead><tr><th scope="col">Bass</th><th scope="col">Triad</th><th scope="col">Seventh chord</th></tr></thead><tbody>
       <tr><td>root</td><td>(none)</td><td>7</td></tr><tr><td>3rd</td><td>6</td><td>6/5</td></tr><tr><td>5th</td><td>6/4</td><td>4/3</td></tr><tr><td>7th</td><td>—</td><td>4/2</td></tr></tbody></table></div>
       <p class="legend">Spelling counts: the secondary leading tone is a half step <i>below</i> the target's root, spelled as its lower neighbor (D♯ to E, never E♭).</p>`;
@@ -561,12 +565,12 @@ window.FAM = (() => {
       const s = sec(H, k, "dom", 5, 0, "7");
       const g = H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, k.mode === "major" ? 2 : 4), s.c, H.diat(k, 5), H.diat(k, 1)], labels: [TGT_RN[k.mode][0], TGT_RN[k.mode][k.mode === "major" ? 1 : 3], s.rn, "V", TGT_RN[k.mode][0]], syms: [], hl: 2 });
       return `<p>A <b>secondary</b> chord is a chromatic chord that briefly treats some chord other than the tonic as if it were a tonic. That is called <b>tonicization</b>. It doesn't change the key: only a cadence can confirm a new key.</p>
-      <p>The three common kinds are <b>secondary dominants</b> ({rn:V/x}, {rn:V7/x}), <b>secondary leading-tone chords</b> ({rn:vii°7/x}) and <b>secondary pre-dominants</b> ({rn:ii/x}, {rn:iiø7/x}). The “x” is the <b>target</b>: the chord being tonicized.</p>`.replace(/\{rn:([^}]+)\}/g, (_, t) => U.rn(t))
+      <p>The three common kinds are <b>secondary dominants</b> ({rn:V/x}, {rn:V7/x}), <b>secondary leading-tone chords</b> ({rn:vii°7/x}) and <b>secondary pre-dominants</b> ({rn:ii/x} or {rn:ii7/x} for a major target, {rn:iiø7/x} for a minor target). The “x” is the <b>target</b>: the chord being tonicized.</p>`.replace(/\{rn:([^}]+)\}/g, (_, t) => U.rn(t))
       + U.fig(g, `In ${k.label}: ${H.nm(s.c.tones[1])} is not in the key. It leads up to ${H.nm(H.deg(k, 5))}, the root of V, so the highlighted chord is ${s.rn} (“five-seven of five”).`)
-      + `<div class="callout"><b>The short version</b>Major or 7 (dom7) where the key would give a different chord → secondary dominant. °7 (dim7) → secondary leading-tone chord. ø7 (half-dim7) or minor where the key would give a different chord → secondary pre-dominant.</div>`;
+      + `<div class="callout"><b>The short version</b>Major or 7 (dom7) where the key would give a different chord → secondary dominant. °7 (dim7) → secondary leading-tone chord. Minor or m7 where the key would give a different chord → secondary pre-dominant of a <i>major</i> chord; ø7 (half-dim7) → secondary pre-dominant of a <i>minor</i> chord.</div>`;
     } },
     { title: "Step 1: Name the chord", kick: "Stack it in thirds", keyed: "both", render: (H, k, U) => {
-      const ex = [sec(H, k, "dom", k.mode === "major" ? 6 : 4, 2, "7"), sec(H, k, "lt", 5, 1, "o7"), sec(H, k, "pd", 5, 0, "h7")].filter(s => s.c.tones.every(n => Math.abs(n.a) < 2));
+      const ex = [sec(H, k, "dom", k.mode === "major" ? 6 : 4, 2, "7"), sec(H, k, "lt", 5, 1, "o7"), sec(H, k, "pd", k.mode === "major" ? 2 : 4, 0, "h7")].filter(s => s.c.tones.every(n => Math.abs(n.a) < 2));
       const row = s => { const c = s.c, bass = c.tones[c.bass], rest = H.shuffle(c.tones.filter((_, i) => i !== c.bass)); return `<tr><td>${[bass, ...rest].map(H.nm).map(H.accHTML).join(", ")}</td><td>${H.accHTML(c.tones.map(H.nm).join("–"))}</td><td>${H.accHTML(H.nm(c.tones[0]))}</td><td>${H.QNAME[c.q]}</td><td>${U.sym(c.sym)}</td></tr>`; };
       return `<p>Before you can tell what a chord <i>does</i>, you need to know what it <i>is</i>. Gather every note sounding (in all staves), then:</p>
       <ol><li><b>Stack the notes in thirds.</b> Rearrange the letters so each is a third above the last. The bottom note of the stack is the <b>root</b>.</li>
@@ -583,20 +587,21 @@ window.FAM = (() => {
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">If the chord is…</th><th scope="col">Function</th><th scope="col">Label</th></tr></thead><tbody>
       <tr><td>a <b>major</b> triad where the key has a different quality, or any <b>dominant 7th</b></td><td>Secondary dominant</td><td>${U.rn("V/x")} or ${U.rn("V7/x")}</td></tr>
       <tr><td>a <b>fully diminished 7th</b> (°7)</td><td>Secondary leading-tone chord</td><td>${U.rn("vii°7/x")}</td></tr>
-      <tr><td>a <b>half-diminished 7th</b> (ø7), or a <b>minor</b> triad where the key has a different quality</td><td>Secondary pre-dominant</td><td>${U.rn("iiø7/x")} or ${U.rn("ii/x")}</td></tr></tbody></table></div>`
+      <tr><td>a <b>minor</b> triad or <b>m7</b> chord where the key has a different quality (the target is major)</td><td>Secondary pre-dominant</td><td>${U.rn("ii/x")} or ${U.rn("ii7/x")}</td></tr><tr><td>a <b>half-diminished 7th</b> (ø7) (the target is minor)</td><td>Secondary pre-dominant</td><td>${U.rn("iiø7/x")}</td></tr></tbody></table></div>`
       + U.fig(g, `Same root, different quality: in ${k.label}, ${dia.sym} is diatonic (${H.rnOf(k, d0)}); ${v2.c.sym} is chromatic, a major chord where the key has a ${H.QNAME[dia.q]} one.`)
       + `<p><b>Why “any dominant 7th”?</b> A dom7 is so strongly tied to dominant function that it signals a secondary dominant even on a root that is already major: in a major key the I chord with a minor 7th added is ${U.rn("V7/IV")}. The only dom7 that is <i>not</i> secondary is the key's own ${U.rn("V7")}.</p>`
       + H.check(`In ${k.label}, a fully diminished seventh chord appears. What is it most likely to be?`, "a secondary leading-tone chord", ["a secondary dominant", "a secondary pre-dominant", "a borrowed tonic"], "°7 quality → vii°7/x.");
     } },
     { title: "Step 3: Find the target", kick: "Write the label", keyed: "both", render: (H, k, U) => {
-      const t = 5, ss = [sec(H, k, "dom", t, 0, "7"), sec(H, k, "lt", t, 0, "o7"), sec(H, k, "pd", t, 0, "h7")];
-      const v7 = domOf(H, k, t), V = H.diat(k, t);
-      const figs = ss.map(s => { const ch = s.fn === "dom" ? [s.c, V] : [s.c, v7.c, V], lb = s.fn === "dom" ? [s.rn, "V"] : [s.rn, v7.rn, "V"]; return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 0 }), `${s.c.sym} → ${H.nm(s.T)}: ${FNSHORT[s.fn]}${s.fn === "dom" ? "" : `, followed by the secondary dominant of the same target (${v7.c.sym})`}`, { small: true }); }).join("");
+      const t = k.mode === "major" ? 4 : 6, TR = TGT_RN[k.mode][t - 1], ss = [sec(H, k, "dom", t, 0, "7"), sec(H, k, "lt", t, 0, "o7"), sec(H, k, "pd", t, 0, "m7")];
+      const v7 = domOf(H, k, t), V = diatChord(H, k, t);
+      const figs = ss.map(s => { const I0 = H.diat(k, 1), T0 = TGT_RN[k.mode][0], V7c = H.diat(k, 5, true), ch = (s.fn === "dom" ? [I0, s.c, V] : [I0, s.c, v7.c, V]).concat([V7c, I0]), lb = (s.fn === "dom" ? [T0, s.rn, TR] : [T0, s.rn, v7.rn, TR]).concat(["V7", T0]); return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 1 }), `${s.c.sym} → ${H.nm(s.T)}: ${FNSHORT[s.fn]}${s.fn === "dom" ? "" : `, followed by the secondary dominant of the same target (${v7.c.sym})`}`, { small: true }); }).join("");
       return `<p>Every secondary chord points to a <b>target</b> chord (the “x” in V/x). Each function has its own distance from its root to the target's root:</p>
-      <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Function</th><th scope="col">Target's root is…</th><th scope="col">In ${H.esc(k.label)} (target ${H.esc(H.nm(H.deg(k, t)))}, V)</th></tr></thead><tbody>
+      <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Function</th><th scope="col">Target's root is…</th><th scope="col">In ${H.esc(k.label)} (target ${H.esc(H.nm(H.deg(k, t)))}, ${TR})</th></tr></thead><tbody>
       <tr><td>Secondary dominant</td><td>a P4 <b>above</b> (P5 below) the chord root</td><td>${U.sym(ss[0].c.sym)} → ${U.rn(ss[0].rn)}</td></tr>
       <tr><td>Secondary leading-tone</td><td>a m2 <b>above</b> the chord root</td><td>${U.sym(ss[1].c.sym)} → ${U.rn(ss[1].rn)}</td></tr>
       <tr><td>Secondary pre-dominant</td><td>a M2 <b>below</b> the chord root</td><td>${U.sym(ss[2].c.sym)} → ${U.rn(ss[2].rn)}</td></tr></tbody></table></div>
+      <p class="note">The target here is major, so the pre-dominant is minor (ii or ii⁷). When the target is a minor chord, it is half-diminished: iiø⁷/x.</p>
       <div class="lfigs">${figs}</div>`;
     } },
     { title: "Inversions: the figures", kick: "Slash chords", keyed: "both", render: (H, k, U) => {
@@ -609,15 +614,20 @@ window.FAM = (() => {
       + H.check(`In ${k.label}, which label fits {sym:${inv[2].c.sym}}?`, inv[2].rn, [inv[1].rn, inv[3].rn, inv[0].rn], `The 5th (${H.nm(inv[2].c.tones[2])}) is in the bass: 4/3.`, "rn");
     } },
     { title: "Examples", kick: "Hear them resolve", keyed: "both", render: (H, k, U) => {
-      const fam = (fn, list) => list.map(([d, inv, q]) => { const s = sec(H, k, fn, d, inv, q); if (!okSpell(s.c) || !H.isChromatic(k, s.c)) return ""; const tg = diatChord(H, k, d), v = domOf(H, k, d); const ch = fn === "dom" ? [s.c, tg] : [s.c, v.c, tg], lb = fn === "dom" ? [s.rn, s.target] : [s.rn, v.rn, s.target]; return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 0 }), `${s.c.sym}: ${s.c.tones.map(H.nm).join("–")}`, { small: true }); }).join("");
+      // Each example starts on the tonic (so the key is heard and seen), tonicizes the target, then returns home with V–I.
+      const I = H.diat(k, 1), V7 = H.diat(k, 5, true), T0 = TGT_RN[k.mode][0];
+      const fam = (fn, list) => list.map(([d, inv, q]) => { const s = sec(H, k, fn, d, inv, q); if (!okSpell(s.c) || !H.isChromatic(k, s.c)) return ""; const tg = diatChord(H, k, d), v = domOf(H, k, d);
+        const ch = [I, s.c], lb = [T0, s.rn]; if (fn !== "dom") { ch.push(v.c); lb.push(v.rn); } ch.push(tg); lb.push(s.target);
+        if (d === 5) { ch[ch.length - 1] = V7; lb[lb.length - 1] = "V7"; } else { ch.push(V7); lb.push("V7"); } ch.push(I); lb.push(T0);
+        return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 1 }), `${k.label}. The highlighted chord: ${s.c.sym} = ${s.c.tones.map(H.nm).join("–")}.`); }).join("");
       const M = k.mode === "major";
-      return `<p>Each example is in a simple keyboard texture: three notes in the right hand and one in the left. Play each one and listen for the chromatic note leading into the target. Secondary leading-tone chords and secondary pre-dominants are shown as they usually appear: followed by the secondary dominant of the same target, then the target itself.</p>
-      <h3>Secondary dominants</h3><div class="lfigs">${fam("dom", M ? [[5, 0, "7"], [6, 2, "7"], [2, 0, "M"]] : [[4, 0, "7"], [6, 1, "7"], [5, 3, "7"]])}</div>
-      <h3>Secondary leading-tone chords</h3><div class="lfigs">${fam("lt", M ? [[5, 1, "o7"], [2, 0, "o7"], [6, 0, "o7"]] : [[5, 1, "o7"], [4, 0, "o7"], [6, 0, "o7"]])}</div>
-      <h3>Secondary pre-dominants</h3><div class="lfigs">${fam("pd", M ? [[5, 0, "h7"], [4, 0, "m7"], [2, 1, "h7"]] : [[6, 0, "m"], [4, 0, "h7"], [6, 1, "m7"]])}</div>`;
+      return `<p>Each example is in a simple keyboard texture (three notes in the right hand, one in the left) and is heard in its key: it starts on the tonic, tonicizes the target, and comes home with an authentic cadence (V⁷–I). Play each one and listen for the chromatic note leading into the target, and for the return to the home key. Secondary leading-tone chords and secondary pre-dominants are shown as they usually appear: followed by the secondary dominant of the same target, then the target itself.</p>
+      <h3>Secondary dominants</h3><div class="lfigs one">${fam("dom", M ? [[5, 0, "7"], [6, 2, "7"], [2, 0, "M"]] : [[4, 0, "7"], [6, 1, "7"], [5, 3, "7"]])}</div>
+      <h3>Secondary leading-tone chords</h3><div class="lfigs one">${fam("lt", M ? [[5, 1, "o7"], [2, 0, "o7"], [6, 0, "o7"]] : [[5, 1, "o7"], [4, 0, "o7"], [6, 0, "o7"]])}</div>
+      <h3>Secondary pre-dominants</h3><div class="lfigs one">${fam("pd", M ? [[4, 0, "m7"], [2, 1, "h7"], [3, 0, "h7"]] : [[6, 0, "m"], [4, 0, "h7"], [6, 1, "m7"]])}</div>`;
     } },
     { title: "Spelling counts", kick: "Lower neighbor", keyed: "both", render: (H, k, U) => {
-      const d = 5, T = H.deg(k, d), lt = H.down(T, 1, 1), sd = sec(H, k, "dom", d, 0, "7"), sl = sec(H, k, "lt", d, 0, "o7"), sp = sec(H, k, "pd", d, 0, "m");
+      const d = 5, T = H.deg(k, d), lt = H.down(T, 1, 1), sd = sec(H, k, "dom", d, 0, "7"), sl = sec(H, k, "lt", d, 0, "o7"), sp = sec(H, k, "pd", k.mode === "major" ? 4 : 6, 0, "m");   // ii/x needs a major target (V would give a diatonic chord)
       const e = enh(H, lt);
       return `<p>Secondary dominants and secondary leading-tone chords both contain a <b>secondary leading tone</b>, a half step <i>below</i> the target's root. It is always spelled as the target's lower neighbor.</p>
       <ol><li>Find the target's root. For ${U.rn("V")} in ${H.esc(k.label)}: <b>${H.accHTML(H.nm(T))}</b>.</li>
@@ -662,7 +672,8 @@ window.FAM = (() => {
   const SPOKEN_ACC = { "-2": " double flat", "-1": " flat", "0": "", "1": " sharp", "2": " double sharp" };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const sdHTML = s => s.replace(/(\d)\u0302(?![^<]*>)/g, '<span class="sd">$1</span>');   // scale-degree numbers with a caret
-  const accHTML = s => sdHTML(esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>'));
+  const dimHTML = s => s.replace(/°(?![^<]*>)/g, '<span class="dimc" aria-hidden="true"></span>');   // ° drawn as a clear circle
+  const accHTML = s => dimHTML(sdHTML(esc(s).replace(/([♭♯♮𝄫𝄪])/g, '<span class="acc">$1</span>')));
   const speak = s => String(s).replace(/𝄫/g, " double flat").replace(/𝄪/g, " double sharp").replace(/♭/g, " flat").replace(/♯/g, " sharp").replace(/♮/g, " natural").replace(/△/g, " major ").replace(/ø/g, " half-diminished ").replace(/°/g, " diminished ").replace(/\s+/g, " ").trim();
   const mod = (x, m) => ((x % m) + m) % m;
 
@@ -760,9 +771,9 @@ window.FAM = (() => {
   const symHTML = t => `<span class="csym" role="img" aria-label="${esc(speak(t))}"><span aria-hidden="true">${accHTML(t)}</span></span>`;
   const fmtVal = (v, f) => f === "rn" ? rnHTML(v) : f === "sym" ? symHTML(v) : accHTML(v);
   // inline markup in content text: {rn:V7/V} and {sym:F♯°7/A}
-  const rich = s => sdHTML(esc(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t.replace(/&amp;/g, "&"))).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯♮𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>');
+  const rich = s => dimHTML(sdHTML(esc(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t.replace(/&amp;/g, "&"))).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯♮𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>'));
   // the same inline markup inside HTML that is already escaped (lesson bodies): leaves tags and attributes alone
-  const richHTML = s => sdHTML(String(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t)).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>');
+  const richHTML = s => dimHTML(sdHTML(String(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t)).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>'));
   const plain = s => String(s).replace(/\{rn:([^}]+)\}/g, (_, t) => t).replace(/\{sym:([^}]+)\}/g, (_, t) => t);
 
   // ---------- voicing: keyboard style (bass in the left hand, three notes in the right hand) ----------
