@@ -926,7 +926,7 @@ function drawStaff(el, spec){
   svg.setAttribute('role','img');
   svg.setAttribute('aria-label', describeStaff(spec));
   const cx = bn ? bn.getAbsoluteX() + 8 : sx + 40;
-  const FONT = '"League Gothic", "Arial Narrow", Impact, sans-serif';
+  const FONT = '"SA Accidentals", "League Gothic", "Arial Narrow", Impact, sans-serif';
   if (spec.figure){
     let y = bassBottom + 30;
     spec.figure.forEach(row => {

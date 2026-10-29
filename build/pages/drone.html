@@ -1,4 +1,4 @@
-<!-- title: Drone | fs: 1 | desc: A practice drone: one note or a stack of notes, in equal temperament or just intonation from the harmonic series. -->
+<!-- title: Drone | fs: 1 | desc: A practice drone: one note or a stack of notes, in equal temperament, Pythagorean tuning, or 5-, 7-, 11- or 13-limit just intonation. -->
 <style>
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
 .tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -28,9 +28,11 @@ label.fld{display:grid;gap:4px;font:700 14px var(--fi-ui);text-transform:upperca
 select,input[type=number]{font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
 input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,360px)}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.seg{display:inline-flex;border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);overflow:hidden}
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);overflow:hidden}
+@media (max-width:440px){.seg{border-radius:var(--fi-r-sm)}}
 .seg button{border:0;background:var(--fi-card);font:700 16px var(--fi-ui);text-transform:uppercase;padding:10px 16px;min-height:44px;cursor:pointer;color:var(--fi-ink)}
 .seg button[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+main.tool>*,.panel2>*{min-width:0}.nowwrap{overflow-x:auto;max-width:100%}
 table.now{width:100%;border-collapse:collapse;font-size:.95rem}
 table.now th,table.now td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--fi-soft)}
 table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;color:var(--fi-muted)}
@@ -44,7 +46,7 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
 
 <main class="tool" id="main">
   <h1>Drone<span>.</span></h1>
-  <p>Tune against a steady drone: one note, or a stack of notes. Compare <b>equal temperament</b> with <b>just intonation</b> (pure ratios from the harmonic series) and <b>Pythagorean tuning</b> (everything built from pure 3:2 fifths). Hear how just thirds are calm, Pythagorean thirds bright and wide, and how the same note changes when you tune from a different root.</p>
+  <p>Tune against a steady drone: one note, or a stack of notes. Compare <b>equal temperament</b> with <b>just intonation</b> (pure ratios from the harmonic series, in 5-, 7-, 11- or 13-limit) and <b>Pythagorean tuning</b> (everything built from pure 3:2 fifths). Hear how just thirds are calm, Pythagorean thirds bright and wide, and how the same note changes when you tune from a different root.</p>
 
   <section class="panel2" aria-labelledby="h1a">
     <h2 id="h1a">Root</h2>
@@ -63,12 +65,15 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
     <h2 id="h2a">Notes in the drone</h2>
     <div class="row"><span class="legend2">Tuning:</span>
       <div class="seg" role="group" aria-label="Tuning"><button type="button" data-tune="et" aria-pressed="false">Equal temperament</button><button type="button" data-tune="ji" aria-pressed="true">Just intonation</button><button type="button" data-tune="py" aria-pressed="false">Pythagorean</button></div></div>
+    <div class="row" id="limWrap"><span class="legend2">Prime limit:</span>
+      <div class="seg" role="group" aria-label="Just intonation prime limit"><button type="button" data-lim="5" aria-pressed="true">5-limit</button><button type="button" data-lim="7" aria-pressed="false">7-limit</button><button type="button" data-lim="11" aria-pressed="false">11-limit</button><button type="button" data-lim="13" aria-pressed="false">13-limit</button></div></div>
+    <p class="legend2" id="limNote"></p>
     <p class="legend2" id="tuneNote"></p>
     <div class="chords" role="group" aria-label="Quick stacks" id="presets"></div>
     <div class="ivs" id="ivs" role="group" aria-label="Notes above the root. Activate to add or remove."></div>
-    <label class="fld" for="sev" id="sevWrap">Just minor 7th
-      <select id="sev"><option value="7/4">7:4 harmonic seventh (−31¢)</option><option value="16/9">16:9 (−4¢)</option><option value="9/5">9:5 (+18¢)</option></select></label>
-    <table class="now"><caption class="sr-only">Notes now sounding</caption><thead><tr><th scope="col">Note</th><th scope="col">Interval</th><th scope="col">Ratio (from tuning root)</th><th scope="col">vs. equal temperament</th><th scope="col">Frequency</th></tr></thead><tbody id="nowRows"></tbody></table>
+    <label class="fld" for="sev" id="sevWrap">5-limit minor 7th
+      <select id="sev"><option value="9/5">9:5 (+18¢)</option><option value="16/9">16:9 (−4¢)</option></select></label>
+    <div class="nowwrap" tabindex="0" role="region" aria-label="Notes now sounding"><table class="now"><caption class="sr-only">Notes now sounding</caption><thead><tr><th scope="col">Note</th><th scope="col">Interval</th><th scope="col">Ratio (from tuning root)</th><th scope="col">vs. equal temperament</th><th scope="col">Frequency</th></tr></thead><tbody id="nowRows"></tbody></table></div>
   </section>
 
   <section class="panel2" aria-labelledby="h3a">
@@ -98,8 +103,23 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-drone") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("silverapps-drone", JSON.stringify(S)); } catch (e) {} };
   if (!("tonic" in S)) S.tonic = "follow";
+  if (!S.limit) S.limit = S.sev === "7/4" ? 7 : 5;          // older saved settings used 7:4 as a choice of 7th
+  if (S.sev === "7/4") S.sev = "9/5";
   // Ratios above the tuning root, by semitone (one octave). Just: 5-limit; Pythagorean: chains of pure fifths.
-  const JI = [[1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3], [45, 32], [3, 2], [8, 5], [5, 3], null, [15, 8]];
+  // Just intonation by prime limit: each limit keeps the 5-limit ratios and adds intervals from higher harmonics.
+  const JI5 = [[1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3], [45, 32], [3, 2], [8, 5], [5, 3], null, [15, 8]];   // null = the chosen 5-limit 7th
+  const JILIM = {
+    5: JI5,
+    7: JI5.map((r, k) => ({ 6: [7, 5], 10: [7, 4] })[k] || r),                 // harmonic 7th 7:4 (−31¢), septimal tritone 7:5 (−17¢)
+    11: JI5.map((r, k) => ({ 6: [11, 8], 10: [7, 4] })[k] || r),               // 11th harmonic 11:8 (−49¢)
+    13: JI5.map((r, k) => ({ 6: [11, 8], 8: [13, 8], 10: [7, 4] })[k] || r),   // 13th harmonic 13:8 (+41¢)
+  };
+  const LIMNOTE = {
+    5: "Ratios built from 2, 3 and 5 only: pure 5ths (3:2) and pure major 3rds (5:4). The classic just intonation of triads.",
+    7: "Adds the 7th harmonic: a harmonic minor 7th of 7:4 (31¢ flat, the barbershop seventh) and a 7:5 tritone (17¢ flat).",
+    11: "Adds the 11th harmonic: 11:8, halfway between a perfect 4th and a tritone (49¢ flat of the equal-tempered tritone). Plus the 7-limit 7th.",
+    13: "Adds the 13th harmonic: 13:8, a neutral sixth between minor and major (41¢ sharp of the equal-tempered minor 6th). Plus 11:8 and 7:4.",
+  };
   const PY = [[1, 1], [256, 243], [9, 8], [32, 27], [81, 64], [4, 3], [729, 512], [3, 2], [128, 81], [27, 16], [16, 9], [243, 128]];
   const TNAME = { et: "equal temperament", ji: "just intonation", py: "Pythagorean tuning" };
   const etHz = m => S.a4 * Math.pow(2, (m - 69) / 12);
@@ -110,7 +130,7 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   // ratio of a drone note above the tuning root, as [num, den] (octaves folded in)
   function ratio(iv) {
     const d = rootMidi() + iv.s - tonicMidi(), k = d % 12, o = Math.floor(d / 12);
-    const r = (S.tune === "py" ? PY : JI)[k] || S.sev.split("/").map(Number);
+    const r = (S.tune === "py" ? PY : JILIM[S.limit] || JI5)[k] || S.sev.split("/").map(Number);
     let n = r[0] * Math.pow(2, o), q = r[1]; const g = gcd(n, q); return [n / g, q / g];
   }
   const rootHz = () => etHz(rootMidi());
@@ -163,13 +183,16 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   $("go").onclick = () => running ? stop() : start();
 
   // ---------- UI ----------
-  function status() { if (running) $("status").textContent = `Sounding: ${S.on.slice().sort((a, b) => a - b).map(s => spoken(noteName(IVS.find(i => i.s === s)))).join(", ")} (${TNAME[S.tune]}${S.tune !== "et" ? `, tuned from ${spoken(PCN[tonicPc()])}` : ""}).`; }
+  function status() { if (running) $("status").textContent = `Sounding: ${S.on.slice().sort((a, b) => a - b).map(s => spoken(noteName(IVS.find(i => i.s === s)))).join(", ")} (${TNAME[S.tune]}${S.tune === "ji" ? `, ${S.limit}-limit` : ""}${S.tune !== "et" ? `, tuned from ${spoken(PCN[tonicPc()])}` : ""}).`; }
   function render() {
     $("pcs").innerHTML = PCN.map((n, i) => `<button type="button" class="pc${[1, 3, 6, 8, 10].includes(i) ? " blk" : ""}" data-pc="${i}" aria-pressed="${S.root === i}" aria-label="Root ${spoken(n)}">${n}</button>`).join("");
     $("ivs").innerHTML = IVS.map(iv => iv.s === 0 ? `<div class="iv root" role="note"><b>${noteName(iv)}</b><small>root (always on)</small></div>` : `<button type="button" class="iv" data-s="${iv.s}" aria-pressed="${S.on.includes(iv.s)}"><b>${noteName(iv)}</b><small>${iv.n}</small></button>`).join("");
     document.querySelectorAll("[data-tune]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tune === S.tune)));
     $("presets").innerHTML = PRESETS.map((p, i) => `<button type="button" class="tbtn" data-pre="${i}">${p[0]}</button>`).join("");
-    $("sevWrap").hidden = S.tune !== "ji";
+    $("sevWrap").hidden = S.tune !== "ji" || S.limit !== 5;
+    $("limWrap").hidden = $("limNote").hidden = S.tune !== "ji";
+    $("limNote").textContent = LIMNOTE[S.limit];
+    document.querySelectorAll("[data-lim]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.lim === S.limit)));
     $("tonic").value = S.tonic;
     const tn = PCN[tonicPc()];
     $("tuneNote").textContent = S.tune === "et" ? "Every half step is exactly 100 cents; no note is favored." : S.tune === "ji" ? `Pure ratios from the harmonic series of ${tn}. Thirds and sixths are calm and beat-free; ${S.tonic === "follow" ? "change the tuning root to hear how other chords go out of tune." : "chords on other roots may sound rough."}` : `Every note comes from pure 3:2 fifths above or below ${tn}. Fifths are pure; major thirds are wide (+8¢) and bright.`;
@@ -188,6 +211,7 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   $("ivs").onclick = e => { const b = e.target.closest("[data-s]"); if (!b) return; const s = +b.dataset.s; S.on = S.on.includes(s) ? S.on.filter(x => x !== s) : S.on.concat(s); if (!S.on.includes(0)) S.on.push(0); render(); sync(); $("ivs").querySelector(`[data-s="${s}"]`).focus(); };
   $("presets").onclick = e => { const b = e.target.closest("[data-pre]"); if (!b) return; S.on = PRESETS[+b.dataset.pre][1].slice(); render(); sync(); };
   document.querySelectorAll("[data-tune]").forEach(b => b.onclick = () => { S.tune = b.dataset.tune; render(); sync(); });
+  document.querySelectorAll("[data-lim]").forEach(b => b.onclick = () => { S.limit = +b.dataset.lim; render(); sync(); });
   $("tonic").innerHTML = '<option value="follow">The drone\'s root (moves with it)</option>' + PCN.map((n, i) => `<option value="${i}">${n}</option>`).join("");
   $("tonic").onchange = e => { S.tonic = e.target.value; render(); sync(); };
   $("octave").value = S.octave; $("a4").value = S.a4; $("timbre").value = S.timbre; $("vol").value = Math.round(S.vol * 100); $("sev").value = S.sev; $("pulse").value = S.pulse;

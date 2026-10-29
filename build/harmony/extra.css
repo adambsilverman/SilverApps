@@ -19,7 +19,7 @@
 /* Roman numerals and chord symbols */
 .rn { font-family: var(--body); font-weight: 600; white-space: nowrap; font-variant-numeric: lining-nums; }
 .rn sup { font-size: .62em; vertical-align: .55em; line-height: 0; margin-left: .03em; }
-.rn .rq { margin-right: .02em; }
+.rn .rq { display: inline-block; font-size: .8em; font-weight: 700; vertical-align: .45em; line-height: 0; margin: 0 .02em; }
 .rn .fg { display: inline-flex; flex-direction: column; font-size: .58em; line-height: .92; vertical-align: .3em; margin-left: .06em; text-align: center; }
 .rn .acc, .csym .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: .86em; margin: 0 -.02em; }
 .csym { font-family: var(--body); font-weight: 700; white-space: nowrap; }
@@ -80,3 +80,4 @@
 .lsteps .lpart { flex-basis: 100%; font: 700 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px; }
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }
+.rn .rq.dim { width: .3em; height: .3em; border: .075em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .62em; line-height: normal; margin: 0 .04em 0 .03em; }

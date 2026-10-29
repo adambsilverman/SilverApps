@@ -19,7 +19,17 @@ window.FAM = (() => {
     const rn = base + f + "/" + TGT_RN[k.mode][d - 1];
     return { c, rn, fn, d, T, target: TGT_RN[k.mode][d - 1] };
   }
-  const QUALS = { dom: ["7", "7", "M"], lt: ["o7", "o7", "d"], pd: ["m", "m7", "h7"] };
+  // No diminished triads: a °-triad is both vii°/x and ii°/y (e.g. vii°/IV = ii°/ii), so it can't be labeled without more context.
+  // Secondary leading-tone chords are always fully diminished 7ths; pre-dominants are ø7 (or minor / m7 when the target is major).
+  const QUALS = { dom: ["7", "7", "M"], lt: ["o7"], pd: ["m", "m7", "h7"] };
+  // Same notes as a chord that has another common explanation? (borrowed from the parallel mode, melodic-minor IV / ii,
+  // Picardy I in minor): then a chord-symbol question without context would have two right answers, so skip it.
+  function otherReading(H, k, c) {
+    const par = H.key(k.name, k.mode === "major" ? "minor" : "major"), set = x => x.tones.map(H.nm).sort().join(",");
+    const mine = set(c), alt = [];
+    for (let d = 1; d <= 7; d++) [false, true].forEach(sev => { const x = par.mode === "minor" && d === 7 ? H.chord(H.deg(par, 7), sev ? "7" : "M") : par.mode === "minor" && d === 5 ? H.chord(H.deg(par, 5), sev ? "m7" : "m") : H.diat(par, d, sev); if (H.QUAL[x.q]) alt.push(x); });
+    return alt.some(x => set(x) === mine);
+  }
   function okSpell(c) { return c.tones.every(n => Math.abs(n.a) < 2); }
   function pickKey(H) {
     const on = H.topicsOn(), modes = [on.includes("maj") && "major", on.includes("min") && "minor"].filter(Boolean);
@@ -30,10 +40,10 @@ window.FAM = (() => {
     for (let i = 0; i < 80; i++) {
       const f = fn || pickFn(H), d = H.rnd(TARGETS[k.mode]);
       let qs = QUALS[f];
-      if (f === "pd") qs = tMajor(k, d) ? ["m", "m7", "h7"] : ["h7", "h7", "d"];
+      if (f === "pd") qs = tMajor(k, d) ? ["m", "m7", "h7"] : ["h7"];
       const q = H.rnd(qs), sev = H.QUAL[q].length === 4, inv = Math.random() < .45 ? 0 : Math.floor(Math.random() * (sev ? 4 : 2));
       const s = sec(H, k, f, d, inv, q);
-      if (!okSpell(s.c) || !H.isChromatic(k, s.c)) continue;
+      if (!okSpell(s.c) || !H.isChromatic(k, s.c) || otherReading(H, k, s.c)) continue;
       return s;
     }
     return sec(H, H.key("C", "major"), "dom", 5, 0, "7");
@@ -53,11 +63,14 @@ window.FAM = (() => {
   function prog(H, k, s) {
     const fill = H.rnd([4, 6, 2, 3].filter(d => d !== s.d && !(k.mode === "minor" && d === 2)));
     const tgt = diatChord(H, k, s.d);
-    const chords = [H.diat(k, 1), diatChord(H, k, fill), s.c, tgt];
-    const labels = ["I", TGT_RN[k.mode][fill - 1], "?", s.target].map((x, i) => i === 0 ? TGT_RN[k.mode][0] : x);
+    const chords = [H.diat(k, 1), diatChord(H, k, fill), s.c], labels = [TGT_RN[k.mode][0], TGT_RN[k.mode][fill - 1], "?"];
+    // a secondary leading-tone chord or pre-dominant is always followed by the secondary dominant of the same target
+    if (s.fn !== "dom") { const v = domOf(H, k, s.d); chords.push(v.c); labels.push(v.rn); }
+    chords.push(tgt); labels.push(s.target);
     if (s.d === 5) { chords.push(H.diat(k, 1)); labels.push(TGT_RN[k.mode][0]); }
     return { chords, labels };
   }
+  const domOf = (H, k, d) => sec(H, k, "dom", d, 0, "7");
   function wrongLabels(H, k, s) {
     const out = new Set(), c = s.c, sev = c.tones.length === 4, inv = c.bass;
     const t = s.target, others = TARGETS[k.mode].filter(d => d !== s.d).map(d => TGT_RN[k.mode][d - 1]);
@@ -160,7 +173,8 @@ window.FAM = (() => {
     } },
     { title: "Step 3: Find the target", kick: "Write the label", keyed: "both", render: (H, k, U) => {
       const t = 5, ss = [sec(H, k, "dom", t, 0, "7"), sec(H, k, "lt", t, 0, "o7"), sec(H, k, "pd", t, 0, "h7")];
-      const figs = ss.map(s => U.fig(H.grand({ key: k, chords: [s.c, H.diat(k, t)], labels: [s.rn, "V"], syms: [s.c.sym, H.diat(k, t).sym] }), `${s.c.sym} → ${H.nm(s.T)}: ${FNSHORT[s.fn]}`, { small: true })).join("");
+      const v7 = domOf(H, k, t), V = H.diat(k, t);
+      const figs = ss.map(s => { const ch = s.fn === "dom" ? [s.c, V] : [s.c, v7.c, V], lb = s.fn === "dom" ? [s.rn, "V"] : [s.rn, v7.rn, "V"]; return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 0 }), `${s.c.sym} → ${H.nm(s.T)}: ${FNSHORT[s.fn]}${s.fn === "dom" ? "" : `, followed by the secondary dominant of the same target (${v7.c.sym})`}`, { small: true }); }).join("");
       return `<p>Every secondary chord points to a <b>target</b> chord (the “x” in V/x). Each function has its own distance from its root to the target's root:</p>
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Function</th><th scope="col">Target's root is…</th><th scope="col">In ${H.esc(k.label)} (target ${H.esc(H.nm(H.deg(k, t)))}, V)</th></tr></thead><tbody>
       <tr><td>Secondary dominant</td><td>a P4 <b>above</b> (P5 below) the chord root</td><td>${U.sym(ss[0].c.sym)} → ${U.rn(ss[0].rn)}</td></tr>
@@ -178,9 +192,9 @@ window.FAM = (() => {
       + H.check(`In ${k.label}, which label fits {sym:${inv[2].c.sym}}?`, inv[2].rn, [inv[1].rn, inv[3].rn, inv[0].rn], `The 5th (${H.nm(inv[2].c.tones[2])}) is in the bass: 4/3.`, "rn");
     } },
     { title: "Examples", kick: "Hear them resolve", keyed: "both", render: (H, k, U) => {
-      const fam = (fn, list) => list.map(([d, inv, q]) => { const s = sec(H, k, fn, d, inv, q); if (!okSpell(s.c) || !H.isChromatic(k, s.c)) return ""; const tg = diatChord(H, k, d); return U.fig(H.grand({ key: k, chords: [s.c, tg], labels: [s.rn, s.target], syms: [s.c.sym, tg.sym], hl: 0 }), `${s.c.sym}: ${s.c.tones.map(H.nm).join("–")}`, { small: true }); }).join("");
+      const fam = (fn, list) => list.map(([d, inv, q]) => { const s = sec(H, k, fn, d, inv, q); if (!okSpell(s.c) || !H.isChromatic(k, s.c)) return ""; const tg = diatChord(H, k, d), v = domOf(H, k, d); const ch = fn === "dom" ? [s.c, tg] : [s.c, v.c, tg], lb = fn === "dom" ? [s.rn, s.target] : [s.rn, v.rn, s.target]; return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 0 }), `${s.c.sym}: ${s.c.tones.map(H.nm).join("–")}`, { small: true }); }).join("");
       const M = k.mode === "major";
-      return `<p>Each example is in a simple keyboard texture: three notes in the right hand and one in the left. Play each one and listen for the chromatic note leading into the target.</p>
+      return `<p>Each example is in a simple keyboard texture: three notes in the right hand and one in the left. Play each one and listen for the chromatic note leading into the target. Secondary leading-tone chords and secondary pre-dominants are shown as they usually appear: followed by the secondary dominant of the same target, then the target itself.</p>
       <h3>Secondary dominants</h3><div class="lfigs">${fam("dom", M ? [[5, 0, "7"], [6, 2, "7"], [2, 0, "M"]] : [[4, 0, "7"], [6, 1, "7"], [5, 3, "7"]])}</div>
       <h3>Secondary leading-tone chords</h3><div class="lfigs">${fam("lt", M ? [[5, 1, "o7"], [2, 0, "o7"], [6, 0, "o7"]] : [[5, 1, "o7"], [4, 0, "o7"], [6, 0, "o7"]])}</div>
       <h3>Secondary pre-dominants</h3><div class="lfigs">${fam("pd", M ? [[5, 0, "h7"], [4, 0, "m7"], [2, 1, "h7"]] : [[6, 0, "m"], [4, 0, "h7"], [6, 1, "m7"]])}</div>`;

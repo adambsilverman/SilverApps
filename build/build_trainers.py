@@ -95,7 +95,7 @@ APPS = [
 SCORE_HOOK = ("if (!(window.LiveClass && LiveClass.active)) { %(sfxcall)s"
               "if (window.SAprogress && q.tries === 0 && !q.revealed) SAprogress.record(__saLabel(S.mode), correct); }\n    "
               "if (window.LiveClass && LiveClass.active && LiveClass.answered(correct)) return;")
-FONTS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap">')
+FONTS = ''   # Noto Music is self-hosted in assets/indie.css
 
 def build(a):
     s = (SRC / a["src"]).read_text(encoding="utf-8")

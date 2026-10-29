@@ -261,7 +261,7 @@ details.panel[open] summary::after { content: "−"; }
 /* Roman numerals and chord symbols */
 .rn { font-family: var(--body); font-weight: 600; white-space: nowrap; font-variant-numeric: lining-nums; }
 .rn sup { font-size: .62em; vertical-align: .55em; line-height: 0; margin-left: .03em; }
-.rn .rq { margin-right: .02em; }
+.rn .rq { display: inline-block; font-size: .8em; font-weight: 700; vertical-align: .45em; line-height: 0; margin: 0 .02em; }
 .rn .fg { display: inline-flex; flex-direction: column; font-size: .58em; line-height: .92; vertical-align: .3em; margin-left: .06em; text-align: center; }
 .rn .acc, .csym .acc { font-family: "Noto Music", var(--body); font-weight: 400; font-size: .86em; margin: 0 -.02em; }
 .csym { font-family: var(--body); font-weight: 700; white-space: nowrap; }
@@ -322,6 +322,7 @@ details.panel[open] summary::after { content: "−"; }
 .lsteps .lpart { flex-basis: 100%; font: 700 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px; }
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }
+.rn .rq.dim { width: .3em; height: .3em; border: .075em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .62em; line-height: normal; margin: 0 .04em 0 .03em; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -444,7 +445,7 @@ details.panel[open] summary::after { content: "−"; }
     const r = s.rn, out = new Set();
     const flip = x => x.replace(/^(♭?)([ivIV]+)/, (_, f, n) => f + (n === n.toUpperCase() ? n.toLowerCase() : n.toUpperCase()));
     out.add(flip(r)); out.add(r.startsWith("♭") ? r.slice(1) : "♭" + r); out.add(flip(r.startsWith("♭") ? r.slice(1) : "♭" + r));
-    const alts = { "♭III": ["iii", "III", "♭iii", "V/vi"], "♭VI": ["vi", "VI", "♭vi", "IV"], "♭VII": ["vii°", "VII", "♭vii", "V/♭III"], i: ["I", "vi", "♭I"], iv: ["IV", "ii", "♭IV"], v: ["V", "iii", "♭v"], "ii°": ["ii", "vii°", "♭II"], "iiø7": ["ii7", "viiø7", "♭II7"], iv7: ["IV7", "ii7", "IV△7"], "vii°7": ["viiø7", "vii°7/V", "V7"] };
+    const alts = { "♭III": ["iii", "III", "♭iii", "V/vi"], "♭VI": ["vi", "VI", "♭vi", "IV"], "♭VII": ["vii°", "VII", "♭vii", "♭VII7"], i: ["I", "vi", "♭I"], iv: ["IV", "ii", "♭IV"], v: ["V", "iii", "♭v"], "ii°": ["ii", "vii°", "♭II"], "iiø7": ["ii7", "viiø7", "♭II7"], iv7: ["IV7", "ii7", "IV△7"], "vii°7": ["viiø7", "vii°7/V", "V7"] };
     (alts[r.replace(/\d+$/, "")] || alts[r] || []).forEach(x => out.add(x + (/\d$/.test(r) && !/\d$/.test(x) ? r.match(/\d+$/)[0] : "")));
     out.delete(r);
     return [...out].filter(x => !/[ivIV]°\d*$/.test(x) || true);
@@ -488,7 +489,8 @@ details.panel[open] summary::after { content: "−"; }
   ];
 
   function make(mode, H) {
-    const k = pickKey(H), b = H.rnd(BOR), inv = b.q.length > 1 && Math.random() < .25 ? 1 : 0;
+    // no diminished triad (ii°) in the drills: D° in C major could just as well be vii°/♭III
+    const k = pickKey(H), b = H.rnd(BOR.filter(x => x.q !== "d")), inv = b.q.length > 1 && Math.random() < .25 ? 1 : 0;
     const s = bor(H, k, b, b.d === 1 || b.lt ? 0 : inv);
     if (mode === "label") {
       if (Math.random() < .12) {
@@ -510,7 +512,7 @@ details.panel[open] summary::after { content: "−"; }
     }
     if (mode === "kind") {
       const r = Math.random();
-      if (r < .45) { const bb = H.rnd(BOR.filter(x => !x.lt && x.d !== 1)), ss = bor(H, k, bb); return H.mc(`In ${k.label}, what kind of chord is {sym:${ss.c.sym}}?`, KIND.mix, [KIND.dom, KIND.lt, KIND.dia], whyB(H, k, ss), { big: `{sym:${ss.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
+      if (r < .45) { const bb = H.rnd(BOR.filter(x => !x.lt && x.d !== 1 && x.q !== "d")), ss = bor(H, k, bb); return H.mc(`In ${k.label}, what kind of chord is {sym:${ss.c.sym}}?`, KIND.mix, [KIND.dom, KIND.lt, KIND.dia], whyB(H, k, ss), { big: `{sym:${ss.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
       if (r < .85) { const x = secDecoy(H, k); return H.mc(`In ${k.label}, what kind of chord is {sym:${x.c.sym}}?`, KIND[x.kind], [KIND.mix, KIND.dom, KIND.lt, KIND.dia], `{sym:${x.c.sym}} is ${spell(H, x.c)}. ${x.kind === "dom" ? "It's a major or dom7 chord where the key has a minor or diminished one (or a dom7 on I): a minor chord made major points to a secondary dominant," : "It's fully diminished with a raised note leading up to its target:"} {rn:${x.rn}}.`, { big: `{sym:${x.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
       const d = H.rnd([2, 3, 4, 5, 6]), c = H.diat(k, d, Math.random() < .3);
       return H.mc(`In ${k.label}, what kind of chord is {sym:${c.sym}}?`, KIND.dia, [KIND.mix, KIND.dom, KIND.lt], `{sym:${c.sym}} is ${spell(H, c)}: every note is in ${k.label}. It's diatonic: {rn:${MAJRN[d - 1]}}.`, { big: `{sym:${c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` });
@@ -1062,8 +1064,9 @@ window.FAM = (() => {
     const m = RNRE.exec(p); if (!m) return accHTML(p);
     let h = (m[1] ? `<span class="acc">${m[1]}</span>` : "") + m[2];
     const q = m[3], f = m[4];
-    if (f.length === 2) h += (q ? `<sup class="rq">${q}</sup>` : "") + `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>`;
-    else if (q || f) h += `<sup>${q}${f}</sup>`;
+    if (q) h += q === "°" ? `<span class="rq dim"></span>` : `<span class="rq">${q}</span>`;   // the degree-sign glyph is tiny in text fonts: draw a circle   // °, ø, + : larger than the figures so they stay readable
+    if (f.length === 2) h += `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>`;
+    else if (f) h += `<sup>${f}</sup>`;
     return h;
   }
   const WORD = { I: "one", II: "two", III: "three", IV: "four", V: "five", VI: "six", VII: "seven" };
@@ -1204,7 +1207,8 @@ window.FAM = (() => {
       const m = RNRE.exec(p);
       if (!m) { const s = mk("tspan", {}, g); s.textContent = p; return; }
       const b = mk("tspan", {}, g); b.textContent = m[1] + m[2];
-      if (m[3] || m[4].length === 1) { const s = mk("tspan", { dy: -7, "font-size": 12 }, g); s.textContent = m[3] + (m[4].length === 1 ? m[4] : ""); const z = mk("tspan", { dy: 7, "font-size": 18 }, g); z.textContent = " "; }
+      if (m[3]) { const dim = m[3] === "°", q = mk("tspan", dim ? { dy: -8, "font-size": 13, "font-family": "'Schibsted Grotesk', Arial, sans-serif" } : { dy: -6, "font-size": 16, "font-weight": 700 }, g); q.textContent = dim ? "o" : m[3]; const z = mk("tspan", { dy: dim ? 8 : 6, "font-size": 18 }, g); z.textContent = "\u200A"; }   // °, ø, + larger than the figures
+      if (m[4].length === 1) { const s = mk("tspan", { dy: -7, "font-size": 12 }, g); s.textContent = m[4]; const z = mk("tspan", { dy: 7, "font-size": 18 }, g); z.textContent = "\u200A"; }
       if (m[4].length === 2) { const s1 = mk("tspan", { dy: -8, "font-size": 12 }, g); s1.textContent = m[4][0]; const s2 = mk("tspan", { dx: -6.5, dy: 11, "font-size": 12 }, g); s2.textContent = m[4][1]; const z = mk("tspan", { dy: -3, "font-size": 18 }, g); z.textContent = " "; }
     });
   }

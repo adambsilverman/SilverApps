@@ -6,6 +6,11 @@
    rounded corners · soft shadows.
    Used by every page. Change the tokens below to restyle all apps at once.
    ===================================================================== */
+/* Accidentals (♭ ♮ ♯ 𝄪 𝄫) and the diminished sign (°, drawn as a clear circle) in running text: the text fonts don't have them, so every font stack starts with this tiny font
+   (Noto Music glyphs with letter-like side spacing and centered on the text line). "Noto Music" is self-hosted for the same reason. */
+@font-face{font-family:"SA Accidentals";src:url(fonts/sa-accidentals.woff2) format("woff2");unicode-range:U+B0,U+266D-266F,U+1D12A-1D12B;font-display:block}
+@font-face{font-family:"Noto Music";src:url(fonts/sa-accidentals.woff2) format("woff2");unicode-range:U+266D-266F,U+1D12A-1D12B;font-display:block}
+@font-face{font-family:"Noto Music";src:url(fonts/noto-music.woff2) format("woff2");unicode-range:U+0-266C,U+2670-1D129,U+1D12C-10FFFF;font-display:swap}
 @font-face{font-family:"League Gothic";src:url(fonts/league-gothic.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Schibsted Grotesk";src:url(fonts/schibsted-grotesk-400.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Schibsted Grotesk";src:url(fonts/schibsted-grotesk-700.woff2) format("woff2");font-weight:700;font-display:swap}
@@ -39,12 +44,12 @@
   --fi-muted:#5A4F46;    /* secondary text (7.4:1) */
   --fi-r:14px; --fi-r-sm:10px; --fi-pill:999px;
   --fi-shadow:0 6px 18px -10px rgba(60,40,20,.35);
-  --fi-display:"League Gothic","Arial Narrow",Impact,sans-serif;
-  --fi-serif:"Literata",Georgia,"Times New Roman",serif;
-  --fi-body:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;   /* small UI text */
-  --fi-ui:"Barlow Condensed","Arial Narrow","Helvetica Neue",sans-serif; /* buttons & labels — condensed */
+  --fi-display:"SA Accidentals","League Gothic","Arial Narrow",Impact,sans-serif;
+  --fi-serif:"SA Accidentals","Literata",Georgia,"Times New Roman",serif;
+  --fi-body:"SA Accidentals","Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;   /* small UI text */
+  --fi-ui:"SA Accidentals","Barlow Condensed","Arial Narrow","Helvetica Neue",sans-serif; /* buttons & labels — condensed */
   --fi-title:"SilverApps Title","Satisfy","Brush Script MT",cursive;  /* the site title only */
-  --fi-music:"Noto Music","Bravura Text","Segoe UI Symbol","Apple Symbols",sans-serif;
+  --fi-music:"SA Accidentals","Noto Music","Bravura Text","Segoe UI Symbol","Apple Symbols",sans-serif;
   color-scheme:light;
 }
 html,body{background:var(--fi-paper)}

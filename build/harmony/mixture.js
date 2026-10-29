@@ -30,7 +30,7 @@
     const r = s.rn, out = new Set();
     const flip = x => x.replace(/^(♭?)([ivIV]+)/, (_, f, n) => f + (n === n.toUpperCase() ? n.toLowerCase() : n.toUpperCase()));
     out.add(flip(r)); out.add(r.startsWith("♭") ? r.slice(1) : "♭" + r); out.add(flip(r.startsWith("♭") ? r.slice(1) : "♭" + r));
-    const alts = { "♭III": ["iii", "III", "♭iii", "V/vi"], "♭VI": ["vi", "VI", "♭vi", "IV"], "♭VII": ["vii°", "VII", "♭vii", "V/♭III"], i: ["I", "vi", "♭I"], iv: ["IV", "ii", "♭IV"], v: ["V", "iii", "♭v"], "ii°": ["ii", "vii°", "♭II"], "iiø7": ["ii7", "viiø7", "♭II7"], iv7: ["IV7", "ii7", "IV△7"], "vii°7": ["viiø7", "vii°7/V", "V7"] };
+    const alts = { "♭III": ["iii", "III", "♭iii", "V/vi"], "♭VI": ["vi", "VI", "♭vi", "IV"], "♭VII": ["vii°", "VII", "♭vii", "♭VII7"], i: ["I", "vi", "♭I"], iv: ["IV", "ii", "♭IV"], v: ["V", "iii", "♭v"], "ii°": ["ii", "vii°", "♭II"], "iiø7": ["ii7", "viiø7", "♭II7"], iv7: ["IV7", "ii7", "IV△7"], "vii°7": ["viiø7", "vii°7/V", "V7"] };
     (alts[r.replace(/\d+$/, "")] || alts[r] || []).forEach(x => out.add(x + (/\d$/.test(r) && !/\d$/.test(x) ? r.match(/\d+$/)[0] : "")));
     out.delete(r);
     return [...out].filter(x => !/[ivIV]°\d*$/.test(x) || true);
@@ -74,7 +74,8 @@
   ];
 
   function make(mode, H) {
-    const k = pickKey(H), b = H.rnd(BOR), inv = b.q.length > 1 && Math.random() < .25 ? 1 : 0;
+    // no diminished triad (ii°) in the drills: D° in C major could just as well be vii°/♭III
+    const k = pickKey(H), b = H.rnd(BOR.filter(x => x.q !== "d")), inv = b.q.length > 1 && Math.random() < .25 ? 1 : 0;
     const s = bor(H, k, b, b.d === 1 || b.lt ? 0 : inv);
     if (mode === "label") {
       if (Math.random() < .12) {
@@ -96,7 +97,7 @@
     }
     if (mode === "kind") {
       const r = Math.random();
-      if (r < .45) { const bb = H.rnd(BOR.filter(x => !x.lt && x.d !== 1)), ss = bor(H, k, bb); return H.mc(`In ${k.label}, what kind of chord is {sym:${ss.c.sym}}?`, KIND.mix, [KIND.dom, KIND.lt, KIND.dia], whyB(H, k, ss), { big: `{sym:${ss.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
+      if (r < .45) { const bb = H.rnd(BOR.filter(x => !x.lt && x.d !== 1 && x.q !== "d")), ss = bor(H, k, bb); return H.mc(`In ${k.label}, what kind of chord is {sym:${ss.c.sym}}?`, KIND.mix, [KIND.dom, KIND.lt, KIND.dia], whyB(H, k, ss), { big: `{sym:${ss.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
       if (r < .85) { const x = secDecoy(H, k); return H.mc(`In ${k.label}, what kind of chord is {sym:${x.c.sym}}?`, KIND[x.kind], [KIND.mix, KIND.dom, KIND.lt, KIND.dia], `{sym:${x.c.sym}} is ${spell(H, x.c)}. ${x.kind === "dom" ? "It's a major or dom7 chord where the key has a minor or diminished one (or a dom7 on I): a minor chord made major points to a secondary dominant," : "It's fully diminished with a raised note leading up to its target:"} {rn:${x.rn}}.`, { big: `{sym:${x.c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` }); }
       const d = H.rnd([2, 3, 4, 5, 6]), c = H.diat(k, d, Math.random() < .3);
       return H.mc(`In ${k.label}, what kind of chord is {sym:${c.sym}}?`, KIND.dia, [KIND.mix, KIND.dom, KIND.lt], `{sym:${c.sym}} is ${spell(H, c)}: every note is in ${k.label}. It's diatonic: {rn:${MAJRN[d - 1]}}.`, { big: `{sym:${c.sym}}`, kicker: `Borrowed or secondary? · ${k.label}` });

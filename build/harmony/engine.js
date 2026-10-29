@@ -87,8 +87,9 @@
     const m = RNRE.exec(p); if (!m) return accHTML(p);
     let h = (m[1] ? `<span class="acc">${m[1]}</span>` : "") + m[2];
     const q = m[3], f = m[4];
-    if (f.length === 2) h += (q ? `<sup class="rq">${q}</sup>` : "") + `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>`;
-    else if (q || f) h += `<sup>${q}${f}</sup>`;
+    if (q) h += q === "°" ? `<span class="rq dim"></span>` : `<span class="rq">${q}</span>`;   // the degree-sign glyph is tiny in text fonts: draw a circle   // °, ø, + : larger than the figures so they stay readable
+    if (f.length === 2) h += `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>`;
+    else if (f) h += `<sup>${f}</sup>`;
     return h;
   }
   const WORD = { I: "one", II: "two", III: "three", IV: "four", V: "five", VI: "six", VII: "seven" };
@@ -229,7 +230,8 @@
       const m = RNRE.exec(p);
       if (!m) { const s = mk("tspan", {}, g); s.textContent = p; return; }
       const b = mk("tspan", {}, g); b.textContent = m[1] + m[2];
-      if (m[3] || m[4].length === 1) { const s = mk("tspan", { dy: -7, "font-size": 12 }, g); s.textContent = m[3] + (m[4].length === 1 ? m[4] : ""); const z = mk("tspan", { dy: 7, "font-size": 18 }, g); z.textContent = " "; }
+      if (m[3]) { const dim = m[3] === "°", q = mk("tspan", dim ? { dy: -8, "font-size": 13, "font-family": "'Schibsted Grotesk', Arial, sans-serif" } : { dy: -6, "font-size": 16, "font-weight": 700 }, g); q.textContent = dim ? "o" : m[3]; const z = mk("tspan", { dy: dim ? 8 : 6, "font-size": 18 }, g); z.textContent = "\u200A"; }   // °, ø, + larger than the figures
+      if (m[4].length === 1) { const s = mk("tspan", { dy: -7, "font-size": 12 }, g); s.textContent = m[4]; const z = mk("tspan", { dy: 7, "font-size": 18 }, g); z.textContent = "\u200A"; }
       if (m[4].length === 2) { const s1 = mk("tspan", { dy: -8, "font-size": 12 }, g); s1.textContent = m[4][0]; const s2 = mk("tspan", { dx: -6.5, dy: 11, "font-size": 12 }, g); s2.textContent = m[4][1]; const z = mk("tspan", { dy: -3, "font-size": 18 }, g); z.textContent = " "; }
     });
   }

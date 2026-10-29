@@ -42,7 +42,7 @@ rep("Scan to join (you may need to sign in to D2L)", "Scan to join")
 rep("QR code appears when the game is opened from D2L or a web address.", "QR code appears when the game is opened from a web address.")
 rep("// e.g. inside a D2L frame that blocks full screen", "// e.g. inside a frame that blocks full screen")
 # --- staff figures in the display face ---
-rep("""const FONT = '"Young Serif", Georgia, "Times New Roman", serif';""", """const FONT = '"League Gothic", "Arial Narrow", Impact, sans-serif';""")
+rep("""const FONT = '"Young Serif", Georgia, "Times New Roman", serif';""", """const FONT = '"SA Accidentals", "League Gothic", "Arial Narrow", Impact, sans-serif';""")
 # --- shared stylesheet + skin, light only ---
 s = force_light(s)
 s = before_head_close(s, HEAD_ASSETS + '\n<link rel="stylesheet" href="assets/chordlab-skin.css">')

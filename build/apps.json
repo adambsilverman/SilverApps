@@ -163,14 +163,14 @@
         {
           "file": "metronome.html",
           "name": "Metronome",
-          "blurb": "Tap a tempo or pick a traditional metronome marking; set meters, groupings, accents and subdivisions; silent-bar and speed trainers.",
+          "blurb": "Tap a tempo or pick a traditional metronome marking; set meters, groupings, accents and subdivisions; click or drum beats (plain or swing); silent-bar and speed trainers.",
           "class": false,
           "topic": "Tempo & pulse"
         },
         {
           "file": "drone.html",
           "name": "Drone",
-          "blurb": "A steady drone on one note or a chord, in equal temperament or just intonation from the harmonic series.",
+          "blurb": "A steady drone on one note or a chord, in equal temperament, Pythagorean tuning, or just intonation (5-, 7-, 11- or 13-limit).",
           "class": false,
           "topic": "Intonation"
         },

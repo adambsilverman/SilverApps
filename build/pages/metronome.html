@@ -1,4 +1,4 @@
-<!-- title: Metronome | fs: 1 | desc: A practice metronome with tap tempo, traditional metronome markings, meters and groupings, accents, subdivisions, silent-bar and speed trainers. -->
+<!-- title: Metronome | fs: 1 | desc: A practice metronome with tap tempo, traditional metronome markings, meters and groupings, accents, subdivisions, drum beats (plain and swing), silent-bar and speed trainers. -->
 <style>
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
 .tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -74,7 +74,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
       <label class="fld" for="subdiv">Subdivide each beat
         <select id="subdiv"><option value="1">No subdivision</option><option value="2">Eighths (2)</option><option value="3">Triplets (3)</option><option value="4">Sixteenths (4)</option><option value="5">Quintuplets (5)</option></select></label>
       <label class="fld" for="sound">Sound
-        <select id="sound"><option value="click">Click</option><option value="wood">Woodblock</option><option value="beep">Beep</option><option value="cow">Cowbell</option><option value="voice">Count aloud (synth)</option></select></label>
+        <select id="sound"><option value="click">Click</option><option value="wood">Woodblock</option><option value="beep">Beep</option><option value="cow">Cowbell</option><option value="drums">Drums (plain)</option><option value="swing">Drums (swing)</option><option value="voice">Count aloud (synth)</option></select></label>
     </div>
     <div class="beats" id="beats" role="group" aria-label="Beats in the bar. Activate a beat to change its accent."></div>
     <p class="legend2">Tap a beat to change it: <b>accent</b> (red) → <b>medium</b> → <b>normal</b> → <b>silent</b> (striped).</p>
@@ -156,7 +156,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
 
   // ---------- sound ----------
   let AC = null, master = null;
-  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
+  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; master.connect(comp); comp.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
   let noiseBuf = null;
   function click(t, level, beatNo, isSub) {
     if (level === 0) return;
@@ -179,6 +179,66 @@ input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
     }
   }
 
+  // ---------- drums: synthesized kit + beats that fit the meter ----------
+  let drumNoise = null, groove = 0;
+  const isDrums = () => S.sound === "drums" || S.sound === "swing";
+  function noise() { if (!drumNoise) { drumNoise = AC.createBuffer(1, AC.sampleRate * 1.5, AC.sampleRate); const d = drumNoise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } const s = AC.createBufferSource(); s.buffer = drumNoise; return s; }
+  function env(t, peak, decay) { const g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + .003); g.gain.exponentialRampToValueAtTime(.0008, t + decay); g.connect(master); return g; }
+  function filt(type, f, q) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
+  const KIT = {
+    kick(t, v = 1) { const o = AC.createOscillator(), g = env(t, 1.1 * v, .38); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .13); o.connect(g); o.start(t); o.stop(t + .4); },
+    snare(t, v = 1) { const n = noise(), hp = filt("highpass", 1300), g = env(t, .55 * v, .17); n.connect(hp); hp.connect(g); n.start(t, Math.random()); n.stop(t + .2);
+      const o = AC.createOscillator(), g2 = env(t, .3 * v, .09); o.type = "triangle"; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(160, t + .08); o.connect(g2); o.start(t); o.stop(t + .1); },
+    hat(t, v = 1, open) { const n = noise(), hp = filt("highpass", 7500), g = env(t, .22 * v, open ? .3 : .045); n.connect(hp); hp.connect(g); n.start(t, Math.random()); n.stop(t + (open ? .32 : .06)); },
+    pedal(t, v = 1) { const n = noise(), bp = filt("bandpass", 9000, .8), g = env(t, .2 * v, .05); n.connect(bp); bp.connect(g); n.start(t, Math.random()); n.stop(t + .07); },
+    ride(t, v = 1) { const n = noise(), bp = filt("bandpass", 6500, 2.5), g = env(t, .3 * v, .45); n.connect(bp); bp.connect(g); n.start(t, Math.random()); n.stop(t + .5);
+      [3150, 4720].forEach(f => { const o = AC.createOscillator(), g2 = env(t, .025 * v, .5); o.type = "square"; o.frequency.value = f; const h = filt("highpass", 3000); o.connect(h); h.connect(g2); o.start(t); o.stop(t + .52); }); },
+    crash(t, v = 1) { const n = noise(), hp = filt("highpass", 3500), g = env(t, .3 * v, 1.3); n.connect(hp); hp.connect(g); n.start(t, Math.random() * .2); n.stop(t + 1.35); },
+  };
+  // one beat of drums starting at time t; i = beat index, b = the beat, n = beats in the bar
+  function drumBeat(t, i, barN, b) {
+    if (b.acc === 0) return;                                   // beats set to silent stay silent
+    const L = beatDur(), n = bar.length, unit = METERS[S.meter][2], swing = S.sound === "swing";
+    const last = i === n - 1, fillBar = barN % 4 === 3, backbeat = n === 3 ? i > 0 : i % 2 === 1;
+    const hit = (k, frac, v, x) => KIT[k](t + frac * L, v, x);
+    if (i === 0 && barN > 0 && barN % 4 === 0) hit("crash", 0, .9);
+    if (unit === "e") {                                         // each beat is an eighth note (5/8, 7/8, custom groupings)
+      hit(swing ? "ride" : "hat", 0, b.grpStart || i === 0 ? 1 : .6);
+      if (i === 0) hit("kick", 0, 1);
+      else if (b.grpStart) { const gi = bar.slice(0, i + 1).filter(x => x.grpStart).length; gi % 2 === 0 ? hit("snare", 0, .9) : hit("kick", 0, .8); }
+      if (fillBar && last) [0, .5].forEach(f => hit("snare", f, .7 + f * .4));
+      return;
+    }
+    if (b.compound || swing) {                                  // triplet grid: compound meters, or the swing kit
+      if (swing && !b.compound) {
+        hit("ride", 0, i === 0 ? 1 : .85); if (backbeat || n === 1) hit("ride", 2 / 3, .6);
+        if (backbeat) hit("pedal", 0, 1);
+        hit("kick", 0, .35);                                    // feathered bass drum
+        if (Math.random() < .3) hit("snare", 2 / 3, .25 + Math.random() * .2);   // light comping
+        if (fillBar && last) { hit("snare", 0, .6); hit("snare", 1 / 3, .8); hit("kick", 2 / 3, .9); }
+        return;
+      }
+      [0, 1 / 3, 2 / 3].forEach((f, k) => hit(swing ? "ride" : "hat", f, k === 0 ? .9 : .55));
+      if (i === 0) hit("kick", 0, 1); else if (n >= 4 && i === n / 2) hit("kick", 0, .9);
+      if (n === 1 ? barN % 2 === 1 : (n === 2 ? i === 1 : i % 2 === 1)) hit("snare", 0, .9);
+      if (last && !fillBar) hit("kick", 2 / 3, .6);
+      if (fillBar && last) [0, 1 / 3, 2 / 3].forEach((f, k) => hit("snare", f, .6 + k * .2));
+      return;
+    }
+    // straight sixteenth-note grid: three grooves that change every 8 bars
+    const G = groove % 3;
+    if (fillBar && last) { [0, .25, .5, .75].forEach((f, k) => hit("snare", f, .55 + k * .15)); hit("kick", 0, .9); return; }
+    if (G === 1) [0, .25, .5, .75].forEach(f => hit("hat", f, f === 0 ? .9 : f === .5 ? .7 : .4));
+    else hit("hat", 0, .9), hit("hat", .5, G === 2 ? .8 : .6, G === 2);
+    if (G === 2) hit("kick", 0, 1);                             // four on the floor
+    else if (i === 0) hit("kick", 0, 1);
+    else if (!backbeat && n > 2) hit("kick", 0, .85);
+    if (G === 0 && !backbeat && i + 1 < n && n > 2) hit("kick", .5, .7);
+    if (G === 1 && i === 0) hit("kick", .75, .7);
+    if (G === 1 && backbeat && Math.random() < .5) hit("snare", .75, .2);     // ghost note
+    if (backbeat || (n === 1 && barN % 2 === 1)) hit("snare", 0, 1);
+  }
+
   // ---------- scheduler (look-ahead, sample-accurate) ----------
   let running = false, timer = null, nextT = 0, beatI = 0, subI = 0, barNo = 0, rampCount = 0;
   const visQ = [];
@@ -187,11 +247,11 @@ input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
   function schedule() {
     while (nextT < AC.currentTime + .12) {
       const b = bar[beatI], silent = silentBar(barNo);
-      if (!silent) click(nextT, subI === 0 ? b.acc : (b.acc === 0 ? 0 : 1), beatI, subI > 0);
+      if (!silent) { if (isDrums()) { if (subI === 0) drumBeat(nextT, beatI, barNo, b); } else click(nextT, subI === 0 ? b.acc : (b.acc === 0 ? 0 : 1), beatI, subI > 0); }
       visQ.push({ t: nextT, beatI, subI, silent });
       const subDur = beatDur() * (b.compound ? 1 / b.sub : 1 / b.sub);
       nextT += subDur; subI++;
-      if (subI >= b.sub) { subI = 0; beatI++; if (beatI >= bar.length) { beatI = 0; barNo++; ramp(); } }
+      if (subI >= b.sub) { subI = 0; beatI++; if (beatI >= bar.length) { beatI = 0; barNo++; if (barNo % 8 === 0) groove++; ramp(); } }
     }
   }
   function ramp() {
@@ -211,7 +271,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:min(100%,420px)}
     }
     requestAnimationFrame(draw);
   }
-  function start() { ac(); running = true; beatI = 0; subI = 0; barNo = 0; rampCount = 0; visQ.length = 0; nextT = AC.currentTime + .08; timer = setInterval(schedule, 25); schedule(); requestAnimationFrame(draw); $("go").textContent = "■ Stop"; $("go").setAttribute("aria-pressed", "true"); $("status").textContent = `Playing ${METERS[S.meter][0]} at ${S.bpm} BPM.`; }
+  function start() { ac(); running = true; groove = Math.floor(Math.random() * 3); beatI = 0; subI = 0; barNo = 0; rampCount = 0; visQ.length = 0; nextT = AC.currentTime + .08; timer = setInterval(schedule, 25); schedule(); requestAnimationFrame(draw); $("go").textContent = "■ Stop"; $("go").setAttribute("aria-pressed", "true"); $("status").textContent = `Playing ${METERS[S.meter][0]} at ${S.bpm} BPM.`; }
   function stop() { running = false; clearInterval(timer); $("beats").querySelectorAll(".now").forEach(x => x.classList.remove("now")); $("go").textContent = "▶ Start"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
   $("go").onclick = () => running ? stop() : start();
 

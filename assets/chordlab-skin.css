@@ -9,8 +9,8 @@
   --accent:var(--fi-navy); --accent-2:var(--fi-red); --accent-soft:var(--fi-red-pale); --accent-ink:#000;
   --good:#1f6b12; --good-bg:#e8f5da; --bad:#c2301a; --bad-bg:#fde4df;
   --gold:#F24C31;
-  --serif:"League Gothic","Arial Narrow",Impact,sans-serif;
-  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --serif:"SA Accidentals","League Gothic","Arial Narrow",Impact,sans-serif;
+  --sans:"SA Accidentals","Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --shadow:none; --radius:0px;
 }
 html,body{background:var(--fi-paper)!important;color:var(--fi-ink)}
