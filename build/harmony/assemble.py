@@ -29,7 +29,7 @@ APPS = [
               ("kind", "Borrowed or secondary?", "sort chromatic chords", "decide whether a chromatic chord is borrowed, secondary or diatonic"),
               ("use", "How they work", "voice leading · Ger+6 vs V⁷", "doubling, resolution, and the German sixth's dominant-seventh twin")],
        how=["<b>Borrowed chords</b> come from the parallel minor: i, ii°, iiø⁷, iv, v, ♭III, ♭VI, ♭VII (and vii°⁷) in a major key. A major chord made minor → mixture; a minor chord made major → secondary dominant. <b>Picardy third:</b> I at the end of a minor-key passage.",
-            "<b>Neapolitan:</b> a major triad on ♭2̂, usually ♭II⁶ (4̂ in the bass, doubled). It moves to V, often through i⁶₄ or vii°⁷/V.",
+            "<b>Neapolitan:</b> a major triad on ♭2̂, usually ♭II⁶ (its 3rd, 4̂, in the bass; root and 5th above, one doubled). It moves to V, often through i⁶₄ or vii°⁷/V.",
             "<b>Augmented sixths:</b> le (♭6̂) in the bass, fi (♯4̂) above, both resolving out to sol. Italian adds do; French adds do and re; German adds do and me.",
             "<b>German sixth vs. V⁷:</b> same sound; fi (raised 4̂) goes up to V, sol♭ (a 7th) goes down to ♭II."]),
   dict(src="Voice Motion and Polyphony.html", drills="voice-motion-and-polyphony.html", lesson="voice-motion-and-polyphony-lesson.html", lesson_title="Understanding Voice Motion and Polyphony", lesson_desc="A step-by-step lesson: voice ranges, the four kinds of motion, smooth voice leading and forbidden parallels, spacing and crossing, and the textures of polyphony from drone and organum to canon, hocket and heterophony, with sound examples.", data="voicemotion.js", title="Voice Motion and Polyphony",

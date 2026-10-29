@@ -2,7 +2,7 @@
   // ===== Neapolitan Chords: content (lesson + drills). Engine: build/harmony/engine.js =====
   const okSp = c => c.tones.every(n => Math.abs(n.a) < 2);
   const nRoot = (H, k) => H.up(k.tonic, 1, 1);                       // ♭2̂: the letter above the tonic, a half step up
-  const N = (H, k, inv = 1) => H.chord(nRoot(H, k), "M", inv, { double3: inv === 1 });
+  const N = (H, k, inv = 1) => H.chord(nRoot(H, k), "M", inv, inv === 1 ? { rh: Math.random() < .5 ? [0, 2, 0] : [0, 2, 2] } : {});   // ♭II⁶: 3rd in the bass, right hand root + 5th with one of them doubled
   const usable = (H, k) => okSp(N(H, k));
   const T = k => k.mode === "minor" ? "i" : "I";
   function pickKey(H, modes) {
@@ -45,7 +45,7 @@
   }
 
   const USE = [
-    ["Which chord tone of ♭II⁶ is usually doubled?", "the 3rd (the bass, 4̂)", ["the root (♭2̂)", "the 5th (♭6̂)", "no tone is doubled"], "Doubling the bass (4̂) keeps ♭2̂ and ♭6̂, the tendency tones, from being doubled."],
+    ["In ♭II⁶ voiced in keyboard style, what does the right hand play above the bass?", "the root and 5th, doubling one of them", ["the 3rd three times", "only the 3rd and 5th", "the leading tone and the root"], "The 3rd (4̂) is in the bass; the right hand takes ♭2̂ and ♭6̂, doubling the root or the 5th."],
     ["What chord does ♭II⁶ most often move to?", "V (or V⁷)", ["I", "IV", "vi"], "It is a strong pre-dominant: it leads to the dominant, sometimes through i⁶₄ or vii°⁷/V."],
     ["Which scale degree is in the bass of ♭II⁶?", "4̂ (fa)", ["♭2̂ (ra)", "♭6̂ (le)", "1̂ (do)"], "The 3rd of the chord is 4̂, which is why it sounds so much like iv or ii°⁶ at first."],
     ["Where does ♭2̂ (ra) tend to go?", "down, toward the leading tone (through 1̂)", ["up to 3̂", "up to 2̂", "it stays put"], "♭2̂ falls: ♭2̂–1̂–7̂, often with i⁶₄ or vii°⁷/V between ♭II⁶ and V."],
@@ -59,7 +59,7 @@
 
   function make(mode, H) {
     if (mode === "spell") {
-      const k = pickKey(H), inv = Math.random() < .75 ? 1 : 0, c = N(H, k, inv), rn = inv ? "♭II6" : "♭II";
+      const k = pickKey(H), inv = 1, c = N(H, k, inv), rn = "♭II6";
       const wrong = new Set();
       wrong.add(H.chord(nRoot(H, k), "M", inv ? 0 : 1).sym);
       wrong.add(H.chord(nRoot(H, k), "M", 2).sym);
@@ -73,7 +73,7 @@
     if (mode === "label") {
       const k = pickKey(H);
       if (Math.random() < .55) {
-        const inv = Math.random() < .75 ? 1 : 0, c = N(H, k, inv), rn = inv ? "♭II6" : "♭II";
+        const inv = 1, c = N(H, k, inv), rn = "♭II6";
         return H.mc(`In ${k.label}, label {sym:${c.sym}} with a Roman numeral.`, rn, RN_POOL(k), whyN(H, k, c), { big: `{sym:${c.sym}}`, kicker: `Label it · ${k.label}`, fmt: "rn", topic: kt(k) });
       }
       const x = H.rnd(lookAlikes(H, k)), n = N(H, k, 1);
@@ -104,30 +104,30 @@
 
   function reference(H) {
     const rows = H.KEYS.minor.map(n => H.key(n, "minor")).filter(k => usable(H, k)).map(k => `<tr><td>${H.accHTML(k.label)}</td><td>${H.symHTML(N(H, k, 0).sym)}</td><td>${H.symHTML(N(H, k, 1).sym)}</td></tr>`).join("");
-    return `<p>♭II = a <b>major</b> triad on the lowered 2nd degree. ♭II⁶ puts 4̂ in the bass. Double the bass; resolve to V (often via i⁶₄ or vii°⁷/V).</p>
+    return `<p>♭II = a <b>major</b> triad on the lowered 2nd degree. ♭II⁶ puts its 3rd (4̂) in the bass, with the root and 5th above (one of them doubled); it resolves to V (often via i⁶₄ or vii°⁷/V).</p>
       <div class="ltable-wrap"><table class="ltable"><caption>The Neapolitan in minor keys</caption><thead><tr><th scope="col">Key</th><th scope="col">♭II</th><th scope="col">♭II⁶</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   const lesson = { defMode: "minor", steps: [
     { title: "A major chord on ♭2̂", kick: "What it is", keyed: "both", defKey: "A", render: (H, k, U) => {
-      const n0 = N(H, k, 0), d2 = H.deg(k, 2);
+      const n0 = N(H, k, 0), n6 = N(H, k, 1), d2 = H.deg(k, 2);
       return `<p>Build a major triad on the second scale degree <b>lowered by a half step</b> (♭2̂, “ra”) and you get the <b>Neapolitan</b> chord, labeled <b>♭II</b>. Its name points to a group of composers in Naples who used it often in the 18th century.</p>
       <p>In ${H.esc(k.label)}, 2̂ is ${H.esc(H.nm(d2))}; ♭2̂ is <b>${H.esc(H.nm(nRoot(H, k)))}</b>, so ♭II is {sym:${n0.sym}} (${H.esc(tonesTxt(H, n0))}). It is spelled on the letter above the tonic: it is <i>not</i> a chord on a raised 1̂.</p>`
-      + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), n0, H.diat(k, 5), H.diat(k, 1)], labels: [T(k), "♭II", "V", T(k)], syms: [H.diat(k, 1).sym, n0.sym, H.diat(k, 5).sym, H.diat(k, 1).sym], hl: 1 }), `♭II in root position, moving to V. Listen to how dark and “far away” the chord sounds.`)
+      + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), n6, H.diat(k, 5, true), H.diat(k, 1)], labels: [T(k), "♭II6", "V7", T(k)], syms: [H.diat(k, 1).sym, n6.sym, H.diat(k, 5, true).sym, H.diat(k, 1).sym], hl: 1 }), `♭II⁶ moving to V⁷. Listen to how dark and “far away” the chord sounds.`)
       + `<div class="callout"><b>Three things to remember</b>Always major. Always on ♭2̂. Most often in first inversion, as ♭II⁶ (the “Neapolitan sixth”).</div>`;
     } },
     { title: "Spell it in any key", kick: "Three steps", keyed: "both", defKey: "E", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>In ${H.esc(k.label)} the Neapolitan would need a double flat. Choose another key above.</p>`;
       const n0 = N(H, k, 0), n6 = N(H, k, 1);
       return `<ol><li>Find 2̂ in the key: <b>${H.esc(H.nm(H.deg(k, 2)))}</b>.</li><li>Lower it a half step, keeping the same letter: <b>${H.esc(H.nm(nRoot(H, k)))}</b>.</li><li>Build a <b>major</b> triad on it: {sym:${n0.sym}} = ${H.esc(tonesTxt(H, n0))}. For ♭II⁶, put its 3rd in the bass: {sym:${n6.sym}}.</li></ol>`
-      + U.fig(H.grand({ key: k, chords: [n0, n6], labels: ["♭II", "♭II6"], syms: [n0.sym, n6.sym] }), `${k.label}: ♭II and ♭II⁶. The 3rd of the chord, ${H.nm(n6.tones[1])}, is 4̂ of the key.`)
+      + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), n6, H.diat(k, 5, true), H.diat(k, 1)], labels: [T(k), "♭II6", "V7", T(k)], syms: [H.diat(k, 1).sym, n6.sym, H.diat(k, 5, true).sym, H.diat(k, 1).sym], hl: 1 }), `${k.label}: ♭II⁶ (${n6.sym}). The 3rd of the chord, ${H.nm(n6.tones[1])}, is 4̂ of the key and is in the bass.`)
       + H.check(`In ${k.label}, which chord is {rn:♭II6}?`, n6.sym, [H.chord(nRoot(H, k), "M", 0).sym, H.chord(nRoot(H, k), "m", 1).sym, okSp(H.chord(H.deg(k, 2), "M", 1)) ? H.chord(H.deg(k, 2), "M", 1).sym : H.chord(nRoot(H, k), "M", 2).sym], "Major triad on ♭2̂, with the 3rd (4̂) in the bass.", "sym");
     } },
-    { title: "First inversion, doubled bass", kick: "♭II⁶", keyed: "both", defKey: "D", render: (H, k, U) => {
+    { title: "First inversion: the 3rd in the bass", kick: "♭II⁶", keyed: "both", defKey: "D", render: (H, k, U) => {
       const n6 = N(H, k, 1), ii6 = iiC(H, k, 1), iv = ivc(H, k);
-      return `<p>The Neapolitan is most often in <b>first inversion</b>, ♭II⁶, with 4̂ in the bass, the same bass note as ${k.mode === "minor" ? "iv and ii°⁶" : "IV and ii⁶"}, the other pre-dominants. In four voices, <b>double the 3rd</b> (the bass): the root (♭2̂) and 5th (♭6̂) are tendency tones that shouldn't be doubled.</p>`
+      return `<p>The Neapolitan is most often in <b>first inversion</b>, ♭II⁶, with 4̂ in the bass, the same bass note as ${k.mode === "minor" ? "iv and ii°⁶" : "IV and ii⁶"}, the other pre-dominants. Put the <b>3rd in the bass</b>; above it, the right hand plays the <b>root and 5th</b>, doubling one of them, as in every example here.</p>`
       + U.fig(H.grand({ key: k, chords: [iv, ii6, n6], labels: [ivRN(k), iiRN(k) + "6", "♭II6"], syms: [iv.sym, ii6.sym, n6.sym], hl: 2 }), `Three pre-dominants over the same bass. Only ♭II⁶ lowers 2̂ (${H.nm(H.deg(k, 2))} → ${H.nm(nRoot(H, k))}).`)
-      + H.check("In ♭II⁶, which tone is usually doubled?", "the bass (4̂, the chord's 3rd)", ["the root (♭2̂)", "the 5th (♭6̂)", "the leading tone"], "Double the bass; ♭2̂ and ♭6̂ both want to move down.");
+      + H.check("In ♭II⁶, which chord tone is in the bass?", "the 3rd (4̂)", ["the root (♭2̂)", "the 5th (♭6̂)", "the leading tone"], "First inversion: the 3rd of the chord, 4̂ of the key, is in the bass.");
     } },
     { title: "Where it goes", kick: "To the dominant", keyed: "both", defKey: "A", render: (H, k, U) => {
       const n6 = N(H, k, 1), V = H.diat(k, 5), I = H.diat(k, 1), i64 = H.diat(k, 1, false, 2), lt = lt5(H, k), t = T(k);

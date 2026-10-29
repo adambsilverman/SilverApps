@@ -165,7 +165,9 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
-- **2026-10-29 (z5)** — Understanding Chromatic Chords: new step 7, **The Mercury third** (a term by Adam Silverman for a minor tonic arriving in a major-key context, from the end of the chorus of Queen's *We Are the Champions*: ♭VII⁶ – ♭III – i), with an original example progression in any major key and a quick check. The Picardy-third step now points to it. Degree circles (°) enlarged again.
+- **2026-10-29 (z6)** — Neapolitan: every example and drill uses ♭II⁶ (root position ♭II only appears as a wrong answer). Voicing: the 3rd (4̂) in the bass, the right hand plays root and 5th with one of them doubled (the 3rd is not doubled); lesson text, reference, key ideas and the “How it's used” question changed to match. The first two Neapolitan figures now show i – ♭II⁶ – V⁷ – i.
+
+- **2026-10-29 (z5)** — Understanding Chromatic Chords: new step 7, **The Mercury third** (a term by Adam Silverman for a minor tonic arriving in a major-key context, from the end of the chorus of Queen's *We Are the Champions*: ♭VII⁶ – ♭III – i), using the actual chords at the end of the chorus in F major (F – E♭9(♯11)/G – A♭6 – B♭ – C7(sus4) – Fm), and a quick check. The Picardy-third step now points to it. Degree circles (°) enlarged again.
 
 - **2026-10-29 (z4)** — Secondary Function Chords: half-diminished secondary pre-dominants (iiø⁷/x) only tonicize **minor** chords; major targets get ii/x or ii⁷/x (minor or m7). Drills, examples, tables and the reference follow this; the lesson's “Find the target” step now uses IV (major keys) / VI (minor keys) as the target so all three chord types are chromatic. Lesson examples now start on the tonic and end with V–I (the “Examples” and “Find the target” figures), so the home key is heard and seen. Drill progressions (“On the staff”) always end with a cadence: authentic V⁷–I (about 2 in 3) or a half cadence on V⁷ (never a plain V); lesson examples end V⁷–I.
 
