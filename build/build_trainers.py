@@ -124,6 +124,10 @@ HARM = [
   ("Extended and Altered Chords Lesson.html", "extended-and-altered-chords-lesson.html", "extlesson", "Understanding Extended and Altered Chords"),
   ("Modulation Lesson.html", "modulation-lesson.html", "modlesson", "Understanding Modulation"),
   ("Rhythm Notation Lesson.html", "rhythm-notation-lesson.html", "rhythmlesson", "Understanding Rhythm Notation"),
+  ("Reading Pitch.html", "reading-pitch.html", "pitch", "Reading Pitch"),
+  ("Reading Pitch Lesson.html", "reading-pitch-lesson.html", "pitch-lesson", "Understanding Clefs and Pitch Reading"),
+  ("Note Values.html", "note-values.html", "notevalues", "Note Values and Rhythm"),
+  ("Note Values Lesson.html", "note-values-lesson.html", "notevalues-lesson", "Understanding Note Values and Rhythm"),
   ("Harmonic Succession Lesson.html", "harmonic-succession-lesson.html", "harmsucc-lesson", "Understanding Harmonic Succession"),
 ]
 APPS += [dict(src=a, out=b, id=c, name=d, labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",

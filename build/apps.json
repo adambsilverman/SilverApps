@@ -7,6 +7,14 @@
       "color": "red",
       "topics": [
         {
+          "name": "Reading Pitch",
+          "topic": "Clefs & staff",
+          "blurb": "Treble, bass, alto, tenor and grand staff, with memory devices and clef history.",
+          "lesson": "reading-pitch-lesson.html",
+          "drills": "reading-pitch.html",
+          "class": true
+        },
+        {
           "name": "Intervals: What, Why and How",
           "topic": "Intervals",
           "blurb": "What intervals are and how they shape melody, chords and keys.",
@@ -159,6 +167,14 @@
       "title": "Rhythm",
       "color": "red",
       "topics": [
+        {
+          "name": "Note Values and Rhythm",
+          "topic": "Rhythm & meter",
+          "blurb": "Note and rest values, dots, ties, meter, triplets and other tuplets.",
+          "lesson": "note-values-lesson.html",
+          "drills": "note-values.html",
+          "class": true
+        },
         {
           "name": "Rhythm Notation",
           "topic": "Rhythm & meter",

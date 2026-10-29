@@ -874,9 +874,9 @@ window.FAM = (() => {
   function drawScore(el, o) {
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
-    const rest = { treble: "b/4", bass: "d/3", percussion: "b/4" };
+    const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.includes("d") ? 8 : 0) + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
-    const barW = bar => Math.max(70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    const barW = bar => Math.max(o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
     const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
     const MAXW = o.rowW || 680, rows = [];
     let cur = [], w = 0;
@@ -902,12 +902,13 @@ window.FAM = (() => {
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
         if (clefs.length > 1) { const types = j === 0 ? ["brace", "singleLeft"] : []; if (j === row.length - 1) types.push(bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight"); else types.push("singleRight"); types.forEach(t => { const c = new VF.StaveConnector(staves[0], staves[1]); c.setType(t); st(c); c.setContext(ctx).draw(); }); }
         const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
-        const vlist = [], beams = [];
+        const vlist = [], beams = [], tuplets = [];
         clefs.forEach((c, si) => {
           const id = ids[si], vs = bar[id] || [], acc = {};
           vs.forEach((voice, vi) => {
             const stem = vs.length > 1 ? (vi ? -1 : 1) : 0;
             const notes = voice.map(n => {
+              if (n.ghost) { const gn = new VF.GhostNote({ duration: n.d }); last[si + ":" + vi] = null; return gn; }   // invisible placeholder
               const isRest = !n.k.length;
               const keys = isRest ? [rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
               const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest });
@@ -917,7 +918,7 @@ window.FAM = (() => {
                 if (cur !== y.p.a && !tiedIn) sn.addModifier(new VF.Accidental(VFACC[y.p.a]), ki);
                 acc[kk] = y.p.a;
               });
-              if (n.d.includes("d")) VF.Dot.buildAndAttach([sn], { all: true });
+              for (let dd = (n.d.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
               const L = last[si + ":" + vi];
               if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length });
@@ -925,6 +926,8 @@ window.FAM = (() => {
               meta.push({ sn, n, si, ri, staves });
               return sn;
             });
+            const tg = {}; voice.forEach((n, i) => { if (n.tu) (tg[n.tu] = tg[n.tu] || []).push(i); });   // tuplets: notes sharing n.tu; n.tun notes in the time of n.tuo
+            Object.values(tg).forEach(ix => { const n0 = voice[ix[0]]; tuplets.push(new VF.Tuplet(ix.map(i => notes[i]), { num_notes: n0.tun || ix.length, notes_occupied: n0.tuo || 2, bracketed: true })); });
             const v = new VF.Voice({ num_beats: +time.split("/")[0], beat_value: +time.split("/")[1] }).setMode(VF.Voice.Mode.SOFT).addTickables(notes);
             vlist.push({ v, s: staves[si], si });
             if (c !== "percussion" || true) { try { const bm = VF.Beam.generateBeams(notes, Object.assign({ groups: VF.Beam.getDefaultBeamGroups(time) }, stem ? { stem_direction: stem } : {})); beams.push(...bm); } catch (e) {} }
@@ -935,6 +938,7 @@ window.FAM = (() => {
         if (vlist.length) fmt.format(vlist.map(x => x.v), Math.max(20, staves[0].getNoteEndX() - startX - 12));
         vlist.forEach(x => x.v.draw(ctx, x.s));
         beams.forEach(b => { st(b); b.setContext(ctx).draw(); });
+        tuplets.forEach(t => { st(t); t.setContext(ctx).draw(); });
         rowStaves.push(staves);
         x += bw;
       });
@@ -968,7 +972,7 @@ window.FAM = (() => {
     let vb = `0 0 ${totalW} ${rows.length * rowH}`;
     try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
     svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
-    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.maxWidth = Math.round(Math.min(totalW, MAXW + 20) * 1.25) + "px";
+    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.maxWidth = Math.round(Math.min(totalW, MAXW + 20) * (o.scale || 1.25)) + "px"; svg.style.display = "block"; svg.style.margin = "0 auto";
     svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
     svg.setAttribute("aria-label", o.label || describeScore(o));
   }
@@ -988,7 +992,7 @@ window.FAM = (() => {
       o.bars.forEach(b => {
         const voice = (b[id] || [])[vi]; t = barStart;
         if (voice) voice.forEach(n => {
-          const d = durOf(n.d) * spb;
+          const d = durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1) * spb;
           if (n.k.length) {
             if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
             else { const evs = n.k.map(s => [perc ? 76 : midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length)]); ev.push(...evs); held = { k: n.k.join(), evs }; }
@@ -996,7 +1000,7 @@ window.FAM = (() => {
           } else held = null;
           t += d;
         });
-        barStart += Math.max(...ids.map(id2 => Math.max(0, ...((b[id2] || []).map(v => v.reduce((s, n) => s + durOf(n.d), 0)))))) * spb;
+        barStart += Math.max(...ids.map(id2 => Math.max(0, ...((b[id2] || []).map(v => v.reduce((s, n) => s + durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1), 0)))))) * spb;
       });
     } });
     return { ev, timbre: o.timbre };
