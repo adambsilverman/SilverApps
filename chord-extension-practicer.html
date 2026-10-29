@@ -83,6 +83,8 @@ button { cursor: pointer; }
 .sym { font-family: var(--display); font-weight: 800; line-height: 1; display: inline-flex; align-items: center; white-space: nowrap; }
 .sym-big { font-size: clamp(3.4rem, 15vw, 5.6rem); }
 .sym-q { font-weight: 600; font-size: .78em; margin-left: .02em; }
+.sym-acc { font-family: var(--fi-music, "Noto Music", serif); font-weight: 400; font-size: .74em; line-height: 1; letter-spacing: 0; margin: 0 -.04em 0 -.02em; position: relative; top: -.22em; }
+.sym-alts .sym-acc, .sym-q .sym-acc { font-size: .8em; margin: 0 -.03em; top: -.1em; }
 .sym-alts { display: inline-flex; align-items: center; font-weight: 600; margin-left: .06em; }
 .sym-alts .paren { font-size: .9em; font-weight: 600; }
 .sym-alts .stack { display: inline-flex; flex-direction: column; align-items: center; font-size: .4em; line-height: 1.05; }
@@ -425,9 +427,9 @@ details.panel[open] summary::after { content: "−"; }
     if (m) { base = m[1]; alts = m[2].split(","); }
     let h = `<span class="sym ${cls}" role="img" aria-label="${esc(speakSym(symText(q)))}"><span>${nName(q.root)}</span><span class="sym-q">${prettyAcc(base)}</span>`;
     if (alts) {
-      h += `<span class="sym-alts"><span class="stack one">(${alts.map(prettyAcc).join("/")})</span></span>`;
+      h += `<span class="sym-alts"><span class="stack one"><span>(${alts.map(prettyAcc).join("/")})</span></span></span>`;
     }
-    return h + "</span>";
+    return h.replace(/(<span[^>]*>)|([♭♯𝄫𝄪])/gu, (m, tag, a) => tag || `<span class="sym-acc">${a}</span>`) + "</span>";
   }
 
   // ---------- Staff (VexFlow) ----------

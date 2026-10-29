@@ -353,6 +353,7 @@ window.FAM = (() => {
     { id: "M3", name: "touch-M3 harmonic", short: "touch-M3", touch: [2, 4], sound: [16, 28], what: "sounds two octaves plus a M3 above the string" },
     { id: "m3", name: "touch-m3 harmonic", short: "touch-m3", touch: [2, 3], sound: [18, 31], what: "sounds two octaves plus a P5 above the string" },
   ];
+  const ART = { vn: ["A3", "D5"], va: ["D3", "G4"], vc: ["D3", "A4"] };   // lowest / highest stopped note for touch-P4 artificial harmonics
   const clefName = c => ({ treble: "Treble", alto: "Alto", bass: "Bass", tenor: "Tenor" })[c];
 
   const FACTS = [
@@ -442,9 +443,11 @@ window.FAM = (() => {
   function harmQ(H) {
     const art = Math.random() < .3;
     if (art) {
-      const x = H.rnd(INS.slice(0, 3)), lo = H.parse(x.s[3]).step + 1, hi = H.parse(x.s[0]).step + 3;
+      // Playable stopped notes for a touch-P4 artificial harmonic (the hand must reach a P4 between stopping and touching finger):
+      // violin and viola from a step above the lowest open string; cello only in thumb position (from D3). Top kept to practical sounding pitches.
+      const x = H.rnd(INS.slice(0, 3)), lo = H.parse(ART[x.id][0]).step, hi = H.parse(ART[x.id][1]).step;
       let stopped;
-      for (let k = 0; k < 50; k++) { stopped = H.mk(lo + Math.floor(Math.random() * (hi - lo)), Math.random() < .25 ? H.rnd([-1, 1]) : 0); if (H.okNote(stopped) && H.okNote(H.up(stopped, 3, 5))) break; }
+      for (let k = 0; k < 200; k++) { stopped = H.mk(lo + Math.floor(Math.random() * (hi - lo + 1)), Math.random() < .25 ? H.rnd([-1, 1]) : 0); const m = H.midi(stopped); if (H.okNote(stopped) && H.okNote(H.up(stopped, 3, 5)) && m > H.midi(H.parse(x.s[3])) && m <= H.midi(H.parse(ART[x.id][1]))) break; }
       const touched = H.up(stopped, 3, 5), sounds = H.up(stopped, 14, 24);
             const clef = x.clef === "bass" && touched.step > 33 ? "tenor" : x.clef;
       return H.mc(`Artificial harmonic on the ${x.name.toLowerCase()}: the normal note is stopped and the diamond lightly touched. What pitch sounds?`, H.nm(sounds), [],
@@ -452,7 +455,8 @@ window.FAM = (() => {
         { big: x.name, kicker: "Artificial harmonic", topic: "harm", picker: { octaves: [2, 3, 4, 5, 6, 7] }, staff: { clef, groups: [[{ n: stopped }, { n: touched, head: "diamond" }]], label: `${clefName(clef)} clef: stopped note ${H.nmSpoken(stopped)} with a diamond notehead a perfect fourth above, ${H.nmSpoken(touched)}.` }, play: { m: H.midi(sounds), pure: true }, playLabel: "Play the harmonic" });
     }
     const x = H.rnd(INS.slice(0, 3)), i = Math.floor(Math.random() * 4), open = H.parse(x.s[i]);
-    const h = H.rnd(HARM), touched = H.up(open, ...h.touch), sounds = H.up(open, ...h.sound);
+    // touch-M3 and touch-m3 (5th and 6th partials) aren't practical on the violin's and viola's top string: they would sound around G♯7–B7
+    const h = H.rnd(HARM.filter(k => !(i === 0 && x.id !== "vc" && (k.id === "M3" || k.id === "m3")))), touched = H.up(open, ...h.touch), sounds = H.up(open, ...h.sound);
         const staff = { clef: x.clef, notes: [{ n: touched, head: h.circle ? "normal" : "diamond", circle: h.circle }], label: `${clefName(x.clef)} clef, ${h.circle ? "note with a circle above" : "diamond notehead"} at ${H.nmSpoken(touched)}, on string ${ROM[i]} (${x.s[i][0]}).` };
     if (Math.random() < .3) {
       return H.mc(`On the ${x.name.toLowerCase()}'s ${x.s[i][0]} string (${ROM[i]}), which natural harmonic sounds ${H.nm(sounds)}?`, h.short, HARM.map(k => k.short),
@@ -546,7 +550,7 @@ window.FAM = (() => {
       sn.setStyle({ fillStyle: ink, strokeStyle: ink });
       if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
       ns.forEach((x, i) => {
-        if (x.n.a !== 0) sn.addModifier(new VF.Accidental(GLYPH[x.n.a]), i);
+        if (x.n.a !== 0) { const acc = new VF.Accidental(GLYPH[x.n.a]); acc.setStyle({ fillStyle: ink, strokeStyle: ink }); sn.addModifier(acc, i); }   // own style: a hidden (diamond) notehead must not hide its accidental
         if (x.head === "diamond") sn.setKeyStyle(i, { fillStyle: "rgba(0,0,0,0)", strokeStyle: "rgba(0,0,0,0)" });
       });
       if (ns.some(x => x.circle)) sn.addModifier(new VF.Annotation("o").setVerticalJustification(1), 0);

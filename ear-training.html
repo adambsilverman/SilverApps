@@ -58,6 +58,7 @@
 .dots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .dots span{min-width:52px;padding:8px 6px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);font:700 17px var(--fi-serif);text-align:center}
 .dots span i{display:block;font:700 12px var(--fi-ui);font-style:normal;color:var(--fi-muted)}
+.dots .clue,.dots b{font:inherit}.dots:not(.clues) .clue,.dots.clues .nclue{display:none}.dots .nclue{color:var(--fi-muted)}
 .dots span.cur{outline:3px solid var(--fi-navy);outline-offset:2px}
 .dots span.ok{background:var(--fi-green)} .dots span.no{background:var(--fi-red-pale)}
 .opts2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%}
@@ -87,6 +88,7 @@ fieldset.clefs{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 1
 .settings2{display:flex;flex-wrap:wrap;gap:14px;align-items:end}
 .settings2 select{width:100%}
 #card>*{min-width:0}
+label.f2.chk{display:flex;align-items:center;gap:8px;min-height:44px;font:16px var(--fi-serif);text-transform:none;letter-spacing:0}label.f2.chk input{width:20px;height:20px;accent-color:var(--fi-ink)}
 label.f2{min-width:0;max-width:100%;flex:0 1 auto;display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
 select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
 .micstat{font:600 15px var(--fi-serif);color:var(--fi-muted)}
@@ -99,7 +101,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   <header class="lesson-head">
     <h1>Ear <span>Training</span></h1>
     <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. Use headphones so the microphone hears only you.</p>
-    <p class="ver">Version: Oct 28, 2026, 4:55 PM. If you don't see the Clefs checkboxes in Sing patterns, you have an older copy: reload the page.</p>
+    <p class="ver">Version: Oct 29, 2026. If you don't see the “Show solfège” checkbox in Sing patterns, you have an older copy: reload the page.</p>
   </header>
   <nav class="tabs" aria-label="Exercise" id="tabs">
     <button type="button" data-t="sing" aria-pressed="true"><b>Sing intervals</b><small>above a given note</small></button>
@@ -129,7 +131,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const say = s => s.replace("♯", " sharp").replace("♭", " flat");
 
   // ---------- state & settings ----------
-  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none" };
+  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none", clues: false };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-ear") || "{}")); } catch (e) {}
   if (!Array.isArray(S.clefs) || !S.clefs.length) S.clefs = ["treble"];
   S.chords = { sevenths: "usual7", both: "triUsual" }[S.chords] || S.chords;
@@ -187,12 +189,15 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   let curTol = 0.4;
   function listen(targets, onProgress, onDone, opt = {}) {
     const tol = opt.tol || 0.4, need = opt.hold || 0.35, stuck = opt.stuck || 0, forgiving = !!opt.forgiving;
-    stopListen(); listening = true; curTol = tol; let i = 0, hold = 0, wait = 0, last = performance.now(); const recent = [], missed = [];
-    const advance = miss => { if (miss) { missed.push(i); if (opt.onMiss) opt.onMiss(i); } i++; hold = 0; wait = 0; recent.length = 0; if (i >= targets.length) { listening = false; onDone(missed); return true; } onProgress(i, null, null); return false; };
+    stopListen(); listening = true; curTol = tol; let i = 0, hold = 0, wait = 0, gate = 0, needBreak = false, last = performance.now(); const recent = [], missed = [];
+    const pc = x => ((Math.round(x) % 12) + 12) % 12;
+    const advance = miss => { if (miss) { missed.push(i); if (opt.onMiss) opt.onMiss(i); } i++; hold = 0; wait = 0; recent.length = 0; gate = opt.gap || 0; needBreak = !!opt.gap && i < targets.length && pc(targets[i]) === pc(targets[i - 1]); if (i >= targets.length) { listening = false; onDone(missed); return true; } onProgress(i, null, null); return false; };
     const step = now => {
       if (!listening) return;
       const dt = Math.min(.1, (now - last) / 1000); last = now; wait += dt;
       let m = detect();
+      if (gate > 0) { gate -= dt; m = null; }                       // short pause after each matched note: the held note can't count for the next one
+      if (needBreak) { if (m == null || level < -55) needBreak = false; else m = null; }   // a repeated note must be sung again
       if (m != null) { recent.push(m); if (recent.length > 5) recent.shift();
         if (forgiving) { const srt = recent.slice().sort((a, b) => a - b); m = recent.length >= 3 && srt[srt.length - 1] - srt[0] < 1 ? srt[srt.length >> 1] : null; }   // only steady readings count
       } else if (forgiving && recent.length) recent.shift();
@@ -200,8 +205,8 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
         const diff = ((m - targets[i] + 6) % 12 + 12) % 12 - 6;   // octave-equivalent distance in semitones
         onProgress(i, m, diff);
         if (Math.abs(diff) < tol) { hold += dt; if (hold > need && advance(false)) return; }
-        else if (!forgiving) hold = Math.max(0, hold - dt);
-      } else { if (!forgiving) hold = Math.max(0, hold - dt * 2); onProgress(i, null, null); }
+        else hold = Math.max(0, hold - dt * (forgiving ? 1 : 1));
+      } else { hold = Math.max(0, hold - dt * (forgiving ? .5 : 2)); onProgress(i, null, null); }
       if (stuck && wait > stuck && advance(true)) return;
       raf = requestAnimationFrame(step);
     };
@@ -284,7 +289,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   // [name, intervals above the root, symbol (on C)]
   const TRI = [["Major", [0, 4, 7], "C"], ["Minor", [0, 3, 7], "Cm"], ["Diminished", [0, 3, 6], "C°"], ["Augmented", [0, 4, 8], "C+"]];
   const SEV = [["Dominant 7th", [0, 4, 7, 10], "C7"], ["Major 7th", [0, 4, 7, 11], "C△7"], ["Minor 7th", [0, 3, 7, 10], "Cm7"], ["Half-diminished 7th", [0, 3, 6, 10], "Cø7"], ["Diminished 7th", [0, 3, 6, 9], "C°7"]];
-  const SEV_MORE = [["Minor-major 7th", [0, 3, 7, 11], "Cm(△7)"], ["Augmented 7th", [0, 4, 8, 10], "C+7"], ["Augmented-major 7th", [0, 4, 8, 11], "C+△7"], ["Dominant 7th ♭5", [0, 4, 6, 10], "C7(♭5)"], ["Diminished-major 7th", [0, 3, 6, 11], "C°(△7)"]];
+  const SEV_MORE = [["Minor-major 7th", [0, 3, 7, 11], "Cm(△7)"], ["Augmented 7th", [0, 4, 8, 10], "C+7"], ["Augmented-major 7th", [0, 4, 8, 11], "C+△7"], ["Diminished-major 7th", [0, 3, 6, 11], "C°(△7)"]];
   // Extended chords, voiced from the root (9 = 14, 11 = 17, 13 = 21 half steps; some 5ths/11ths left out, as players usually do).
   const EXT = [["Dominant 9th", [0, 4, 7, 10, 14], "C9"], ["Major 9th", [0, 4, 7, 11, 14], "C△9"], ["Minor 9th", [0, 3, 7, 10, 14], "Cm9"], ["Dominant 11th", [0, 7, 10, 14, 17], "C11"],
     ["Minor 11th", [0, 3, 7, 10, 14, 17], "Cm11"], ["Dominant 13th", [0, 4, 10, 14, 21], "C13"], ["Major 13th", [0, 4, 11, 14, 21], "C△13"], ["Minor 13th", [0, 3, 10, 14, 21], "Cm13"]];
@@ -295,7 +300,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const WHY = { Major: "major 3rd + minor 3rd: bright", Minor: "minor 3rd + major 3rd: dark", Diminished: "two minor 3rds: tense, unstable", Augmented: "two major 3rds: dreamy, unresolved",
     "Dominant 7th": "major triad + minor 7th: wants to resolve", "Major 7th": "major triad + major 7th: lush", "Minor 7th": "minor triad + minor 7th: mellow", "Half-diminished 7th": "diminished triad + minor 7th", "Diminished 7th": "three minor 3rds: very tense",
     "Minor-major 7th": "minor triad + major 7th: dark and mysterious", "Augmented 7th": "augmented triad + minor 7th: a dominant with a raised 5th", "Augmented-major 7th": "augmented triad + major 7th: bright and unsettled",
-    "Dominant 7th ♭5": "major 3rd, diminished 5th, minor 7th: a dominant with a lowered 5th", "Diminished-major 7th": "diminished triad + major 7th: harsh and rare",
+    "Diminished-major 7th": "diminished triad + major 7th: harsh and rare",
     "Dominant 9th": "dominant 7th + major 9th", "Major 9th": "major 7th chord + major 9th: soft and open", "Minor 9th": "minor 7th chord + major 9th: smooth", "Dominant 11th": "dominant 9th + 11th, usually without the 3rd: a suspended sound",
     "Minor 11th": "minor 9th + perfect 11th: wide and modal", "Dominant 13th": "dominant 7th + 9th + 13th: bright and bluesy", "Major 13th": "major 7th chord + 9th + 13th: lush", "Minor 13th": "minor 7th chord + 9th + 13th: Dorian color",
     "7♭9": "dominant 7th + minor 9th: dark, pulls hard to a minor tonic", "7♯9": "dominant 7th + augmented 9th: the major 3rd and the ‘minor 3rd’ clash", "9♯11": "dominant 9th + augmented 11th: Lydian dominant",
@@ -409,8 +414,8 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     PT.ks = ks; PT.sigAcc = sigAcc;
     if (!dict) {
       $("prompt").innerHTML = `<p class="ask">Sing this pattern<small>Key: ${PT.keyName}, ${PT.clefName}. Hear the tonic chord, then sing each note (any octave).</small></p>
-        <div class="vf" id="ptStaff"></div><div class="dots" id="ptDots">${degs.map((d, i) => `<span data-i="${i}">${degSolf(d)}<i>${degLabel(d)}</i></span>`).join("")}</div>${meterHTML}`;
-      staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, label: `${PT.clefName[0].toUpperCase() + PT.clefName.slice(1)}, key of ${PT.keyName}: ${degs.map(degSolf).join(", ")}.` });
+        <div class="vf" id="ptStaff"></div><div class="dots${S.clues ? " clues" : ""}" id="ptDots">${degs.map((d, i) => `<span data-i="${i}"><b class="clue">${degSolf(d)}</b><i class="clue">${degLabel(d)}</i><b class="nclue" aria-hidden="true">♪</b><i class="nclue" aria-hidden="true">&nbsp;</i></span>`).join("")}</div>${meterHTML}`;
+      staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, label: `${PT.clefName[0].toUpperCase() + PT.clefName.slice(1)}, key of ${PT.keyName}: ${S.clues ? degs.map(degSolf).join(", ") : notes.map(n => LET[n.l] + ({ "-1": " flat", "1": " sharp" }[n.a] || "")).join(", ")}.` });
       $("ctrls").innerHTML = `<button class="lbtn primary" id="ptGo" type="button">🎤 Try again</button><button class="lbtn" id="ptRef" type="button">▶ Tonic chord</button><button class="lbtn" id="ptHear" type="button">▶ Hear the pattern</button><button class="lbtn" id="ptNext" type="button">Next ›</button>`;
       $("ptRef").onclick = () => play(refEvents(ctx));
       $("ptHear").onclick = () => { if (!PT.done) { PT.done = true; PT.heard = true; } play(refEvents(ctx).concat(seqEv(ms, .6, .55, 2.3))); };
@@ -418,7 +423,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
         const miss = new Set();
         trial(refEvents(ctx), ms, (i, m, d) => { dots.forEach((x, k) => { x.classList.toggle("cur", k === i); x.classList.toggle("ok", k < i && !miss.has(k)); x.classList.toggle("no", miss.has(k)); }); showMeter(m, d); },
           missed => { missed.forEach(k => miss.add(k)); dots.forEach((x, k) => { x.classList.remove("cur"); x.classList.toggle("ok", !miss.has(k)); x.classList.toggle("no", miss.has(k)); }); patDone(missed.length <= (ms.length >= 4 ? 1 : 0), ms.length - missed.length, ms.length); },
-          patSelf, { tol: 0.8, hold: 0.12, stuck: 4, forgiving: true, onMiss: k => miss.add(k) }); };
+          patSelf, { tol: 0.5, hold: 0.3, gap: 0.3, stuck: 6, forgiving: true, onMiss: k => miss.add(k) }); };
       $("ptNext").onclick = () => { stopListen(); patNew(false); };
       $("ptGo").click();
     } else dictation(ctx, degs, ms, notes, ks, sigAcc);
@@ -511,6 +516,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   }
   function patDone(ok, got, n) {
     if (PT.done && !PT.heard) return; const wasHeard = PT.heard; PT.done = true;
+    const dd = $("ptDots"); if (dd && !PT.dict) dd.classList.add("clues");   // show the syllables once the pattern is finished
     if (!wasHeard) record(`Sing patterns · ${S.len} notes`, ok);
     const tally = n != null && got < n ? ` (${got} of ${n} notes matched; red ones were skipped after a few seconds)` : "";
     $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = (ok ? (wasHeard ? "Matched (after hearing it first)." : got != null && got < n ? "Good!" : "Yes! Every note matched.") : "Not this time.") + tally;
@@ -525,13 +531,14 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const SET = {
     sing: () => `<label class="f2" for="sIv">Intervals<select id="sIv">${[["easy", "Common (M2, M3, P4, P5, P8)"], ["steps", "2nds"], ["thirds", "3rds"], ["p", "4ths, 5ths, octaves"], ["six", "6ths"], ["seven", "7ths"], ["all", "All"]].map(([v, t]) => `<option value="${v}" ${S.ivs === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sVo">Your voice<select id="sVo"><option value="high" ${S.voice === "high" ? "selected" : ""}>Higher (treble)</option><option value="low" ${S.voice === "low" ? "selected" : ""}>Lower (bass)</option></select></label>`,
-    chord: () => `<label class="f2" for="sCh">Chords<select id="sCh">${[["triads", "Triads (M, m, °, +)"], ["usual7", "Usual 7th chords (7, △7, m7, ø7, °7)"], ["all7", "All 7th chords (adds m△7, +7, +△7, 7♭5, °△7)"], ["triUsual", "Triads + usual 7ths"], ["triAll", "Triads + all 7ths"], ["ext", "Extended chords (9, 11, 13)"], ["extAlt", "Extended chords with alterations (♭9, ♯9, ♯11, ♭13)"], ["extAll", "All extended chords"]].map(([v, t]) => `<option value="${v}" ${S.chords === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+    chord: () => `<label class="f2" for="sCh">Chords<select id="sCh">${[["triads", "Triads (M, m, °, +)"], ["usual7", "Usual 7th chords (7, △7, m7, ø7, °7)"], ["all7", "All 7th chords (adds m△7, +7, +△7, °△7)"], ["triUsual", "Triads + usual 7ths"], ["triAll", "Triads + all 7ths"], ["ext", "Extended chords (9, 11, 13)"], ["extAlt", "Extended chords with alterations (♭9, ♯9, ♯11, ♭13)"], ["extAll", "All extended chords"]].map(([v, t]) => `<option value="${v}" ${S.chords === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sCp">Play first as<select id="sCp"><option value="block" ${S.chordPlay === "block" ? "selected" : ""}>Block chord</option><option value="arp" ${S.chordPlay === "arp" ? "selected" : ""}>Broken chord</option></select></label>`,
     pat: () => patSet(), dict: () => patSet(),
   };
   const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sChr">Chromatic notes<select id="sChr">${[["none", "None"], ["step", "Stepwise (passing, neighbor)"], ["leap", "Approached by leap"], ["both", "Both kinds"]].map(([v, t]) => `<option value="${v}" ${S.chrom === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<fieldset class="f2 clefs"><legend>Clefs</legend>${["treble", "alto", "tenor", "bass"].map(c => `<label><input type="checkbox" id="clef-${c}" ${S.clefs.includes(c) ? "checked" : ""}> ${c[0].toUpperCase() + c.slice(1)}</label>`).join("")}</fieldset><label class="f2" for="sLen">Notes<select id="sLen">${[3, 4, 5, 6].map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>
       <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      ${S.tab === "pat" ? `<label class="f2 chk" for="sClu"><input type="checkbox" id="sClu" ${S.clues ? "checked" : ""}> Show solfège under the notes</label>` : ""}
       <label class="f2" for="sSt">Start on<select id="sSt"><option value="tonic" ${S.start === "tonic" ? "selected" : ""}>The tonic</option><option value="any" ${S.start === "any" ? "selected" : ""}>Any scale degree</option></select></label>`;
   const START = { sing: singNew, chord: chordNew, pat: () => patNew(false), dict: () => patNew(true) };
   function setTab(t, startNow) {
@@ -539,7 +546,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     document.querySelectorAll("#tabs [data-t]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
     $("settings").innerHTML = SET[t]();
     $("settings").onchange = e => { const id = e.target.id, v = e.target.value;
-      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; save(); START[S.tab](); };
+      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; save(); START[S.tab](); };
     $("mic").textContent = (t === "sing" || t === "pat") ? (mic ? "Microphone on." : "The app will ask to use your microphone. Any octave counts, so sing where it's comfortable.") : "";
     if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
   }

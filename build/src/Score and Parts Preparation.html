@@ -433,7 +433,7 @@ window.FAM = (() => {
       sn.setStyle({ fillStyle: ink, strokeStyle: ink });
       if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
       ns.forEach((x, i) => {
-        if (x.n.a !== 0) sn.addModifier(new VF.Accidental(GLYPH[x.n.a]), i);
+        if (x.n.a !== 0) { const acc = new VF.Accidental(GLYPH[x.n.a]); acc.setStyle({ fillStyle: ink, strokeStyle: ink }); sn.addModifier(acc, i); }   // own style: a hidden (diamond) notehead must not hide its accidental
         if (x.head === "diamond") sn.setKeyStyle(i, { fillStyle: "rgba(0,0,0,0)", strokeStyle: "rgba(0,0,0,0)" });
       });
       if (ns.some(x => x.circle)) sn.addModifier(new VF.Annotation("o").setVerticalJustification(1), 0);

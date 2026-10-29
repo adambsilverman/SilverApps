@@ -217,7 +217,7 @@
   }
   function hostSend() {
     H.cfg = A.getConfig(); H.seed = (Math.random() * 2 ** 32) >>> 0; H.qn++; H.label = A.label(H.cfg);
-    H.answers = new Map(); H.limit = H.secs * 1000; H.deadline = H.secs ? Date.now() + H.limit : null; H.phase = "q";
+    H.timeUp = false; H.answers = new Map(); H.limit = H.secs * 1000; H.deadline = H.secs ? Date.now() + H.limit : null; H.phase = "q";
     seeded(H.seed, () => A.load(H.cfg));
     document.body.classList.add("lc-q"); lockCard(true, true);
     publish(); hostQPanel();
@@ -242,6 +242,7 @@
   }
   function hostReveal(timeUp) {
     if (!H || H.phase !== "q") return;
+    timeUp = timeUp || H.timeUp;
     let c = 0; H.answers.forEach(ok => { if (ok) c++; });
     const n = H.answers.size;
     H.results.push({ qn: H.qn, label: H.label, pct: n ? c / n * 100 : 0, n, timeUp: !!timeUp });
@@ -249,7 +250,7 @@
     document.body.classList.remove("lc-q"); lockCard(false);
     A.showAnswer(); lockCard(true, true);
     publish();
-    const r = H.results[H.results.length - 1], g = pctR(r.pct);
+    const r = H.results[H.results.length - 1], g = pctR(r.pct); H.timeUp = false;
     el.innerHTML = `<div class="lc-panel"><p class="lc-label">${timeUp ? "Time's up · " : ""}Question ${H.qn} · class results</p>
       ${r.n ? `<div class="lc-pcts"><div class="g"><div class="n">${g}%</div><small>got it</small></div><div class="b"><div class="n">${100 - g}%</div><small>not yet</small></div></div>${bars(r.pct, r.n)}<p class="lc-sub">${r.n} answer${r.n === 1 ? "" : "s"}</p>` : ""}
       <div class="lc-msg"><h3>${esc(classMsg(r.pct, r.n))}</h3><p>The answer is shown in the trainer below.</p></div>${goalHTML(classStats())}
@@ -399,21 +400,30 @@
     if (!S.deadline) { w.hidden = true; return; }
     w.hidden = false;
     const left = Math.max(0, S.deadline - Date.now());
-    q$("[data-sclock]").textContent = fmtT(left);
+    q$("[data-sclock]").textContent = left <= 0 ? "Time's up" : fmtT(left);
     q$("[data-sclock]").classList.toggle("low", left <= 5000);
     q$("[data-sbar]").style.width = (S.limit ? left / S.limit * 100 : 0) + "%";
     q$("[data-sbar]").parentNode.classList.toggle("low", left <= 5000);
     const sec = Math.ceil(left / 1000);
     if ((sec === 10 || sec === 5) && S.warned !== sec + ":" + S.qn) { S.warned = sec + ":" + S.qn; announce(`${sec} seconds left`, true); }
-    if (left <= 0 && S.mine[S.qn] == null && !S.timedOut) { S.timedOut = S.qn; lockCard(true); }
+    if (left <= 0 && S.mine[S.qn] == null && S.timedOut !== S.qn) { S.timedOut = S.qn; lockCard(true); announce("Time's up. Your professor will show the answer.", true); }
   }
   function tick() {
     clock();
     if (!H || H.phase !== "q" || !H.deadline) return;
     const left = H.deadline - Date.now();
-    const t = q$("[data-timer]"); if (t) { t.textContent = fmtT(Math.max(0, left)); t.classList.toggle("low", left <= 5000); }
+    const t = q$("[data-timer]"); if (t) { t.textContent = left <= 0 ? "Time's up" : fmtT(left); t.classList.toggle("low", left <= 5000); }
     const b = q$("[data-tbar]"); if (b) { b.style.width = Math.max(0, left / H.limit * 100) + "%"; b.parentNode.classList.toggle("low", left <= 5000); }
-    if (left <= 0) hostReveal(true);
+    if (left <= 0 && !H.timeUp) hostTimeUp();
+  }
+  // Time's up: answering closes on student devices, but the answer is only shown when the professor clicks.
+  function hostTimeUp() {
+    H.timeUp = true;
+    const t = q$("[data-timer]"); if (t) { t.textContent = "Time's up"; t.classList.add("low"); }
+    const more = q$('[data-a="more"]'); if (more) more.hidden = true;
+    const stop = q$('[data-a="stop"]'); if (stop) { stop.textContent = "Show answer"; stop.focus({ preventScroll: true }); }
+    const lab = q$(".lc-panel .lc-label"); if (lab && !/Time's up/.test(lab.textContent)) lab.textContent = "Time's up · " + lab.textContent;
+    announce("Time's up. Click Show answer when the class is ready.");
   }
 
   /* ---- work ahead: the same trainer, privately, in an embedded frame ---- */

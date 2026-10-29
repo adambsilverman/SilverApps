@@ -248,7 +248,7 @@ input[type=number]{width:5.5em}
   }
 
   // ---------- grading ----------
-  const TOL = { relaxed: .13, normal: .09, strict: .055 };
+  const TOL = { relaxed: .17, normal: .12, strict: .075 };
   function finish() {
     const r = run; stopRun(); drawCount(-1); $("go").textContent = "▶ Perform it";
     if (geo) geo.head.setAttribute("opacity", 0);
@@ -262,7 +262,8 @@ input[type=number]{width:5.5em}
       used.add(best); const off = r.taps[best] - t;
       return { t, off, tap: r.taps[best], good: Math.abs(off) <= TOL[S.tol] };
     });
-    const extra = r.taps.filter((_, k) => !used.has(k)).filter(tp => tp > r.rs - .3);
+    const usedT = [...used].map(k => r.taps[k]);
+    const extra = r.taps.filter((_, k) => !used.has(k)).filter(tp => tp > r.rs - .3).filter(tp => !usedT.some(u => Math.abs(u - tp) < .09));   // ignore accidental double taps right next to a good one
     const good = res.filter(x => x.good).length, miss = res.filter(x => x.miss).length, offs = res.filter(x => !x.miss).map(x => x.off);
     const ok = good === res.length && extra.length === 0;
     if (window.SFX) SFX.play(ok);

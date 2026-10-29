@@ -1383,9 +1383,13 @@ function goalHTML(cs){
 function hostTick(){
   if (!H || H.phase !== 'q' || !H.deadline) return;
   const left = H.deadline - Date.now();
-  const el = $('[data-timer]'); if (el){ el.textContent = fmtT(Math.max(0,left)); el.classList.toggle('low', left <= 5000); }
+  const el = $('[data-timer]'); if (el){ el.textContent = left <= 0 ? 'Time’s up' : fmtT(left); el.classList.toggle('low', left <= 5000); }
   const b = $('[data-tbar]'); if (b){ b.style.width = Math.max(0, left / H.limit * 100) + '%'; b.parentNode.classList.toggle('low', left <= 5000); }
-  if (left <= 0) hostReveal(true);
+  if (left <= 0 && !H.timeUpQ){   // time's up: students can no longer answer; the professor clicks to show the answer
+    H.timeUpQ = true;
+    const more = $('[data-more]'); if (more) more.hidden = true;
+    const rv = $('[data-reveal]'); if (rv){ rv.textContent = 'Show answer'; rv.onclick = () => hostReveal(true); rv.focus({preventScroll:true}); }
+  }
 }
 function joinURL(){
   if (!/^https?:/.test(location.protocol)) return null;
@@ -1446,7 +1450,7 @@ function hostChips(){ const c = $('[data-chips]'); if (c) bindChips(c, () => H.a
 function hostNext(){
   H.idx++;
   if (!H.qs[H.idx]) H.qs[H.idx] = genOne(H.active, H.setup.roots, H.seenQ, H.rot++);
-  H.phase = 'q'; H.answers = new Map(); H.deadline = H.limit ? Date.now() + H.limit : null; publishState(); hostQuestion();
+  H.phase = 'q'; H.timeUpQ = false; H.answers = new Map(); H.deadline = H.limit ? Date.now() + H.limit : null; publishState(); hostQuestion();
 }
 function hostQuestion(reveal){
   const q = H.qs[H.idx];

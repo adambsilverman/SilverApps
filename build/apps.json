@@ -52,6 +52,30 @@
           "blurb": "Name the modulation method, find and label pivot chords, and judge key relationships.",
           "class": true,
           "topic": "Keys & modulation"
+        },
+        {
+          "file": "secondary-function-chords.html",
+          "name": "Secondary Function Chords",
+          "blurb": "A lesson and drills: tell secondary dominants, leading-tone chords and pre-dominants apart, find their targets, and label or spell them in any key.",
+          "class": true,
+          "badge": "Lesson + drills · class game",
+          "topic": "Chromatic harmony"
+        },
+        {
+          "file": "chromatic-chords.html",
+          "name": "Chromatic Chords",
+          "blurb": "A lesson and drills on mode mixture, the Neapolitan and augmented sixth chords: spell and label them in any key, find them in progressions, and hear how they resolve.",
+          "class": true,
+          "badge": "Lesson + drills · class game",
+          "topic": "Chromatic harmony"
+        },
+        {
+          "file": "voice-motion-and-polyphony.html",
+          "name": "Voice Motion and Polyphony",
+          "blurb": "A lesson and drills: contrary, oblique, similar and parallel motion, forbidden parallels, SATB ranges and spacing, and textures from organum to canon (with listening).",
+          "class": true,
+          "badge": "Lesson + drills · class game",
+          "topic": "Voice leading & texture"
         }
       ],
       "drills": true

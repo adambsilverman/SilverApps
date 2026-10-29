@@ -2938,9 +2938,12 @@ function hostCounts(){
 function hostTick(){
   if(!H||H.phase!=="q"||!H.deadline) return;
   const left=H.deadline-Date.now();
-  const el=$("[data-timer]");if(el){el.textContent=fmtT(Math.max(0,left));el.classList.toggle("low",left<=5000)}
+  const el=$("[data-timer]");if(el){el.textContent=left<=0?"Time’s up":fmtT(left);el.classList.toggle("low",left<=5000)}
   const b=$("[data-tbar]");if(b){b.style.width=Math.max(0,left/H.limit*100)+"%";b.parentNode.classList.toggle("low",left<=5000)}
-  if(left<=0) hostReveal(true);
+  if(left<=0&&!H.timeUpQ){ // time's up: answering closes; the professor clicks to show the answer
+    H.timeUpQ=true;const more=$("[data-more]");if(more)more.hidden=true;
+    const rv=$("[data-reveal]");if(rv){rv.textContent="Show answer";rv.onclick=()=>hostReveal(true);rv.focus({preventScroll:true})}
+  }
 }
 function joinURL(){
   if(!/^https?:/.test(location.protocol)) return null;
@@ -2972,7 +2975,7 @@ function hostIntro(){
 }
 function hostNext(){
   H.idx++; H.qs[H.idx]=makeQ(H.next(),H.cfg);
-  H.phase="q"; H.answers=new Map(); H.timeUp=false; H.limit=H.secs*1000; H.deadline=H.limit?Date.now()+H.limit:null;
+  H.phase="q"; H.answers=new Map(); H.timeUp=false; H.timeUpQ=false; H.limit=H.secs*1000; H.deadline=H.limit?Date.now()+H.limit:null;
   publishState(); hostQuestion();
 }
 function hostQuestion(r){
