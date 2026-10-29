@@ -19,6 +19,30 @@
           "class": false,
           "badge": "Interactive lesson",
           "topic": "Modes"
+        },
+        {
+          "file": "secondary-function-chords-lesson.html",
+          "name": "Understanding Secondary Function Chords",
+          "blurb": "An interactive lesson: name the chord, read its quality, find its target and write the Roman numeral for secondary dominants, leading-tone chords and pre-dominants, with examples to play in any key.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Secondary function"
+        },
+        {
+          "file": "chromatic-chords-lesson.html",
+          "name": "Understanding Chromatic Chords",
+          "blurb": "An interactive lesson in three parts: mode mixture and the Picardy third, the Neapolitan (♭II), and Italian, French and German augmented sixth chords, with examples to play in any key.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Chromatic harmony"
+        },
+        {
+          "file": "voice-motion-and-polyphony-lesson.html",
+          "name": "Understanding Voice Motion and Polyphony",
+          "blurb": "An interactive lesson: voice ranges, the four kinds of motion, forbidden parallels, spacing and crossing, and the textures of polyphony from drone and organum to canon and heterophony, with sound examples.",
+          "class": false,
+          "badge": "Interactive lesson",
+          "topic": "Voice leading & texture"
         }
       ]
     },
@@ -56,25 +80,22 @@
         {
           "file": "secondary-function-chords.html",
           "name": "Secondary Function Chords",
-          "blurb": "A lesson and drills: tell secondary dominants, leading-tone chords and pre-dominants apart, find their targets, and label or spell them in any key.",
+          "blurb": "Identify secondary dominants, leading-tone chords and pre-dominants, label them in any key, find them in progressions, and spell them from Roman numerals.",
           "class": true,
-          "badge": "Lesson + drills · class game",
           "topic": "Chromatic harmony"
         },
         {
           "file": "chromatic-chords.html",
           "name": "Chromatic Chords",
-          "blurb": "A lesson and drills on mode mixture, the Neapolitan and augmented sixth chords: spell and label them in any key, find them in progressions, and hear how they resolve.",
+          "blurb": "Label and spell borrowed, Neapolitan and augmented sixth chords in any key, find them in progressions, and tell borrowed chords from secondary ones.",
           "class": true,
-          "badge": "Lesson + drills · class game",
           "topic": "Chromatic harmony"
         },
         {
           "file": "voice-motion-and-polyphony.html",
           "name": "Voice Motion and Polyphony",
-          "blurb": "A lesson and drills: contrary, oblique, similar and parallel motion, forbidden parallels, SATB ranges and spacing, and textures from organum to canon (with listening).",
+          "blurb": "Name motion types, spot parallel 5ths and octaves, check SATB ranges and spacing, and identify textures by ear.",
           "class": true,
-          "badge": "Lesson + drills · class game",
           "topic": "Voice leading & texture"
         }
       ],

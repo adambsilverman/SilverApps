@@ -90,6 +90,18 @@ APPS = [
        labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
        render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
        show="q.tries = 1; choose(q.correctValue); relabel();"),
+  dict(src="Secondary Function Chords Lesson.html", out="secondary-function-chords-lesson.html", id="secondary-lesson", name="Understanding Secondary Function Chords",
+       labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
+       render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
+       show="q.tries = 1; choose(q.correctValue); relabel();"),
+  dict(src="Chromatic Chords Lesson.html", out="chromatic-chords-lesson.html", id="chromatic-lesson", name="Understanding Chromatic Chords",
+       labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
+       render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
+       show="q.tries = 1; choose(q.correctValue); relabel();"),
+  dict(src="Voice Motion and Polyphony Lesson.html", out="voice-motion-and-polyphony-lesson.html", id="voicemotion-lesson", name="Understanding Voice Motion and Polyphony",
+       labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
+       render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
+       show="q.tries = 1; choose(q.correctValue); relabel();"),
 ]
 
 SCORE_HOOK = ("if (!(window.LiveClass && LiveClass.active)) { %(sfxcall)s"

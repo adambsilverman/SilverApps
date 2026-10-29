@@ -81,3 +81,5 @@
 .lsteps .lpart:first-child { margin-top: 0; }
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } }
 .rn .rq.dim { width: .3em; height: .3em; border: .075em solid currentColor; border-radius: 50%; box-sizing: border-box; vertical-align: .62em; line-height: normal; margin: 0 .04em 0 .03em; }
+.other-page { margin: 4px 0 14px; font: 700 15px var(--mono); }
+.other-page a { color: var(--ink); text-decoration-thickness: 2px; text-underline-offset: 3px; }

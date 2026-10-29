@@ -10,7 +10,7 @@ HEAD = HEAD.replace(".modes button:first-child { grid-column: 1 / -1; }\n", "")
 EXTRA = (B.parent / "transposition" / "extra.css").read_text(encoding="utf-8") + (B / "extra.css").read_text(encoding="utf-8")
 
 APPS = [
-  dict(src="Secondary Function Chords.html", data="secondary.js", title="Secondary Function Chords",
+  dict(src="Secondary Function Chords.html", drills="secondary-function-chords.html", lesson="secondary-function-chords-lesson.html", lesson_title="Understanding Secondary Function Chords", lesson_desc="A step-by-step lesson: name the chord, read its quality, find its target, and write the Roman numeral for secondary dominants, secondary leading-tone chords and secondary pre-dominants, with examples to play in any key.", data="secondary.js", title="Secondary Function Chords",
        desc="Tell secondary dominants, secondary leading-tone chords and secondary pre-dominants apart: name the chord, read its quality, find its target and write the Roman numeral.",
        modes=[("func", "Function", "dominant · leading-tone · pre-dominant", "what kind of secondary chord is it?"),
               ("label", "Label it", "chord symbol → Roman numeral", "write the full Roman numeral for a chord symbol"),
@@ -20,7 +20,7 @@ APPS = [
             "<b>Read its quality:</b> major or 7 (dom7) → secondary dominant; °7 → secondary leading-tone; minor or ø7 → secondary pre-dominant.",
             "<b>Find its target:</b> dominant → a P4 above the root; leading-tone → a m2 above; pre-dominant → a M2 below.",
             "<b>Add the figures</b> for inversions: 6, 6/4 for triads; 7, 6/5, 4/3, 4/2 for seventh chords."]),
-  dict(src="Chromatic Chords.html", data=["mixture.js", "neapolitan.js", "aug6.js", "chromatic.js"], title="Chromatic Chords",
+  dict(src="Chromatic Chords.html", drills="chromatic-chords.html", lesson="chromatic-chords-lesson.html", lesson_title="Understanding Chromatic Chords", lesson_desc="A step-by-step lesson in three parts: mode mixture (borrowed chords and the Picardy third), the Neapolitan (♭II) and the Italian, French and German augmented sixth chords, with examples to play in any key.", data=["mixture.js", "neapolitan.js", "aug6.js", "chromatic.js"], title="Chromatic Chords",
        desc="Mode mixture (borrowed chords and the Picardy third), the Neapolitan (♭II) and the Italian, French and German augmented sixth chords: build them in any key, label them, hear them resolve.",
        modes=[("label", "Label it", "chord → Roman numeral", "label borrowed, Neapolitan and augmented sixth chords"),
               ("spell", "Spell it", "Roman numeral → chord", "spell a chromatic chord in a key"),
@@ -32,7 +32,7 @@ APPS = [
             "<b>Neapolitan:</b> a major triad on ♭2̂, usually ♭II⁶ (4̂ in the bass, doubled). It moves to V, often through i⁶₄ or vii°⁷/V.",
             "<b>Augmented sixths:</b> le (♭6̂) in the bass, fi (♯4̂) above, both resolving out to sol. Italian adds do; French adds do and re; German adds do and me.",
             "<b>German sixth vs. V⁷:</b> same sound; fi (raised 4̂) goes up to V, sol♭ (a 7th) goes down to ♭II."]),
-  dict(src="Voice Motion and Polyphony.html", data="voicemotion.js", title="Voice Motion and Polyphony",
+  dict(src="Voice Motion and Polyphony.html", drills="voice-motion-and-polyphony.html", lesson="voice-motion-and-polyphony-lesson.html", lesson_title="Understanding Voice Motion and Polyphony", lesson_desc="A step-by-step lesson: voice ranges, the four kinds of motion, smooth voice leading and forbidden parallels, spacing and crossing, and the textures of polyphony from drone and organum to canon, hocket and heterophony, with sound examples.", data="voicemotion.js", title="Voice Motion and Polyphony",
        desc="Contrary, oblique, similar and parallel motion; parallel 5ths and octaves; voice ranges, crossing and spacing; and the textures of polyphony, from drone and organum to canon and heterophony.",
        modes=[("motion", "Motion types", "contrary · oblique · similar · parallel", "name the motion between two voices"),
               ("parallels", "Parallels", "5ths and 8ves", "find forbidden parallel fifths and octaves"),
@@ -44,31 +44,31 @@ APPS = [
             "<b>Textures:</b> monophony (one line), homophony (melody + chords), polyphony (independent lines), heterophony (one melody, varied at once)."]),
 ]
 
-def body(f):
+def body(f, view):
     n = len(f["modes"])
     nav = "\n".join(f'    <button data-mode="{m}" aria-pressed="{"true" if i == 0 else "false"}"><b>{b}</b><small><span aria-hidden="true">{s}</span><span class="sr">: {html.escape(sr)}</span></small></button>' for i, (m, b, s, sr) in enumerate(f["modes"]))
     how = "".join(f"<li>{h}</li>" for h in f["how"])
+    lesson = view == "lesson"
+    other = (f'<a href="{f["drills"]}">Practice: {html.escape(f["title"])} drills →</a>' if lesson else f'<a href="{f["lesson"]}">New to this? Read the lesson: {html.escape(f["lesson_title"])} →</a>')
+    lhide, dhide = ("", " hidden") if lesson else (" hidden", "")
     return f'''<body>
-<a class="skip" href="#views">Skip to the lesson and drills</a>
+<a class="skip" href="{"#lessonView" if lesson else "#practice"}">Skip to the {"lesson" if lesson else "practice question"}</a>
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <h1>{html.escape(f["title"])}</h1>
-      <p>{f["desc"]}</p>
+      <h1>{html.escape(f["lesson_title"] if lesson else f["title"])}</h1>
+      <p>{f["lesson_desc"] if lesson else f["desc"]}</p>
     </div>
-    <div class="score">
+    <div class="score"{' style="display:none"' if lesson else ''}>
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
       <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
       <p class="sr" id="scoreText" aria-live="polite"></p>
       <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
     </div>
   </header>
-  <div class="viewtabs" id="views" role="group" aria-label="Lesson or drills">
-    <button data-view="lesson" aria-pressed="true"><b>Lesson</b><small>step by step</small></button>
-    <button data-view="drills" aria-pressed="false"><b>Drills</b><small>practice · class game</small></button>
-  </div>
-  <section class="lesson-view" id="lessonView" aria-label="Lesson"></section>
-  <div id="drillView" hidden>
+  <p class="other-page" id="views">{other}</p>
+  <section class="lesson-view" id="lessonView" aria-label="Lesson"{lhide}></section>
+  <div id="drillView"{dhide}>
   <nav class="modes m{n}" aria-label="Practice mode">
 {nav}
   </nav>
@@ -124,10 +124,12 @@ MODES_CSS = """
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 """
 ENGINE = (B / "engine.js").read_text(encoding="utf-8")
-for f in APPS:
-    head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(f['title'])}</title>")
+for f, view in [(f, v) for f in APPS for v in ("drills", "lesson")]:
+    head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(f['lesson_title'] if view == 'lesson' else f['title'])}</title>")
     head = head.replace("@media (min-width: 640px) { .modes { grid-template-columns: repeat(5, 1fr); } .modes button:first-child { grid-column: auto; } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }", "")
     head = head[:head.rstrip().rindex("</style>")] + EXTRA + MODES_CSS + "\n</style>"
     data = "\n".join((B / d).read_text(encoding="utf-8") for d in ([f["data"]] if isinstance(f["data"], str) else f["data"]))
-    out = head + "\n</head>\n" + body(f) + VEX + "\n<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n"
-    (SRC / f["src"]).write_text(out, encoding="utf-8"); print("assembled", f["src"], len(out))
+    page = f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view == "lesson" else f["lesson"]}" }};</script>\n'
+    out = head + "\n</head>\n" + body(f, view) + VEX + "\n" + page + "<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n"
+    src = f["src"] if view == "drills" else f["src"].replace(".html", " Lesson.html")
+    (SRC / src).write_text(out, encoding="utf-8"); print("assembled", src, len(out))

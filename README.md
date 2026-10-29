@@ -10,9 +10,9 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Chord Extensions | 9th, 11th, 13th and altered chords |
 | Modes | modes, PADMIL key signatures, modal pitches |
 | Key Modulation | modulation types, pivot chords, key relationships |
-| Secondary Function Chords | lesson + drills: secondary dominants, leading-tone chords and pre-dominants |
-| Chromatic Chords | lesson + drills: mode mixture, the Neapolitan, augmented sixth chords |
-| Voice Motion and Polyphony | lesson + drills: motion types, parallels, SATB spacing, textures |
+| Secondary Function Chords | secondary dominants, leading-tone chords and pre-dominants |
+| Chromatic Chords | mode mixture, the Neapolitan, augmented sixth chords |
+| Voice Motion and Polyphony | motion types, parallels, SATB spacing, textures |
 | Rhythm Notation | meters, beaming, syncopation, hemiola, anacrusis |
 | Rhythm Performance | tap or clap written rhythms, with timing feedback |
 | Orchestration Foreign Terms | instrument names & score terms in four languages |
@@ -23,6 +23,9 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Score and Parts Preparation | professional scores, parts and typesetting |
 | Intervals: What, Why and How | interactive lesson on intervals |
 | Modes: The Simple Truth | interactive lesson on diatonic and non-diatonic modes |
+| Understanding Secondary Function Chords | interactive lesson |
+| Understanding Chromatic Chords | interactive lesson: mode mixture, Neapolitan, augmented sixths |
+| Understanding Voice Motion and Polyphony | interactive lesson |
 | Ear Training | sing intervals and patterns, chord qualities, melodic dictation |
 | Metronome | tap tempo, traditional markings, meters, accents, trainers |
 | Drone | drone notes and chords in equal temperament or just intonation |

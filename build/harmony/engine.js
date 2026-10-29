@@ -428,7 +428,7 @@
     const keyRow = st.keyed ? `<div class="lkeys" role="group" aria-label="Choose a key">${st.keyed === "both" ? ["major", "minor"].map(m => `<button class="lk mode" data-lmode="${m}" aria-pressed="${LS.mode === m}">${m}</button>`).join("") + '<span class="lk-sep" aria-hidden="true"></span>' : ""}${KEYS[LS.mode].map(n => `<button class="lk" data-lkey="${esc(n)}" aria-pressed="${LS.key === n}"><span aria-hidden="true">${accHTML(n)}</span><span class="sr">${esc(speak(n))} ${LS.mode}</span></button>`).join("")}</div>` : "";
     lessonEl.innerHTML = `<ol class="lsteps" aria-label="Lesson steps">${L.steps.map((s, j) => `${s.part && (j === 0 || L.steps[j - 1].part !== s.part) ? `<li class="lpart" aria-hidden="true">${esc(s.part)}</li>` : ""}<li><button data-lstep="${j}" ${j === i ? 'aria-current="step"' : ""} class="${LS.seen.includes(j) ? "seen" : ""}"><span aria-hidden="true">${j + 1}</span><span class="sr">Step ${j + 1}: ${esc(s.title)}</span></button></li>`).join("")}</ol>
       <article class="lslide" aria-labelledby="lsTitle"><p class="lkick">${st.part ? esc(st.part) + " · " : ""}Step ${i + 1} of ${L.steps.length}${st.kick ? " · " + esc(st.kick) : ""}</p><h2 id="lsTitle" tabindex="-1">${rich(st.title)}</h2>${keyRow}${body}
-      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`}</div></article>`;
+      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? `<a class="btn primary" href="${esc(SA_PAGE.other)}">Practice with the drills →</a>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
     lessonEl.querySelectorAll("[data-lfig]").forEach(el => drawStaff(el, figs[el.dataset.lfig].spec));
     lessonEl.querySelectorAll(".lq").forEach(bindCheck);
     if (st.after) st.after(lessonEl, H, k, { play, drawStaff });
@@ -459,7 +459,7 @@
     const lesson = v === "lesson";
     lessonEl.hidden = !lesson; drillEl.hidden = lesson;
     document.querySelectorAll("[data-view]").forEach(b => { if (b.closest(".viewtabs")) b.setAttribute("aria-pressed", String(b.dataset.view === v)); });
-    try { localStorage.setItem(VKEY, v); } catch (e) {}
+    if (!window.SA_PAGE) try { localStorage.setItem(VKEY, v); } catch (e) {}
     if (lesson) renderLesson(focus); else if (focus) { const h = $("qHead"); if (h) h.focus(); }
     if (!lesson) redrawStaves();
   }
@@ -471,8 +471,9 @@
   renderSettings(); renderScore(); renderPrompt(); renderControls();
   let v0 = "lesson"; try { v0 = localStorage.getItem(VKEY) || "lesson"; } catch (e) {}
   if (/[?&]solo=1/.test(location.search) || /join=/.test(location.hash)) v0 = "drills";
+  if (window.SA_PAGE) v0 = SA_PAGE.view;   // separate lesson and drill pages
   setView(v0, false);
   // If a class game starts while the lesson is showing, switch to the drills.
-  new MutationObserver(() => { if (document.body.className.match(/\blc-/) && lessonEl && !lessonEl.hidden) setView("drills", false); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  if (!window.SA_PAGE) new MutationObserver(() => { if (document.body.className.match(/\blc-/) && lessonEl && !lessonEl.hidden) setView("drills", false); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
 })();
