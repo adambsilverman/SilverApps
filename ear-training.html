@@ -196,7 +196,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     if (c === "d") noise(out, t - .015, .02, "bandpass", 3000, 1, .12);
     src.start(t0); vib.start(t0); src.stop(t + d + .3); vib.stop(t + d + .3);
   }
-  // ---------- Adam Silverman's recorded voice (assets/solfege-voice.js): one clip per syllable at five pitches, G2–B3 ----------
+  // ---------- Adam Silverman's recorded voice (assets/solfege-voice.js): one clip per syllable at six pitches, G2–E♭4 ----------
   let VOICE = null, voiceP = null;
   function voiceLoad() {
     if (voiceP) return voiceP;
@@ -212,11 +212,11 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     });
     return voiceP;
   }
-  // Sing with the recorded voice: the whole pattern moves by octaves into the recorded range (about F2–C♯4); each note uses the nearest recording, retuned by at most about two half steps.
+  // Sing with the recorded voice: the whole pattern moves by octaves into the recorded range (about F2–F4); each note uses the nearest recording, retuned by at most about two half steps.
   function singVoice(syls, ms, gap, du, lead) {
     const out = lead && bus ? bus : newBus(), t0 = AC.currentTime + .25 + lead;
-    const lo = 41, hi = 62; let best = 0, score = 1e9;
-    for (let k = -48; k <= 12; k += 12) { const sc = ms.reduce((a, m) => a + Math.max(0, lo - (m + k), (m + k) - hi), 0) * 10 + Math.abs(ms.reduce((a, m) => a + m + k, 0) / ms.length - 51); if (sc < score) { score = sc; best = k; } }
+    const lo = 41, hi = 65; let best = 0, score = 1e9;
+    for (let k = -48; k <= 12; k += 12) { const sc = ms.reduce((a, m) => a + Math.max(0, lo - (m + k), (m + k) - hi), 0) * 10 + Math.abs(ms.reduce((a, m) => a + m + k, 0) / ms.length - 53); if (sc < score) { score = sc; best = k; } }
     syls.forEach((s, i) => {
       const m = ms[i] + best; let pick = null;
       VOICE.forEach(a => { const c = a.clips[s]; if (!c) return; const d = Math.abs(m - (a.m + c[3])); if (!pick || d < pick.d) pick = { a, c, d }; });
