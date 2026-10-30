@@ -178,6 +178,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-10-30 (z29)** — Ear Training: new Syllables setting (`S.syl`): Movable do with do-based minor (do re me fa sol le ti, as before), Movable do with la-based minor (la ti do re mi fa si; chromatic syllables counted from do, a minor 3rd above the tonic), and, in Sing patterns only, Fixed do (C = do in every key; accidentals keep the letter's syllable). It sets the syllables shown under the notes, the sung-back syllables, and the movable-do input pad in Dictation. Chord quality: the feedback now gives only the chord's construction (e.g. “major triad + major 7th”), with no descriptive words like “lush” or “very tense.”
 - **2026-10-30 (z28)** — Cache-busting: `build_pages.py` now adds `?v=<first 8 hex of the file's MD5>` to every `assets/*.js` the tool pages load (including the recorded voice, which is fetched by script after the page loads, so a hard refresh alone didn't replace a cached copy). Ear Training's version line now reads Oct 30, 2026.
 - **2026-10-30 (z27)** — Added the instructor's six source recordings (`build/voice/recordings/voice_1-*.mp3`, about 1.8 MB) so the voice can be rebuilt with `make_voice.py` (convert each to mono 44.1 kHz WAV first).
 - **2026-10-30 (z26)** — Recorded voice replaced with the instructor's new takes (six pitches: G2, B2, E♭3, G3, B3, E♭4; one syllable every 2 s). `singVoice()` now uses the range F2–F4 (centered on F3). `build/voice/make_voice.py` updated for six files.

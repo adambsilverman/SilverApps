@@ -117,7 +117,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const say = s => s.replace("♯", " sharp").replace("♭", " flat");
 
   // ---------- state & settings ----------
-  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none", clues: false, rhythm: "steady", meter: "any" };
+  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none", clues: false, rhythm: "steady", meter: "any", syl: "do" };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-ear") || "{}")); } catch (e) {}
   if (!Array.isArray(S.clefs) || !S.clefs.length) S.clefs = ["treble"];
   S.chords = { sevenths: "usual7", both: "triUsual" }[S.chords] || S.chords;
@@ -404,15 +404,15 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     ["△7♯11", [0, 4, 7, 11, 18], "C△7(♯11)"], ["13♭9", [0, 4, 10, 13, 21], "C13(♭9)"], ["7♯9♭13 (alt)", [0, 4, 10, 15, 20], "C7(♯9♭13)"], ["7♭9♯11", [0, 4, 10, 13, 18], "C7(♭9♯11)"]];
   const CHORDSETS = { triads: TRI, usual7: SEV, all7: SEV.concat(SEV_MORE), triUsual: TRI.concat(SEV), triAll: TRI.concat(SEV, SEV_MORE), ext: EXT, extAlt: EXT_ALT, extAll: EXT.concat(EXT_ALT) };
   const catOf = c => TRI.includes(c) ? "triads" : SEV.includes(c) || SEV_MORE.includes(c) ? "7th chords" : EXT.includes(c) ? "extended chords" : "altered extended chords";
-  const WHY = { Major: "major 3rd + minor 3rd: bright", Minor: "minor 3rd + major 3rd: dark", Diminished: "two minor 3rds: tense, unstable", Augmented: "two major 3rds: dreamy, unresolved",
-    "Dominant 7th": "major triad + minor 7th: wants to resolve", "Major 7th": "major triad + major 7th: lush", "Minor 7th": "minor triad + minor 7th: mellow", "Half-diminished 7th": "diminished triad + minor 7th", "Diminished 7th": "three minor 3rds: very tense",
-    "Minor-major 7th": "minor triad + major 7th: dark and mysterious", "Augmented 7th": "augmented triad + minor 7th: a dominant with a raised 5th", "Augmented-major 7th": "augmented triad + major 7th: bright and unsettled",
-    "Diminished-major 7th": "diminished triad + major 7th: harsh and rare",
-    "Dominant 9th": "dominant 7th + major 9th", "Major 9th": "major 7th chord + major 9th: soft and open", "Minor 9th": "minor 7th chord + major 9th: smooth", "Dominant 11th": "dominant 9th + 11th, usually without the 3rd: a suspended sound",
-    "Minor 11th": "minor 9th + perfect 11th: wide and modal", "Dominant 13th": "dominant 7th + 9th + 13th: bright and bluesy", "Major 13th": "major 7th chord + 9th + 13th: lush", "Minor 13th": "minor 7th chord + 9th + 13th: Dorian color",
-    "7♭9": "dominant 7th + minor 9th: dark, pulls hard to a minor tonic", "7♯9": "dominant 7th + augmented 9th: the major 3rd and the ‘minor 3rd’ clash", "9♯11": "dominant 9th + augmented 11th: Lydian dominant",
-    "7♭13": "dominant 7th + minor 13th: a dominant leaning toward minor", "△7♯11": "major 7th + augmented 11th: the Lydian chord", "13♭9": "dominant 13th with a minor 9th: tense and colorful",
-    "7♯9♭13 (alt)": "dominant 7th with ♯9 and ♭13: the ‘altered’ dominant", "7♭9♯11": "dominant 7th with ♭9 and ♯11: diminished-scale color" };
+  const WHY = { Major: "major 3rd + minor 3rd", Minor: "minor 3rd + major 3rd", Diminished: "two minor 3rds", Augmented: "two major 3rds",
+    "Dominant 7th": "major triad + minor 7th", "Major 7th": "major triad + major 7th", "Minor 7th": "minor triad + minor 7th", "Half-diminished 7th": "diminished triad + minor 7th", "Diminished 7th": "three minor 3rds (diminished triad + diminished 7th)",
+    "Minor-major 7th": "minor triad + major 7th", "Augmented 7th": "augmented triad + minor 7th (a dominant 7th with a raised 5th)", "Augmented-major 7th": "augmented triad + major 7th",
+    "Diminished-major 7th": "diminished triad + major 7th",
+    "Dominant 9th": "dominant 7th + major 9th", "Major 9th": "major 7th chord + major 9th", "Minor 9th": "minor 7th chord + major 9th", "Dominant 11th": "dominant 9th + perfect 11th, usually without the 3rd",
+    "Minor 11th": "minor 9th + perfect 11th", "Dominant 13th": "dominant 7th + 9th + 13th", "Major 13th": "major 7th chord + 9th + 13th", "Minor 13th": "minor 7th chord + 9th + 13th",
+    "7♭9": "dominant 7th + minor 9th", "7♯9": "dominant 7th + augmented 9th (enharmonically a minor 3rd above the major 3rd)", "9♯11": "dominant 9th + augmented 11th (the Lydian dominant)",
+    "7♭13": "dominant 7th + minor 13th", "△7♯11": "major 7th + augmented 11th (the Lydian chord)", "13♭9": "dominant 13th with a minor 9th",
+    "7♯9♭13 (alt)": "dominant 7th with ♯9 and ♭13 (the altered dominant)", "7♭9♯11": "dominant 7th with ♭9 and ♯11 (from the diminished scale)" };
   let CQ = null;
   function chordNew() {
     const pool = CHORDSETS[S.chords] || TRI, c = rnd(pool), root = (c[1].length > 4 || c[1].some(x => x > 12) ? 43 : 52) + Math.floor(Math.random() * 9);
@@ -434,7 +434,11 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const SOLM = ["do", "re", "mi", "fa", "sol", "la", "ti"], SOLm = ["do", "re", "me", "fa", "sol", "le", "ti"];
   const DEGS = [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7];   // 5̣ 6̣ 7̣ 1 … 7 8 (index from tonic, 0 = 1̂)
   const degLabel = d => { const k = ((d % 7) + 7) % 7; return `${k + 1}${d < 0 ? "̣" : d >= 7 ? "′" : ""}`; };
-  const degSolf = d => (S.mode === "minor" ? SOLm : SOLM)[((d % 7) + 7) % 7];
+  const SOLla = ["la", "ti", "do", "re", "mi", "fa", "si"];   // la-based minor: the raised 7th of harmonic minor is si
+  const laMinor = () => S.mode === "minor" && S.syl === "la";
+  const degSolf = d => (S.mode === "minor" ? (laMinor() ? SOLla : SOLm) : SOLM)[((d % 7) + 7) % 7];
+  // Chromatic syllables are counted from do, which is a minor 3rd above the tonic in la-based minor.
+  const chsK = (semi, alt) => CHS(laMinor() ? semi - 3 : semi, alt);
   // Chromatic solfège by half steps above do: raised syllables for sharpened notes, lowered for flattened ones.
   const CHS = (semi, alt) => ({ 0: "do", 1: alt > 0 ? "di" : "ra", 2: "re", 3: alt > 0 ? "ri" : "me", 4: "mi", 5: "fa", 6: alt > 0 ? "fi" : "se", 7: "sol", 8: alt > 0 ? "si" : "le", 9: "la", 10: alt > 0 ? "li" : "te", 11: "ti" })[((semi % 12) + 12) % 12];
   // Add one or two chromatic notes to a diatonic pattern. kind: "step" (chromatic passing or neighbor note), "leap" (approached by leap,
@@ -520,16 +524,18 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     PT = { ctx, degs, ms, notes, dict, ans: [], done: false, keyName: `${ctx.k[0]} ${S.mode}`, clefName: `${ctx.clef} clef`, time: meter, durs: meter ? makeRhythm(degs.length, +meter[0], S.rhythm === "dotted") : null }; selfShown = false; trialId++;
     const ks = S.mode === "minor" ? VFMIN[ctx.k[3]] : ctx.k[3], sigAcc = S.mode === "minor" ? minorSig(ctx.k) : ctx.k[2];
     PT.ks = ks; PT.sigAcc = sigAcc;
+    const tonicM0 = degMidi(ctx, 0);
+    const patSyl = (d, i) => S.syl === "fixed" && !dict ? FIXED[notes[i].l] : alts[i] ? chsK(ms[i] - tonicM0, alts[i]) : degSolf(d);   // fixed do: the letter's syllable, whatever the accidental
     if (!dict) {
-      $("prompt").innerHTML = `<p class="ask">Sing this pattern<small>Key: ${PT.keyName}, ${PT.clefName}. Hear the tonic chord, then sing each note (any octave).</small></p>
-        <div class="vf" id="ptStaff"></div><div class="dots${S.clues ? " clues" : ""}" id="ptDots">${degs.map((d, i) => `<span data-i="${i}"><b class="clue">${degSolf(d)}</b><i class="clue">${degLabel(d)}</i><b class="nclue" aria-hidden="true">♪</b><i class="nclue" aria-hidden="true">&nbsp;</i></span>`).join("")}</div>${meterHTML}`;
-      staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, label: `${PT.clefName[0].toUpperCase() + PT.clefName.slice(1)}, key of ${PT.keyName}: ${S.clues ? degs.map(degSolf).join(", ") : notes.map(n => LET[n.l] + ({ "-1": " flat", "1": " sharp" }[n.a] || "")).join(", ")}.` });
+      $("prompt").innerHTML = `<p class="ask">Sing this pattern<small>Key: ${PT.keyName}, ${PT.clefName}. Hear the tonic chord, then sing each note (any octave).${S.syl === "fixed" ? " Fixed do: C is do whatever the key; sharps and flats keep the letter's syllable." : laMinor() ? " La-based minor: the tonic is la." : ""}</small></p>
+        <div class="vf" id="ptStaff"></div><div class="dots${S.clues ? " clues" : ""}" id="ptDots">${degs.map((d, i) => `<span data-i="${i}"><b class="clue">${patSyl(d, i)}</b><i class="clue">${degLabel(d)}</i><b class="nclue" aria-hidden="true">♪</b><i class="nclue" aria-hidden="true">&nbsp;</i></span>`).join("")}</div>${meterHTML}`;
+      staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, label: `${PT.clefName[0].toUpperCase() + PT.clefName.slice(1)}, key of ${PT.keyName}: ${S.clues ? degs.map(patSyl).join(", ") : notes.map(n => LET[n.l] + ({ "-1": " flat", "1": " sharp" }[n.a] || "")).join(", ")}.` });
       $("ctrls").innerHTML = `<button class="lbtn primary" id="ptGo" type="button">🎤 Try again</button><button class="lbtn" id="ptRef" type="button">▶ Tonic chord</button><button class="lbtn" id="ptHear" type="button">▶ Hear the pattern</button><button class="lbtn" id="ptSing" type="button">🗣 Sing it back (solfège)</button><button class="lbtn" id="ptNext" type="button">Next ›</button>`;
       voiceLoad();   // fetch and decode the recorded voice in the background
       $("ptRef").onclick = () => play(refEvents(ctx));
       $("ptSing").onclick = async () => {
         if (!PT.done) { PT.done = true; PT.heard = true; }
-        const tonicM = degMidi(ctx, 0), syls = degs.map((d, i) => alts[i] ? CHS(ms[i] - tonicM, alts[i]) : degSolf(d));
+        const tonicM = degMidi(ctx, 0), syls = degs.map(patSyl);
         const dd = $("ptDots"); if (dd) dd.classList.add("clues");
         stopListen(); trialId++; const gap = .75, b = $("ptSing"); b.disabled = true;
         const v = await voiceLoad(); b.disabled = false;
@@ -559,7 +565,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const scaleAcc = [0, 0, 0, 0, 0, 0, 0]; for (let d = 0; d < 7; d++) { const x = degNote(ctx, d); scaleAcc[x.l] = x.a; }
     const degOf = x => diatOf(x) - diatOf(tonicN);
     const altOf = x => { const k = degOf(x), want = 12 * Math.floor(k / 7) + ctx.scale[((k % 7) + 7) % 7]; return midiOf(x) - midiOf(tonicN) - want; };
-    const solfOf = x => altOf(x) ? CHS(midiOf(x) - midiOf(tonicN), altOf(x)) : degSolf(degOf(x)), labOf = x => (altOf(x) > 0 ? "♯" : altOf(x) < 0 ? "♭" : "") + degLabel(degOf(x));
+    const solfOf = x => altOf(x) ? chsK(midiOf(x) - midiOf(tonicN), altOf(x)) : degSolf(degOf(x)), labOf = x => (altOf(x) > 0 ? "♯" : altOf(x) < 0 ? "♭" : "") + degLabel(degOf(x));
     const nameIn = x => mode === "movable" ? `${solfOf(x)}<i>${labOf(x)}</i>` : mode === "fixed" ? `${FIXED[x.l]}${ACC[x.a]}<i>&nbsp;</i>` : `${LET[x.l]}${ACC[x.a]}<i>&nbsp;</i>`;
     const nameTxt = x => mode === "movable" ? solfOf(x) : mode === "fixed" ? FIXED[x.l] + ACC[x.a] : LET[x.l] + ACC[x.a];
     const sayTxt = x => nameTxt(x).replace("♯", " sharp").replace("♭", " flat").replace("♮", " natural");
@@ -571,7 +577,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const hint = { movable: "Tap the solfège syllables you hear.", fixed: "Tap the fixed-do syllables you hear (do = C).", names: "Tap the note names you hear.", chrom: "Choose an accidental if needed, then tap the letter.", staff: "Click the staff where each note goes (or use ↑ ↓ and Enter). The key signature applies unless you choose an accidental." }[mode];
     let pad = "";
     if (mode === "movable") pad = `<div class="degpad" role="group" aria-label="Solfège">${DEGS.map(d => `<button type="button" data-d="${d}" aria-label="${degSolf(d)}, scale degree ${degLabel(d).replace("̣", " low").replace("′", " high")}"><b>${degSolf(d)}</b><small>${degLabel(d)}</small></button>`).join("")}</div>`
-      + (S.chrom !== "none" ? `<div class="degpad chrom" role="group" aria-label="Chromatic syllables">${[[1, 0], [1, 1], [1, 3], [1, 4], [1, 5], [-1, 1], [-1, 2], [-1, 4], [-1, 5], [-1, 6]].map(([alt, k]) => { const cs = ctx.scale[k] + alt; if (ctx.scale.includes(((cs % 12) + 12) % 12)) return ""; return `<button type="button" data-k="${k}" data-alt="${alt}" aria-label="${CHS(cs, alt)}, ${alt > 0 ? "raised" : "lowered"} scale degree ${k + 1}"><b>${CHS(cs, alt)}</b><small>${alt > 0 ? "♯" : "♭"}${k + 1}</small></button>`; }).join("")}</div>` : "");
+      + (S.chrom !== "none" ? `<div class="degpad chrom" role="group" aria-label="Chromatic syllables">${[[1, 0], [1, 1], [1, 3], [1, 4], [1, 5], [-1, 1], [-1, 2], [-1, 4], [-1, 5], [-1, 6]].map(([alt, k]) => { const cs = ctx.scale[k] + alt; if (ctx.scale.includes(((cs % 12) + 12) % 12)) return ""; return `<button type="button" data-k="${k}" data-alt="${alt}" aria-label="${chsK(cs, alt)}, ${alt > 0 ? "raised" : "lowered"} scale degree ${k + 1}"><b>${chsK(cs, alt)}</b><small>${alt > 0 ? "♯" : "♭"}${k + 1}</small></button>`; }).join("")}</div>` : "");
     else if (mode === "fixed" || mode === "names") pad = (S.chrom !== "none" ? `<div class="row accrow" role="group" aria-label="Accidental for the next note">${[["key", "As in the key"], ["-1", "♭"], ["0", "♮"], ["1", "♯"]].map(([v, t]) => `<button type="button" class="lbtn" data-acc="${v}" aria-pressed="false" ${t.length === 1 ? `aria-label="${{ "♭": "flat", "♮": "natural", "♯": "sharp" }[t]}"` : ""}>${t}</button>`).join("")}</div>` : "") + `<div class="degpad seven" role="group" aria-label="${mode === "fixed" ? "Fixed-do syllables" : "Note names"}">${[0, 1, 2, 3, 4, 5, 6].map(l => { const t = (mode === "fixed" ? FIXED[l] : LET[l]) + ACC[scaleAcc[l]]; return `<button type="button" data-l="${l}"><b>${t}</b></button>`; }).join("")}</div>`;
     else {
       pad = `<div class="row accrow" role="group" aria-label="Accidental for the next note">${(mode === "staff" ? [["key", "Key signature"]] : []).concat([["-1", "♭"], ["0", "♮"], ["1", "♯"]]).map(([v, t]) => `<button type="button" class="lbtn" data-acc="${v}" aria-pressed="false" ${t.length === 1 ? `aria-label="${{ "♭": "flat", "♮": "natural", "♯": "sharp" }[t]}"` : ""}>${t}</button>`).join("")}</div>`
@@ -674,6 +680,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sRh">Rhythm<select id="sRh">${[["steady", "Steady (all quarter notes)"], ["simple", "Rhythms: eighths, quarters, halves"], ["dotted", "Rhythms with dotted notes"]].map(([v, t]) => `<option value="${v}" ${S.rhythm === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>${S.rhythm !== "steady" ? `<label class="f2" for="sMe">Meter<select id="sMe">${[["any", "Any"], ["2/4", "2/4"], ["3/4", "3/4"], ["4/4", "4/4"]].map(([v, t]) => `<option value="${v}" ${S.meter === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<label class="f2" for="sChr">Chromatic notes<select id="sChr">${[["none", "None"], ["step", "Stepwise (passing, neighbor)"], ["leap", "Approached by leap"], ["both", "Both kinds"]].map(([v, t]) => `<option value="${v}" ${S.chrom === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<fieldset class="f2 clefs"><legend>Clefs</legend>${["treble", "alto", "tenor", "bass"].map(c => `<label><input type="checkbox" id="clef-${c}" ${S.clefs.includes(c) ? "checked" : ""}> ${c[0].toUpperCase() + c.slice(1)}</label>`).join("")}</fieldset><label class="f2" for="sLen">Notes<select id="sLen">${(S.tab === "dict" ? [3, 4, 5, 6, 7, 8] : [3, 4, 5, 6]).map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>
       <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f2" for="sSy">Syllables<select id="sSy">${[["do", "Movable do (do-based minor)"], ["la", "Movable do (la-based minor)"]].concat(S.tab === "pat" ? [["fixed", "Fixed do (do = C)"]] : []).map(([v, t]) => `<option value="${v}" ${(S.syl === v || (S.tab !== "pat" && S.syl === "fixed" && v === "do")) ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       ${S.tab === "pat" ? `<label class="f2 chk" for="sClu"><input type="checkbox" id="sClu" ${S.clues ? "checked" : ""}> Show solfège under the notes</label>` : ""}
       <label class="f2" for="sSt">Start on<select id="sSt"><option value="tonic" ${S.start === "tonic" ? "selected" : ""}>The tonic</option><option value="any" ${S.start === "any" ? "selected" : ""}>Any scale degree</option></select></label>`;
   const START = { sing: singNew, chord: chordNew, pat: () => patNew(false), dict: () => patNew(true) };
@@ -682,7 +689,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     document.querySelectorAll("#tabs [data-t]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
     $("settings").innerHTML = SET[t]();
     $("settings").onchange = e => { const id = e.target.id, v = e.target.value;
-      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; if (id === "sRh") { S.rhythm = v; save(); $("settings").innerHTML = SET[S.tab](); } if (id === "sMe") S.meter = v; save(); START[S.tab](); };
+      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; if (id === "sRh") { S.rhythm = v; save(); $("settings").innerHTML = SET[S.tab](); } if (id === "sMe") S.meter = v; if (id === "sSy") S.syl = v; save(); START[S.tab](); };
     $("mic").textContent = (t === "sing" || t === "pat") ? (mic ? "Microphone on." : "The app will ask to use your microphone. Any octave counts, so sing where it's comfortable.") : "";
     if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
   }
