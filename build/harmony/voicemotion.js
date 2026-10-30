@@ -237,6 +237,18 @@ window.FAM = (() => {
       <li><b>Voice crossing:</b> when a voice goes below the next lower voice (soprano under alto). Avoid it: it hides the independence of the parts.</li></ul>
       <div class="lfigs">${U.fig(good, "Close voicing, root doubled", { small: true, play: { chords: [[74, 71, 67, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(space, "Open voicing", { small: true, play: { chords: [[74, 67, 59, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(cross, "Voice crossing: alto above soprano", { small: true, play: { chords: [[71, 74, 67, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(wide, "Too wide: more than an octave between alto and tenor", { small: true, play: { chords: [[79, 71, 50, 43]], timbre: "voice", dur: 1.5 } })}</div>`;
     } },
+    { title: "Beyond SATB", kick: "Melody and bass in pop", render: (H, k, U) => {
+      const mel = ["G4", "G4", "A4", "B4", "C5", "C5", "B4", "B4", "C5"], bas = ["C3", "B2", "A2", "G2", "F2", "E2", "D2", "G2", "C3"], sy = ["C", "G/B", "Am", "Em/G", "F", "C/E", "Dm", "G", "C"];
+      const bar = (i0, n, d) => ({ t: [mel.slice(i0, i0 + n).map((x, i) => ({ k: [x], d, sym: sy[i0 + i] }))], b: [bas.slice(i0, i0 + n).map(x => ({ k: [x], d }))] });
+      const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 92, minBar: 70, bars: [bar(0, 4, "q"), bar(4, 4, "q"), bar(8, 1, "w")] };
+      return `<p>The same principles work far beyond four-part chorale writing. In almost any style, the two lines listeners hear most clearly are the <b>melody</b> and the <b>bass</b>, so they form a two-voice counterpoint, whatever the chords in between are doing.</p>
+      <ul><li>In a pop song, the <b>vocal melody</b> and the <b>bass line</b> (bass guitar, synth bass or the pianist's left hand) are the outer voices. Contrary and oblique motion between them sounds strong and independent; long stretches of parallel motion make them sound like one line.</li>
+      <li>A <b>stepwise bass</b> under a held or rising melody (often using inverted chords, like C – G/B – Am) is one of the most common pop and rock textures: the slash chords exist to make the bass move by step.</li>
+      <li>The <b>inner parts</b> (guitar chords, keyboard pads, horn backgrounds) often move in parallel chord shapes; that's a texture choice, not an error. Common tones and nearest-note moves still make pads and backing vocals sound smooth.</li>
+      <li>In jazz, the 3rds and 7ths of the chords (the <b>guide tones</b>) form smooth inner lines that move by step from chord to chord.</li></ul>`
+      + U.fig(sp, "A descending bass under a melody that holds and then rises: mostly contrary and oblique motion between the outer voices.")
+      + H.check("In a pop song, which two lines form the main counterpoint?", "the vocal melody and the bass line", ["the guitar and the drums", "the two middle voices of the keyboard part", "the backing vocals and the snare"], "They're the outer voices, the ones listeners hear most clearly.");
+    } },
     { title: "Textures", kick: "Listen", render: (H, k, U) => {
       const row = (kind, name, what) => `<tr><td><b>${name}</b></td><td>${what}</td><td>${U.sound(texture(H, kind), "Play")}</td></tr>`;
       return `<p>How many lines are sounding, and how do they relate? That's a piece's <b>texture</b>. Each example is newly made every time you open this step.</p>

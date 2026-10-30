@@ -66,15 +66,19 @@ FAMILIES = [
             "<b>Spell for the pedals:</b> A♯ and B♭ are different strings; never write double sharps or flats. Two pedal changes at once only with opposite feet.",
             "<b>Glissandos:</b> any seven-note scale, or 7th chords using enharmonic doublings; triads can't be glissed.",
             "<b>Harmonics:</b> a circle over the written note; they sound an octave higher, best at mf or softer."]),
-  dict(src="Orchestration Piano.html", title="Piano", vex=True, sound=True,
-       desc="The piano and orchestral keyboards: range and registers, the three pedals, writing for the hands, notation, and the piano and celesta in the ensemble.",
-       modes=[("inst", "Instrument", "range · registers", "the piano's range, sound and registers"),
+  dict(src="Orchestration Piano.html", title="Keyboard Instruments", vex=True, sound=True,
+       desc="Piano, organ, celesta and harpsichord: range and registers, the piano's pedals, writing for the hands, characteristic accompaniments, organ stops and registration, prepared piano, and keyboards in the ensemble.",
+       modes=[("inst", "Piano", "range · registers", "the piano's range, sound and registers"),
               ("ped", "Pedals", "damper · sostenuto · una corda", "the three pedals and how they're marked"),
               ("nota", "Writing", "hands · markings", "writing for the hands and piano notation"),
+              ("acc", "Accompaniments", "Alberti · stride · comping", "characteristic keyboard accompaniments and spacing in the bass"),
+              ("organ", "Organ", "manuals · stops", "the pipe organ and Hammond organ"),
+              ("prep", "Prepared piano", "bolts · rubber · inside", "prepared piano and playing inside the piano"),
               ("ens", "Ensemble", "orchestra · celesta", "the piano, celesta and other keyboards in the ensemble")],
-       how=["<b>Range:</b> 88 keys, A0–C8. Every note fades after it's struck; the bass rings longest.",
-            "<b>Pedals:</b> right = damper (Ped. … ✱), middle = sostenuto, left = una corda (u.c. … tre corde).",
-            "<b>Hands:</b> an octave is a comfortable reach; space low chords widely.",
+       how=["<b>Keep the bass register clear:</b> below about C3 use octaves, 5ths, 10ths or a single bass note; close-position chords low down sound muddy unless that color is wanted.",
+            "<b>Piano pedals:</b> right = damper (Ped. … ✱), middle = sostenuto, left = una corda (u.c. … tre corde).",
+            "<b>Organ:</b> manuals plus pedalboard on three staves; 8′ = written pitch, 4′ = octave higher, 16′ = octave lower.",
+            "<b>Prepared piano:</b> give a preparation table, get permission, and allow setup time.",
             "<b>Score order:</b> keyboards come after the harp and before the strings. The celesta sounds an octave higher than written."]),
   dict(src="Score and Parts Preparation.html", title="Score and Parts Preparation", vex=False, sound=False,
        desc="What a professional score and set of parts must include, and the typesetting conventions players and conductors expect.",
@@ -154,6 +158,8 @@ def body(f):
 MODES_CSS = """
 @media (min-width: 640px) { .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }
 .modes.m3 button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) { .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m7 button { padding: 9px 4px; } .modes.m7 button b { font-size: 1.1rem; } .modes.m7 button small { font-size: .72rem; } }
+.callout-lite { border-left: 4px solid var(--accent, #c0392b); padding: 6px 12px; background: rgba(0,0,0,.03); }
 @media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
 """
 ENGINE = (B / "engine.js").read_text(encoding="utf-8")

@@ -87,7 +87,7 @@ window.FAM = (() => {
   }
 
   const lesson = { defMode: "major", steps: [
-    { title: "Keys and scale degrees", kick: "Prerequisites", render: () => `<p>This lesson assumes you know how major and minor keys organize the diatonic notes, how key signatures show them, and how <b>parallel</b> keys (same tonic) and <b>relative</b> keys (same signature) relate. If not, review them first in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson.</p>
+    { title: "Keys and scale degrees", kick: "Prerequisites", render: () => `<p>This lesson assumes you know how major and minor keys organize the diatonic notes, how key signatures show them, and how <b>parallel</b> keys (same tonic) and <b>relative</b> keys (same signature) relate. If not, review them first in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson, especially its key-signature steps (“Why key signatures?” and “Reading key signatures”).</p>
       <p>Scale degrees are named by number or by name. A caret over the number marks a scale degree: 1̂, 2̂, 3̂… Some websites can't show the caret, so you may also see ^1, ^2. Altered degrees take a ♯ or ♭ (♯4̂, ♭7̂) whatever accidental the actual note uses: in E major, the lowered supertonic is ♭2̂ even though it's F♮.</p>` },
     { title: "Scale-degree names", kick: "Tonic to leading tone", keyed: "both", render: (H, k) => `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Degree</th><th scope="col">Name</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
       ${[0, 1, 2, 3, 4, 5, 6].map(i => `<tr><td>${i + 1}̂ (${SOL[k.mode][i]})</td><td>${nameOf(k, i)}</td><td>${H.nm(k.scale[i])}</td></tr>`).join("")}${k.mode === "minor" ? `<tr><td>raised 7̂ (ti)</td><td>leading tone</td><td>${H.nm(noteOf(H, k, 7))}</td></tr>` : ""}</tbody></table></div>
@@ -108,7 +108,7 @@ window.FAM = (() => {
       const maj = H.key(H.nm(k.scale[2]), "major");
       const xm = H.voiceToks(k, ["1", "4", "57", "1"], { sop: 0 }), xM = H.voiceToks(maj, ["1", "4", "57", "1"], { sop: 0 });
       const sig = s => Object.assign(s, { vf: maj.vf, sig: maj.sig });
-      return `<p>A key signature narrows things to two keys: a major key and its relative minor. To decide:</p>
+      return `<p>A key signature narrows things to two keys: a major key and its relative minor (to read a signature, see “Reading key signatures” in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson). To decide:</p>
       <ul><li><b>Closure:</b> look at how the passage ends (cadence and final melody note), and how it begins: listeners tend to hear the first chord as the tonic unless a stronger progression changes their mind. Ending on a root-position triad suggests the tonic; ending on a dominant 7th suggests the dominant.</li>
       <li><b>V–I:</b> find dominant–tonic resolutions and follow the leading tone to the tonic.</li>
       <li><b>The raised leading tone</b> (an accidental) points to the minor key.</li></ul>

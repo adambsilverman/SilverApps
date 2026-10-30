@@ -78,7 +78,7 @@ APPS = [
        labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="",
        render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
        show="q.tries = 1; choose(q.correctValue); relabel();"),
-  dict(src="Orchestration Piano.html", out="orchestration-piano.html", id="orchpiano", name="Piano",
+  dict(src="Orchestration Piano.html", out="orchestration-piano.html", id="orchpiano", name="Keyboard Instruments",
        labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="",
        render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
        show="q.tries = 1; choose(q.correctValue); relabel();"),

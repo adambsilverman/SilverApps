@@ -1,5 +1,5 @@
 window.FAM = (() => {
-  // ===== Piano (and the orchestral keyboards). Written from general orchestration and piano-writing practice. =====
+  // ===== Keyboard instruments: piano, organ, celesta, harpsichord; accompaniments and prepared piano. Written from general orchestration and keyboard-writing practice. =====
   const F = (q, a, w, why) => ({ q, a, w, why });
   const INST = [
     F("How many keys does a standard modern piano have?", "88", ["76", "61", "97"], "From A0 to C8: seven and a quarter octaves."),
@@ -41,12 +41,47 @@ window.FAM = (() => {
     F("In an orchestra, the piano is often used to…", "add a crisp attack and color, doubling bass lines, pizzicato or high melodies", ["play every note of the strings", "replace the brass", "keep the tempo"], "A low piano with the basses adds definition; a high one adds glitter."),
     F("The celesta…", "has hammers striking metal bars and sounds an octave higher than written", ["is a small harpsichord", "sounds as written", "has strings and dampers like a piano"], "It's usually played by the orchestra's keyboardist."),
     F("The harpsichord differs from the piano because…", "its strings are plucked, so dynamics hardly change with touch", ["it has hammers", "it has no keys", "it sounds an octave lower"], "Color and volume change with registers (stops), not touch."),
-    F("Playing directly on the strings inside the piano (plucking, muting, sweeping)…", "is possible, but check the venue and instrument and give clear instructions", ["is never allowed", "needs no instructions", "only works on uprights"], "Mark which strings to touch; pianists often use tape or chalk to find them."),
-    F("A prepared piano…", "has objects (screws, bolts, rubber) placed between the strings to change their sound", ["has been tuned specially", "has extra pedals", "is an electronic piano"], "Give a preparation chart; ask permission first, since preparations can harm an instrument."),
-    F("Touching a string at its midpoint inside the piano while playing the key gives…", "a harmonic an octave higher", ["a muted thud", "the same note", "no sound"], "Notate it like a string harmonic, with a circle or diamond and an explanation."),
-    F("Pressing a finger on a string while playing its key (without finding a node) gives…", "a muted, plucked or wooden sound", ["a louder note", "a harmonic", "a glissando"], "Often notated with a + over the note and an explanation."),
     F("Which piano writing tends to cover an orchestra?", "thick, pedaled chords in the low and middle registers", ["single high notes", "light staccato octaves", "notes doubling the flute"], "Keep the piano clear of the registers you want the orchestra to own."),
   ];
+  const ACCOMP = [
+    F("Bass note on beat 1, chord on beats 2 and 3 (in 3/4) is the…", "waltz (oom-pah-pah) accompaniment", ["Alberti bass", "walking bass", "stride"], "In 2/4 or 4/4 the same idea (bass, chord, bass, chord) is the oom-pah or march pattern."),
+    F("A broken chord played low–high–middle–high (C G E G) is…", "an Alberti bass", ["a stride bass", "a walking bass", "a boogie-woogie bass"], "A Classical-era left-hand pattern that keeps a sustained harmony moving."),
+    F("Left hand alternating a low bass note (beats 1 and 3) with a mid-range chord (beats 2 and 4) is…", "stride", ["Alberti bass", "an ostinato", "a pedal point"], "A jazz piano style; the leaps make it demanding."),
+    F("A left hand playing steady quarter notes that move mostly by step through the chords is a…", "walking bass", ["stride bass", "waltz bass", "drone"], "Common in jazz and blues."),
+    F("A repeated left-hand pattern in eighth notes outlining each chord (root–3rd–5th–6th…) belongs to…", "boogie-woogie and early rock", ["Baroque recitative", "the waltz", "chorale style"], "Usually with a shuffled (swung) rhythm."),
+    F("Arpeggios spread over two octaves in the left hand, held with the damper pedal, are typical of…", "Romantic and ballad accompaniment", ["march accompaniment", "stride piano", "Alberti bass"], "Pedal changes with each harmony keep it clear."),
+    F("In jazz “comping,” the pianist…", "plays short, rhythmic chord voicings (often without the root) around the soloist", ["plays the melody in octaves", "doubles the bass line", "plays only on beat 1"], "Leaving the root to the bassist keeps the texture clear."),
+    F("Block chords repeated in steady eighths in the right hand, over octaves in the left, are typical of…", "pop and rock piano ballads", ["Alberti bass", "Baroque continuo", "stride"], "Simple, but it fills a lot of space; thin it out when other instruments enter."),
+    F("Why avoid close-position chords (3rds and 2nds) low in the bass register?", "the low strings' overtones clash and the chord turns to mud", ["they're impossible to play", "the dampers don't work there", "they sound too quiet"], "Keep the bass register uncluttered: octaves, 5ths, 10ths, a single bass note. Use low close voicings only when you want that thick, dark color."),
+    F("A common rule of thumb for the bass register is…", "the lower the notes, the wider the spacing (octaves and 5ths below about C3; 3rds higher up)", ["always double the 3rd in the bass", "use clusters below middle C", "keep the left hand within one octave of middle C"], "This follows the overtone series, whose low partials are widely spaced."),
+  ];
+  const ORGAN = [
+    F("A pipe organ's keyboards for the hands are called…", "manuals", ["pedals", "stops", "ranks"], "Organs have from one to five or more manuals, plus a pedalboard."),
+    F("The organ's bass line is often played…", "with the feet on the pedalboard", ["with the left thumb", "by a second organist", "with the swell pedal"], "Organ music is written on three staves: two for the manuals, one for the pedals."),
+    F("Pulling out a stop…", "turns on a rank of pipes with its own color and octave", ["sustains the notes", "mutes the organ", "transposes the keyboard"], "Choosing and combining stops is called registration."),
+    F("An 8′ (eight-foot) stop sounds…", "at written pitch", ["an octave higher", "an octave lower", "two octaves higher"], "4′ sounds an octave higher, 16′ an octave lower, 2′ two octaves higher, 2⅔′ an octave and a 5th higher."),
+    F("How does an organist get louder or softer on a sustained chord?", "by adding stops, or with the swell pedal that opens shutters on an enclosed division", ["by pressing the keys harder", "with a damper pedal", "it's impossible"], "Touch doesn't change the volume of a pipe."),
+    F("When an organist lets go of a key…", "the sound stops at once (apart from the room's echo)", ["the note keeps ringing like a piano", "the note fades slowly", "the pipe sounds a harmonic"], "Organ legato depends on fingering and finger substitution, not a pedal."),
+    F("A tremulant…", "makes the organ's wind pressure pulse, giving a vibrato", ["sustains the bass", "adds an octave", "mutes the pedals"], "Common on solo and theatre-organ stops."),
+    F("On a Hammond organ, the drawbars…", "mix harmonics at different footages (16′, 8′, 4′ and others)", ["change the tempo", "add reverb", "control the pedals"], "Often played through a rotating Leslie speaker for a swirling vibrato."),
+    F("Why does organ writing need care in very reverberant churches?", "fast notes and chord changes blur in the long echo", ["the pipes go out of tune", "the pedals are too quiet", "the manuals are too far apart"], "Slow the harmonic rhythm or use clearer, lighter registrations."),
+  ];
+  const PREP = [
+    F("A prepared piano is…", "a piano with objects placed on or between its strings to change their sound", ["a piano tuned specially", "a piano with extra pedals", "an electronic piano"], "The composer John Cage developed the technique in the 1940s."),
+    F("Which objects are typical preparations?", "screws, bolts, rubber, felt, plastic and paper", ["glue and tape on the hammers", "water in the soundboard", "sand on the keys"], "Each one changes the timbre differently: metal buzzes and rings, rubber thuds and mutes."),
+    F("What should a prepared-piano score include?", "a preparation table: each note, which strings, what material, and how far from the dampers", ["only the word ‘prepared’", "a recording", "a list of stores that sell bolts"], "Exact positions matter: moving a bolt a few centimeters changes the sound."),
+    F("Before writing for prepared piano, you should…", "get permission for the instrument, and allow time (often an hour or more) to prepare it", ["glue the objects in place", "assume any upright will work", "prepare it during the concert"], "Never use anything that scratches strings or leaves residue."),
+    F("Preparations are usually placed in…", "a grand piano, with the lid open", ["an upright piano", "an electric keyboard", "the keys themselves"], "The strings must be accessible from above."),
+    F("A prepared note often sounds…", "like a drum, gong or bell, sometimes with several pitches at once", ["exactly like the unprepared note", "an octave higher", "louder in every case"], "The una corda pedal can shift the hammers so they miss a prepared string, giving another color."),
+    F("Playing directly on the strings inside the piano (plucking, muting, sweeping)…", "is possible, but check the venue and instrument and give clear instructions", ["is never allowed", "needs no instructions", "only works on uprights"], "Mark which strings to touch; pianists often use tape or chalk to find them."),
+    F("Touching a string at its midpoint inside the piano while playing the key gives…", "a harmonic an octave higher", ["a muted thud", "the same note", "no sound"], "Notate it like a string harmonic, with a circle or diamond and an explanation."),
+    F("Pressing a finger on a string while playing its key (without finding a node) gives…", "a muted, plucked or wooden sound", ["a louder note", "a harmonic", "a glissando"], "Often notated with a + over the note and an explanation."),
+  ];
+  function footQ(H) {
+    const FT = [["16′", -12, "an octave lower"], ["8′", 0, "at written pitch"], ["4′", 12, "an octave higher"], ["2⅔′", 19, "an octave and a 5th higher"], ["2′", 24, "two octaves higher"]];
+    const [f, semi, what] = H.rnd(FT), step = 28 + Math.floor(Math.random() * 7), n = H.mk(step, 0), s = H.up(n, { "-12": -7, 0: 0, 12: 7, 19: 11, 24: 14 }[semi], semi);
+    return H.mc(`An organist plays this note with only a ${f} stop. What pitch sounds?`, H.nm(s), [-12, 0, 12, 19, 24].filter(x => x !== semi).map(x => H.nm(H.up(n, { "-12": -7, 0: 0, 12: 7, 19: 11, 24: 14 }[x], x))), `A ${f} stop sounds ${what}: ${H.nm(n)} sounds ${H.nm(s)}.`, { kicker: "Organ stops", topic: "organ", staff: { clef: "treble", groups: [[{ n }]], label: `Treble clef: ${H.nmSpoken(n)}.` }, play: { m: H.midi(s) }, playLabel: "Play the sounding pitch" });
+  }
   const MARKS = [["Ped.", "press the damper pedal"], ["✱", "release the damper pedal"], ["u.c.", "una corda: soft pedal down"], ["tre corde", "release the soft pedal"], ["Sost. Ped.", "press the sostenuto pedal"], ["m.d.", "right hand"], ["m.s.", "left hand"], ["8va", "play an octave higher than written"], ["8vb", "play an octave lower than written"], ["15ma", "play two octaves higher than written"], ["loco", "play at written pitch again"], ["senza Ped.", "don't use the damper pedal"]];
   const fromList = (H, list, kicker, topic) => { const f = H.rnd(list); return H.mc(f.q, f.a, f.w, f.why, { kicker, topic }); };
   function markQ(H) {
@@ -64,20 +99,27 @@ window.FAM = (() => {
     return H.mc("The celesta part shows this note. What pitch sounds?", H.nm(s), [H.nm(n), H.nm(H.up(n, -7, -12)), H.nm(H.up(n, 14, 24))], `The celesta sounds an octave higher than written: ${H.nm(n)} sounds ${H.nm(s)}.`, { kicker: "Celesta", topic: "ens", staff: { clef: "treble", groups: [[{ n }]], label: `Treble clef: ${H.nmSpoken(n)}.` }, play: { m: H.midi(s), pure: true }, playLabel: "Play the sounding pitch" });
   }
   return {
-    key: "orch-piano",
-    modes: [{ id: "inst", kicker: "The instrument" }, { id: "ped", kicker: "Pedals" }, { id: "nota", kicker: "Writing for the hands" }, { id: "ens", kicker: "In the ensemble" }],
+    key: "orch-keyboards",
+    modes: [{ id: "inst", kicker: "The piano" }, { id: "ped", kicker: "Pedals" }, { id: "nota", kicker: "Writing for the hands" }, { id: "acc", kicker: "Accompaniments" }, { id: "organ", kicker: "Organ" }, { id: "prep", kicker: "Prepared piano" }, { id: "ens", kicker: "In the ensemble" }],
     make(mode, H) {
       if (mode === "inst") return Math.random() < .25 ? rangeQ(H) : fromList(H, INST, "The instrument", "inst");
       if (mode === "ped") return fromList(H, PEDALS, "Pedals", "ped");
       if (mode === "nota") return Math.random() < .35 ? markQ(H) : fromList(H, NOTA, "Writing for the hands", "nota");
+      if (mode === "acc") return fromList(H, ACCOMP, "Accompaniments", "acc");
+      if (mode === "organ") return Math.random() < .3 ? footQ(H) : fromList(H, ORGAN, "Organ", "organ");
+      if (mode === "prep") return fromList(H, PREP, "Prepared piano", "prep");
       return Math.random() < .25 ? celestaQ(H) : fromList(H, ENS, "In the ensemble", "ens");
     },
     reference(H, esc) {
       const rows = MARKS.map(([m, d]) => `<tr><th scope="row">${esc(m)}</th><td data-label="Meaning">${esc(d)}</td></tr>`).join("");
-      return `<ul class="ref-list"><li><b>Range:</b> 88 keys, A0–C8 (middle C = C4). Bass notes ring longest; the top octave and a half has no dampers.</li>
+      return `<p class="callout-lite"><b>Keep the bass register clear.</b> Below about C3, use octaves, 5ths, 10ths or a single bass note; save 3rds and close-position chords for higher up. Low close voicings turn to mud unless that thick, dark color is what you want.</p>
+      <ul class="ref-list"><li><b>Range:</b> 88 keys, A0–C8 (middle C = C4). Bass notes ring longest; the top octave and a half has no dampers.</li>
       <li><b>Pedals:</b> right = damper (sustain); middle = sostenuto (holds only notes already down); left = una corda (soft).</li>
       <li><b>Hands:</b> an octave is comfortable (9th or 10th for large hands); up to five notes per hand.</li>
       <li><b>Low register:</b> space chords widely; close thirds in the bass sound muddy.</li>
+      <li><b>Accompaniments:</b> block chords, broken chords and arpeggios, Alberti bass, waltz/oom-pah, stride, walking bass, boogie-woogie, comping.</li>
+      <li><b>Organ:</b> manuals + pedalboard (three staves); stops: 16′ = octave lower, 8′ = written pitch, 4′ = octave higher, 2′ = two octaves higher; volume by registration and the swell pedal.</li>
+      <li><b>Prepared piano:</b> objects between the strings; include a preparation table; get permission and allow setup time.</li>
       <li><b>Keyboards in the score:</b> after harp, before strings. Celesta sounds an octave higher than written.</li></ul>
       <div class="table-wrap"><table class="ref"><caption>Markings</caption><thead><tr><th scope="col">Marking</th><th scope="col">Meaning</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     },

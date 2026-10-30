@@ -87,7 +87,7 @@ window.FAM = (() => {
   function spec(H, x, o = {}) {
     const k = x.k;
     const mel = x.notes.map((n, a) => Object.assign({ k: [H.nmO(dn(H, k, n.i))], q: n.q, tie: n.tie }, o.hl && x.ncts.includes(a) ? { hl: true } : {}, o.num ? { n: a + 1 } : {}, o.tags && x.ncts.includes(a) ? { tag: x.lab[a] } : {}));
-    const bass = x.prog.map(d => { const c = H.diat(k, d); return { k: H.lh(c), q: 2, lab: o.rn === false ? null : rnD(H, k, d), sym: o.sym === false ? null : c.sym }; });
+    const LHV = H.lhSeq(x.prog.map(d => H.diat(k, d))), bass = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: LHV[i], q: 2, lab: o.rn === false ? null : rnD(H, k, d), sym: o.sym === false ? null : c.sym }; });
     return { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ t: [mel], b: [bass] }) };
   }
 
@@ -184,7 +184,7 @@ window.FAM = (() => {
   // ---------- lesson examples (scale indexes over chords; each chord = 2 beats) ----------
   const ex = (H, k, prog, mel, o = {}) => {
     const notes = mel.map(([i, q, tag, tie]) => ({ k: [H.nmO(dn(H, k, i))], q, tag: tag || undefined, hl: !!tag, tie: !!tie }));
-    const bass = prog.map(([d, q]) => { const c = H.diat(k, d); return { k: H.lh(c), q: q || 2, lab: H.rnOf(k, d), sym: o.sym === false ? null : c.sym }; });
+    const LHV = H.lhSeq(prog.map(([d]) => H.diat(k, d))), bass = prog.map(([d, q], i) => { const c = H.diat(k, d); return { k: LHV[i], q: q || 2, lab: H.rnOf(k, d), sym: o.sym === false ? null : c.sym }; });
     return { type: "score", vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ t: [notes], b: [bass] }) };
   };
   const lesson = { defMode: "major", steps: [

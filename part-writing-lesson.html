@@ -877,7 +877,7 @@ window.FAM = (() => {
   //   hl (circle the note), hlc (shade the whole column), bs: "x" (start a bracket labeled x), be (end the bracket) }
   const DURQ = { w: 4, h: 2, q: 1, "8": .5, "16": .25 };
   const durOf = d => { const m = /^(w|h|q|8|16)(d*)$/.exec(d); let b = DURQ[m[1]], add = b; for (let i = 0; i < m[2].length; i++) { add /= 2; b += add; } return b; };
-  const staffIds = o => (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");
+  const staffIds = o => o.ids || (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");   // o.ids lets two staves share a clef (e.g. two percussion staves)
   function drawScore(el, o) {
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
@@ -1205,6 +1205,33 @@ window.FAM = (() => {
     return out.map(nmO);
   }
 
+  // A smoothly voice-led left-hand part for a chord progression: the bass note low (F2–E3), and the other chord tones
+  // in close position above it (lowest about B2–A3, top no higher than D4), choosing each voicing to move as little as possible from the last.
+  function lhSeq(chords, lo = 41) {
+    let prev = null;
+    return chords.map(c => {
+      const b = c.tones[c.bass]; let o = 2; while (midi(N(b.l, b.a, o)) < lo) o++; while (midi(N(b.l, b.a, o)) >= lo + 12) o--;
+      const bass = N(b.l, b.a, o), bm = midi(bass);
+      let ups = c.tones.filter((t, i) => i !== c.bass || (c.tones.length === 3 && c.bass === 0));   // root-position triads keep all three tones above the bass (doubling the root); inversions and 7th chords leave out the bass tone
+      if (ups.length > 3) ups = ups.slice(0, 3);
+      const cands = [];
+      ups.forEach((_, r) => {
+        const order = ups.slice(r).concat(ups.slice(0, r));
+        for (let oo = 2; oo <= 4; oo++) {
+          const v = [N(order[0].l, order[0].a, oo)];
+          for (let i = 1; i < order.length; i++) { let x = N(order[i].l, order[i].a, v[i - 1].o); while (midi(x) <= midi(v[i - 1])) x = N(x.l, x.a, x.o + 1); v.push(x); }
+          const lowM = midi(v[0]), topM = midi(v[v.length - 1]);
+          if (lowM >= Math.max(47, bm + 3) && lowM <= 57 && topM <= 62) cands.push(v);   // keep the chord below middle C as far as possible, under the melody
+        }
+      });
+      const high = v => 2 * Math.max(0, midi(v[v.length - 1]) - 59);
+      const cost = v => high(v) + (prev ? v.reduce((a, x, i) => a + Math.abs(midi(x) - midi(prev[Math.min(i, prev.length - 1)])), 0) : Math.abs(midi(v[0]) - 52));
+      const best = cands.sort((x, y) => cost(x) - cost(y))[0] || lh(c, lo).slice(1).map(parse);
+      prev = best;
+      return [nmO(bass)].concat(best.map(nmO));
+    });
+  }
+
 
   // chord token like "5", "57", "26", "164", "765" (degree + optional figure) → diatonic chord with .rn and .deg
   const TINV = { "": 0, "6": 1, "64": 2, "7": 0, "65": 1, "43": 2, "42": 3 };
@@ -1223,7 +1250,7 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);

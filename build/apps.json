@@ -242,9 +242,9 @@
           "class": true
         },
         {
-          "name": "Piano",
+          "name": "Keyboard Instruments",
           "topic": "Keyboards",
-          "blurb": "Range, the three pedals, writing for the hands, and the piano and celesta in the ensemble.",
+          "blurb": "Piano, organ, celesta and harpsichord: pedals, accompaniments, organ stops, prepared piano.",
           "drills": "orchestration-piano.html",
           "class": true
         },

@@ -14,9 +14,9 @@ def card(t, color):
     if t.get("open"): btns.append(f'<a class="btn" href="{e(t["open"])}">Open<span class="sr"> {e(t["name"])}</span></a>')
     note = t.get("note") or ("Drills include a class game" if t.get("class") else "")
     words = " ".join([t["name"], t["topic"], t["blurb"]]).lower()
-    return f'''<li class="card t-{color}" data-q="{e(words)}"><span class="course">{e(t["topic"])}</span>
-        <h3 class="tname">{e(t["name"])}</h3><p class="blurb">{e(t["blurb"])}</p>
-        <div class="btns">{"".join(btns)}</div>{f'<p class="note">{e(note)}</p>' if note else ""}</li>'''
+    return f'''<li class="card t-{color}" data-q="{e(words)}"><div class="cname"><span class="course">{e(t["topic"])}</span>
+        <h3 class="tname">{e(t["name"])}</h3></div><div class="cinfo"><p class="blurb">{e(t["blurb"])}</p>{f'<p class="note">{e(note)}</p>' if note else ""}</div>
+        <div class="btns">{"".join(btns)}</div></li>'''
 tiles = []
 for sec in cfg["sections"]:
     tiles.append(f'''<section class="group" id="{sec["id"]}" aria-labelledby="h-{sec["id"]}"><h2 id="h-{sec["id"]}"><span class="dot t-{sec["color"]}" aria-hidden="true"></span>{e(sec["title"])}</h2>
@@ -71,18 +71,20 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .group h2{{display:flex;align-items:center;gap:12px;font-family:var(--fi-display);font-weight:400;font-size:clamp(38px,5vw,54px);margin:34px 0 12px;line-height:.95}}
 .group h2 .dot{{width:22px;height:22px}}
 .group{{scroll-margin-top:90px}}
-.tiles{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}}
-.card{{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}
+.tiles{{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}}
+.card{{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) 220px;align-items:center;gap:6px 22px;padding:12px 18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}
+.cname{{display:flex;flex-direction:column;gap:2px}} .cinfo{{display:flex;flex-direction:column;gap:4px}}
+@media (max-width:820px){{.card{{grid-template-columns:1fr;gap:8px}}}}
 .card[hidden],.group[hidden]{{display:none}}
 .t-red{{background:var(--fi-red);color:#000}} .t-green{{background:var(--fi-green);color:#000}} .t-black{{background:var(--fi-navy);color:#fff}} .t-purple{{background:var(--fi-purple);color:#fff}}
-.course{{font-size:14px;text-transform:uppercase}}
-.tname{{font-family:var(--fi-display);font-weight:400;font-size:36px;line-height:.95;margin:0}}
-.blurb{{line-height:1.45;margin:0;flex:1}}
-.btns{{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}}
+.course{{font-size:13px;text-transform:uppercase}}
+.tname{{font-family:var(--fi-display);font-weight:400;font-size:28px;line-height:1;margin:0}}
+.blurb{{line-height:1.4;margin:0}}
+.btns{{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}} @media (max-width:820px){{.btns{{justify-content:flex-start}}}}
 .btn{{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:96px;padding:0 18px;border-radius:var(--fi-pill);border:2px solid currentColor;color:inherit;text-decoration:none;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;box-sizing:border-box}}
 .btn:hover{{background:rgba(255,255,255,.35)}} .t-black .btn:hover,.t-purple .btn:hover{{background:rgba(255,255,255,.18)}}
 .btn:first-child{{background:var(--fi-card);color:var(--fi-ink);border-color:var(--fi-card)}}
-.note{{margin:0;font-size:14px}}
+.note{{margin:0;font-size:13px;opacity:.9}}
 .sr{{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .prof{{margin:34px 0 0;padding-top:12px;border-top:1px solid var(--fi-soft);color:var(--fi-muted)}}
 .prof a{{color:var(--fi-red-dk);font-weight:700}}

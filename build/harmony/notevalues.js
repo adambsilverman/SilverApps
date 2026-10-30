@@ -34,6 +34,8 @@ window.FAM = (() => {
   }
 
   const FACTS = [
+    ["The division of the beat is…", "the beat split into its first smaller level (two parts in simple meter, three in compound)", ["the beat itself", "a whole bar", "the tempo"], "Below the division comes the subdivision."],
+    ["In 6/8, the subdivision is…", "six sixteenth notes per dotted-quarter beat", ["three eighth notes", "two eighth notes", "four sixteenth notes"], "Beat: dotted quarter. Division: three eighths. Subdivision: six sixteenths."],
     ["A dot after a note adds…", "half of the note's value", ["one beat", "a quarter of its value", "the value of the next note"], "A dotted half = half + quarter = 3 quarter-note beats."],
     ["A second dot adds…", "half the value of the first dot", ["another full half of the note", "one beat", "nothing; it's decoration"], "Double-dotted half = 2 + 1 + ½ = 3½ beats."],
     ["What's the difference between a tie and a slur?", "a tie joins two notes of the same pitch into one sound; a slur joins different pitches", ["there's none", "a slur joins the same pitch", "ties are only for rests"], "Ties add durations; slurs shape phrasing."],
@@ -102,8 +104,14 @@ window.FAM = (() => {
       + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
       + `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">American</th><th scope="col">British</th><th scope="col">In 4/4</th></tr></thead><tbody><tr><td>whole note</td><td>semibreve</td><td>4 beats</td></tr><tr><td>half note</td><td>minim</td><td>2</td></tr><tr><td>quarter note</td><td>crotchet</td><td>1</td></tr><tr><td>eighth note</td><td>quaver</td><td>½</td></tr><tr><td>sixteenth note</td><td>semiquaver</td><td>¼</td></tr></tbody></table></div>` },
     { title: "Parts of a note", kick: "Heads, stems, flags, beams", render: () => `<ul><li><b>Notehead</b>: open (whole and half notes) or filled (quarter and shorter).</li><li><b>Stem</b>: every value shorter than a whole note has one. Notes above the middle line take stems <b>down</b> (on the left of the head); below it, <b>up</b> (on the right); on the middle line, usually down.</li><li><b>Flags</b>: one for an eighth, two for a sixteenth, and so on.</li><li><b>Beams</b> replace flags to group notes by beat, so the meter is easy to see.</li></ul>` },
-    { title: "Rests", kick: "Measured silence", render: (H, k, U) => U.fig(rh("4/4", ["hr hr", "qr qr qr qr", "8r 8r 8r 8r 8r 8r 8r 8r", "16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r 16r"]), "Half, quarter, eighth and sixteenth rests: each matches its note value.", { small: false, play: false })
-      + `<p>The half rest sits on the 3rd line (“a hat”); the whole rest hangs from the 4th line (“a hole”). Rests follow the same rule as notes: show the beats. In 4/4, two quarter rests (not a half rest) fill beats 2–3, so the middle of the bar stays visible.</p>` },
+    { title: "Rests", kick: "Measured silence", render: (H, k, U) => {
+      const V = [["w", "whole"], ["h", "half"], ["q", "quarter"], ["8", "eighth"], ["16", "sixteenth"]];
+      const sp = { type: "score", clefs: ["percussion", "percussion"], ids: ["t", "b"], time: null, vf: "C", sig: {}, final: false, minBar: 96, bars: V.map(([d, n]) => ({ t: [[{ k: [P], d, ly: n + " note" }]], b: [[{ k: [], d, ly: n + " rest" }]] })) };
+      return U.fig(sp, "Each rest (below) lasts as long as the note value above it.", { small: false, play: false })
+      + `<p>The half rest sits on the 3rd line (“a hat”); the whole rest hangs from the 4th line (“a hole”). The eighth and sixteenth rests have one and two flags, like their notes.</p>
+      <p>The whole-rest symbol is also the <b>bar rest</b>: a whole bar of silence in any meter, centered in the bar (see the next step).</p>
+      <p>Rests follow the same rule as notes: show the beats. In 4/4, two quarter rests (not a half rest) fill beats 2–3, so the middle of the bar stays visible.</p>`;
+    } },
     { title: "Bar lines and bar rests", kick: "Every bar is complete", render: (H, k, U) => {
       const bars = rh("3/4", ["q q q", "wr", "h q"]); bars.bars[1].t[0][0].center = true;
       const bars2 = rh("6/8", ["qd qd", "wr", "q 8 qd"]); bars2.bars[1].t[0][0].center = true;
@@ -119,8 +127,12 @@ window.FAM = (() => {
       + H.check("How many beats is a dotted quarter note in 4/4?", "1½", ["1", "2", "1¾"], "1 + ½.") },
     { title: "Meter and the beat", kick: "Simple and compound", render: (H, k, U) => `<p>The top number of a time signature says how many; the bottom number says what kind. In <b>simple meter</b> each beat divides into two; in <b>compound meter</b> each beat is dotted and divides into three.</p>
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Meter</th><th scope="col">Kind</th><th scope="col">Beats × beat unit</th></tr></thead><tbody>${METERS.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]} × ${m[3]} note</td></tr>`).join("")}</tbody></table></div>
-      <div class="lfigs">${fig(U, rh("3/4", ["8 8 8 8 8 8"]), "3/4: three beats, beamed in twos")}${fig(U, rh("6/8", ["8 8 8 8 8 8"]), "6/8: two beats, beamed in threes")}</div>`
-      + H.check("In 6/8, how many beats are in a bar?", "2", ["6", "3", "8"], "Two dotted-quarter beats.") },
+      <div class="lfigs">${fig(U, rh("3/4", ["8 8 8 8 8 8"]), "3/4: three beats, beamed in twos")}${fig(U, rh("6/8", ["8 8 8 8 8 8"]), "6/8: two beats, beamed in threes")}</div>
+      <p>Three levels of pulse:</p>
+      <ul><li><b>Beat</b>: the main pulse you tap your foot to (the quarter note in 2/4, 3/4, 4/4; the dotted quarter in 6/8, 9/8, 12/8).</li><li><b>Division</b>: the beat split into its first smaller level: two eighths in simple meter, three eighths in compound meter.</li><li><b>Subdivision</b>: the division split again: sixteenths in both (four per beat in simple meter, six in compound).</li></ul>
+      <div class="lfigs">${fig(U, rh("2/4", ["q q", "8 8 8 8", "16 16 16 16 16 16 16 16"]), "2/4: beat, division, subdivision")}${fig(U, rh("6/8", ["qd qd", "8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16"]), "6/8: beat, division, subdivision")}</div>`
+      + H.check("In 6/8, how many beats are in a bar?", "2", ["6", "3", "8"], "Two dotted-quarter beats.")
+      + H.check("In 3/4, the division of the beat is…", "two eighth notes", ["three eighth notes", "four sixteenth notes", "a half note"], "Simple meter: the beat divides in two; the subdivision is four sixteenths.") },
     { title: "Triplets and tuplets", kick: "Three in the time of two", render: (H, k, U) => {
       const dup = rh("6/8", ["8t1 8t1 8 8 8"]); dup.bars[0].t[0].forEach((n, i) => { if (i < 2) { n.tun = 2; n.tuo = 3; } });
       const q5 = rh("4/4", ["16t1 16t1 16t1 16t1 16t1 q h"]); q5.bars[0].t[0].forEach((n, i) => { if (i < 5) { n.tun = 5; n.tuo = 4; } });

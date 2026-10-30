@@ -1,4 +1,4 @@
-<!-- title: Drone | fs: 1 | desc: A practice drone: one note or a stack of notes, in equal temperament, Pythagorean tuning, or 5-, 7-, 11- or 13-limit just intonation. -->
+<!-- title: Drone | fs: 1 | desc: A practice drone: one note or a stack of notes, in equal temperament, Pythagorean tuning, or 5-, 7-, 11- or 13-limit just intonation, with the overtone series up to the 13th harmonic. -->
 <style>
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
 .tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -42,6 +42,15 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
 .legend2{font-size:.92rem;color:var(--fi-muted);margin:0}
 .chords{display:flex;flex-wrap:wrap;gap:6px}
 @media (max-width:560px){.pcs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.oth{font:400 26px var(--fi-display);margin:18px 0 4px}
+.otgrid{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:6px;align-items:stretch;margin:8px 0 14px}
+.otgrid .ohd{font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;color:var(--fi-muted);text-align:center;align-self:end}
+.otgrid .onum{font:700 15px var(--fi-ui);display:flex;align-items:center;justify-content:center;min-width:2.2em}
+.otgrid button{min-height:44px;border:1.5px solid var(--fi-line);border-radius:10px;background:var(--fi-card);font:600 13px var(--fi-ui);line-height:1.15;padding:4px 2px;color:var(--fi-ink)}
+.otgrid button small{display:block;font-weight:400;font-size:11px;color:var(--fi-muted)}
+.otgrid button.h{border-width:2px;font-weight:800}
+.otgrid button[aria-pressed="true"]{background:var(--fi-navy);color:#fff;border-color:var(--fi-navy)} .otgrid button[aria-pressed="true"] small{color:#dfe6f2}
+@media (max-width:560px){.otgrid{grid-template-columns:auto repeat(5,minmax(0,1fr));gap:4px}.otgrid button{font-size:11px}.otgrid button small{font-size:10px}}
 </style>
 
 <main class="tool" id="main">
@@ -73,6 +82,12 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
     <div class="ivs" id="ivs" role="group" aria-label="Notes above the root. Activate to add or remove."></div>
     <label class="fld" for="sev" id="sevWrap">5-limit minor 7th
       <select id="sev"><option value="9/5">9:5 (+18¢)</option><option value="16/9">16:9 (−4¢)</option></select></label>
+    <div id="otWrap">
+      <h3 class="oth">Overtone series (just intonation)</h3>
+      <p class="legend2">Add any of the first 13 harmonics of the drone's root, each a pure whole-number multiple of its frequency, and the pure perfect 4th or 5th above or below any of them. The note names show the nearest equal-tempered pitch and how far the pure one is from it.</p>
+      <div class="chords" role="group" aria-label="Overtone presets" id="otPre"></div>
+      <div class="otgrid" id="otGrid" role="group" aria-label="Harmonics and the pure 4ths and 5ths around them"></div>
+    </div>
     <div class="nowwrap" tabindex="0" role="region" aria-label="Notes now sounding"><table class="now"><caption class="sr-only">Notes now sounding</caption><thead><tr><th scope="col">Note</th><th scope="col">Interval</th><th scope="col">Ratio (from tuning root)</th><th scope="col">vs. equal temperament</th><th scope="col">Frequency</th></tr></thead><tbody id="nowRows"></tbody></table></div>
   </section>
 
@@ -103,6 +118,12 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-drone") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("silverapps-drone", JSON.stringify(S)); } catch (e) {} };
   if (!("tonic" in S)) S.tonic = "follow";
+  if (!Array.isArray(S.ot)) S.ot = [];
+  // Overtone grid: partial n (1–13) of the drone root, or the pure 4th/5th above or below it. Key "n:k".
+  const OTK = [["-5", 2 / 3, "P5 below"], ["-4", 3 / 4, "P4 below"], ["0", 1, "harmonic"], ["4", 4 / 3, "P4 above"], ["5", 3 / 2, "P5 above"]];
+  const OTFR = { "-5": "2/3", "-4": "3/4", "0": "1", "4": "4/3", "5": "3/2" };
+  const otRatio = key => { const [n, k] = key.split(":"); return +n * OTK.find(x => x[0] === k)[1]; };
+  const otRatioTxt = key => { const [n, k] = key.split(":"); const [a, b] = OTFR[k].split("/").map(Number); let p = +n * a, q = b || 1; const g = gcd(p, q); return `${p / g}:${q / g}`; };
   if (!S.limit) S.limit = S.sev === "7/4" ? 7 : 5;          // older saved settings used 7:4 as a choice of 7th
   if (S.sev === "7/4") S.sev = "9/5";
   // Ratios above the tuning root, by semitone (one octave). Just: 5-limit; Pythagorean: chains of pure fifths.
@@ -136,6 +157,10 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   const rootHz = () => etHz(rootMidi());
   const hzOf = iv => { if (S.tune === "et") return etHz(rootMidi() + iv.s); const r = ratio(iv); return etHz(tonicMidi()) * r[0] / r[1]; };
   const centsOff = iv => 1200 * Math.log2(hzOf(iv) / etHz(rootMidi() + iv.s));
+  const otHz = key => rootHz() * otRatio(key);
+  const otName = key => { const semi = 12 * Math.log2(otRatio(key)), r = Math.round(semi), c = (semi - r) * 100, m = rootMidi() + r; return { name: PCN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1), c }; };
+  const centsTxt = c => Math.abs(c) < .5 ? "0¢" : `${c > 0 ? "+" : "−"}${Math.abs(c).toFixed(0)}¢`;
+  const otOn = () => S.tune === "ji" ? S.ot : [];
   const noteName = iv => PCN[(S.root + iv.s) % 12] + (S.octave + Math.floor((S.root + iv.s) / 12));
 
   // ---------- audio ----------
@@ -151,13 +176,24 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
   function voiceFor(iv) {
     const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter();
     o.setPeriodicWave(wave(S.timbre)); o2.setPeriodicWave(wave(S.timbre)); lp.type = "lowpass"; lp.frequency.value = S.timbre === "sine" ? 8000 : 3200;
-    const f = hzOf(iv); o.frequency.value = f; o2.frequency.value = f; o2.detune.value = S.timbre === "strings" ? 6 : 0;
+    const f = iv.hz || hzOf(iv); o.frequency.value = f; o2.frequency.value = f; o2.detune.value = S.timbre === "strings" ? 6 : 0;
     const g2 = AC.createGain(); g2.gain.value = S.timbre === "strings" ? .5 : 0;
     o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
     g.gain.value = 0; o.start(); o2.start();
     return { o, o2, g, iv };
   }
-  function level() { const n = Math.max(1, S.on.length); return S.vol * .5 / Math.sqrt(n); }
+  function level() { const n = Math.max(1, S.on.length + otOn().length); return S.vol * .5 / Math.sqrt(n); }
+  let otv = {};
+  function syncOt(t) {
+    const keys = new Set(Object.keys(otv).concat(otOn()));
+    keys.forEach(key => {
+      const want = otOn().includes(key); let v = otv[key];
+      if (want && !v) { v = otv[key] = voiceFor({ s: 0, hz: otHz(key) }); }
+      if (v) { const f = otHz(key); v.o.frequency.setTargetAtTime(f, t, .05); v.o2.frequency.setTargetAtTime(f, t, .05);
+        v.g.gain.setTargetAtTime(want ? level() * .75 : 0, t, .25);
+        if (!want) { const dead = v; delete otv[key]; setTimeout(() => { try { dead.o.stop(); dead.o2.stop(); } catch (e) {} }, 1500); } }
+    });
+  }
   function sync() {
     if (!running) return;
     const t = AC.currentTime;
@@ -170,16 +206,17 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
         if (!want) { const dead = v; delete voices[iv.s]; setTimeout(() => { try { dead.o.stop(); dead.o2.stop(); } catch (e) {} }, 1500); }
       }
     });
+    syncOt(t);
     master.gain.setTargetAtTime(1, t, .3);
   }
-  function rebuildTimbre() { if (!running) return; Object.values(voices).forEach(v => { v.o.setPeriodicWave(wave(S.timbre)); v.o2.setPeriodicWave(wave(S.timbre)); }); }
+  function rebuildTimbre() { if (!running) return; Object.values(voices).concat(Object.values(otv)).forEach(v => { v.o.setPeriodicWave(wave(S.timbre)); v.o2.setPeriodicWave(wave(S.timbre)); }); }
   function setPulse() {
     if (!AC) return;
     if (lfo) { try { lfo.o.stop(); } catch (e) {} lfo = null; }
     if (S.pulse && running) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = .12; g.gain.value = .25; o.connect(g); g.connect(master.gain); o.start(); lfo = { o }; }
   }
   function start() { ac(); running = true; sync(); setPulse(); $("go").textContent = "■ Stop drone"; $("go").setAttribute("aria-pressed", "true"); status(); }
-  function stop() { running = false; if (master) master.gain.setTargetAtTime(0, AC.currentTime, .25); setTimeout(() => { if (!running) { Object.values(voices).forEach(v => { try { v.o.stop(); v.o2.stop(); } catch (e) {} }); voices = {}; if (lfo) { try { lfo.o.stop(); } catch (e) {} lfo = null; } } }, 1200); $("go").textContent = "▶ Start drone"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
+  function stop() { running = false; if (master) master.gain.setTargetAtTime(0, AC.currentTime, .25); setTimeout(() => { if (!running) { Object.values(voices).concat(Object.values(otv)).forEach(v => { try { v.o.stop(); v.o2.stop(); } catch (e) {} }); voices = {}; otv = {}; if (lfo) { try { lfo.o.stop(); } catch (e) {} lfo = null; } } }, 1200); $("go").textContent = "▶ Start drone"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
   $("go").onclick = () => running ? stop() : start();
 
   // ---------- UI ----------
@@ -196,19 +233,29 @@ table.now th[scope=col]{font:700 13px var(--fi-ui);text-transform:uppercase;lett
     $("tonic").value = S.tonic;
     const tn = PCN[tonicPc()];
     $("tuneNote").textContent = S.tune === "et" ? "Every half step is exactly 100 cents; no note is favored." : S.tune === "ji" ? `Pure ratios from the harmonic series of ${tn}. Thirds and sixths are calm and beat-free; ${S.tonic === "follow" ? "change the tuning root to hear how other chords go out of tune." : "chords on other roots may sound rough."}` : `Every note comes from pure 3:2 fifths above or below ${tn}. Fifths are pure; major thirds are wide (+8¢) and bright.`;
-    const rows = S.on.slice().sort((a, b) => a - b).map(s => IVS.find(i => i.s === s)).map(iv => { const r = ratio(iv), c = S.tune === "et" ? 0 : centsOff(iv), cs = Math.abs(c) < .5 ? "0¢" : `${c > 0 ? "+" : "−"}${Math.abs(c).toFixed(1)}¢`; return `<tr><th scope="row">${noteName(iv)}</th><td>${iv.n}</td><td>${S.tune === "et" ? `2^(${iv.s}/12)` : `${r[0]}:${r[1]} above ${tn}`}</td><td class="cents ${c < -.5 ? "flat" : c > .5 ? "sharp" : ""}">${cs}${S.tune !== "et" && Math.abs(c) > .5 ? (c < 0 ? " (lower)" : " (higher)") : ""}</td><td>${hzOf(iv).toFixed(2)} Hz</td></tr>`; }).join("");
+    let rows = S.on.slice().sort((a, b) => a - b).map(s => IVS.find(i => i.s === s)).map(iv => { const r = ratio(iv), c = S.tune === "et" ? 0 : centsOff(iv), cs = Math.abs(c) < .5 ? "0¢" : `${c > 0 ? "+" : "−"}${Math.abs(c).toFixed(1)}¢`; return `<tr><th scope="row">${noteName(iv)}</th><td>${iv.n}</td><td>${S.tune === "et" ? `2^(${iv.s}/12)` : `${r[0]}:${r[1]} above ${tn}`}</td><td class="cents ${c < -.5 ? "flat" : c > .5 ? "sharp" : ""}">${cs}${S.tune !== "et" && Math.abs(c) > .5 ? (c < 0 ? " (lower)" : " (higher)") : ""}</td><td>${hzOf(iv).toFixed(2)} Hz</td></tr>`; }).join("");
+    $("otWrap").hidden = S.tune !== "ji";
+    if (S.tune === "ji") {
+      $("otPre").innerHTML = [["Harmonics 1–6", 6], ["Harmonics 1–8", 8], ["All 13 harmonics", 13], ["Clear overtones", 0]].map(([t, n]) => `<button type="button" class="tbtn" data-otp="${n}">${t}</button>`).join("");
+      let g = `<span class="ohd" aria-hidden="true">#</span>` + OTK.map(x => `<span class="ohd" aria-hidden="true">${x[2]}</span>`).join("");
+      for (let n = 1; n <= 13; n++) { g += `<span class="onum" aria-hidden="true">${n}</span>` + OTK.map(([k, , lab]) => { const key = `${n}:${k}`, nn = otName(key); return `<button type="button" class="${k === "0" ? "h" : ""}" data-ot="${key}" aria-pressed="${S.ot.includes(key)}" aria-label="${k === "0" ? `Harmonic ${n}` : `${lab} harmonic ${n}`}: ${spoken(nn.name)}, ratio ${otRatioTxt(key)}, ${centsTxt(nn.c).replace("−", "minus ")} from equal temperament">${nn.name}<small>${otRatioTxt(key)} · ${centsTxt(nn.c)}</small></button>`; }).join(""); }
+      $("otGrid").innerHTML = g;
+      rows += otOn().slice().sort((a, b) => otRatio(a) - otRatio(b)).map(key => { const nn = otName(key), [n, k] = key.split(":"); return `<tr><th scope="row">${nn.name}</th><td>${k === "0" ? `harmonic ${n}` : `${OTK.find(x => x[0] === k)[2]} harmonic ${n}`}</td><td>${otRatioTxt(key)}</td><td>${centsTxt(nn.c)}</td><td>${otHz(key).toFixed(1)} Hz</td></tr>`; }).join("");
+    }
     $("nowRows").innerHTML = rows;
     status(); save();
   }
   // Waveform sketch of the combined drone: beating is visible in equal temperament, smooth in just intonation.
   function drawViz() {
     const svg = $("viz"), f0 = rootHz(), N = 600, T = 6 / f0 * 4; let d = "", mx = 0; const ys = [];
-    for (let i = 0; i <= N; i++) { const t = i / N * T * 40; let y = 0; S.on.forEach(s => { y += Math.sin(2 * Math.PI * hzOf(IVS.find(v => v.s === s)) * t); }); ys.push(y); mx = Math.max(mx, Math.abs(y)); }
+    for (let i = 0; i <= N; i++) { const t = i / N * T * 40; let y = 0; S.on.forEach(s => { y += Math.sin(2 * Math.PI * hzOf(IVS.find(v => v.s === s)) * t); }); otOn().forEach(k => { y += Math.sin(2 * Math.PI * otHz(k) * t); }); ys.push(y); mx = Math.max(mx, Math.abs(y)); }
     ys.forEach((y, i) => d += `${i ? "L" : "M"}${i} ${60 - y / (mx || 1) * 50}`);
     svg.innerHTML = `<path d="${d}" fill="none" stroke="${getComputedStyle(document.documentElement).getPropertyValue("--fi-navy")}" stroke-width="1.2"/>`;
   }
   $("pcs").onclick = e => { const b = e.target.closest("[data-pc]"); if (!b) return; S.root = +b.dataset.pc; render(); sync(); $("pcs").querySelector(`[data-pc="${S.root}"]`).focus(); };
   $("ivs").onclick = e => { const b = e.target.closest("[data-s]"); if (!b) return; const s = +b.dataset.s; S.on = S.on.includes(s) ? S.on.filter(x => x !== s) : S.on.concat(s); if (!S.on.includes(0)) S.on.push(0); render(); sync(); $("ivs").querySelector(`[data-s="${s}"]`).focus(); };
+  $("otGrid").onclick = e => { const b = e.target.closest("[data-ot]"); if (!b) return; const k = b.dataset.ot; S.ot = S.ot.includes(k) ? S.ot.filter(x => x !== k) : S.ot.concat(k); render(); sync(); const again = $("otGrid").querySelector(`[data-ot="${k}"]`); if (again) again.focus(); };
+  $("otPre").onclick = e => { const b = e.target.closest("[data-otp]"); if (!b) return; const n = +b.dataset.otp; S.ot = S.ot.filter(k => !k.endsWith(":0")).concat(Array.from({ length: n }, (_, i) => `${i + 1}:0`)); if (!n) S.ot = []; render(); sync(); };
   $("presets").onclick = e => { const b = e.target.closest("[data-pre]"); if (!b) return; S.on = PRESETS[+b.dataset.pre][1].slice(); render(); sync(); };
   document.querySelectorAll("[data-tune]").forEach(b => b.onclick = () => { S.tune = b.dataset.tune; render(); sync(); });
   document.querySelectorAll("[data-lim]").forEach(b => b.onclick = () => { S.limit = +b.dataset.lim; render(); sync(); });

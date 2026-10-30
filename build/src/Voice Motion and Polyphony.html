@@ -658,6 +658,18 @@ window.FAM = (() => {
       <li><b>Voice crossing:</b> when a voice goes below the next lower voice (soprano under alto). Avoid it: it hides the independence of the parts.</li></ul>
       <div class="lfigs">${U.fig(good, "Close voicing, root doubled", { small: true, play: { chords: [[74, 71, 67, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(space, "Open voicing", { small: true, play: { chords: [[74, 67, 59, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(cross, "Voice crossing: alto above soprano", { small: true, play: { chords: [[71, 74, 67, 43]], timbre: "voice", dur: 1.5 } })}${U.fig(wide, "Too wide: more than an octave between alto and tenor", { small: true, play: { chords: [[79, 71, 50, 43]], timbre: "voice", dur: 1.5 } })}</div>`;
     } },
+    { title: "Beyond SATB", kick: "Melody and bass in pop", render: (H, k, U) => {
+      const mel = ["G4", "G4", "A4", "B4", "C5", "C5", "B4", "B4", "C5"], bas = ["C3", "B2", "A2", "G2", "F2", "E2", "D2", "G2", "C3"], sy = ["C", "G/B", "Am", "Em/G", "F", "C/E", "Dm", "G", "C"];
+      const bar = (i0, n, d) => ({ t: [mel.slice(i0, i0 + n).map((x, i) => ({ k: [x], d, sym: sy[i0 + i] }))], b: [bas.slice(i0, i0 + n).map(x => ({ k: [x], d }))] });
+      const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 92, minBar: 70, bars: [bar(0, 4, "q"), bar(4, 4, "q"), bar(8, 1, "w")] };
+      return `<p>The same principles work far beyond four-part chorale writing. In almost any style, the two lines listeners hear most clearly are the <b>melody</b> and the <b>bass</b>, so they form a two-voice counterpoint, whatever the chords in between are doing.</p>
+      <ul><li>In a pop song, the <b>vocal melody</b> and the <b>bass line</b> (bass guitar, synth bass or the pianist's left hand) are the outer voices. Contrary and oblique motion between them sounds strong and independent; long stretches of parallel motion make them sound like one line.</li>
+      <li>A <b>stepwise bass</b> under a held or rising melody (often using inverted chords, like C – G/B – Am) is one of the most common pop and rock textures: the slash chords exist to make the bass move by step.</li>
+      <li>The <b>inner parts</b> (guitar chords, keyboard pads, horn backgrounds) often move in parallel chord shapes; that's a texture choice, not an error. Common tones and nearest-note moves still make pads and backing vocals sound smooth.</li>
+      <li>In jazz, the 3rds and 7ths of the chords (the <b>guide tones</b>) form smooth inner lines that move by step from chord to chord.</li></ul>`
+      + U.fig(sp, "A descending bass under a melody that holds and then rises: mostly contrary and oblique motion between the outer voices.")
+      + H.check("In a pop song, which two lines form the main counterpoint?", "the vocal melody and the bass line", ["the guitar and the drums", "the two middle voices of the keyboard part", "the backing vocals and the snare"], "They're the outer voices, the ones listeners hear most clearly.");
+    } },
     { title: "Textures", kick: "Listen", render: (H, k, U) => {
       const row = (kind, name, what) => `<tr><td><b>${name}</b></td><td>${what}</td><td>${U.sound(texture(H, kind), "Play")}</td></tr>`;
       return `<p>How many lines are sounding, and how do they relate? That's a piece's <b>texture</b>. Each example is newly made every time you open this step.</p>
@@ -949,7 +961,7 @@ window.FAM = (() => {
   //   hl (circle the note), hlc (shade the whole column), bs: "x" (start a bracket labeled x), be (end the bracket) }
   const DURQ = { w: 4, h: 2, q: 1, "8": .5, "16": .25 };
   const durOf = d => { const m = /^(w|h|q|8|16)(d*)$/.exec(d); let b = DURQ[m[1]], add = b; for (let i = 0; i < m[2].length; i++) { add /= 2; b += add; } return b; };
-  const staffIds = o => (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");
+  const staffIds = o => o.ids || (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");   // o.ids lets two staves share a clef (e.g. two percussion staves)
   function drawScore(el, o) {
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
@@ -1277,6 +1289,33 @@ window.FAM = (() => {
     return out.map(nmO);
   }
 
+  // A smoothly voice-led left-hand part for a chord progression: the bass note low (F2–E3), and the other chord tones
+  // in close position above it (lowest about B2–A3, top no higher than D4), choosing each voicing to move as little as possible from the last.
+  function lhSeq(chords, lo = 41) {
+    let prev = null;
+    return chords.map(c => {
+      const b = c.tones[c.bass]; let o = 2; while (midi(N(b.l, b.a, o)) < lo) o++; while (midi(N(b.l, b.a, o)) >= lo + 12) o--;
+      const bass = N(b.l, b.a, o), bm = midi(bass);
+      let ups = c.tones.filter((t, i) => i !== c.bass || (c.tones.length === 3 && c.bass === 0));   // root-position triads keep all three tones above the bass (doubling the root); inversions and 7th chords leave out the bass tone
+      if (ups.length > 3) ups = ups.slice(0, 3);
+      const cands = [];
+      ups.forEach((_, r) => {
+        const order = ups.slice(r).concat(ups.slice(0, r));
+        for (let oo = 2; oo <= 4; oo++) {
+          const v = [N(order[0].l, order[0].a, oo)];
+          for (let i = 1; i < order.length; i++) { let x = N(order[i].l, order[i].a, v[i - 1].o); while (midi(x) <= midi(v[i - 1])) x = N(x.l, x.a, x.o + 1); v.push(x); }
+          const lowM = midi(v[0]), topM = midi(v[v.length - 1]);
+          if (lowM >= Math.max(47, bm + 3) && lowM <= 57 && topM <= 62) cands.push(v);   // keep the chord below middle C as far as possible, under the melody
+        }
+      });
+      const high = v => 2 * Math.max(0, midi(v[v.length - 1]) - 59);
+      const cost = v => high(v) + (prev ? v.reduce((a, x, i) => a + Math.abs(midi(x) - midi(prev[Math.min(i, prev.length - 1)])), 0) : Math.abs(midi(v[0]) - 52));
+      const best = cands.sort((x, y) => cost(x) - cost(y))[0] || lh(c, lo).slice(1).map(parse);
+      prev = best;
+      return [nmO(bass)].concat(best.map(nmO));
+    });
+  }
+
 
   // chord token like "5", "57", "26", "164", "765" (degree + optional figure) → diatonic chord with .rn and .deg
   const TINV = { "": 0, "6": 1, "64": 2, "7": 0, "65": 1, "43": 2, "42": 3 };
@@ -1295,7 +1334,7 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);
