@@ -444,11 +444,17 @@ window.FAM = (() => {
     const spell = [];
     ORDER.forEach(X => [-1, 0, 1].forEach(a => { if (pc(X, a) === target) spell.push(X + ACC[a]); }));
     const sp = s => s.replace("♮", "");
-    const NA = "not playable with this setting";
-    const sound = sp(spell.find(s => s.endsWith("♮")) || spell[0]);
-    const ans = strings.length ? sp(strings[0] + ACC[set[strings[0]]]) : NA;
     if (strings.length > 1) return pedalQ(H);
-    return H.mc(`With this pedal setting, how must the harpist's part spell the pitch that sounds like ${sound}?`, ans, spell.map(sp).concat([NA]), strings.length ? `Only the ${strings[0]} strings (set to ${strings[0]}${ACC[set[strings[0]]]}) sound that pitch here: ${letters(set)}.` : `No string sounds that pitch with ${letters(set)}; a pedal change is needed.`, { kicker: "Enharmonic spelling", topic: "pedal", fig: diag(set) });
+    const rank = n => n.includes("♮") ? 0 : n.includes("♯") ? 1 : 2, names = spell.slice().sort((x, y) => rank(x) - rank(y)).map(sp), both = names.join(" / ");
+    const NO = "No: no string is set to that pitch";
+    const yes = n => `Yes: write it as ${n}`;
+    // which strings could give this pitch, and how they're set now
+    const cand = ORDER.filter(X => [-1, 0, 1].some(a => pc(X, a) === target)).map(X => `the ${X} strings are set to ${X + ACC[set[X]]}`);
+    const fix = ORDER.filter(X => [-1, 0, 1].some(a => pc(X, a) === target)).map(X => { const a = [-1, 0, 1].find(a => pc(X, a) === target); return `${X + ACC[set[X]]} → ${X + ACC[a]}`; });
+    const ans = strings.length ? yes(sp(strings[0] + ACC[set[strings[0]]])) : NO;
+    const why = strings.length ? `Only the ${strings[0]} strings sound ${both} with this setting (${letters(set)}), so the part must spell it ${sp(strings[0] + ACC[set[strings[0]]])}: the harpist reads the spelling to know which string to pluck.`
+      : `${cand.join(", and ").replace(/^t/, "T")}, so no string sounds ${both}. A pedal change is needed first (${fix.join(" or ")}).`;
+    return H.mc(`Can the harp play the pitch ${both} with these pedals? If so, how must it be written in the part?`, ans, names.map(yes).concat([NO]), why, { kicker: "Enharmonic spelling", topic: "pedal", fig: diag(set) });
   }
   function glissQ(H) {
     if (Math.random() < .3) return fromList(H, [
