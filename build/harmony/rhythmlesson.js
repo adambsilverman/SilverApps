@@ -32,16 +32,16 @@ window.FAM = (() => {
       return `<ul><li><b>Anacrusis</b> (pickup): one or more notes before the first downbeat of a phrase.</li>
         <li><b>Syncopation</b>: a note begins on an unaccented part of the bar and is sustained into an accented part.</li>
         <li><b>Hemiola</b>: a rhythm that conflicts with the meter, typically three notes in the place of two, or vice versa. ${U.sound(hem, "Hear a hemiola")}</li>
-        <li><b>Asymmetrical meter</b>: uneven groups of beats in a bar, such as 5/8 as 2 + 3 or 3 + 2 (or uneven beamings within an even meter, as in E. J. Moeran's <i>Fantasy Quartet</i>).</li>
-        <li><b>Mixed meter</b>: time signatures changing as a consistent feature (not one change for a whole section), as in Jessie Montgomery's <i>Strum</i>, or the expanding and contracting meters of Philip Glass's “Knee 3.”</li>
+        <li><b>Asymmetrical meter</b>: uneven groups of beats in a bar, such as 5/8 as 2 + 3 or 3 + 2 (or uneven beamings within an even meter, such as 3 + 3 + 2 eighths in 4/4).</li>
+        <li><b>Mixed meter</b>: time signatures changing as a consistent feature (not one change for a whole section), sometimes growing or shrinking a repeating pattern one note at a time.</li>
         <li><b>Swing, shuffle and notes inégales</b>: steady eighths performed as unequal, long–short pairs. Notes inégales go back to the 16th century (Baroque performance); swing (jazz) varies more than shuffle (boogie-woogie, some pop). ${U.sound(straight, "Straight")} ${U.sound(swing, "Swung")}</li>
-        <li><b>Unmeasured rhythm</b>: music performed without measured rhythm, sometimes notated without stems (Caroline Shaw, “Allemande” from <i>Partita for 8 Voices</i>).</li></ul>`;
+        <li><b>Unmeasured rhythm</b>: music performed without measured rhythm, sometimes notated without stems.</li></ul>`;
     } },
     { title: "Layers of time", kick: "Polyrhythm, polymeter, metric modulation", render: (H, k, U) => {
       const p32 = { ev: [0, 1, 2, 3].flatMap(c => [[76, c * 1.2, .15, .8], [76, c * 1.2 + .4, .15, .8], [76, c * 1.2 + .8, .15, .8], [60, c * 1.2, .2, .8], [60, c * 1.2 + .6, .2, .8]]) };
       return `<ul><li><b>Polyrhythm</b>: two or more simultaneous patterns that don't share the same beat subdivision, aligning at the start of each cycle (3:2 means three even notes against two). ${U.sound(p32, "Hear 3 against 2")}</li>
         <li><b>Polymeter</b>: two or more meters at once, each part keeping its own; with the same pulse, 4/4 against 3/4 lines up only every 12 beats.</li>
-        <li><b>Metric modulation</b>: a change of tempo or pulse by reinterpreting a rhythmic value as a different one, notated like “♩ = ♩.”. In the Beatles' <i>We Can Work It Out</i>, the half note stays constant, from half a bar of 4/4 to a whole bar of 3/4. Elliott Carter's String Quartet No. 1 combines metric modulation with polyrhythm.</li></ul>`;
+        <li><b>Metric modulation</b>: a change of tempo or pulse by reinterpreting a rhythmic value as a different one, notated like “♩ = ♩.”. For example, if the half note stays constant, half a bar of 4/4 can become a whole bar of 3/4. Metric modulation is often combined with polyrhythm.</li></ul>`;
     } },
     { title: "Notating lyrics", kick: "Writing for voice", render: (H, k, U) => {
       const n = (s, q, ly) => ({ k: [s], q, ly });

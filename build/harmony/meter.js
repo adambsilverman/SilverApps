@@ -107,12 +107,12 @@ window.FAM = (() => {
       <p>Likewise 4/4 and 12/8 often sound alike at the beat level, but 12/8's beats divide in three (a “shuffle” or triplet feel).</p>` },
     { title: "Asymmetrical meter", kick: "Unequal beats", render: (H, k, U) => `<p>In an <b>asymmetrical</b> (additive, irregular) meter the beats are unequal: groups of two and three eighths. 5/8 can be 2 + 3 or 3 + 2; 7/8 can be 2 + 2 + 3, 3 + 2 + 2 or 2 + 3 + 2. Even an even number of eighths can be grouped unevenly (3 + 3 + 2 in 8/8 or 4/4), shown by the beaming, which may change as the music goes on.</p>
       <div class="lfigs">${fig(U, rh("5/8", ["8 8 8 8 8"], { groups: ["2/8", "3/8"] }), "5/8 as 2 + 3")}${fig(U, rh("7/8", ["8 8 8 8 8 8 8"], { groups: ["2/8", "2/8", "3/8"] }), "7/8 as 2 + 2 + 3")}${fig(U, rh("8/8", ["8 8 8 8 8 8 8 8"], { groups: ["3/8", "3/8", "2/8"] }), "3 + 3 + 2")}</div>
-      <p>Dave Brubeck's <i>Take Five</i> is in 5/4 (3 + 2). E. J. Moeran's <i>Fantasy Quartet</i> shows uneven groups through its beaming.</p>` },
+      <p>The same idea works with quarter-note beats: 5/4 can be felt as 3 + 2 or 2 + 3. The beaming (or, with longer values, the way the notes are grouped) tells the performer which.</p>` },
     { title: "Mixed meter", kick: "Changing time signatures", render: (H, k, U) => {
       const sp = rh("3/4", ["q q q", { r: "8 8 8 8 8", time: "5/8", groups: ["3/8", "2/8"] }, { r: "q q", time: "2/4" }, { r: "8 8 8 8 8 8 8", time: "7/8", groups: ["2/8", "2/8", "3/8"] }, { r: "hd", time: "3/4" }]);
       return `<p><b>Mixed meter</b>: the time signature changes as a consistent feature of the music, not just once for a new section. Each change gets a new time signature; if a change falls at the start of a line, add a <b>cautionary</b> time signature at the end of the previous line.</p>`
         + U.fig(sp, "3/4, 5/8, 2/4, 7/8, 3/4: a new time signature at every change.", { play: H.withClick(sp) })
-        + `<p>In Jessie Montgomery's <i>Strum</i>, eighth-note groupings are so flexible that simple/compound conventions are set aside. In Philip Glass's “Knee 3” (<i>Einstein on the Beach</i>), the meter expands and contracts by one note per section over a steady chord pattern. (Two meters at the <i>same</i> time is <b>polymeter</b>.)</p>`;
+        + `<p>Some music changes meter so often that the beaming, not the time signature, is the clearest guide to the groups; other music grows or shrinks a repeating pattern by one note at a time. (Two meters at the <i>same</i> time is <b>polymeter</b>.)</p>`;
     } },
     { title: "Beaming shows the beat", kick: "Making everything clear", render: (H, k, U) => `<ul><li><b>Beam by beat</b>: by quarter note in 2/4, 3/4, 4/4; in threes in 6/8, 9/8, 12/8; by the written groups in asymmetrical meters.</li>
       <li>In 4/4, eighths may be beamed in fours (half a bar), but <b>never across the middle</b> of the bar (beats 2–3).</li>
