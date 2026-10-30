@@ -74,6 +74,10 @@ fieldset.clefs{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 1
 .inrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}.inrow .pl{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
 .lbtn.sm{font-size:14px;padding:6px 12px;min-height:40px}
 .dots span.given{background:var(--fi-paper);border-style:dashed}
+.dots span small{display:block;font:600 11px var(--fi-ui);color:var(--fi-muted);margin-top:2px}
+.durrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0 4px}
+.durrow .lbtn[aria-pressed="true"]{background:var(--fi-navy);color:#fff;border-color:var(--fi-navy)}
+.beatcount{text-align:center;font:600 13px var(--fi-ui);color:var(--fi-muted);margin:4px 0 0}
 .degpad.chrom{grid-template-columns:repeat(10,minmax(0,1fr));margin-top:-4px}.degpad.chrom button{min-height:46px;background:var(--fi-paper)}
 @media (max-width:640px){.degpad.chrom{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .degpad.seven{grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -131,7 +135,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const say = s => s.replace("♯", " sharp").replace("♭", " flat");
 
   // ---------- state & settings ----------
-  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none", clues: false };
+  let S = { tab: "sing", ivs: "all", voice: "high", chords: "triads", chordPlay: "block", len: 4, mode: "major", motion: "skips", start: "tonic", input: "movable", clefs: ["treble"], chrom: "none", clues: false, rhythm: "steady", meter: "any" };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-ear") || "{}")); } catch (e) {}
   if (!Array.isArray(S.clefs) || !S.clefs.length) S.clefs = ["treble"];
   S.chords = { sevenths: "usual7", both: "triUsual" }[S.chords] || S.chords;
@@ -147,6 +151,90 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(f * 8, 8000), t); lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + 1); g.connect(out); lp.connect(g);
     [[1, 1], [2, .4], [3, .18], [4, .08]].forEach(([h, a]) => { const o = AC.createOscillator(); o.type = h === 1 ? "triangle" : "sine"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a; o.connect(og); og.connect(lp); o.start(t); o.stop(t + d + .8); });
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .01); g.gain.setTargetAtTime(v * .35, t + .02, .35); g.gain.setTargetAtTime(0, t + d, .15);
+  }
+  // ---------- sung solfège: a small formant "voice" (sawtooth source → vowel formant filters, plus consonant noise) ----------
+  // Vowel formants (Hz) for a neutral adult voice: o (do, sol), e (re, me, se, le, te, ra), i (mi, ti, di, ri, fi, si, li), a (fa, la).
+  const VOW = { o: [450, 800, 2830], e: [400, 2000, 2700], i: [300, 2250, 3000], a: [720, 1150, 2600] };
+  const SYL = s => { if (s === "sol") return { c: "s", v: "o", end: "l" };
+    const v = { do: "o", re: "e", mi: "i", fa: "a", la: "a", ti: "i", di: "i", ri: "i", fi: "i", si: "i", li: "i", ra: "a", me: "e", se: "e", le: "e", te: "e" }[s] || "a"; return { c: s[0], v, end: "" }; };
+  let NOISE = null;
+  function noiseBuf() { if (NOISE) return NOISE; const n = AC.sampleRate, b = AC.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return NOISE = b; }
+  function noise(out, t, dur, type, freq, q, peak) {
+    const src = AC.createBufferSource(); src.buffer = noiseBuf(); const f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + Math.min(.015, dur / 3)); g.gain.setTargetAtTime(0, t + dur * .6, dur / 5);
+    src.connect(f); f.connect(g); g.connect(out); src.start(t); src.stop(t + dur + .1);
+  }
+  // Sing one syllable at MIDI pitch m; the vowel starts on beat t and lasts d seconds.
+  function sing(out, syl, m, t, d) {
+    const { c, v, end } = SYL(syl), f0 = 440 * Math.pow(2, (m - 69) / 12), F = VOW[v];
+    const voiced = !"tfs".includes(c), cl = { d: .05, t: .06, r: .07, m: .09, f: .1, s: .11, l: .07 }[c] || .06, t0 = t - cl;
+    // glottal source with gentle vibrato that grows after the onset
+    const src = AC.createOscillator(); src.type = "sawtooth"; src.frequency.value = f0;
+    const vib = AC.createOscillator(), vg = AC.createGain(); vib.frequency.value = 5.6; vg.gain.setValueAtTime(0, t0); vg.gain.linearRampToValueAtTime(f0 * .006, t + .35); vib.connect(vg); vg.connect(src.frequency);
+    const amp = AC.createGain(); amp.connect(out);
+    // formant bank
+    const bank = F.map((fr, i) => { const bp = AC.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = fr / [90, 110, 160][i]; const g = AC.createGain(); g.gain.value = [1, (v === "i" || v === "e") ? 1.1 : .7, .45][i]; src.connect(bp); bp.connect(g); g.connect(amp); return bp; });
+    const setF = (at, fs, glide) => bank.forEach((bp, i) => { bp.frequency.setValueAtTime(bp.frequency.value || fs[i], at); bp.frequency.linearRampToValueAtTime(fs[i], at + glide); });
+    // consonant shapes (formants at the start, then glide to the vowel)
+    const START = { d: [300, 1700, 2600], t: [300, 1800, 2600], r: [350, 1200, 1600], m: [250, 1000, 2200], l: [350, 1100, 2600], f: F, s: F }[c] || F;
+    bank.forEach((bp, i) => bp.frequency.setValueAtTime(START[i], t0));
+    setF(t - .03, F, .06);
+    if (end === "l") setF(t + d - .14, [350, 1000, 2600], .1);   // the l of “sol”
+    const V = .9;
+    amp.gain.setValueAtTime(0, t0);
+    if (c === "m") { amp.gain.linearRampToValueAtTime(V * .35, t0 + .02); bank[1].frequency.setValueAtTime(1000, t0); }   // hummed nasal
+    else if (c === "l" || c === "r") amp.gain.linearRampToValueAtTime(V * .45, t0 + .03);
+    else if (c === "d") amp.gain.linearRampToValueAtTime(V * .12, t0 + .02);                      // voice bar under the closure
+    amp.gain.setValueAtTime(voiced ? amp.gain.value : 0, t - .02);
+    amp.gain.linearRampToValueAtTime(V, t + .04);
+    amp.gain.setTargetAtTime(V * .8, t + .06, .2);
+    amp.gain.setTargetAtTime(0, t + d - .06, .05);
+    // consonant noise
+    if (c === "s") noise(out, t0, cl, "highpass", 4500, .7, .22);
+    if (c === "f") noise(out, t0, cl, "highpass", 1800, .5, .12);
+    if (c === "t") noise(out, t - .035, .045, "bandpass", 3800, .9, .3);
+    if (c === "d") noise(out, t - .015, .02, "bandpass", 3000, 1, .12);
+    src.start(t0); vib.start(t0); src.stop(t + d + .3); vib.stop(t + d + .3);
+  }
+  // ---------- Adam Silverman's recorded voice (assets/solfege-voice.js): one clip per syllable at five pitches, G2–B3 ----------
+  let VOICE = null, voiceP = null;
+  function voiceLoad() {
+    if (voiceP) return voiceP;
+    voiceP = new Promise(res => {
+      const go = async () => { try {
+          const V = window.SOLFEGE_VOICE; if (!V || !ac()) return res(null);
+          const anchors = await Promise.all(V.map(async a => { const bin = atob(a.mp3), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+            const buf = await new Promise((ok, no) => AC.decodeAudioData(u.buffer, ok, no)); return { m: a.m, clips: a.clips, buf }; }));
+          VOICE = anchors; res(VOICE);
+        } catch (e) { res(null); } };
+      if (window.SOLFEGE_VOICE) return go();
+      const sc = document.createElement("script"); sc.src = "assets/solfege-voice.js"; sc.onload = go; sc.onerror = () => res(null); document.head.appendChild(sc);
+    });
+    return voiceP;
+  }
+  // Sing with the recorded voice: the whole pattern moves by octaves into the recorded range (about F2–C♯4); each note uses the nearest recording, retuned by at most about two half steps.
+  function singVoice(syls, ms, gap, du, lead) {
+    const out = lead && bus ? bus : newBus(), t0 = AC.currentTime + .25 + lead;
+    const lo = 41, hi = 62; let best = 0, score = 1e9;
+    for (let k = -48; k <= 12; k += 12) { const sc = ms.reduce((a, m) => a + Math.max(0, lo - (m + k), (m + k) - hi), 0) * 10 + Math.abs(ms.reduce((a, m) => a + m + k, 0) / ms.length - 51); if (sc < score) { score = sc; best = k; } }
+    syls.forEach((s, i) => {
+      const m = ms[i] + best; let pick = null;
+      VOICE.forEach(a => { const c = a.clips[s]; if (!c) return; const d = Math.abs(m - (a.m + c[3])); if (!pick || d < pick.d) pick = { a, c, d }; });
+      if (!pick) return;
+      const [off, len, vo, tune] = pick.c, rate = Math.pow(2, (m - (pick.a.m + tune)) / 12), t = t0 + i * gap;
+      const src = AC.createBufferSource(); src.buffer = pick.a.buf; src.playbackRate.value = rate;
+      const g = AC.createGain(), start = t - vo / rate, end = t + du + .12;
+      g.gain.setValueAtTime(1, start); g.gain.setTargetAtTime(0, end - .05, .03);
+      src.connect(g); g.connect(out); src.start(Math.max(AC.currentTime, start), off, Math.min(len, (end - start + .1) * rate));
+    });
+    return lead + .25 + syls.length * gap;
+  }
+  // Sing a list of syllables on MIDI pitches, one every `gap` seconds; returns total seconds.
+  function singSeq(syls, ms, gap = .75, du = .62, lead = 0) {
+    if (!ac()) return 0; const out = lead && bus ? bus : newBus(), t0 = AC.currentTime + .25 + lead;   // with a lead-in, keep the bus that's playing the tonic chord
+    const lvl = AC.createGain(); lvl.gain.value = .55; lvl.connect(out);
+    syls.forEach((s, i) => { sing(lvl, s, ms[i], t0 + i * gap, du); note(out, ms[i], t0 + i * gap, du, .07); });   // a quiet piano doubling keeps the pitch clear
+    return lead + .2 + syls.length * gap;
   }
   // events: [ [midis], start, dur ] ; returns total seconds
   function play(events) { if (!ac()) return 0; const out = newBus(), t0 = AC.currentTime + .06; let end = 0; events.forEach(([ms, st, du]) => { (Array.isArray(ms) ? ms : [ms]).forEach(m => note(out, m, t0 + st, du, Array.isArray(ms) && ms.length > 1 ? .2 : .32)); end = Math.max(end, st + du); }); return end + .3; }
@@ -234,27 +322,64 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
 
   // ---------- staff (VexFlow) ----------
   const SPL = [[0, 0], [0, 1], [1, 0], [2, -1], [2, 0], [3, 0], [3, 1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
-  function staffOf(box, notes, o = {}) {   // notes: [{l,a,o}] or null for blanks
+  // Note values in beats (quarter = 1) ↔ VexFlow durations and names.
+  const DUR = { 0.5: ["8", "eighth", "♪"], 1: ["q", "quarter", "♩"], 1.5: ["qd", "dotted quarter", "♩."], 2: ["h", "half", "half"], 3: ["hd", "dotted half", "dotted half"], 4: ["w", "whole", "whole"] };
+  function staffOf(box, notes, o = {}) {   // notes: [{l,a,o}] or null for blanks; o.durs: beats per note (rhythmic dictation), o.time: "3/4"
     box.innerHTML = ""; if (!window.Vex || !Vex.Flow) { box.textContent = notes.map(n => n ? LET[n.l] + ACC[n.a] : "?").join(" "); return; }
-    const VF = Vex.Flow, ink = css("--fi-ink"), W = 70 + (o.ks != null ? 60 : 0) + notes.length * 52, H = o.fixed ? 175 : 140; const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, H);
+    const durs = o.durs, bpb = o.time ? +o.time.split("/")[0] : 0;
+    const VF = Vex.Flow, ink = css("--fi-ink"), W = 70 + (o.ks != null ? 60 : 0) + (o.time ? 30 : 0) + notes.length * (durs ? 58 : 52) + (durs ? 24 * Math.ceil(durs.reduce((a, b) => a + (b || 1), 0) / bpb) : 0), H = o.fixed ? 175 : 140; const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, H);
     const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
-    const st = new VF.Stave(4, 18, W - 8); st.addClef(o.clef || "treble"); if (o.ks) st.addKeySignature(o.ks); st.setContext(ctx).draw();
-    const sig = o.sigAcc || [0, 0, 0, 0, 0, 0, 0], seen = {};
-    const sns = notes.map((n, i) => {
-      if (!n) return new VF.GhostNote({ duration: "q" });
-      const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: [LET[n.l].toLowerCase() + "/" + n.o], duration: "q", auto_stem: true });
-      const c = n.ghost ? "#A89C8E" : o.colors && o.colors[i] ? css(o.colors[i]) : ink; sn.setStyle({ fillStyle: c, strokeStyle: c });
-      if (n.ghost && sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: c, fillStyle: c });
-      const k = n.o * 7 + n.l, implied = k in seen ? seen[k] : sig[n.l];
-      if (n.a !== implied) sn.addModifier(new VF.Accidental({ "-1": "b", "0": "n", "1": "#" }[n.a] || "n"), 0); seen[k] = n.a; return sn;
+    const st = new VF.Stave(4, 18, W - 8); st.addClef(o.clef || "treble"); if (o.ks) st.addKeySignature(o.ks); if (o.time) { st.addTimeSignature(o.time); st.setEndBarType(VF.Barline.type.END); } st.setContext(ctx).draw();
+    const sig = o.sigAcc || [0, 0, 0, 0, 0, 0, 0]; let seen = {};
+    const tick = [], real = []; let beat = 0, total = 0;
+    notes.forEach((n, i) => {
+      const dv = durs && durs[i] ? durs[i] : 1, code = durs ? DUR[dv][0] : "q";
+      if (!n) { tick.push(new VF.GhostNote({ duration: durs ? code : "q" })); }
+      else {
+        const sn = new VF.StaveNote({ clef: o.clef || "treble", keys: [LET[n.l].toLowerCase() + "/" + n.o], duration: code, auto_stem: true });
+        if (code.endsWith("d")) { if (VF.Dot.buildAndAttach) VF.Dot.buildAndAttach([sn], { all: true }); else sn.addDotToAll(); }
+        const c = n.ghost ? "#A89C8E" : o.colors && o.colors[i] ? css(o.colors[i]) : ink; sn.setStyle({ fillStyle: c, strokeStyle: c });
+        if (n.ghost && sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: c, fillStyle: c });
+        const k = n.o * 7 + n.l, implied = k in seen ? seen[k] : sig[n.l];
+        if (n.a !== implied) sn.addModifier(new VF.Accidental({ "-1": "b", "0": "n", "1": "#" }[n.a] || "n"), 0); seen[k] = n.a;
+        sn._beat = beat; sn._dv = dv; tick.push(sn); real.push(sn);
+      }
+      beat += dv; total += dv;
+      if (durs && bpb && beat >= bpb - 1e-6 && i < notes.length - 1) { tick.push(new VF.BarNote()); beat -= bpb; seen = {}; }   // a note that overruns the bar still gets a bar line after it   // accidentals last only to the bar line
     });
-    const voice = new VF.Voice({ num_beats: notes.length, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(sns);
+    const voice = new VF.Voice({ num_beats: Math.max(1, Math.ceil(total)), beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tick);
+    // beam pairs of eighths that fill one beat
+    const beams = []; for (let i = 0; i < real.length - 1; i++) { const a = real[i], b = real[i + 1]; if (a._dv === .5 && b._dv === .5 && a._beat % 1 === 0 && tick.indexOf(b) === tick.indexOf(a) + 1) { beams.push(new VF.Beam([a, b], true)); i++; } }
     new VF.Formatter().joinVoices([voice]).format([voice], st.getNoteEndX() - st.getNoteStartX() - 10); voice.draw(ctx, st);
+    beams.forEach(b => { b.setStyle({ fillStyle: ink, strokeStyle: ink }); b.setContext(ctx).draw(); });
     const svg = box.querySelector("svg");
     if (o.fixed) svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     else try { const bb = svg.getBBox(); svg.setAttribute("viewBox", `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`); } catch (e) {}
     svg.removeAttribute("width"); svg.removeAttribute("height"); svg.removeAttribute("style"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", o.label || "Staff");
     return { svg, top: st.getYForLine(0), sp: st.getSpacingBetweenLines() };
+  }
+  // A rhythm of n notes filling whole bars of bpb beats: quarters, eighth pairs, halves on strong beats, dotted quarter + eighth, dotted halves in 3/4; the last note lasts to the bar line.
+  function makeRhythm(n, bpb, dotted) {
+    for (let t = 0; t < 400; t++) {
+      const out = []; let pos = 0, bad = false;
+      while (out.length < n && !bad) {
+        const left = n - out.length, rem = bpb - pos;
+        if (left === 1) { out.push(rem); pos = 0; break; }
+        const opts = [[1], [1]];
+        if (left >= 3 || (left === 2 && rem > 1)) opts.push([.5, .5]);
+        if (rem >= 2 && pos % 2 === 0) opts.push([2]);
+        if (dotted && rem >= 2 && pos % 2 === 0 && left >= 3) opts.push([1.5, .5], [1.5, .5]);
+        if (bpb === 3 && pos === 0 && left >= 2) opts.push([3]);
+        const c = opts[Math.floor(Math.random() * opts.length)]; if (c.length >= left) { bad = left === 1; continue; }
+        out.push(...c); pos += c.reduce((a, b) => a + b, 0); if (pos >= bpb) pos = 0;
+      }
+      if (bad || out.length !== n) continue;
+      const bars = out.reduce((a, b) => a + b, 0) / bpb;
+      if (bars > 4 || (t < 300 && out.slice(0, -1).every(x => x === 1))) continue;
+      if (dotted && t < 300 && !out.includes(1.5) && n >= 5) continue;
+      return out;
+    }
+    return Array(n - 1).fill(1).concat([bpb - ((n - 1) % bpb) || bpb]);
   }
 
   // ================= 1. SING INTERVALS =================
@@ -400,7 +525,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const TOPc = CLEFS[ctx.clef].top, LOW = TOPc - 13, HIGH = TOPc + 5;
     let degs = null;
     for (let g = 0; g < 60 && !degs; g++) {
-      const cand = makePattern(+S.len, S.motion, S.start === "any", ctx.scale);
+      const cand = makePattern(dict ? +S.len : Math.min(6, +S.len), S.motion, S.start === "any", ctx.scale);
       var alts = dict && S.chrom !== "none" ? addChromatics(cand, ctx.scale, S.chrom) : cand.map(() => 0); if (!alts) continue;
       const offs = cand.map(d => 12 * Math.floor(d / 7) + ctx.scale[((d % 7) + 7) % 7]), mean = offs.reduce((a, b) => a + b, 0) / offs.length, pc0 = ctx.k[1] % 12;
       const opts = []; for (let t = 24 + pc0; t <= 84; t += 12) opts.push(t);
@@ -409,15 +534,28 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     }
     if (!alts || alts.length !== degs.length) alts = degs.map(() => 0);
     const ms = degs.map((d, i) => degMidi(ctx, d) + alts[i]), notes = degs.map((d, i) => { const n = degNote(ctx, d); n.a += alts[i]; return n; });
-    PT = { ctx, degs, ms, notes, dict, ans: [], done: false, keyName: `${ctx.k[0]} ${S.mode}`, clefName: `${ctx.clef} clef` }; selfShown = false; trialId++;
+    const meter = dict && S.rhythm !== "steady" ? (S.meter === "any" ? rnd(["2/4", "3/4", "4/4"]) : S.meter) : null;
+    PT = { ctx, degs, ms, notes, dict, ans: [], done: false, keyName: `${ctx.k[0]} ${S.mode}`, clefName: `${ctx.clef} clef`, time: meter, durs: meter ? makeRhythm(degs.length, +meter[0], S.rhythm === "dotted") : null }; selfShown = false; trialId++;
     const ks = S.mode === "minor" ? VFMIN[ctx.k[3]] : ctx.k[3], sigAcc = S.mode === "minor" ? minorSig(ctx.k) : ctx.k[2];
     PT.ks = ks; PT.sigAcc = sigAcc;
     if (!dict) {
       $("prompt").innerHTML = `<p class="ask">Sing this pattern<small>Key: ${PT.keyName}, ${PT.clefName}. Hear the tonic chord, then sing each note (any octave).</small></p>
         <div class="vf" id="ptStaff"></div><div class="dots${S.clues ? " clues" : ""}" id="ptDots">${degs.map((d, i) => `<span data-i="${i}"><b class="clue">${degSolf(d)}</b><i class="clue">${degLabel(d)}</i><b class="nclue" aria-hidden="true">♪</b><i class="nclue" aria-hidden="true">&nbsp;</i></span>`).join("")}</div>${meterHTML}`;
       staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, label: `${PT.clefName[0].toUpperCase() + PT.clefName.slice(1)}, key of ${PT.keyName}: ${S.clues ? degs.map(degSolf).join(", ") : notes.map(n => LET[n.l] + ({ "-1": " flat", "1": " sharp" }[n.a] || "")).join(", ")}.` });
-      $("ctrls").innerHTML = `<button class="lbtn primary" id="ptGo" type="button">🎤 Try again</button><button class="lbtn" id="ptRef" type="button">▶ Tonic chord</button><button class="lbtn" id="ptHear" type="button">▶ Hear the pattern</button><button class="lbtn" id="ptNext" type="button">Next ›</button>`;
+      $("ctrls").innerHTML = `<button class="lbtn primary" id="ptGo" type="button">🎤 Try again</button><button class="lbtn" id="ptRef" type="button">▶ Tonic chord</button><button class="lbtn" id="ptHear" type="button">▶ Hear the pattern</button><button class="lbtn" id="ptSing" type="button">🗣 Sing it back (solfège)</button><button class="lbtn" id="ptNext" type="button">Next ›</button>`;
+      voiceLoad();   // fetch and decode the recorded voice in the background
       $("ptRef").onclick = () => play(refEvents(ctx));
+      $("ptSing").onclick = async () => {
+        if (!PT.done) { PT.done = true; PT.heard = true; }
+        const tonicM = degMidi(ctx, 0), syls = degs.map((d, i) => alts[i] ? CHS(ms[i] - tonicM, alts[i]) : degSolf(d));
+        const dd = $("ptDots"); if (dd) dd.classList.add("clues");
+        stopListen(); trialId++; const gap = .75, b = $("ptSing"); b.disabled = true;
+        const v = await voiceLoad(); b.disabled = false;
+        const lead = play(refEvents(ctx)); if (v) singVoice(syls, ms, gap, .62, lead); else singSeq(syls, ms, gap, .62, lead);
+        const dots = dd ? [...dd.children] : []; clearTimeout(PT.singT); let i = 0;
+        const step = () => { dots.forEach((x, k) => x.classList.toggle("cur", k === i)); if (i++ < dots.length) PT.singT = setTimeout(step, gap * 1000); };
+        PT.singT = setTimeout(step, (lead + .25) * 1000);
+      };
       $("ptHear").onclick = () => { if (!PT.done) { PT.done = true; PT.heard = true; } play(refEvents(ctx).concat(seqEv(ms, .6, .55, 2.3))); };
       $("ptGo").onclick = () => { const dots = [...$("ptDots").children]; dots.forEach(x => x.classList.remove("ok", "cur"));
         const miss = new Set();
@@ -445,6 +583,9 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const sayTxt = x => nameTxt(x).replace("♯", " sharp").replace("♭", " flat").replace("♮", " natural");
     const near = (l, a) => { const prev = PT.ans[PT.ans.length - 1]; let best = null; for (let o = prev.o - 1; o <= prev.o + 1; o++) { const c = { l, a, o }, out = diatOf(c) < CLEFS[ctx.clef].top - 13 || diatOf(c) > CLEFS[ctx.clef].top + 5, d = Math.abs(midiOf(c) - midiOf(prev)) + (out ? 100 : 0); if (!best || d < best.d || (d === best.d && midiOf(c) > midiOf(best.c))) best = { c, d }; } return best.c; };
     PT.ans = keep && keep.length ? keep : [notes[0]]; PT.acc = null; PT.cur = diatOf(PT.ans[PT.ans.length - 1]);
+    const durs = PT.durs, bpb = PT.time ? +PT.time[0] : 0;
+    if (durs) { if (!(keep && keep.length && PT.ansD)) PT.ansD = [durs[0]]; PT.ansD = PT.ansD.slice(0, PT.ans.length); if (PT.dur == null) PT.dur = 1; }
+    const durName = d => DUR[d][1], durMark = d => DUR[d][2];
     const hint = { movable: "Tap the solfège syllables you hear.", fixed: "Tap the fixed-do syllables you hear (do = C).", names: "Tap the note names you hear.", chrom: "Choose an accidental if needed, then tap the letter.", staff: "Click the staff where each note goes (or use ↑ ↓ and Enter). The key signature applies unless you choose an accidental." }[mode];
     let pad = "";
     if (mode === "movable") pad = `<div class="degpad" role="group" aria-label="Solfège">${DEGS.map(d => `<button type="button" data-d="${d}" aria-label="${degSolf(d)}, scale degree ${degLabel(d).replace("̣", " low").replace("′", " high")}"><b>${degSolf(d)}</b><small>${degLabel(d)}</small></button>`).join("")}</div>`
@@ -454,20 +595,26 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       pad = `<div class="row accrow" role="group" aria-label="Accidental for the next note">${(mode === "staff" ? [["key", "Key signature"]] : []).concat([["-1", "♭"], ["0", "♮"], ["1", "♯"]]).map(([v, t]) => `<button type="button" class="lbtn" data-acc="${v}" aria-pressed="false" ${t.length === 1 ? `aria-label="${{ "♭": "flat", "♮": "natural", "♯": "sharp" }[t]}"` : ""}>${t}</button>`).join("")}</div>`
         + (mode === "chrom" ? `<div class="degpad seven" role="group" aria-label="Letter names">${[0, 1, 2, 3, 4, 5, 6].map(l => `<button type="button" data-l="${l}"><b>${LET[l]}</b></button>`).join("")}</div>` : "");
     }
-    $("prompt").innerHTML = `<p class="ask">Write the melody<small>Key: ${PT.keyName}, ${PT.clefName}. The first note, <b>${nameTxt(notes[0])}</b>, is given. ${hint}</small></p>
+    const values = durs ? [.5, 1, 1.5, 2, 3, 4].filter(v => (v !== 1.5 || S.rhythm === "dotted") && v <= bpb && !(v === 3 && bpb !== 3 && bpb !== 4) ) : [];
+    const durRow = durs ? `<div class="durrow" role="group" aria-label="Note value for the next note"><span class="pl">Next note value</span>${values.map(v => `<button type="button" class="lbtn sm" data-dur="${v}" aria-pressed="${PT.dur === v}">${DUR[v][1][0].toUpperCase() + DUR[v][1].slice(1)}</button>`).join("")}<button type="button" class="lbtn sm" id="dcLastDur">Change the last note to this value</button></div><p class="beatcount" id="beatCount" aria-live="polite"></p>` : "";
+    $("prompt").innerHTML = `<p class="ask">Write the melody<small>Key: ${PT.keyName}, ${PT.clefName}${durs ? `, meter ${PT.time}` : ""}. The first note, <b>${nameTxt(notes[0])}</b>${durs ? ` (a ${durName(durs[0])})` : ""}, is given. ${durs ? "Choose a note value, then enter each pitch. " : ""}${hint}</small></p>
       <div class="inrow" role="group" aria-label="Answer with"><span class="pl">Answer with</span>${INPUTS.map(([v, t]) => `<button type="button" class="lbtn sm" data-in="${v}" aria-pressed="${v === mode}">${t}</button>`).join("")}</div>
       <div class="vf${mode === "staff" ? " clickstaff" : ""}" id="ptStaff" ${mode === "staff" ? `tabindex="0" aria-describedby="stHelp"` : ""}></div>${mode === "staff" ? `<p class="sr" id="stHelp">Staff input. Up and down arrows choose a pitch, Enter adds it, Backspace removes the last note.</p><p class="sr" id="stLive" aria-live="polite"></p>` : ""}
-      <div class="dots" id="ptDots"></div>${pad}`;
+      <div class="dots" id="ptDots"></div>${durRow}${pad}`;
     $("ctrls").innerHTML = `<button class="lbtn primary" id="dcPlay" type="button">▶ Play</button><button class="lbtn" id="dcFirst" type="button">▶ First note</button><button class="lbtn" id="dcBack" type="button">⌫ Undo</button>${mode === "staff" ? "" : `<button class="lbtn" id="dcUp" type="button" aria-label="Move the last note up an octave">Octave ↑</button><button class="lbtn" id="dcDn" type="button" aria-label="Move the last note down an octave">Octave ↓</button>`}<button class="lbtn" id="dcCheck" type="button">Check</button><button class="lbtn" id="dcNext" type="button">Next ›</button>`;
     let geo = null;
     const cursorNote = () => { const l = ((PT.cur % 7) + 7) % 7, o = Math.floor(PT.cur / 7), a = PT.acc == null || PT.acc === "key" ? sigAcc[l] : +PT.acc; return { l, a, o }; };
     const redraw = colors => {
       const shown = PT.ans.slice(); if (mode === "staff" && !PT.done && PT.ans.length < n) shown.push(Object.assign(cursorNote(), { ghost: true }));
-      geo = staffOf($("ptStaff"), shown.concat(Array(Math.max(0, n - shown.length)).fill(null)), { ks, sigAcc, colors, clef: ctx.clef, fixed: mode === "staff", label: `Your answer: ${PT.ans.map(nameTxt).join(", ")}.` });
-      $("ptDots").innerHTML = degs.map((d, i) => `<span class="${colors ? (sameNote(PT.ans[i], notes[i]) ? "ok" : "no") : i === 0 ? "given" : ""}">${PT.ans[i] ? nameIn(PT.ans[i]) : "?<i>&nbsp;</i>"}</span>`).join("");
+      const shownD = durs ? PT.ansD.concat(mode === "staff" && !PT.done && PT.ans.length < n ? [PT.dur] : []) : null;
+      const blanks = Math.max(0, n - shown.length);
+      geo = staffOf($("ptStaff"), shown.concat(Array(blanks).fill(null)), { ks, sigAcc, colors, clef: ctx.clef, fixed: mode === "staff", durs: durs ? shownD.concat(Array(blanks).fill(1)) : null, time: PT.time, label: `Your answer: ${PT.ans.map((x, i) => nameTxt(x) + (durs ? " " + durName(PT.ansD[i]) : "")).join(", ")}.` });
+      $("ptDots").innerHTML = degs.map((d, i) => `<span class="${colors ? (okAt(i) ? "ok" : "no") : i === 0 ? "given" : ""}">${PT.ans[i] ? nameIn(PT.ans[i]) : "?<i>&nbsp;</i>"}${durs ? `<small>${PT.ans[i] ? durName(PT.ansD[i]) : "&nbsp;"}</small>` : ""}</span>`).join("");
+      if (durs) { const got = PT.ansD.reduce((a, b) => a + b, 0), want = durs.reduce((a, b) => a + b, 0); $("beatCount").textContent = `Beats entered: ${got} of ${want} (${want / bpb} bars of ${PT.time}).`; document.querySelectorAll("[data-dur]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.dur === PT.dur))); }
       document.querySelectorAll(".accrow [data-acc]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.acc === String(PT.acc ?? (mode === "chrom" ? "0" : "key")))));
     };
-    const add = x => { if (PT.done || PT.ans.length >= n) return; PT.ans.push(x); PT.acc = null; PT.cur = diatOf(x); play([[midiOf(x), 0, .5]]); redraw(); if ($("stLive")) $("stLive").textContent = `Added ${sayTxt(x)}.`; };
+    const okAt = i => sameNote(PT.ans[i], notes[i]) && (!durs || PT.ansD[i] === durs[i]);
+    const add = x => { if (PT.done || PT.ans.length >= n) return; PT.ans.push(x); if (durs) PT.ansD.push(PT.dur); PT.acc = null; PT.cur = diatOf(x); play([[midiOf(x), 0, .5]]); redraw(); if ($("stLive")) $("stLive").textContent = `Added ${sayTxt(x)}.`; };
     redraw();
     if (mode === "movable") document.querySelector(".degpad").onclick = e => { const b = e.target.closest("[data-d]"); if (b) add(degNote(ctx, +b.dataset.d)); };
     if (mode === "movable" && document.querySelector(".degpad.chrom")) document.querySelector(".degpad.chrom").onclick = e => { const b = e.target.closest("[data-k]"); if (!b) return; const base = degNote(ctx, +b.dataset.k); add(near(base.l, base.a + +b.dataset.alt)); };
@@ -490,13 +637,20 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     $("dcFirst").onclick = () => play([[midiOf(notes[0]), 0, .9]]);
     const shift = k => { if (PT.done || PT.ans.length < 2) return; const x = PT.ans[PT.ans.length - 1], y = { l: x.l, a: x.a, o: x.o + k }; if (diatOf(y) < CLEFS[ctx.clef].top - 13 || diatOf(y) > CLEFS[ctx.clef].top + 5) return; PT.ans[PT.ans.length - 1] = y; PT.cur = diatOf(y); play([[midiOf(y), 0, .5]]); redraw(); };
     if ($("dcUp")) { $("dcUp").onclick = () => shift(1); $("dcDn").onclick = () => shift(-1); }
-    $("dcBack").onclick = () => { if (!PT.done && PT.ans.length > 1) { PT.ans.pop(); PT.cur = diatOf(PT.ans[PT.ans.length - 1]); redraw(); } };
+    if (durs) {
+      document.querySelector(".durrow").onclick = e => { const b = e.target.closest("[data-dur]"); if (b) { PT.dur = +b.dataset.dur; redraw(); } };
+      $("dcLastDur").onclick = () => { if (PT.done || PT.ans.length < 2) return; PT.ansD[PT.ansD.length - 1] = PT.dur; redraw(); };
+    }
+    $("dcBack").onclick = () => { if (!PT.done && PT.ans.length > 1) { PT.ans.pop(); if (durs) PT.ansD.pop(); PT.cur = diatOf(PT.ans[PT.ans.length - 1]); redraw(); } };
     // Tonic chord, then the given first note alone, a clear pause, then the whole melody.
-    $("dcPlay").onclick = () => play([[[degMidi(ctx, 0), degMidi(ctx, 2), degMidi(ctx, 4)], 0, 1.1], [ms[0], 1.6, .9]].concat(seqEv(ms, .7, .6, 4.1)));
+    const BEAT = .6;   // 100 beats per minute
+    const rhyEv = (mids, ds, t0) => { let t = t0; return mids.map((m, i) => { const e = [m, t, Math.max(.25, ds[i] * BEAT - .08)]; t += ds[i] * BEAT; return e; }); };
+    const clicks = t0 => Array.from({ length: bpb }, (_, i) => [i === 0 ? 96 : 91, t0 + i * BEAT, .06]);   // one bar of count-in clicks
+    $("dcPlay").onclick = () => play([[[degMidi(ctx, 0), degMidi(ctx, 2), degMidi(ctx, 4)], 0, 1.1], [ms[0], 1.6, .9]].concat(durs ? clicks(3.2).concat(rhyEv(ms, durs, 3.2 + bpb * BEAT)) : seqEv(ms, .7, .6, 4.1)));
     $("dcCheck").onclick = () => {
       if (PT.done) return; if (PT.ans.length < n) { $("fb").className = "fb2"; $("fb").textContent = `Enter all ${n} notes first.`; return; }
-      PT.done = true; const okEach = PT.ans.map((x, i) => sameNote(x, notes[i])), ok = okEach.every(Boolean); record(`Dictation · ${S.len} notes`, ok); redraw(okEach.map(v => v ? "--fi-green-dk" : "--fi-red-dk"));
-      $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = ok ? "Yes! Every note right." : `The melody was ${notes.map(nameTxt).join(" – ")}${mode === "movable" ? ` (${notes.map(labOf).join(" ")})` : ""}.`;
+      PT.done = true; const okEach = PT.ans.map((x, i) => okAt(i)), ok = okEach.every(Boolean); record(`Dictation · ${S.len} notes`, ok); redraw(okEach.map(v => v ? "--fi-green-dk" : "--fi-red-dk"));
+      $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = ok ? (durs ? "Yes! Every pitch and rhythm right." : "Yes! Every note right.") : `The melody was ${notes.map((x, i) => nameTxt(x) + (durs ? ` (${durName(durs[i])})` : "")).join(" – ")}${mode === "movable" ? ` (${notes.map(labOf).join(" ")})` : ""}.${durs && PT.ans.every((x, i) => sameNote(x, notes[i])) ? " The pitches were all right; check the rhythm." : ""}`;
       if (!ok) {
         // Compare: switch between the student's version (wrong notes in red) and the correct melody; each button also plays that version.
         const cmp = document.createElement("div"); cmp.className = "row cmprow"; cmp.setAttribute("role", "group"); cmp.setAttribute("aria-label", "Compare");
@@ -504,9 +658,9 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
         $("ptDots").after(cmp);
         const show = (v, sound) => {
           cmp.querySelectorAll("[data-v]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v === v)));
-          if (v === "mine") { redraw(okEach.map(q => q ? "--fi-green-dk" : "--fi-red-dk")); if (sound) play(seqEv(PT.ans.map(midiOf), .7, .6)); }
-          else { staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, fixed: mode === "staff", colors: okEach.map(q => q ? "--fi-green-dk" : "--fi-navy"), label: `Correct melody: ${notes.map(nameTxt).join(", ")}.` });
-            $("ptDots").innerHTML = notes.map((x, i) => `<span class="${okEach[i] ? "ok" : "fix"}">${nameIn(x)}</span>`).join(""); if (sound) play(seqEv(ms, .7, .6)); }
+          if (v === "mine") { redraw(okEach.map(q => q ? "--fi-green-dk" : "--fi-red-dk")); if (sound) play(durs ? rhyEv(PT.ans.map(midiOf), PT.ansD, 0) : seqEv(PT.ans.map(midiOf), .7, .6)); }
+          else { staffOf($("ptStaff"), notes, { ks, sigAcc, clef: ctx.clef, fixed: mode === "staff", durs, time: PT.time, colors: okEach.map(q => q ? "--fi-green-dk" : "--fi-navy"), label: `Correct melody: ${notes.map((x, i) => nameTxt(x) + (durs ? " " + durName(durs[i]) : "")).join(", ")}.` });
+            $("ptDots").innerHTML = notes.map((x, i) => `<span class="${okEach[i] ? "ok" : "fix"}">${nameIn(x)}${durs ? `<small>${durName(durs[i])}</small>` : ""}</span>`).join(""); if (sound) play(durs ? rhyEv(ms, durs, 0) : seqEv(ms, .7, .6)); }
         };
         cmp.onclick = e => { const x = e.target.closest("[data-v]"); if (x) show(x.dataset.v, true); };
       }
@@ -535,7 +689,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       <label class="f2" for="sCp">Play first as<select id="sCp"><option value="block" ${S.chordPlay === "block" ? "selected" : ""}>Block chord</option><option value="arp" ${S.chordPlay === "arp" ? "selected" : ""}>Broken chord</option></select></label>`,
     pat: () => patSet(), dict: () => patSet(),
   };
-  const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sChr">Chromatic notes<select id="sChr">${[["none", "None"], ["step", "Stepwise (passing, neighbor)"], ["leap", "Approached by leap"], ["both", "Both kinds"]].map(([v, t]) => `<option value="${v}" ${S.chrom === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<fieldset class="f2 clefs"><legend>Clefs</legend>${["treble", "alto", "tenor", "bass"].map(c => `<label><input type="checkbox" id="clef-${c}" ${S.clefs.includes(c) ? "checked" : ""}> ${c[0].toUpperCase() + c.slice(1)}</label>`).join("")}</fieldset><label class="f2" for="sLen">Notes<select id="sLen">${[3, 4, 5, 6].map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+  const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sRh">Rhythm<select id="sRh">${[["steady", "Steady (all quarter notes)"], ["simple", "Rhythms: eighths, quarters, halves"], ["dotted", "Rhythms with dotted notes"]].map(([v, t]) => `<option value="${v}" ${S.rhythm === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>${S.rhythm !== "steady" ? `<label class="f2" for="sMe">Meter<select id="sMe">${[["any", "Any"], ["2/4", "2/4"], ["3/4", "3/4"], ["4/4", "4/4"]].map(([v, t]) => `<option value="${v}" ${S.meter === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<label class="f2" for="sChr">Chromatic notes<select id="sChr">${[["none", "None"], ["step", "Stepwise (passing, neighbor)"], ["leap", "Approached by leap"], ["both", "Both kinds"]].map(([v, t]) => `<option value="${v}" ${S.chrom === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<fieldset class="f2 clefs"><legend>Clefs</legend>${["treble", "alto", "tenor", "bass"].map(c => `<label><input type="checkbox" id="clef-${c}" ${S.clefs.includes(c) ? "checked" : ""}> ${c[0].toUpperCase() + c.slice(1)}</label>`).join("")}</fieldset><label class="f2" for="sLen">Notes<select id="sLen">${(S.tab === "dict" ? [3, 4, 5, 6, 7, 8] : [3, 4, 5, 6]).map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>
       <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       ${S.tab === "pat" ? `<label class="f2 chk" for="sClu"><input type="checkbox" id="sClu" ${S.clues ? "checked" : ""}> Show solfège under the notes</label>` : ""}
@@ -546,7 +700,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     document.querySelectorAll("#tabs [data-t]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
     $("settings").innerHTML = SET[t]();
     $("settings").onchange = e => { const id = e.target.id, v = e.target.value;
-      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; save(); START[S.tab](); };
+      if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; if (id === "sRh") { S.rhythm = v; save(); $("settings").innerHTML = SET[S.tab](); } if (id === "sMe") S.meter = v; save(); START[S.tab](); };
     $("mic").textContent = (t === "sing" || t === "pat") ? (mic ? "Microphone on." : "The app will ask to use your microphone. Any octave counts, so sing where it's comfortable.") : "";
     if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
   }
