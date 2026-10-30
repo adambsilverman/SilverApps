@@ -1027,7 +1027,7 @@ details.panel[open] summary::after { content: "−"; }
       return `<p>Chromatic mediants create expressive harmonic shifts: color and contrast, while keeping a connection to the home key through the common tone (often, but not always, present in the melody).</p>
       <ul><li><b>Modulation:</b> because they share tones with the original key, chromatic mediants can be pivot or destination chords for smooth yet striking key changes.</li><li><b>Substitution:</b> a chromatic mediant can replace a diatonic chord for a surprising color.</li></ul>`
         + U.fig(H.grand({ key: k, chords: [I, c6, I, c3, H.diat(k, 4), H.diat(k, 5), I], labels: ["I", "♭VI", "I", "♭III", "IV", "V", "I"], syms: [I, c6, I, c3, H.diat(k, 4), H.diat(k, 5), I].map(c => c.sym) }), "Chromatic mediants as color chords between tonics.")
-        + `<p>John Coltrane's <i>Giant Steps</i> is a famous example: its “main chords” move by chromatic mediants (B → G → E♭), each embellished with secondary chords.</p>`;
+        + `<p>In some jazz, the “main chords” move by chromatic mediants that divide the octave into major 3rds (B → G → E♭), each embellished with secondary chords.</p>`;
     } },
     { title: "Quick check", kick: "Chromatic mediants", render: (H) => H.check("Are C and A♭ chromatic mediants?", "Yes", ["No: they're diatonically related", "No: their qualities differ"], "A major 3rd apart, both major, not in one key, sharing C.")
       + H.check("Are C and Am chromatic mediants?", "No: they're diatonically related", ["Yes", "No: their qualities differ"], "Am is vi in C major: a diatonic mediant.")

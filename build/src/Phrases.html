@@ -499,7 +499,7 @@ window.FAM = (() => {
     ["A progressive period…", "modulates", ["has three phrases", "is always parallel", "ends with a half cadence"], "It ends in a different key."],
     ["What makes a double period?", "four phrases where the cadence ending the first pair is weaker than the final cadence", ["two periods in different songs", "two phrases repeated", "any eight bars"], "The middle cadence lacks closure, so the four phrases don't split into two pairs."],
     ["Small, distinctive melodic units that aren't developed like motives are called…", "figures or gestures", ["periods", "sentences", "cadences"], "Distinctive, but not developed."],
-    ["In a double period, the second phrase can end with an authentic cadence when…", "it's in a contrasting key (like the relative major)", ["it's in the tonic", "it's a plagal cadence", "never"], "The contrasting key provides the needed openness (as in Clara Schumann's Piano Concerto, third movement)."],
+    ["In a double period, the second phrase can end with an authentic cadence when…", "it's in a contrasting key (like the relative major)", ["it's in the tonic", "it's a plagal cadence", "never"], "The contrasting key provides the needed openness."],
   ];
 
   function make(mode, H) {
@@ -533,8 +533,8 @@ window.FAM = (() => {
     { title: "What is a phrase?", kick: "Musical sentences", render: () => `<p>Writers agree that a phrase must show some degree of completeness and come to a point of relative repose. In this course:</p>
       <div class="callout"><b>Phrase</b>A passage distinguished by melodic and harmonic features that give it a sense of “completeness,” like a sentence in language. A melodic arch ending in a strong cadential gesture marks a phrase most clearly; elision, a missing melody, or an amorphous line can blur it while keeping its function.</div>
       <p>Label phrases with lowercase letters: <b>a</b> for the first, <b>a′</b> (“a prime”) for a varied return, <b>b</b> for contrasting material, and so on.</p>` },
-    { title: "Indivisible or divided", kick: "Phrase structure", render: () => `<ul><li><b>Indivisible phrases</b> can't be split into smaller units (like the opening of Bach's Cantata 147).</li>
-      <li><b>Divided phrases</b> are made of <b>sub-phrases</b>: smaller melodic units with too little harmonic progression to be phrases themselves. A phrase ends with a cadence; sub-phrases divide it into two or more harmonic motions. In <i>Nearer, My God, to Thee</i>, the first phrase has two sub-phrases (I to IV, then I to V); the second spans one complete T–PD–D–T motion.</li></ul>
+    { title: "Indivisible or divided", kick: "Phrase structure", render: () => `<ul><li><b>Indivisible phrases</b> can't be split into smaller units.</li>
+      <li><b>Divided phrases</b> are made of <b>sub-phrases</b>: smaller melodic units with too little harmonic progression to be phrases themselves. A phrase ends with a cadence; sub-phrases divide it into two or more harmonic motions. In a typical hymn, the first phrase may have two sub-phrases (I to IV, then I to V) while the second spans one complete T–PD–D–T motion.</li></ul>
       <p>Small melodic units that are distinctive but not developed like motives are called <b>figures</b> or <b>gestures</b>.</p>` },
     { title: "The sentence", kick: "Presentation + continuation", render: () => `<p>A <b>sentence</b> is a phrase with a specific construction: a melodic idea is repeated or sequenced, then followed by related or unrelated material leading to a cadence (<i>Music Theory for the 21st-Century Classroom</i>). Typically eight bars, it splits into a <b>presentation</b> and a <b>continuation</b>:</p>
       <p class="steprow" aria-label="Sentence: idea, idea repeated, continuation, cadence"><span>idea (2 bars)</span><span>idea again or sequenced (2)</span><span class="hot">continuation (3–4)</span><i>→</i><span>cadence</span></p>
@@ -548,12 +548,12 @@ window.FAM = (() => {
     } },
     { title: "Phrase groups", kick: "Together, but not a period", render: (H, k, U) => {
       const g = ex(H, "ppg");
-      return `<p>A <b>phrase group</b> is two or more phrases that seem to belong together but don't form antecedent and consequent: for instance, both end closed. It can be parallel or contrasting (Couperin's <i>Le Petit Rien</i> has a parallel phrase group). The <b>repeated phrase</b> is one kind of phrase group.</p>`
+      return `<p>A <b>phrase group</b> is two or more phrases that seem to belong together but don't form antecedent and consequent: for instance, both end closed. It can be parallel or contrasting. The <b>repeated phrase</b> is one kind of phrase group.</p>`
         + (g ? U.fig(g, "A parallel phrase group: both phrases end with authentic cadences.") : "");
     } },
-    { title: "Three and four phrases", kick: "Chains and double periods", render: () => `<p>In a <b>three-phrase period</b> (sometimes called a phrase chain), the phrases belong together and the last has the most conclusive cadence (as in Mozart's “Giovinette, che fatte all'amore”).</p>
+    { title: "Three and four phrases", kick: "Chains and double periods", render: () => `<p>In a <b>three-phrase period</b> (sometimes called a phrase chain), the phrases belong together and the last has the most conclusive cadence.</p>
       <p>Four phrases in two pairs form a <b>double period</b> when the cadence ending the first pair is weaker than the one ending the whole group. In Amy Beach's “Phantoms”: phrase 1, IAC in A major; phrase 2, IAC in C♯ minor (weaker because of the modulation); phrase 3, IAC in A; phrase 4, PAC in A.</p>
-      <p>The key: the four phrases don't split into two pairs because there's no closure in the middle. In Dave Frishberg's “Dodger Blue,” the second phrase ends open with a half cadence, as does the third; only the fourth closes. At the start of the third movement of Clara Schumann's Piano Concerto, phrase 2 ends with an authentic cadence in a contrasting key (the relative major), which supplies the openness instead.</p>` },
+      <p>The key: the four phrases don't split into two pairs because there's no closure in the middle. For example, the second phrase ends open with a half cadence, as does the third; only the fourth closes. Alternatively, phrase 2 can end with an authentic cadence in a contrasting key (such as the relative major), which supplies the openness instead.</p>` },
     { title: "Summary", kick: "Diagrams", render: (H) => reference(H) },
     { title: "Quick check", kick: "Before the drills", render: (H) => H.check("a (half cadence) → a′ (perfect authentic cadence):", "Parallel period", ["Contrasting period", "Parallel phrase group", "Double period"], "Open, then closed, with similar beginnings.") + [FACTS[3], FACTS[5], FACTS[8]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") },
   ] };

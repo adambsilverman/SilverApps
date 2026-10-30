@@ -515,8 +515,8 @@ window.FAM = (() => {
     ["A real sequence…", "keeps the exact intervals, adding accidentals or changing key", ["stays in one key", "changes the rhythm", "is always descending"], "Exact transposition."],
     ["A modified sequence…", "adapts or embellishes a repetition (often the third), to avoid monotony", ["keeps every repetition identical", "has only two statements", "inverts the motive"], "Common on the third statement."],
     ["A mixed sequence is…", "real in some repetitions and tonal in others", ["melodic and harmonic at once", "a sequence that inverts", "a sequence in two keys at once"], "Often to avoid modulating too far."],
-    ["The most common harmonic pattern in sequences is…", "descending fifths (around the circle of fifths)", ["ascending tritones", "repeated tonic chords", "chromatic chord streams"], "As in “Angels We Have Heard on High.”"],
-    ["A “melodic-only” sequence…", "repeats a melodic pattern while the chords don't follow a sequential pattern", ["has no melody", "never changes key", "uses only one chord"], "As in As Time Goes By."],
+    ["The most common harmonic pattern in sequences is…", "descending fifths (around the circle of fifths)", ["ascending tritones", "repeated tonic chords", "chromatic chord streams"], "Each repetition moves the chords down a 5th (or up a 4th)."],
+    ["A “melodic-only” sequence…", "repeats a melodic pattern while the chords don't follow a sequential pattern", ["has no melody", "never changes key", "uses only one chord"], "Free chords under a melody that repeats a step lower are a melodic-only sequence."],
     ["Augmentation means…", "longer note values for the same notes", ["more notes added", "a higher transposition", "playing it backwards"], "Diminution is the reverse; neither is usually strictly proportional."],
   ];
 
@@ -560,8 +560,8 @@ window.FAM = (() => {
         <li>Label motives with lowercase letters from the end of the alphabet: <b>x, y, z</b>.</li>
         <li>Favor observations about <b>audible processes</b> and compositional approach: an inversion might be obvious or might not; a retrograde is often more interesting to a composer than audible to a listener.</li></ul>`;
     } },
-    { title: "Motives at work", kick: "Recurrence and rhythm", render: () => `<p>Motive can be found in most music, but it matters more where it's used thoroughly. In <i>The Eagles' Victory Song</i>, two fragments (x and y) are prominent, and a third (z) starts as a fragment of y before gaining independence. In Mel Tormé's <i>The Christmas Song</i>, motive x starts each two-bar unit, changing interval and scale position; motive y shifts with the harmony, then appears unexpectedly at the end of the phrase, forming an elision with the next verse.</p>
-      <p>Rhythmic placement can be immediately interesting to a listener. A clever pattern: a motive at regular intervals, then an <b>acceleration</b> of its appearances (as in the third movement of Mozart's Sonata K. 331). Don't confuse this with <i>diminution</i>: it's about how often the motive appears.</p>` },
+    { title: "Motives at work", kick: "Recurrence and rhythm", render: () => `<p>Motive can be found in most music, but it matters more where it's used thoroughly. In a tightly built melody, two fragments (x and y) may be prominent, and a third (z) may start as a fragment of y before gaining independence. A motive can start each two-bar unit while changing interval and scale position, or shift with the harmony and then appear unexpectedly at the end of a phrase, forming an elision with the next.</p>
+      <p>Rhythmic placement can be immediately interesting to a listener. A clever pattern: a motive at regular intervals, then an <b>acceleration</b> of its appearances. Don't confuse this with <i>diminution</i>: it's about how often the motive appears.</p>` },
     { title: "Transposition", kick: "Same shape, new pitch", keyed: "major", render: (H, k, U) => {
       const base = M.idx.map(i => dn(H, k, i));
       const tonal = M.idx.map(i => dn(H, k, i + 1)), real = base.map(x => H.up(x, 1, 2));
@@ -573,7 +573,7 @@ window.FAM = (() => {
       const base = M.idx.map(i => dn(H, k, i)), inv = M.idx.map(i => dn(H, k, M.idx[0] + 3 - (i - M.idx[0]))), ret = base.slice().reverse();
       return `<ul><li><b>Inversion</b> reverses the contour: “upside down,” a mirror image. Each interval changes direction. Inversions may be transposed.</li><li><b>Retrograde</b> plays the notes backwards, keeping the original rhythm or reversing it too.</li></ul>`
         + U.fig(scoreOf(H, k, [flat(H, base, M.rh, "x"), flat(H, inv, M.rh, "inversion"), flat(H, ret, M.rh, "retrograde")]), "Inversion flips the intervals (up becomes down); retrograde reverses the order.")
-        + `<p>Inversion and retrograde work on different axes. In <i>Do You Want to Build a Snowman</i> (from <i>Frozen</i>), a motive returns in augmentation, then an octave higher, then in retrograde.</p>`
+        + `<p>Inversion and retrograde work on different axes. A single song can bring a motive back in augmentation, then an octave higher, then in retrograde.</p>`
         + H.check("The notes come back in reverse order. That's…", "retrograde", ["inversion", "augmentation", "tonal transposition"], "Back to front.");
     } },
     { title: "Rhythm and length", kick: "Augmentation, diminution, fragmentation", keyed: "major", render: (H, k, U) => {
@@ -582,14 +582,14 @@ window.FAM = (() => {
         <li><b>Change of rhythm</b>, keeping pitches or contour: <b>augmentation</b> (longer values) and <b>diminution</b> (shorter values), usually not strictly proportional.</li>
         <li><b>Change of length</b>: <b>fragmentation</b> (breaking off part of a motive and developing it), or adding and removing notes through extension or ornamentation.</li></ul>`
         + U.fig(scoreOf(H, k, [flat(H, base, M.rh, "x"), flat(H, base, M.rh.map(v => v * 2), "augmentation"), flat(H, base.slice(0, 3).concat(M.idx.slice(0, 3).map(i => dn(H, k, i - 1))), [1, .5, .5, 1, .5, .5], "fragments")]), "Augmentation, then the motive's first three notes broken off and repeated a step lower (fragmentation).")
-        + `<p>In <i>Let It Go</i>, a figure is repeated with its last two notes swapped, then heard a third time a diatonic step lower: a tonal transposition.</p>`;
+        + `<p>A figure might be repeated with its last two notes swapped, then heard a third time a diatonic step lower: a tonal transposition.</p>`;
     } },
     { title: "Sequence", kick: "Repetition at another level", keyed: "major", render: (H, k, U) => {
       const rh = [1, 1, 1, 1];
       const parts = [0, 1, 2].map(s => [4, 5, 4, 3].map(i => dn(H, k, i + 3 - s)));
       return `<p>A <b>sequence</b> is the more or less exact repetition of a melody at another level, higher or lower (<i>Oxford Companion to Music</i>). If only the melody repeats, with changed harmony, it's a <b>melodic sequence</b>; if the harmony follows the pattern too, a <b>harmonic sequence</b>.</p>`
         + U.fig(scoreOf(H, k, parts.map((p, i) => flat(H, p, rh, i === 0 ? "x" : null))), "A one-bar pattern stepping down: a tonal melodic sequence.")
-        + `<p>In “Angels We Have Heard on High,” the “Gloria” is a one-bar pattern sequenced down by step over a descending-fifths chord pattern (D7–G–C–F–B♭ in F), before ordinary progression returns for the cadence.</p>`;
+        + `<p>A classic case: a one-bar pattern sequenced down by step over a descending-fifths chord pattern (D7–G–C–F–B♭ in F), before ordinary progression returns for the cadence.</p>`;
     } },
     { title: "Tonal, real, modified", kick: "Kinds of sequence", keyed: "major", render: (H, k, U) => {
       const p0 = [4, 5, 4, 2].map(i => dn(H, k, i + 3)), rh = [1, 1, 1, 1];
@@ -597,12 +597,12 @@ window.FAM = (() => {
       return `<ul><li><b>Tonal sequence</b>: the repetitions stay in the key, so some intervals get larger or smaller by a half step.</li>
         <li><b>Real sequence</b>: exact intervals are kept, so the key changes (or accidentals appear).</li>
         <li><b>Mixed sequence</b>: real in some repetitions, tonal in others (sometimes to avoid modulating too far).</li>
-        <li><b>Modified sequence</b>: a repetition is adapted or embellished, most often the third, to avoid monotony (as in Schumann's “First Loss,” from bar 17).</li></ul>`
+        <li><b>Modified sequence</b>: a repetition is adapted or embellished, most often the third, to avoid monotony.</li></ul>`
         + U.fig(scoreOf(H, k, real.map((p, i) => flat(H, p, rh, i === 0 ? "x" : null))), "A real sequence: each statement a whole step lower, with exactly the same intervals.")
-        + `<p>Some sequences <b>modulate</b> (Billy Joel's “She's Always a Woman” moves from D♭ to E♭ major). Some are melodic only (<i>As Time Goes By</i>: the chords don't follow the pattern); others are harmonic only, with a free melody over them.</p>`;
+        + `<p>Some sequences <b>modulate</b> (for example, from D♭ to E♭ major). Some are melodic only (the chords don't follow the pattern); others are harmonic only, with a free melody over them.</p>`;
     } },
-    { title: "Transposition or sequence?", kick: "The spirit of sequence", render: () => `<p>Is every repetition at a new pitch a sequence? Billy Joel's <i>Allentown</i> transposes a segment up a 4th (a real transposition), its chords moving along with it like ii–V–I in D and then G, and a third repetition begins before the phrase moves on.</p>
-      <p>Adam Silverman's view: there's a “spirit” of sequence missing there. A true sequence, rooted in Baroque practice, uses transposed motives and chord patterns to move a phrase along its path to the cadence. <i>Allentown</i> uses transposed gestures as the beginning of a musical <i>sentence</i> instead. Common usage often applies “sequence” to any transposition (even in descriptions of the sentence on openmusictheory.com), but that colloquial usage misses the majesty of a true sequence.</p>` },
+    { title: "Transposition or sequence?", kick: "The spirit of sequence", render: () => `<p>Is every repetition at a new pitch a sequence? Suppose a song transposes a segment up a 4th (a real transposition), its chords moving along with it like ii–V–I in D and then G, and a third repetition begins before the phrase moves on.</p>
+      <p>Adam Silverman's view: there's a “spirit” of sequence missing there. A true sequence, rooted in Baroque practice, uses transposed motives and chord patterns to move a phrase along its path to the cadence. That song uses transposed gestures as the beginning of a musical <i>sentence</i> instead. Common usage often applies “sequence” to any transposition (even in descriptions of the sentence on openmusictheory.com), but that colloquial usage misses the majesty of a true sequence.</p>` },
     { title: "Quick check", kick: "Before the drills", render: (H) => [FACTS[4], FACTS[6], FACTS[8], FACTS[12]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") },
   ] };
 
