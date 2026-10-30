@@ -20,6 +20,13 @@ EXTRA = (B.parent / "transposition" / "extra.css").read_text(encoding="utf-8") +
 .pk.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
 .pk-now { margin-right: auto; }
 @media (max-width: 420px) { .pk-lab { min-width: 100%; } }
+.fig-box { display: flex; justify-content: center; margin: 4px 0 10px; }
+.pedal { margin: 0; color: var(--ink); text-align: center; }
+.pedal svg { display: block; width: min(260px, 100%); height: auto; margin: 0 auto; }
+.pedal figcaption { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+.pedal-row { display: flex; flex-wrap: wrap; gap: 14px 22px; justify-content: center; margin: 10px 0; }
+.pedal-row .pedal svg { width: 190px; }
+.ref-list { padding-left: 1.2em; } .ref-list li { margin: .3em 0; }
 """
 
 FAMILIES = [
@@ -49,6 +56,26 @@ FAMILIES = [
               ("nota", "Notation", "staff · legend", "how to write percussion parts")],
        how=["<b>Logistics:</b> leave time to move between instruments and change beaters.",
             "<b>Shared staff:</b> snare on the third space, bass drum on the bottom space, metals on lines; always include a legend."]),
+  dict(src="Orchestration Harp.html", title="Harp", vex=True, sound=True,
+       desc="The pedal harp: the instrument and its strings, reading and setting pedals, enharmonic spelling, chord glissandos, harmonics and special techniques.",
+       modes=[("inst", "Instrument", "strings · range · hands", "the harp's strings, range, hands and practicalities"),
+              ("pedal", "Pedals", "D C B | E F G A", "reading pedal diagrams, pedal changes and enharmonic spelling"),
+              ("gliss", "Glissandos", "scales · 7th chords", "pedal settings for chord glissandos"),
+              ("tech", "Techniques", "harmonics · bisbigliando", "harmonics, special techniques and notation")],
+       how=["<b>Pedals:</b> D C B (left foot) | E F G A (right foot). Top notch = flat, middle = natural, bottom = sharp, in every octave.",
+            "<b>Spell for the pedals:</b> A♯ and B♭ are different strings; never write double sharps or flats. Two pedal changes at once only with opposite feet.",
+            "<b>Glissandos:</b> any seven-note scale, or 7th chords using enharmonic doublings; triads can't be glissed.",
+            "<b>Harmonics:</b> a circle over the written note; they sound an octave higher, best at mf or softer."]),
+  dict(src="Orchestration Piano.html", title="Piano", vex=True, sound=True,
+       desc="The piano and orchestral keyboards: range and registers, the three pedals, writing for the hands, notation, and the piano and celesta in the ensemble.",
+       modes=[("inst", "Instrument", "range · registers", "the piano's range, sound and registers"),
+              ("ped", "Pedals", "damper · sostenuto · una corda", "the three pedals and how they're marked"),
+              ("nota", "Writing", "hands · markings", "writing for the hands and piano notation"),
+              ("ens", "Ensemble", "orchestra · celesta", "the piano, celesta and other keyboards in the ensemble")],
+       how=["<b>Range:</b> 88 keys, A0–C8. Every note fades after it's struck; the bass rings longest.",
+            "<b>Pedals:</b> right = damper (Ped. … ✱), middle = sostenuto, left = una corda (u.c. … tre corde).",
+            "<b>Hands:</b> an octave is a comfortable reach; space low chords widely.",
+            "<b>Score order:</b> keyboards come after the harp and before the strings. The celesta sounds an octave higher than written."]),
   dict(src="Score and Parts Preparation.html", title="Score and Parts Preparation", vex=False, sound=False,
        desc="What a professional score and set of parts must include, and the typesetting conventions players and conductors expect.",
        modes=[("score", "The score", "pages · names · bars", "what a score must include and how it's laid out"),
@@ -130,7 +157,7 @@ MODES_CSS = """
 @media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
 """
 ENGINE = (B / "engine.js").read_text(encoding="utf-8")
-DATA = {"Orchestration Strings.html": "strings.js", "Orchestration Winds and Brass.html": "winds.js", "Orchestration Percussion.html": "percussion.js", "Score and Parts Preparation.html": "scoreparts.js"}
+DATA = {"Orchestration Strings.html": "strings.js", "Orchestration Winds and Brass.html": "winds.js", "Orchestration Percussion.html": "percussion.js", "Score and Parts Preparation.html": "scoreparts.js", "Orchestration Harp.html": "harp.js", "Orchestration Piano.html": "piano.js"}
 for f in FAMILIES:
     head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(f['title'])}</title>")
     head = head.replace("@media (min-width: 640px) { .modes { grid-template-columns: repeat(5, 1fr); } .modes button:first-child { grid-column: auto; } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }", "")

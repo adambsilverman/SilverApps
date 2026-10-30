@@ -133,6 +133,7 @@
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${accHTML(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${accHTML(c.text)}</p>`;
+    if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML/SVG from the content file (e.g. a harp pedal diagram)
     if (c.staff) h += `<div class="staff solo" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;

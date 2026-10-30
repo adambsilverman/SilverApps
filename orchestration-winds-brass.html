@@ -253,6 +253,13 @@ details.panel[open] summary::after { content: "−"; }
 .pk.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
 .pk-now { margin-right: auto; }
 @media (max-width: 420px) { .pk-lab { min-width: 100%; } }
+.fig-box { display: flex; justify-content: center; margin: 4px 0 10px; }
+.pedal { margin: 0; color: var(--ink); text-align: center; }
+.pedal svg { display: block; width: min(260px, 100%); height: auto; margin: 0 auto; }
+.pedal figcaption { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+.pedal-row { display: flex; flex-wrap: wrap; gap: 14px 22px; justify-content: center; margin: 10px 0; }
+.pedal-row .pedal svg { width: 190px; }
+.ref-list { padding-left: 1.2em; } .ref-list li { margin: .3em 0; }
 
 @media (min-width: 640px) { .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }
 .modes.m3 button:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -634,6 +641,7 @@ window.FAM = (() => {
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${accHTML(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${accHTML(c.text)}</p>`;
+    if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML/SVG from the content file (e.g. a harp pedal diagram)
     if (c.staff) h += `<div class="staff solo" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;

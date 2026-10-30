@@ -32,6 +32,8 @@ Open **index.html** (or the GitHub Pages site) to choose a trainer. Every traine
 | Strings | bowed strings, open strings, harmonics, bowings and effects |
 | Winds & Brass | woodwinds and brass, score order, valves and partials, mutes |
 | Percussion | percussion instruments, beaters and logistics, notation |
+| Harp | pedals and pedal diagrams, enharmonic spelling, glissandos, harmonics, techniques |
+| Piano | range, the three pedals, writing for the hands, piano and celesta in the ensemble |
 | Score and Parts Preparation | professional scores, parts and typesetting |
 | Intervals: What, Why and How | interactive lesson on intervals |
 | Modes: The Simple Truth | interactive lesson on diatonic and non-diatonic modes |

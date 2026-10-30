@@ -235,6 +235,20 @@
           "class": true
         },
         {
+          "name": "Harp",
+          "topic": "Harp",
+          "blurb": "Pedals and pedal diagrams, enharmonic spelling, glissandos, harmonics and techniques.",
+          "drills": "orchestration-harp.html",
+          "class": true
+        },
+        {
+          "name": "Piano",
+          "topic": "Keyboards",
+          "blurb": "Range, the three pedals, writing for the hands, and the piano and celesta in the ensemble.",
+          "drills": "orchestration-piano.html",
+          "class": true
+        },
+        {
           "name": "Instrument Transpositions",
           "topic": "Transposing instruments",
           "blurb": "Read and write parts for transposing instruments.",
