@@ -178,6 +178,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-10-30 (z28)** — Cache-busting: `build_pages.py` now adds `?v=<first 8 hex of the file's MD5>` to every `assets/*.js` the tool pages load (including the recorded voice, which is fetched by script after the page loads, so a hard refresh alone didn't replace a cached copy). Ear Training's version line now reads Oct 30, 2026.
 - **2026-10-30 (z27)** — Added the instructor's six source recordings (`build/voice/recordings/voice_1-*.mp3`, about 1.8 MB) so the voice can be rebuilt with `make_voice.py` (convert each to mono 44.1 kHz WAV first).
 - **2026-10-30 (z26)** — Recorded voice replaced with the instructor's new takes (six pitches: G2, B2, E♭3, G3, B3, E♭4; one syllable every 2 s). `singVoice()` now uses the range F2–F4 (centered on F3). `build/voice/make_voice.py` updated for six files.
 - **2026-10-30 (z25)** — Recorded voice re-timed: clips are now cut 0.25 s before the beat where the singer placed each syllable (fitted from the guide track's click grid), instead of from loudness onsets, which made s- and l-syllables land early and d- and f-syllables late. Every clip's beat point is 0.25 s, so `singVoice()` lines the beats up evenly.

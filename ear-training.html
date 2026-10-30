@@ -99,13 +99,13 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
 .sd{position:relative;display:inline-block}.sd::before{content:"^";position:absolute;left:50%;top:-.55em;transform:translateX(-50%);font-size:.8em;font-weight:400}
 @media (max-width:640px){.tabs{grid-template-columns:1fr 1fr}.degpad{grid-template-columns:repeat(6,minmax(0,1fr))}}
 </style>
-<script src="assets/progress.js"></script>
+<script src="assets/progress.js?v=0b022bd8"></script>
 
 <main class="lesson" id="main">
   <header class="lesson-head">
     <h1>Ear <span>Training</span></h1>
     <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. Use headphones so the microphone hears only you.</p>
-    <p class="ver">Version: Oct 29, 2026. If you don't see the “Show solfège” checkbox in Sing patterns, you have an older copy: reload the page.</p>
+    <p class="ver">Version: Oct 30, 2026 (sung solfège in Adam Silverman's voice, rhythmic dictation). If you don't see “Sing it back” in Sing patterns, you have an older copy: reload the page.</p>
   </header>
   <nav class="tabs" aria-label="Exercise" id="tabs">
     <button type="button" data-t="sing" aria-pressed="true"><b>Sing intervals</b><small>above a given note</small></button>
@@ -208,7 +208,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
           VOICE = anchors; res(VOICE);
         } catch (e) { res(null); } };
       if (window.SOLFEGE_VOICE) return go();
-      const sc = document.createElement("script"); sc.src = "assets/solfege-voice.js"; sc.onload = go; sc.onerror = () => res(null); document.head.appendChild(sc);
+      const sc = document.createElement("script"); sc.src = "assets/solfege-voice.js?v=4a5b17b0"; sc.onload = go; sc.onerror = () => res(null); document.head.appendChild(sc);
     });
     return voiceP;
   }
@@ -710,6 +710,6 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
 </script>
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
-<script src="assets/sfx.js"></script>
-<script src="assets/site.js"></script>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/site.js?v=d0c07f0a"></script>
 </body></html>

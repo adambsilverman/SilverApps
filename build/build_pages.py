@@ -28,4 +28,7 @@ for f in sorted((ROOT / "build" / "pages").glob("*.html")):
 <script src="assets/site.js"></script>
 </body></html>
 '''
+    # cache-busting: asset files loaded by script get ?v=<content hash>, so browsers fetch a new copy whenever the file changes
+    import hashlib
+    page = re.sub(r'(assets/[\w.-]+\.js)(?=")', lambda m: m.group(1) + "?v=" + hashlib.md5((SITE_DIR / m.group(1)).read_bytes()).hexdigest()[:8] if (SITE_DIR / m.group(1)).exists() else m.group(1), page)
     (SITE_DIR / f.name).write_text(page, encoding="utf-8"); print("built", f.name, len(page))
