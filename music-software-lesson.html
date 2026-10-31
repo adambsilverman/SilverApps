@@ -386,6 +386,9 @@ details.panel[open] summary::after { content: "−"; }
 .strip output { text-align: center; font-variant-numeric: tabular-nums; }
 .mixdiv { flex: 0 0 2px; background: var(--line, #ccc); }
 .linkgrid a { font-weight: 600; }
+.atsvg { width: 100%; height: auto; color: var(--ink, #222); background: var(--card, #fff); border-radius: 8px; }
+.mameter { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; font-variant-numeric: tabular-nums; }
+.toy h3, .lslide h3 { margin: 14px 0 4px; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -401,7 +404,7 @@ details.panel[open] summary::after { content: "−"; }
   <header class="top">
     <div class="brand">
       <h1>About Music Software</h1>
-      <p>A step-by-step lesson: how sound becomes digital audio (sample rate, bit depth, formats), MIDI, the digital audio workstation, synthesizers and virtual instruments, notation software, and production tools.</p>
+      <p>A step-by-step lesson: how sound becomes digital audio (sample rate, bit depth, formats), MIDI, the digital audio workstation with a playable MIDI keyboard, mixer, synthesizer and drum machine, notation software, recording, editing and pitch correction (with a simulator), mixing, and mastering (with a mastering chain to try).</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -584,7 +587,7 @@ window.FAM = (() => {
   document.addEventListener("click", e => {
     const t = e.target.closest("[data-mt]"); if (!t) return; const k = t.dataset.mt;
     if (k === "sus") { midiIn([0xB0 | MS.ch, 64, MS.sus ? 0 : 127]); t.setAttribute("aria-pressed", MS.sus); }
-    if (k === "dev") navigator.requestMIDIAccess().then(acc => { let n = 0; acc.inputs.forEach(inp => { n++; inp.onmidimessage = ev => { if (ev.data[0] < 0xF0) midiIn([...ev.data], true); }; }); mlog([], n ? `Listening to ${n} MIDI input${n > 1 ? "s" : ""}. Play your keyboard.` : "No MIDI inputs found. Connect a keyboard and try again."); }, () => mlog([], "MIDI access was blocked or isn't available in this browser."));
+    if (k === "dev") connectMidi(t => mlog([], t));
   });
 
   // ================= drum and synth sounds =================
@@ -669,17 +672,18 @@ window.FAM = (() => {
   }
 
   // ================= synthesizer =================
-  const SY = { wave: "sawtooth", osc2: 7, cutoff: 1800, res: 4, a: .01, d: .3, s: .6, r: .4, lfoRate: 5, lfoDepth: 0, lfoTo: "pitch", oct: 0, voices: new Map() };
+  const SY = { sus: false, held: new Set(), bend: 0, wave: "sawtooth", osc2: 7, cutoff: 1800, res: 4, a: .01, d: .3, s: .6, r: .4, lfoRate: 5, lfoDepth: 0, lfoTo: "pitch", oct: 0, voices: new Map() };
   const SYP = { Bass: { wave: "sawtooth", osc2: null, cutoff: 600, res: 6, a: .005, d: .25, s: .4, r: .12, lfoDepth: 0, oct: -12 }, Pad: { wave: "sawtooth", osc2: 9, cutoff: 1400, res: 1, a: .9, d: 1, s: .8, r: 1.6, lfoRate: .3, lfoDepth: .3, lfoTo: "filter", oct: 0 },
     Pluck: { wave: "square", osc2: null, cutoff: 2500, res: 3, a: .002, d: .18, s: 0, r: .15, lfoDepth: 0, oct: 0 }, Lead: { wave: "square", osc2: 5, cutoff: 3500, res: 2, a: .01, d: .2, s: .8, r: .2, lfoRate: 5.5, lfoDepth: .25, lfoTo: "pitch", oct: 12 },
     Wobble: { wave: "sawtooth", osc2: 12, cutoff: 500, res: 12, a: .01, d: .2, s: .9, r: .2, lfoRate: 3, lfoDepth: .9, lfoTo: "filter", oct: -12 }, Flute: { wave: "sine", osc2: null, cutoff: 6000, res: .7, a: .08, d: .2, s: .9, r: .25, lfoRate: 5, lfoDepth: .1, lfoTo: "pitch", oct: 12 } };
-  KB.synth = { base: 60, on: (m, v) => { const mm = m + SY.oct, old = SY.voices.get(m); if (old) old.stop(); SY.voices.set(m, voice(mm, v, SY)); }, off: m => { const x = SY.voices.get(m); if (x) { x.stop(); SY.voices.delete(m); } } };
+  KB.synth = { base: 60, on: (m, v) => { const mm = m + SY.oct, old = SY.voices.get(m); if (old) old.stop(); SY.held.delete(m); SY.voices.set(m, voice(mm, v, SY, null, SY.bend)); }, off: m => { const x = SY.voices.get(m); if (x) { x.stop(); SY.voices.delete(m); } } };
   const envSVG = () => { const W = 260, H = 70, tot = SY.a + SY.d + .6 + SY.r, x = s => 6 + (W - 12) * s / tot, y = v => H - 6 - (H - 12) * v;
     return `<svg viewBox="0 0 ${W} ${H}" class="envsvg" role="img" aria-label="Envelope: attack ${SY.a} s, decay ${SY.d} s, sustain ${Math.round(SY.s * 100)}%, release ${SY.r} s"><polyline fill="none" stroke="currentColor" stroke-width="2.5" points="${x(0)},${y(0)} ${x(SY.a)},${y(1)} ${x(SY.a + SY.d)},${y(SY.s)} ${x(SY.a + SY.d + .6)},${y(SY.s)} ${x(tot)},${y(0)}"/><g font-size="11" fill="currentColor"><text x="${x(SY.a / 2) - 3}" y="${H - 1}">A</text><text x="${x(SY.a + SY.d / 2) - 3}" y="${H - 1}">D</text><text x="${x(SY.a + SY.d + .3) - 3}" y="${H - 1}">S</text><text x="${x(SY.a + SY.d + .6 + SY.r / 2) - 3}" y="${H - 1}">R</text></g></svg>`; };
   const sl = (k, label, min, max, step, fmt) => `<label class="syk">${label}<input type="range" data-sy="${k}" min="${min}" max="${max}" step="${step}" value="${SY[k]}"><output data-syo="${k}">${fmt(SY[k])}</output></label>`;
   const FMT = { cutoff: v => Math.round(v) + " Hz", res: v => (+v).toFixed(1), a: v => (+v).toFixed(2) + " s", d: v => (+v).toFixed(2) + " s", s: v => Math.round(v * 100) + "%", r: v => (+v).toFixed(2) + " s", lfoRate: v => (+v).toFixed(1) + " Hz", lfoDepth: v => Math.round(v * 100) + "%" };
   const synthToy = () => `<div class="toy" data-toy="synth">
     <div class="toy-row"><span>Presets:</span>${Object.keys(SYP).map(p => `<button class="play" data-syp="${p}">${p}</button>`).join("")}</div>
+    <div class="toy-row">${navigator.requestMIDIAccess ? `<button class="play" data-sym="dev">Use my MIDI keyboard</button>` : ""}<span class="lnote" id="syMidi" aria-live="polite">${navigator.requestMIDIAccess ? "Connect a USB or Bluetooth MIDI keyboard, then press the button. Pitch bend, the mod wheel (LFO depth) and the sustain pedal work too." : "To play from a MIDI keyboard, open this page in Chrome, Edge or Opera on a computer."}</span></div>
     <div class="sygrid">
       <fieldset><legend>Oscillators</legend><label class="syk">Wave<select data-sy="wave">${["sine", "triangle", "square", "sawtooth"].map(w => `<option ${w === SY.wave ? "selected" : ""}>${w}</option>`).join("")}</select></label>
         <label class="syk">2nd oscillator<select data-sy="osc2"><option value="off" ${SY.osc2 == null ? "selected" : ""}>off</option>${[5, 7, 9, 12, 700, 1200].map(c => `<option value="${c}" ${SY.osc2 === c ? "selected" : ""}>${c < 100 ? `detuned ${c} cents` : c === 700 ? "a 5th up" : "an octave up"}</option>`).join("")}</select></label>
@@ -692,6 +696,7 @@ window.FAM = (() => {
     <p class="lnote">Click the keyboard or the box above it, then use the computer keys A W S E D F T G Y H U J K. Hold a note while moving the sliders: new settings apply to the next note.</p></div>`;
   document.addEventListener("input", e => { const x = e.target.closest("[data-sy]"); if (!x || x.tagName !== "INPUT") return; const k = x.dataset.sy; SY[k] = +x.value; const o = $q(`[data-syo="${k}"]`); if (o) o.textContent = FMT[k](SY[k]); if ("adsr".includes(k)) { const ev = $q("#syEnv"); if (ev) ev.innerHTML = envSVG(); } });
   document.addEventListener("change", e => { const x = e.target.closest("[data-sy]"); if (!x || x.tagName !== "SELECT") return; const k = x.dataset.sy; SY[k] = k === "wave" || k === "lfoTo" ? x.value : x.value === "off" ? null : +x.value; });
+  document.addEventListener("click", e => { if (e.target.closest('[data-sym="dev"]')) connectMidi(t => { const s = $q("#syMidi"); if (s) s.textContent = t; }); });
   document.addEventListener("click", e => { const p = e.target.closest("[data-syp]"); if (!p) return; Object.assign(SY, { lfoRate: 5, lfoTo: "pitch" }, SYP[p.dataset.syp]); const t = $q('[data-toy="synth"]'); if (t) t.outerHTML = synthToy(); const kb = $q('[data-toy="synth"] [data-kbn="60"]'); if (kb && ac()) { KB.synth.on(60, 100); setTimeout(() => KB.synth.off(60), 450); } });
 
   // ================= mini mixer: channels, buses, sends =================
@@ -729,7 +734,7 @@ window.FAM = (() => {
   }
   let mxTimer = 0, mxNext = 0, mxI = 0;
   function mixTick() {
-    if (!$q('[data-toy="mix"]')) { mixStop(); return; }
+    if (!$q('[data-toy="mix"]') && !$q('[data-toy="ma"]')) { mixStop(); return; }
     const e8 = 60 / MBPM / 2;
     while (mxNext < AC.currentTime + .15) {
       const i = mxI % 32, bar = Math.floor(i / 8) % 4, t = mxNext;
@@ -768,7 +773,117 @@ window.FAM = (() => {
   document.addEventListener("change", e => { const x = e.target.closest("[data-mx]"); if (!x) return; const [id, k] = x.dataset.mx.split(":");
     if (k === "out") MX.ch[id].out = x.value; if (k === "comp") MX.busComp = x.checked; mixApply(); });
   document.addEventListener("click", e => { const x = e.target.closest("[data-mx]"); if (x && x.tagName === "BUTTON") { const [id, k] = x.dataset.mx.split(":"); MX.ch[id][k] = !MX.ch[id][k]; x.setAttribute("aria-pressed", MX.ch[id][k]); mixApply(); return; }
-    const b = e.target.closest('[data-mxb="play"]'); if (b) { MX.playing ? mixStop() : mixStart(); b.textContent = MX.playing ? "■ Stop" : "▶ Play the loop"; } });
+    const b = e.target.closest('[data-mxb="play"]'); if (b) { if (G && G.mc) { G.mc.out.gain.value = 0; G.mc.dry.gain.value = 1; } MX.playing ? mixStop() : mixStart(); b.textContent = MX.playing ? "■ Stop" : "▶ Play the loop"; } });
+  // ================= external MIDI keyboards (Web MIDI), shared by the MIDI playground and the synth =================
+  let midiAcc = null;
+  function synthMidi(b) {
+    const [st, d1 = 0, d2 = 0] = b, type = st & 0xF0;
+    if (type === 0x90 && d2 > 0) { KB.synth.on(d1, d2); const el = $q(`[data-kb="synth"] [data-kbn="${d1}"]`); if (el) el.classList.add("on"); }
+    else if (type === 0x80 || type === 0x90) { if (SY.sus) SY.held.add(d1); else KB.synth.off(d1); const el = $q(`[data-kb="synth"] [data-kbn="${d1}"]`); if (el) el.classList.remove("on"); }
+    else if (type === 0xE0) { SY.bend = (((d2 << 7) | d1) - 8192) / 8192 * 200; SY.voices.forEach(v => v.setBend(SY.bend)); }
+    else if (type === 0xB0 && d1 === 1) { SY.lfoDepth = d2 / 127; const s = $q('[data-sy="lfoDepth"]'), o = $q('[data-syo="lfoDepth"]'); if (s) s.value = SY.lfoDepth; if (o) o.textContent = FMT.lfoDepth(SY.lfoDepth); }
+    else if (type === 0xB0 && d1 === 64) { SY.sus = d2 >= 64; if (!SY.sus) { SY.held.forEach(m => KB.synth.off(m)); SY.held.clear(); } }
+    const st2 = $q("#syMidi"); if (st2 && type === 0x90 && d2 > 0) st2.textContent = `Last note from your keyboard: ${nn(d1)}, velocity ${d2}.`;
+  }
+  function connectMidi(report) {
+    if (!navigator.requestMIDIAccess) { report("This browser can't use MIDI devices. Try Chrome, Edge or Opera on a computer."); return; }
+    navigator.requestMIDIAccess().then(acc => { midiAcc = acc; const hook = () => { let n = 0; acc.inputs.forEach(inp => { n++; inp.onmidimessage = ev => { if (ev.data[0] >= 0xF0) return; const b = [...ev.data]; if ($q('[data-toy="synth"]')) synthMidi(b); else if ($q('[data-toy="midi"]')) midiIn(b, true); }; }); return n; };
+      const n = hook(); acc.onstatechange = () => hook(); report(n ? `Listening to ${n} MIDI input${n > 1 ? "s" : ""}. Play your keyboard.` : "No MIDI keyboard found. Connect one (USB or Bluetooth) and press the button again."); },
+      () => report("MIDI access was blocked. Allow it in the browser's site settings and try again."));
+  }
+
+  // ================= pitch-correction simulator =================
+  const AT = { take: null, speed: 20, key: "C major", amt: 100 };
+  const SCALES = { "C major": [0, 2, 4, 5, 7, 9, 11], "A minor (natural)": [9, 11, 0, 2, 4, 5, 7], "C major pentatonic": [0, 2, 4, 7, 9], "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] };
+  const MEL = [[60, .5], [62, .5], [64, .7], [65, .45], [67, 1.1], [65, .45], [64, .5], [62, .5], [60, 1.2]];
+  function sing() {   // a slightly out-of-tune "take": scoops, wrong intonation, vibrato and drift; pitch in MIDI (fractional) every 10 ms
+    const fr = 100, pts = []; let t = 0;
+    MEL.forEach(([m, d], i) => { const off = (Math.random() * 2 - 1) * .38, scoop = -(.4 + Math.random() * .6), n = Math.round(d * fr), vibStart = .25 * fr;
+      for (let k = 0; k < n; k++) { const tt = k / fr, sc = scoop * Math.exp(-tt / .06), vib = k > vibStart ? .22 * Math.sin(2 * Math.PI * 5.4 * tt) * Math.min(1, (k - vibStart) / 20) : 0, drift = .12 * Math.sin(2 * Math.PI * .7 * (t + tt) + i);
+        pts.push(m + off + sc + vib + drift); }
+      t += d; });
+    return pts;
+  }
+  function correct(p) {
+    const sc = SCALES[AT.key], a = 1 - Math.exp(-10 / Math.max(.001, AT.speed)), out = []; let c = 0;
+    p.forEach(x => { let best = 0, bd = 99; for (let o = -1; o <= 1; o++) sc.forEach(pc => { const cand = Math.round(x / 12 + o) * 12 + pc, d = Math.abs(cand - x); if (d < bd) { bd = d; best = cand; } });
+      const want = (best - x) * AT.amt / 100; c = AT.speed <= 0 ? want : c + (want - c) * a; out.push(x + c); });
+    return out;
+  }
+  function atGraph() {
+    const p = AT.take, q = correct(p), W = 640, H = 220, lo = 58.5, hi = 68.5, x = i => 34 + (W - 40) * i / p.length, y = m => H - 14 - (H - 24) * (m - lo) / (hi - lo);
+    let g = ""; for (let m = 59; m <= 68; m++) { const pc = m % 12, inS = SCALES[AT.key].includes(pc); g += `<line x1="34" x2="${W - 6}" y1="${y(m)}" y2="${y(m)}" stroke="currentColor" stroke-opacity="${inS ? .35 : .1}" stroke-dasharray="${inS ? "" : "3 4"}"/>${inS ? `<text x="2" y="${y(m) + 4}" font-size="11" fill="currentColor">${nn(m)}</text>` : ""}`; }
+    const path = a => a.map((m, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(m).toFixed(1)).join("");
+    return `<svg viewBox="0 0 ${W} ${H}" class="atsvg" role="img" aria-label="Pitch graph: the sung pitch (grey) wavers and misses the notes; the corrected pitch (red) ${AT.speed < 5 ? "jumps straight onto each note" : "is pulled toward each note"}.">${g}<path d="${path(p)}" fill="none" stroke="#888" stroke-width="2"/><path d="${path(q)}" fill="none" stroke="#c0392b" stroke-width="2.5"/></svg>`;
+  }
+  function atPlay(which) {
+    if (!ac()) return; if (!AT.take) AT.take = sing(); const curve = which === "orig" ? AT.take : correct(AT.take), t0 = AC.currentTime + .05, T = curve.length / 100;
+    const o = AC.createOscillator(), g = AC.createGain(), mix = AC.createGain(); o.type = "sawtooth";
+    o.frequency.setValueCurveAtTime(Float32Array.from(curve, m => mtof(m)), t0, T);
+    [[700, 8, 1], [1220, 10, .5], [2600, 12, .25]].forEach(([f, qv, a]) => { const bp = AC.createBiquadFilter(), ga = AC.createGain(); bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = qv; ga.gain.value = a * 2.2; o.connect(bp); bp.connect(ga); ga.connect(mix); });
+    mix.connect(g); g.connect(OUT); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.35, t0 + .05);
+    let t = 0; MEL.forEach(([, d]) => { g.gain.setValueAtTime(.35, t0 + t + .02); g.gain.linearRampToValueAtTime(.12, t0 + t + d - .02); g.gain.linearRampToValueAtTime(.35, t0 + t + d); t += d; });
+    g.gain.linearRampToValueAtTime(0, t0 + T); o.start(t0); o.stop(t0 + T + .05);
+  }
+  const atToy = () => { if (!AT.take) AT.take = sing(); return `<div class="toy" data-toy="at">
+    <div class="toy-row"><button class="play" data-at="orig">▶ Original take</button><button class="play" data-at="fixed">▶ Corrected</button><button class="play" data-at="again">Sing a new take</button></div>
+    <div class="toy-row"><label>Key / scale <select data-atx="key">${Object.keys(SCALES).map(k => `<option ${k === AT.key ? "selected" : ""}>${k}</option>`).join("")}</select></label>
+      <label>Retune speed <input type="range" data-atx="speed" min="0" max="400" step="5" value="${AT.speed}"><output id="atSpd">${AT.speed} ms</output></label>
+      <label>Amount <input type="range" data-atx="amt" min="0" max="100" step="5" value="${AT.amt}"><output id="atAmt">${AT.amt}%</output></label></div>
+    <div class="toy-row"><button class="play" data-atp="0,100">Robot (0 ms)</button><button class="play" data-atp="40,100">Firm (40 ms)</button><button class="play" data-atp="150,80">Natural (150 ms)</button><button class="play" data-atp="0,0">Off</button></div>
+    <div id="atG">${atGraph()}</div>
+    <p class="lnote">Grey: the singer's pitch. Red: after correction. Faint lines are scale notes. Fast retune speeds remove scoops and vibrato and make the jumps between notes sound stepped; slow speeds only nudge long notes into tune.</p></div>`; };
+  document.addEventListener("click", e => { const b = e.target.closest("[data-at]"); if (b) { const k = b.dataset.at; if (k === "again") { AT.take = sing(); const g = $q("#atG"); if (g) g.innerHTML = atGraph(); atPlay("orig"); } else atPlay(k); return; }
+    const pr = e.target.closest("[data-atp]"); if (pr) { const [s, a] = pr.dataset.atp.split(",").map(Number); AT.speed = s; AT.amt = a; const t = $q('[data-toy="at"]'); if (t) t.outerHTML = atToy(); atPlay("fixed"); } });
+  document.addEventListener("input", e => { const x = e.target.closest("[data-atx]"); if (!x || x.tagName !== "INPUT") return; AT[x.dataset.atx] = +x.value; $q("#atSpd").textContent = AT.speed + " ms"; $q("#atAmt").textContent = AT.amt + "%"; $q("#atG").innerHTML = atGraph(); });
+  document.addEventListener("change", e => { const x = e.target.closest('[data-atx="key"]'); if (!x) return; AT.key = x.value; $q("#atG").innerHTML = atGraph(); });
+
+  // ================= mastering chain (on the mixer's master output) =================
+  const MA = { on: true, low: 0, high: 0, thr: -18, ratio: 2, drive: 0, ceil: -1 };
+  function masterChain() {
+    mixGraph(); if (G.mc) return G.mc; const c = G.mc = {};
+    c.in = AC.createGain(); c.low = AC.createBiquadFilter(); c.low.type = "lowshelf"; c.low.frequency.value = 100; c.high = AC.createBiquadFilter(); c.high.type = "highshelf"; c.high.frequency.value = 8000;
+    c.comp = AC.createDynamicsCompressor(); c.comp.attack.value = .02; c.comp.release.value = .2; c.comp.knee.value = 6; c.drive = AC.createGain();
+    c.lim = AC.createDynamicsCompressor(); c.lim.knee.value = 0; c.lim.ratio.value = 20; c.lim.attack.value = .001; c.lim.release.value = .08;
+    c.out = AC.createGain(); c.clip = AC.createWaveShaper(); c.in.connect(c.low); c.low.connect(c.high); c.high.connect(c.comp); c.comp.connect(c.drive); c.drive.connect(c.lim); c.lim.connect(c.clip); c.clip.connect(c.out);   // the wave shaper is a final safety clip at the ceiling
+    // K-weighting for an approximate loudness meter
+    c.k1 = AC.createBiquadFilter(); c.k1.type = "highshelf"; c.k1.frequency.value = 1681; c.k1.gain.value = 4; c.k2 = AC.createBiquadFilter(); c.k2.type = "highpass"; c.k2.frequency.value = 38; c.kan = AC.createAnalyser(); c.kan.fftSize = 2048;
+    c.pan = AC.createAnalyser(); c.pan.fftSize = 2048;
+    G.master.disconnect(); G.master.connect(c.in); c.out.connect(G.mAn); c.out.connect(c.pan); c.out.connect(c.k1); c.k1.connect(c.k2); c.k2.connect(c.kan);
+    c.dry = AC.createGain(); c.in.connect(c.dry); c.dry.connect(G.mAn); c.dry.connect(c.pan); c.dry.connect(c.k1);
+    maApply(); return c;
+  }
+  function maApply() {
+    const c = G && G.mc; if (!c) return;
+    c.low.gain.value = MA.low; c.high.gain.value = MA.high; c.comp.threshold.value = MA.thr; c.comp.ratio.value = MA.ratio; c.drive.gain.value = Math.pow(10, MA.drive / 20); c.lim.threshold.value = MA.ceil - 1; { const cl = Math.pow(10, MA.ceil / 20), n = 2049, cu = new Float32Array(n); for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; cu[i] = Math.max(-cl, Math.min(cl, x)); } c.clip.curve = cu; }
+    lufsAcc = [];
+    c.out.gain.value = MA.on ? 1 : 0; c.dry.gain.value = MA.on ? 0 : 1;
+  }
+  const kbuf = new Float32Array(2048); var lufsAcc = []; let maRaf = 0;
+  function maMeter() {
+    const c = G && G.mc, el = $q("#maRead"); if (!c || !el) return;
+    c.pan.getFloatTimeDomainData(kbuf); let pk = 0; for (let i = 0; i < kbuf.length; i++) pk = Math.max(pk, Math.abs(kbuf[i]));
+    c.kan.getFloatTimeDomainData(kbuf); let ms = 0; for (let i = 0; i < kbuf.length; i++) ms += kbuf[i] * kbuf[i]; ms /= kbuf.length; lufsAcc.push(ms); if (lufsAcc.length > 60) lufsAcc.shift();
+    const mean = lufsAcc.reduce((a, b) => a + b, 0) / lufsAcc.length, lufs = -0.691 + 10 * Math.log10(mean * 2 + 1e-12), gr = MA.on ? c.comp.reduction + c.lim.reduction : 0;
+    if (!(maRaf % 6)) el.innerHTML = `<span>Peak <b>${pk > 0 ? (20 * Math.log10(pk)).toFixed(1) : "−∞"} dBFS</b></span><span>Loudness ≈ <b>${MX.playing ? lufs.toFixed(1) : "—"} LUFS</b></span><span>Gain reduction <b>${(-gr).toFixed(1)} dB</b></span>`;
+    maRaf++; if (MX.playing) requestAnimationFrame(maMeter);
+  }
+  const maSl = (k, label, min, max, step, unit) => `<label class="syk">${label}<input type="range" data-ma="${k}" min="${min}" max="${max}" step="${step}" value="${MA[k]}"><output data-mao="${k}">${MA[k]} ${unit}</output></label>`;
+  const maToy = () => `<div class="toy" data-toy="ma">
+    <div class="toy-row"><button class="play" data-mab="play">${MX.playing ? "■ Stop" : "▶ Play the mix"}</button><button class="play" data-mab="ab" aria-pressed="${MA.on}">Mastering chain ${MA.on ? "on" : "off (bypassed)"}</button><button class="play" data-mab="loud">Preset: loud</button><button class="play" data-mab="gentle">Preset: gentle</button><button class="play" data-mab="flat">Reset</button></div>
+    <div class="sygrid"><fieldset><legend>1. EQ</legend>${maSl("low", "Low shelf 100 Hz", -12, 12, .5, "dB")}${maSl("high", "High shelf 8 kHz", -12, 12, .5, "dB")}</fieldset>
+      <fieldset><legend>2. Bus compressor</legend>${maSl("thr", "Threshold", -40, 0, 1, "dB")}${maSl("ratio", "Ratio", 1, 10, .5, ": 1")}</fieldset>
+      <fieldset><legend>3. Limiter</legend>${maSl("drive", "Input gain", 0, 18, .5, "dB")}${maSl("ceil", "Ceiling", -6, 0, .1, "dBFS")}</fieldset></div>
+    <p class="mameter" id="maRead" aria-live="off"><span>Peak <b>—</b></span><span>Loudness ≈ <b>— LUFS</b></span><span>Gain reduction <b>0.0 dB</b></span></p>
+    <p class="lnote">This plays the loop from the Try a mixer step, with its current mix. Push the limiter's input gain up and compare with the chain bypassed: louder at first, but the drums lose their punch. The loudness reading is an approximation of short-term LUFS: the loud preset lands near −5 LUFS, about 9 dB above a −14 LUFS streaming target, so a streaming service would simply turn it down.</p></div>`;
+  document.addEventListener("input", e => { const x = e.target.closest("[data-ma]"); if (!x) return; const k = x.dataset.ma; MA[k] = +x.value; const o = $q(`[data-mao="${k}"]`); if (o) o.textContent = MA[k] + " " + ({ low: "dB", high: "dB", thr: "dB", ratio: ": 1", drive: "dB", ceil: "dBFS" })[k]; maApply(); });
+  document.addEventListener("click", e => { const b = e.target.closest("[data-mab]"); if (!b) return; const k = b.dataset.mab;
+    if (k === "play") { if (MX.playing) mixStop(); else { if (!ac()) return; masterChain(); mixStart(); lufsAcc = []; requestAnimationFrame(maMeter); } b.textContent = MX.playing ? "■ Stop" : "▶ Play the mix"; return; }
+    if (k === "ab") MA.on = !MA.on;
+    if (k === "loud") Object.assign(MA, { on: true, low: 2, high: 2.5, thr: -24, ratio: 4, drive: 12, ceil: -0.3 });
+    if (k === "gentle") Object.assign(MA, { on: true, low: 1, high: 1.5, thr: -16, ratio: 1.5, drive: 3, ceil: -1 });
+    if (k === "flat") Object.assign(MA, { on: true, low: 0, high: 0, thr: -18, ratio: 2, drive: 0, ceil: -1 });
+    if (G) { masterChain(); maApply(); } const t = $q('[data-toy="ma"]'); if (t) t.outerHTML = maToy(); });
   // ===================== end of toys =====================
 
   const F = {
@@ -808,6 +923,12 @@ window.FAM = (() => {
       ["A virtual instrument is…", "software that makes sound inside the DAW from MIDI", ["a hardware keyboard", "an audio interface", "a microphone model"], "Also called a soft synth or instrument plug-in."],
     ],
     nota: [
+      ["Retune speed in automatic pitch correction controls…", "how quickly a note is pulled to the target pitch (0 = instantly, the robotic effect)", ["the tempo", "the reverb length", "the key signature"], "Slower speeds keep natural scoops and vibrato."],
+      ["Graphical pitch editors such as Melodyne show sung notes as…", "blobs you can move, re-center and reshape note by note", ["sheet music only", "waveforms that can't be changed", "MIDI controller lanes"], "They can even change the melody."],
+      ["The last processor in a typical mastering chain is…", "a limiter", ["a reverb", "a de-esser", "a microphone preamp"], "It sets the final level and catches peaks below a ceiling."],
+      ["Streaming services normalize loudness, so a very loud, squashed master…", "is turned down to the same level and mostly loses punch", ["always sounds louder to listeners", "is rejected", "plays in mono"], "Spotify's and YouTube's targets are about −14 LUFS."],
+      ["Dither is added when…", "reducing bit depth, for example from 24-bit to 16-bit", ["adding reverb", "raising the sample rate", "recording vocals"], "It masks small distortion from rounding."],
+      ["A condenser microphone usually needs…", "phantom power (+48 V)", ["a battery-free ribbon", "no power", "a MIDI cable"], "Dynamic microphones don't need it."],
       ["MusicXML is used to…", "exchange notated music between notation programs", ["compress audio", "control lights", "stream music"], "Most notation software can import and export it."],
       ["A free, open-source notation program is…", "MuseScore", ["Pro Tools", "Logic Pro", "Auto-Tune"], "Dorico and Sibelius are commercial; LilyPond is a free text-based engraver."],
       ["Step-time entry in notation software means…", "choosing a duration, then entering pitches one at a time", ["recording while a click plays", "singing into a microphone", "scanning paper music"], "Real-time entry records from a MIDI keyboard and needs cleanup."],
@@ -883,12 +1004,42 @@ window.FAM = (() => {
       <li><b>Parts</b> are generated from the score, so edits stay consistent; check page turns, cues and multi-bar rests.</li>
       <li><b>Playback</b> with sample libraries is a good proof-listening tool, but balance and playability still need a musician's judgment.</li>
       <li><b>MusicXML</b> moves notation between programs; <b>MIDI</b> moves performance data between notation software and DAWs.</li></ul>` },
-    { title: "Production tools", kick: "From recording to release", render: () => `<p>Production software covers everything between an idea and a finished master:</p>
-      <ul><li><b>Recording</b>: interface, microphones, monitoring with low latency.</li>
-      <li><b>Editing</b>: comping the best takes, timing correction, pitch correction (<a href="https://www.antarestech.com/" target="_blank" rel="noopener">Auto-Tune</a>, <a href="https://www.celemony.com/" target="_blank" rel="noopener">Melodyne</a>), noise reduction.</li>
-      <li><b>Mixing</b>: EQ (tone), compression (controlling dynamics), reverb and delay (space), panning, automation.</li>
-      <li><b>Mastering</b>: final EQ, compression and limiting for a consistent, competitive level, and preparing files for release.</li></ul>
-      <p>The Pop Production and Film and Game Scoring apps on this site go further into how these tools are used.</p>` },
+    { title: "Recording", kick: "Capturing sound", render: () => `<p>Production software covers everything between an idea and a finished master: recording, editing, mixing and mastering. It starts with capturing good sound, because no plug-in fully fixes a poor recording.</p>
+      ${tbl("Microphones", ["Type", "Character", "Typical uses"], [["Dynamic", "rugged, handles loud sources, less detail", "guitar amps, snare, live vocals"], ["Condenser (large diaphragm)", "detailed and sensitive; needs phantom power (+48 V)", "studio vocals, acoustic instruments"], ["Small-diaphragm condenser", "accurate, clear transients", "acoustic guitar, overheads, choirs"], ["Ribbon", "smooth, warm high end; fragile", "brass, guitar amps, room sound"]])}
+      <ul><li><b>Polar patterns</b>: cardioid (front only), figure-8 (front and back), omni (all around). They decide how much room and bleed you capture.</li>
+      <li><b>Gain staging</b>: set the preamp so peaks land around −12 to −6 dBFS. Recording at 24-bit leaves plenty of room; clipping can't be undone.</li>
+      <li><b>Monitoring</b>: headphones for performers; small buffer sizes (64–256 samples) keep latency low while recording; raise them while mixing.</li>
+      <li><b>Takes and playlists</b>: record several passes so the best moments can be combined later.</li>
+      <li><b>Room</b>: blankets, rugs and bookshelves tame reflections in home studios.</li></ul>` },
+    { title: "Editing and pitch correction", kick: "Comping, timing and tuning", render: () => `<ul><li><b>Comping</b>: assembling the best phrases from several takes, joined with short <b>crossfades</b> so the edits don't click.</li>
+      <li><b>Timing correction</b>: moving notes or slicing and quantizing audio (Pro Tools Beat Detective, Logic Flex Time, Ableton warping).</li>
+      <li><b>Cleanup</b>: removing breaths, clicks, hum and noise (for example with iZotope RX).</li>
+      <li><b>Pitch correction</b>: nudging out-of-tune notes toward the right pitch. Two kinds of tool:
+        <ul><li><b>Automatic (real-time)</b>, like <a href="https://www.antarestech.com/" target="_blank" rel="noopener">Antares Auto-Tune</a>: you set the key or scale and a <b>retune speed</b>. Gentle settings fix small slips invisibly; a speed of 0 snaps every note instantly, removing scoops and vibrato. That's the stepped, robotic sound made famous in late-1990s pop and now a standard vocal style in hip-hop, pop and many other genres.</li>
+        <li><b>Graphical (note-by-note)</b>, like <a href="https://www.celemony.com/" target="_blank" rel="noopener">Celemony Melodyne</a>, Logic's Flex Pitch or Cubase's VariAudio: each sung note appears as a blob you can move, re-center, flatten or re-shape by hand, even changing the melody. Melodyne can also edit single notes inside chords.</li></ul>
+        Free tools for trying it in a DAW include <a href="https://www.meldaproduction.com/MAutoPitch" target="_blank" rel="noopener">MAutoPitch</a> (MeldaProduction) and the free edition of <a href="https://www.auburnsounds.com/products/Graillon.html" target="_blank" rel="noopener">Graillon</a> (Auburn Sounds); <a href="https://www.celemony.com/" target="_blank" rel="noopener">Melodyne</a> has a free trial.</li></ul>
+      <h3>Try it: a pitch-correction simulator</h3>
+      <p>Here is a synthetic singer with realistic flaws: scooping up into notes, landing a little sharp or flat, wobbling with vibrato. Choose a key, set the retune speed and compare. (It's a simulation of the idea, not a real vocal processor.)</p>
+      ${atToy()}` },
+    { title: "Mixing", kick: "Balance, tone, dynamics, space", render: () => `<p>Mixing turns many tracks into one balanced, clear whole. Typical order of work:</p>
+      <ol><li><b>Balance and panning</b> with faders first; most of the mix is here.</li>
+      <li><b>EQ</b>: cut what's muddy or harsh, high-pass tracks that don't need low end, and give each part its own frequency range. Parametric EQ sets frequency, gain and width (Q); shelves lift or cut the lows or highs.</li>
+      <li><b>Compression</b>: threshold, ratio, attack, release and makeup gain even out dynamics and add punch. Parallel compression blends a heavily squashed copy with the original.</li>
+      <li><b>Space</b>: reverb (room, plate, hall) and delay (often timed to the tempo) on sends.</li>
+      <li><b>Color</b>: saturation, tape and amp emulation, chorus and other effects.</li>
+      <li><b>Automation</b>: rides on vocals, effect throws, builds and drops.</li>
+      <li><b>Check</b>: compare with reference tracks at matched loudness; listen on headphones, small speakers, a phone and a car.</li></ol>
+      <p>Try buses, sends and compression in the <b>Try a mixer</b> step. Widely used plug-in makers include <a href="https://www.fabfilter.com/" target="_blank" rel="noopener">FabFilter</a>, <a href="https://www.waves.com/" target="_blank" rel="noopener">Waves</a>, <a href="https://www.uaudio.com/" target="_blank" rel="noopener">Universal Audio</a>, <a href="https://www.izotope.com/" target="_blank" rel="noopener">iZotope</a> and <a href="https://www.soundtoys.com/" target="_blank" rel="noopener">Soundtoys</a>; every DAW also includes good EQs, compressors and reverbs.</p>` },
+    { title: "Mastering", kick: "The final polish", render: () => `<p><b>Mastering</b> is the last creative and technical step: a fresh set of ears makes the mix sound its best on every system and prepares it for release.</p>
+      ${tbl("Mastering tools", ["Tool", "What it does in mastering"], [["EQ", "small, broad tonal corrections (often under 2 dB); linear-phase EQs avoid phase shifts"], ["Bus compression", "gentle 'glue': low ratio (1.5:1–2:1), a few dB of gain reduction"], ["Multiband compression", "controls separate frequency ranges, e.g. a boomy low end only when it builds up"], ["Stereo imaging", "widens or narrows; low frequencies are often kept in mono"], ["Saturation / exciters", "harmonic color and perceived loudness"], ["Limiter", "the last processor: raises the level and catches peaks at a ceiling (often −1 dBTP)"], ["Dither", "low-level noise added when reducing bit depth (e.g. 24-bit to 16-bit for CD)"], ["Meters", "LUFS loudness, true peak, dynamic range, spectrum and phase correlation"]])}
+      <ul><li><b>Loudness</b>: streaming services normalize playback to a target (about −14 LUFS integrated for Spotify and YouTube, −16 for Apple Music), so squashing a master to be louder mostly costs punch. Peaks are usually kept at or below −1 dBTP (true peak) so lossy encoding doesn't distort.</li>
+      <li><b>Album work</b>: consistent tone and level across songs, track order, spacing and fades.</li>
+      <li><b>Delivery</b>: high-resolution WAV for distributors, DDP images for CD manufacturing, separate masters for vinyl (whose low end and sibilance need care), and metadata such as ISRC codes.</li>
+      <li><b>Software</b>: <a href="https://www.izotope.com/en/products/ozone.html" target="_blank" rel="noopener">iZotope Ozone</a> (an all-in-one suite with AI assistant), <a href="https://www.fabfilter.com/products/pro-l-2-limiter-plug-in" target="_blank" rel="noopener">FabFilter Pro-L 2</a> (limiter), <a href="https://www.waves.com/" target="_blank" rel="noopener">Waves</a> L-series limiters, and online or AI mastering services such as <a href="https://www.landr.com/" target="_blank" rel="noopener">LANDR</a>. Your DAW's own limiter and loudness meter are enough to learn with.</li></ul>
+      <h3>Try it: a mastering chain</h3>
+      <p>EQ → bus compressor → limiter on the master output of the mixer loop, with peak, gain reduction and approximate loudness readings. Use the bypass button to compare.</p>
+      ${maToy()}
+      <p>To master or tidy a file of your own (trim, normalize, fade, export), use the <a href="audio-clip-editor.html">Audio Clip Editor</a>. The Pop Production and Film and Game Scoring apps go further into how these tools are used.</p>` },
     { title: "Quick check", kick: "Before the drills", render: H => Object.keys(F).map(m => { const [q, a, w, y] = F[m][0]; return H.check(q, a, w, y); }).join("") },
   ] };
   const ALL = Object.values(F).flat();

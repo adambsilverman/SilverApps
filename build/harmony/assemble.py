@@ -86,7 +86,7 @@ APPS = [
             "<b>Harmonic series</b> on C2: C2 C3 G3 C4 E4 G4 B♭4 C5 …; partial n = n × the fundamental.",
             "<b>Pulses</b> faster than about 20 per second fuse into pitch; a polyrhythm's ratio becomes an interval.",
             "<b>A4 = 440 Hz</b>; MIDI 69 = A4, 60 = middle C."]),
-  dict(src="Music Software.html", drills="music-software.html", lesson="music-software-lesson.html", lesson_title="About Music Software", lesson_desc="A step-by-step lesson: how sound becomes digital audio (sample rate, bit depth, formats), MIDI, the digital audio workstation, synthesizers and virtual instruments, notation software, and production tools.", data="software.js", title="Music Software",
+  dict(src="Music Software.html", drills="music-software.html", lesson="music-software-lesson.html", lesson_title="About Music Software", lesson_desc="A step-by-step lesson: how sound becomes digital audio (sample rate, bit depth, formats), MIDI, the digital audio workstation with a playable MIDI keyboard, mixer, synthesizer and drum machine, notation software, recording, editing and pitch correction (with a simulator), mixing, and mastering (with a mastering chain to try).", data="software.js", title="Music Software",
        desc="Digital audio numbers, DAW concepts, synthesizers and MIDI, and notation and production software.",
        modes=[("audio", "Digital audio", "sample rate · bits", "digital audio"),
               ("daw", "The DAW", "tracks · mixer", "digital audio workstations"),
