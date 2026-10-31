@@ -50,6 +50,12 @@ window.FAM = (() => {
     ["An accidental is placed…", "just before the notehead, exactly on its line or space", ["above the note", "after the note", "anywhere in the bar"], "And it lasts for the rest of the bar, on that line or space."],
     ["In a chord with several accidentals, which accidental goes closest to the chord?", "the highest one", ["the lowest one", "the loudest one", "it doesn't matter"], "Then the lowest, then the next highest, working inward in columns."],
     ["Does an accidental change where the beat's notes line up?", "no: the noteheads still align; space is made for the accidental in front", ["yes: the accidental aligns with the other notes", "yes: the note moves after the beat", "only in the bass clef"], "Line up noteheads, not accidentals."],
+    ["An F♯ appears early in a bar. Later in the same bar, an F on the same line has no accidental. What is it?", "F♯ (the sharp still applies)", ["F natural", "F♭", "it depends on the clef"], "An accidental lasts until the bar line, for that line or space."],
+    ["An F♯ is written in one bar. In the next bar, an F on the same line has no accidental (key of C). What is it?", "F natural", ["F♯", "F♭", "F𝄪"], "The bar line cancels accidentals; a courtesy natural is often added as a reminder."],
+    ["What does a double sharp (𝄪) do?", "raises a note two semitones", ["raises a note one semitone", "lowers a note two semitones", "cancels a sharp"], "C𝄪 sounds the same as D."],
+    ["Which pair are enharmonic (same key on the piano)?", "E♯ and F", ["E♭ and F", "E and F♭♭", "B♭ and C"], "E♯ is one semitone above E: the key we usually call F."],
+    ["Where does an accidental go?", "just before the notehead, on the same line or space", ["just after the notehead", "above the note", "at the start of the bar"], "It is centered on the notehead's line or space and written before it."],
+    ["Does an accidental on C5 affect C4 later in the same bar?", "no: it applies only to that line or space (that octave)", ["yes: it affects every C in the bar", "yes, but only in treble clef", "only if they are tied"], "Many editors still add a courtesy accidental in the other octave."],
   ];
 
   function make(mode, H) {
@@ -135,6 +141,37 @@ window.FAM = (() => {
         <li><b>Several accidentals in a chord</b> stack in columns: the highest goes closest to the chord, then the lowest, then the next highest, working inward. Accidentals a 7th or more apart can share a column.</li>
         <li><b>Accidentals don't change the alignment</b>: the noteheads line up, and space is made in front for the accidental in every part.</li></ul>`
         + U.fig(sp, "Noteheads align across both staves; a 2nd in a chord puts the higher note on the right; accidentals stack in columns in front of the chord.");
+    } },
+    { title: "Accidentals", kick: "Sharps, flats and naturals", render: (H, k, U) => {
+      const a = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 80, minBar: 240, bars: [{ t: [[{ k: ["F4"], d: "q", ly: "F" }, { k: ["F♯4"], d: "q", ly: "F♯" }, { k: ["G4"], d: "q", ly: "G" }, { k: ["F♯4"], d: "q", ly: "still F♯" }]] }, { t: [[{ k: ["F4"], d: "q", ly: "F again" }, { k: ["B♭4"], d: "q", ly: "B♭" }, { k: ["B4"], d: "q", ly: "B♮" }, { k: ["B4"], d: "q", ly: "still B♮" }]] }] };
+      const b = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 200, bars: [{ t: [[{ k: ["C4"], d: "q", ly: "C" }, { k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["C𝄪4"], d: "q", ly: "C𝄪" }, { k: ["D4"], d: "q", ly: "D" }]] }, { t: [[{ k: ["E4"], d: "q", ly: "E" }, { k: ["E♭4"], d: "q", ly: "E♭" }, { k: ["E𝄫4"], d: "q", ly: "E𝄫" }, { k: ["D4"], d: "q", ly: "D" }]] }] };
+      return `<p>An <b>accidental</b> raises or lowers the note it is attached to:</p>
+        <div class="ltable-wrap"><table class="ltable"><caption>Accidentals</caption><thead><tr><th scope="col">Sign</th><th scope="col">Name</th><th scope="col">Effect</th></tr></thead><tbody>
+        <tr><td><span style="font-size:1.7em;line-height:1">♯</span></td><td>sharp</td><td>up one semitone</td></tr>
+        <tr><td><span style="font-size:1.7em;line-height:1">♭</span></td><td>flat</td><td>down one semitone</td></tr>
+        <tr><td><span style="font-size:1.7em;line-height:1">♮</span></td><td>natural</td><td>cancels a sharp or flat (from the key signature or earlier in the bar)</td></tr>
+        <tr><td><span style="font-size:1.7em;line-height:1">𝄪</span></td><td>double sharp</td><td>up two semitones</td></tr>
+        <tr><td><span style="font-size:1.7em;line-height:1">𝄫</span></td><td>double flat</td><td>down two semitones</td></tr></tbody></table></div>
+        <ul><li><b>An accidental lasts until the bar line</b>, for every later note on that same line or space in that bar. It does not need repeating.</li>
+        <li><b>The bar line cancels it.</b> In the next bar the note goes back to what the key signature says.</li>
+        <li><b>Only that line or space</b> (that octave) is affected. An F♯4 doesn't change an F5 in the same bar, though careful editors add a reminder.</li>
+        <li><b>Ties carry it across the bar line</b>: a tied note keeps its accidental without rewriting it. A fresh note after the tie needs its own.</li>
+        <li><b>Courtesy (cautionary) accidentals</b> are optional reminders, sometimes in parentheses, e.g. a natural in the bar after a sharp, or in another octave or part.</li></ul>`
+        + U.fig(a, "Bar 1: the second F♯ needs no sign. Bar 2: the bar line has cancelled the sharp; a natural cancels the flat and lasts to the bar line.")
+        + U.fig(b, "Double sharps and double flats move two semitones: C𝄪 sounds the same as D, and E𝄫 the same as D.", { small: true });
+    } },
+    { title: "Writing accidentals", kick: "Size, place, stacking, enharmonics", render: (H, k, U) => {
+      const c = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 260, bars: [{ t: [[{ k: ["E♭4", "G4", "B♭4"], d: "h" }, { k: ["C♯4", "F♯4", "A♯4", "C♯5"], d: "h" }]] }, { t: [[{ k: ["D♭4", "F4", "A♭4", "C♭5"], d: "w" }]] }] };
+      const e = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 220, bars: [{ t: [[{ k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["D♭4"], d: "q", ly: "D♭" }, { k: ["E♯4"], d: "q", ly: "E♯" }, { k: ["F4"], d: "q", ly: "F" }]] }, { t: [[{ k: ["B♯4"], d: "q", ly: "B♯" }, { k: ["C5"], d: "q", ly: "C" }, { k: ["C♭5"], d: "q", ly: "C♭" }, { k: ["B4"], d: "q", ly: "B" }]] }] };
+      return `<ul><li><b>Placement:</b> immediately before the notehead, centered on exactly the same line or space. A sharp's center box or a flat's round belly sits on that line or space. In text, accidentals come after the letter (F♯), but on the staff they come first.</li>
+        <li><b>Size:</b> about the height of three staff spaces for a sharp or natural (a flat is a little shorter), so the sign reaches roughly a space above and below its note. Too small and it is hard to read; too large and it crowds the notes around it. Accidentals for grace notes and cue notes are reduced with the notehead.</li>
+        <li><b>Stacking in chords:</b> accidentals can't overlap, so they fan out to the left in columns. The usual order: highest accidental closest to the chord, then the lowest, then the next highest, then the next lowest, working in toward the middle. Accidentals a 7th or more apart can share a column. Notation software does this for you, but check it.</li>
+        <li><b>Spacing:</b> make room for the accidental in front of the note; the noteheads of other staves still line up vertically.</li></ul>`
+        + U.fig(c, "Accidentals in chords stack in columns to the left of the noteheads.")
+        + `<p><b>Enharmonic</b> notes sound the same but are spelled differently: C♯ and D♭, F♯ and G♭, and also the white-key pairs E♯ = F, B♯ = C, C♭ = B and F♭ = E. Spelling matters because it shows the note's job: in A major the third of the chord is C♯, not D♭, and the leading tone of F♯ minor is E♯, not F. Each letter name is used once in a scale, so scales and chords "spell" correctly with stacked thirds.</p>`
+        + U.fig(e, "Enharmonic pairs: each pair sounds the same pitch on a piano.", { small: true })
+        + H.check("In the same bar, after a B♭, the next B on that line has no sign. It is…", "B♭", ["B natural", "B♯", "it depends on the clef"], "The flat lasts until the bar line.")
+        + H.check("Which is enharmonic with B♯?", "C", ["B", "C♯", "A𝄪"], "B♯ is a semitone above B.");
     } },
     { title: "Quick check", kick: "Before the drills", render: (H) => H.check("Bass clef, top line:", "A", ["F", "G", "B"], "G B D F A.") + H.check("Treble clef, 1st space:", "F", ["E", "G", "A"], "F A C E.") + H.check(FACTS[3][0], FACTS[3][1], FACTS[3][2], FACTS[3][3]) + H.check(FACTS[15][0], FACTS[15][1], FACTS[15][2], FACTS[15][3]) },
   ] };

@@ -333,6 +333,12 @@ details.panel[open] summary::after { content: "−"; }
 .footnotes { margin-top: 1.2em; padding-top: .6em; border-top: 1px solid currentColor; font-size: .88em; opacity: .9; }
 .footnotes ol { margin: 0; padding-left: 1.4em; }
 .footnotes a { overflow-wrap: anywhere; }
+.ldet { border: 1.5px solid var(--line, #ddd); border-radius: 12px; padding: 0 14px; margin: 10px 0; background: var(--field, transparent); }
+.ldet > summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: 8px; }
+.ldet[open] > summary { border-bottom: 1px solid var(--line, #ddd); margin-bottom: 8px; }
+.lbtns { display: flex; flex-wrap: wrap; gap: 8px; }
+.lnote { font-size: .92rem; color: var(--muted, #666); }
+.fig-box .lbtns { justify-content: center; margin: 6px 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -1240,6 +1246,7 @@ window.FAM = (() => {
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${c.bigFmt ? fmtVal(c.big, c.bigFmt) : rich(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${rich(c.text)}</p>`;
+    if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML from the content file (e.g. pulse buttons)
     if (c.staff) h += `<div class="staff ${wideOf(c.staff)}" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;

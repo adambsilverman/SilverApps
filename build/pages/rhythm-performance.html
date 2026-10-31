@@ -1,4 +1,4 @@
-<!-- title: Rhythm Performance | sound: 1 | vex: 1 | desc: Perform written rhythms by tapping or clapping with a count-in and metronome; the app checks the timing of every note. -->
+<!-- title: Rhythm Performance | sound: 1 | vex: 1 | desc: Perform written rhythms by tapping or clapping with a count-in and metronome: generated rhythms, world and classical rhythms, drum rudiments, clapping on cue, and a phasing piece in the manner of Clapping Music. The app checks the timing of every note. -->
 <style>
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
 .lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -45,6 +45,21 @@ input[type=number]{width:5.5em}
 .legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:14px;color:var(--fi-muted)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px}
 .micstat{font:600 15px var(--fi-serif);color:var(--fi-muted);text-align:center}
+label.f2[hidden],.info[hidden],.lbtn[hidden]{display:none}
+.info{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:10px 14px}
+.info p{margin:0 0 6px} .info p:last-child{margin:0}
+.info b.stick{font:700 18px var(--fi-ui);letter-spacing:.12em}
+.cue{font:400 clamp(24px,4vw,34px)/1.15 var(--fi-display);text-align:center;padding:18px 8px}
+.cue small{display:block;font:400 16px/1.4 var(--fi-serif);letter-spacing:0;text-transform:none;color:var(--fi-muted);margin-top:6px}
+.pgrid{max-width:620px;margin:0 auto;display:grid;grid-template-columns:auto repeat(12,minmax(0,1fr));gap:4px;align-items:center;padding:6px 4px}
+.pgrid .lab{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.05em;padding-right:6px;white-space:nowrap}
+.pgrid i{display:block;aspect-ratio:1;border-radius:50%;border:2px solid var(--fi-line);background:var(--fi-card)}
+.pgrid i.x{background:var(--fi-ink)}
+.pgrid i.now{outline:3px solid var(--fi-red);outline-offset:1px}
+.pgrid i.x.now{background:var(--fi-red)}
+.phase-stat{text-align:center;font:600 16px var(--fi-serif);margin:4px 0 0}
+.restab{width:100%;border-collapse:collapse;font-size:15px}.restab th,.restab td{border-bottom:1px solid var(--fi-soft);padding:4px 6px;text-align:left}
+input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px;width:12em;max-width:100%}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 <script src="assets/progress.js"></script>
@@ -52,10 +67,17 @@ input[type=number]{width:5.5em}
 <main class="lesson" id="main">
   <header class="lesson-head">
     <h1>Rhythm <span>Performance</span></h1>
-    <p>Read the rhythm, listen to the count-in, then perform it: tap the pad, press the space bar, or clap into the microphone. The app shows which notes were on time, early, late, missed or extra.</p>
+    <p>Read the rhythm, listen to the count-in, then perform it. Practice generated rhythms, rhythms from around the world, classical dance rhythms and drum rudiments, clap on cue while counting rests, or perform a phasing piece in the manner of Steve Reich's <i>Clapping Music</i>. Perform by tapping the pad or the space bar, or by clapping into the microphone. The app shows which notes were on time, early, late, missed or extra.</p>
   </header>
   <section class="slide" id="card">
     <div class="settings2" id="settings">
+      <label class="f2" for="sMode">Practice<select id="sMode"><option value="gen">Generated rhythms</option><option value="world">Rhythms from around the world</option><option value="classic">Classical rhythms</option><option value="rud">Drum rudiments</option><option value="cue">Clap on cue (count the rests)</option><option value="cm">Clapping Music (phasing)</option><option value="cmg">Clapping Music Generator</option></select></label>
+      <label class="f2" for="sPat" id="lPat">Pattern<select id="sPat"></select></label>
+      <label class="f2" for="sCm" id="lCm">Pattern (x = clap, . = rest)<input id="sCm" type="text" maxlength="12" spellcheck="false" autocomplete="off" placeholder="12 pulses"></label>
+      <label class="f2" for="sPart" id="lPart">Your part<select id="sPart"><option value="steady">Steady clapper</option><option value="moving">Moving clapper</option></select></label>
+      <label class="f2" for="sReps" id="lReps">Repeats per section<select id="sReps"><option>2</option><option>4</option><option>8</option><option>12</option></select></label>
+      <label class="f2" for="sFrom" id="lFrom">Start at section<select id="sFrom"></select></label>
+      <label class="f2" for="sNsec" id="lNsec">Sections<select id="sNsec"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="13">All (to unison)</option></select></label>
       <label class="f2" for="sLv">Rhythms<select id="sLv"></select></label>
       <label class="f2" for="sMt">Meter<select id="sMt"><option>2/4</option><option>3/4</option><option>4/4</option><option>6/8</option></select></label>
       <label class="f2" for="sBars">Bars<select id="sBars"><option>1</option><option>2</option><option>4</option></select></label>
@@ -64,6 +86,7 @@ input[type=number]{width:5.5em}
       <label class="f2" for="sClk">Metronome<select id="sClk"><option value="on">Click throughout</option><option value="in">Count-in only</option></select></label>
       <label class="f2" for="sIn">Perform by<select id="sIn"><option value="tap">Tapping (pad or space bar)</option><option value="clap">Clapping (microphone)</option></select></label>
     </div>
+    <div class="info" id="info" aria-live="polite"></div>
     <div class="score" id="score"></div>
     <div class="count" id="count" aria-hidden="true"></div>
     <div class="row" style="justify-content:center">
@@ -89,14 +112,19 @@ input[type=number]{width:5.5em}
 
   // ---------- settings ----------
   const LEVELS = [[1, "Quarters and halves"], [2, "+ Eighth notes"], [3, "+ Dotted rhythms, eighth rests"], [4, "+ Sixteenth notes"], [5, "+ Syncopation"], [6, "+ Triplets"]];
-  let S = { lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0 };
+  let S = { lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", reps: 4, from: 0, nsec: 13, cm: "" };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-rhythmperf") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("silverapps-rhythmperf", JSON.stringify(S)); } catch (e) {} };
   $("sLv").innerHTML = LEVELS.map(([v, t]) => `<option value="${v}">${v}. ${t}</option>`).join("");
-  const syncForm = () => { $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
+  $("sFrom").innerHTML = Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i + 1}${i ? ` (shifted ${i})` : " (unison)"}</option>`).join("");
+  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
   syncForm();
   $("settings").onchange = e => {
-    const v = e.target.value;
+    const v = e.target.value, id = e.target.id;
+    if (["sMode", "sPat", "sPart", "sReps", "sFrom", "sNsec", "sCm"].includes(id)) {
+      ({ sMode: () => S.mode = v, sPat: () => S.pat[S.mode] = +v, sPart: () => S.part = v, sReps: () => S.reps = +v, sFrom: () => S.from = +v, sNsec: () => S.nsec = +v, sCm: () => S.cm = v.trim() })[id]();
+      save(); stopRun(); modeUI(); newRhythm(); return;
+    }
     ({ sLv: () => S.lv = +v, sMt: () => S.meter = v, sBars: () => S.bars = +v, sTp: () => S.tempo = Math.max(40, Math.min(160, +v || 80)), sTol: () => S.tol = v, sClk: () => S.click = v, sIn: () => S.input = v })[e.target.id]();
     save(); if (["sLv", "sMt", "sBars"].includes(e.target.id)) newRhythm(); else if (e.target.id === "sIn") updateInputUI();
   };
@@ -121,7 +149,7 @@ input[type=number]{width:5.5em}
     P(5, 1, [6, 12]), P(5, 1, [12, 6]),
     P(6, 1, [3, 3, 3, 3, 3, 3]),
   ];
-  const METERS = { "2/4": { beats: 2, beat: 12, num: 2, den: 4 }, "3/4": { beats: 3, beat: 12, num: 3, den: 4 }, "4/4": { beats: 4, beat: 12, num: 4, den: 4 }, "6/8": { beats: 2, beat: 18, num: 6, den: 8, compound: true } };
+  const METERS = { "2/4": { beats: 2, beat: 12, num: 2, den: 4 }, "3/4": { beats: 3, beat: 12, num: 3, den: 4 }, "4/4": { beats: 4, beat: 12, num: 4, den: 4 }, "6/8": { beats: 2, beat: 18, num: 6, den: 8, compound: true }, "12/8": { beats: 4, beat: 18, num: 12, den: 8, compound: true } };
   function makeBar(m, lv, last) {
     const lib = m.compound ? COMPOUND : SIMPLE;
     for (let g = 0; g < 100; g++) {
@@ -145,15 +173,166 @@ input[type=number]{width:5.5em}
   }
   let R = null;   // current rhythm: { m, bars: [[{d, rest, start, beatIdx, trip}]], onsets: [{t, bar, i}], total }
   function newRhythm() {
+    if (S.mode === "gen") genRhythm(); else if (S.mode === "cue") cueRhythm(); else if (S.mode === "cm" || S.mode === "cmg") phaseRhythm(); else libRhythm();
+    finishSetup();
+  }
+  function finishSetup() {
+    R.onsets = []; R.bars.forEach((ev, bi) => ev.forEach((e, i) => { if (!e.rest) R.onsets.push({ tick: e.start, bar: bi, i }); }));
+    R.res = null; draw(); $("fb").textContent = ""; $("tl").innerHTML = ""; drawCount(-1);
+  }
+  // events from signed tick lists, one list per bar
+  function fromLists(m, lists) {
+    const barT = m.beats * m.beat;
+    return lists.map((arr, k) => { let t = 0; return arr.map(d => { const b = Math.floor(t / m.beat), e = { d: Math.abs(d), rest: d < 0, start: k * barT + t, beat: b, group: `${k}-${b}`, trip: Math.abs(d) === 4 }; t += Math.abs(d); return e; }); });
+  }
+  function setR(m, bars, extra) { const barT = m.beats * m.beat; R = Object.assign({ m, bars, barT, nb: bars.length, total: barT * bars.length, onsets: [] }, extra || {}); }
+  function genRhythm() {
     const m = METERS[S.meter], barT = m.beats * m.beat, bars = [];
     for (let k = 0; k < S.bars; k++) {
       const raw = makeBar(m, S.lv, k === S.bars - 1), ev = []; let t = 0;
       raw.forEach(({ b, p }) => p.d.forEach(d => { ev.push({ d: Math.abs(d), rest: d < 0, start: k * barT + t, beat: b + Math.floor((t - b * m.beat) / m.beat), group: `${k}-${b}`, trip: p.d.length === 3 && p.d.every(x => x === 4) }); t += Math.abs(d); }));
       bars.push(ev);
     }
-    R = { m, bars, barT, total: barT * S.bars, onsets: [] };
-    bars.forEach((ev, bi) => ev.forEach((e, i) => { if (!e.rest) R.onsets.push({ tick: e.start, bar: bi, i }); }));
-    R.res = null; draw(); $("fb").textContent = ""; $("tl").innerHTML = ""; drawCount(-1);
+    setR(m, bars);
+    $("info").hidden = true;
+  }
+  // ---------- pattern library ----------
+  const S16 = Array(16).fill(3), S12 = Array(12).fill(3);
+  const LIB = {
+    world: [
+      { n: "Son clave (3–2)", m: "4/4", b: [[18, 18, 12], [-12, 12, 24]], t: "The rhythmic key of Cuban son and salsa: three strokes in the first bar, two in the second. Everyone in the band places their part against it, and a phrase is said to be “in clave” when its accents agree with it." },
+      { n: "Son clave (2–3)", m: "4/4", b: [[-12, 12, 24], [18, 18, 12]], t: "The same clave started from its other half. Which side comes first depends on the song's melody, and musicians feel the difference at once." },
+      { n: "Rumba clave (3–2)", m: "4/4", b: [[18, 24, 6], [-12, 12, 24]], t: "Like son clave, but the third stroke is delayed by an eighth, which gives Afro-Cuban rumba its pull toward the next bar." },
+      { n: "Tresillo", m: "4/4", b: [[18, 18, 12], [18, 18, 12]], t: "Eight eighths grouped 3 + 3 + 2. Found across the Caribbean, Latin America and West Africa, and in countless pop, rock, reggaeton and funk grooves." },
+      { n: "Habanera", m: "2/4", b: [[9, 3, 6, 6], [9, 3, 6, 6]], t: "A dotted figure followed by two even notes: the 19th-century Cuban dance rhythm that spread into tango and early jazz." },
+      { n: "Cinquillo", m: "2/4", b: [[6, 3, 6, 3, 6], [6, 3, 6, 3, 6]], t: "Five strokes in a bar of eight sixteenths (long-short-long-short-long). Heard in Cuban danzón and Haitian and Dominican music." },
+      { n: "Bossa nova pattern", m: "4/4", b: [[18, 18, 12], [-12, 18, 18]], t: "A Brazilian relative of clave, often played as a rim click; the second bar's last stroke comes an eighth earlier than in son clave." },
+      { n: "West African bell pattern", m: "12/8", b: [[12, 12, 6, 12, 12, 12, 6], [12, 12, 6, 12, 12, 12, 6]], t: "The seven-stroke bell timeline of much West African drumming (and Afro-Cuban bembé): twelve pulses that can be felt in four dotted-quarter beats or in six quarter beats at once." },
+    ],
+    classic: [
+      { n: "Siciliano", m: "6/8", b: [[9, 3, 6, 9, 3, 6], [9, 3, 6, 18]], t: "A gentle, lilting Baroque dance or aria type in 6/8 or 12/8 with a dotted-eighth, sixteenth, eighth figure." },
+      { n: "Gigue (jig)", m: "6/8", b: [[12, 6, 12, 6], [12, 6, 18]], t: "Long-short, long-short in a fast compound meter: the last dance of many Baroque suites." },
+      { n: "Lombard rhythm (Scotch snap)", m: "2/4", b: [[3, 9, 3, 9], [3, 9, 12]], t: "A reversed dotted rhythm, short-long, with the accent on the short note. Common in Scottish song and in 18th-century galant music." },
+      { n: "French overture style", m: "4/4", b: [[18, 6, 9, 3, 12], [18, 6, 24]], t: "Stately dotted rhythms, often played even sharper than written (double-dotted), in the slow opening of a French overture." },
+      { n: "Polonaise", m: "3/4", b: [[6, 3, 3, 6, 6, 6, 6], [6, 3, 3, 6, 6, 12]], t: "The Polish processional dance in moderate 3/4: an eighth and two sixteenths on beat 1, often ending phrases on beat 3." },
+      { n: "Sarabande", m: "3/4", b: [[12, 18, 6], [12, 24]], t: "A slow Baroque dance that leans on beat 2: a long note there gives the dance its weight." },
+      { n: "Minuet", m: "3/4", b: [[12, 12, 12], [24, 12]], t: "The courtly dance in moderate 3/4, usually phrased in two-bar units." },
+      { n: "March", m: "2/4", b: [[9, 3, 9, 3], [6, 6, 12]], t: "Two strong beats per bar with crisp dotted figures, ideal for walking in step." },
+    ],
+    rud: [
+      { n: "Single-stroke roll", m: "4/4", b: [S16], st: "R L R L R L R L R L R L R L R L", t: "Alternate hands evenly. Start slowly; speed comes from relaxed, even strokes." },
+      { n: "Double-stroke roll", m: "4/4", b: [S16], st: "R R L L R R L L R R L L R R L L", t: "Two strokes per hand; at speed the second stroke is a controlled rebound. The basis of the open roll." },
+      { n: "Single paradiddle", m: "4/4", b: [S16, S16], st: "R L R R L R L L (repeat)", t: "Two singles and a double (“para-diddle”). Because the pattern switches the leading hand, it is used to move around a drum kit." },
+      { n: "Double paradiddle", m: "6/8", b: [S12, S12], st: "R L R L R R L R L R L L", t: "Four singles and a double: a six-note grouping that fits compound meter." },
+      { n: "Paradiddle-diddle", m: "6/8", b: [S12, S12], st: "R L R R L L (repeat)", t: "Two singles and two doubles, always leading with the same hand; common in fills in 6/8 and in triplet feels." },
+      { n: "Triplet single strokes", m: "4/4", b: [Array(12).fill(4)], st: "R L R L R L R L R L R L", t: "Alternating strokes in eighth-note triplets: the leading hand switches on every beat." },
+      { n: "Accented single strokes", m: "4/4", b: [S16], st: "R l l l L r r r R l l l L r r r", t: "Capital letters are accents. Keep unaccented strokes low and the accents high; the clapping test checks timing only." },
+    ],
+  };
+  function libRhythm() {
+    const list = LIB[S.mode], i = Math.min(S.pat[S.mode] || 0, list.length - 1), p = list[i], m = METERS[p.m];
+    setR(m, fromLists(m, p.b));
+    $("info").hidden = false;
+    $("info").innerHTML = `<p><b>${p.n}</b> · ${p.m}</p><p>${p.t}</p>` + (p.st ? `<p>Sticking (R = right hand, L = left): <b class="stick">${p.st}</b></p><p class="note">Tap or clap every stroke; to practice the sticking, use two fingers or both hands on the table.</p>` : "");
+  }
+
+  // ---------- clap on cue ----------
+  const ORD = ["", "2nd", "3rd"];
+  function cueRhythm() {
+    const m = METERS[S.meter], barT = m.beats * m.beat, nb = Math.max(2, S.bars);
+    const g = m.compound ? (S.lv <= 2 ? 18 : 6) : (S.lv <= 2 ? 12 : S.lv <= 4 ? 6 : 3);
+    const slots = barT / g * nb, want = Math.min(nb + 1, 1 + Math.floor(Math.random() * Math.min(4, nb + 1)));
+    const pick = new Set(); let guard = 0;
+    while (pick.size < want && guard++ < 200) { const x = Math.floor(Math.random() * slots); if (x === 0 && Math.random() < .7) continue; if (![...pick].some(y => Math.abs(y - x) * g < 12)) pick.add(x); }
+    const ticks = [...pick].sort((a, b) => a - b).map(x => x * g);
+    const lists = [];
+    for (let k = 0; k < nb; k++) {
+      const arr = []; let restRun = 0, t = 0;
+      const flush = () => { while (restRun > 0) { const room = m.beat - ((t - restRun) % m.beat), c = Math.min(restRun, room), ok = [18, 12, 9, 6, 3].find(v => v <= c && (v !== 18 || m.compound) && (v !== 9 || c === 9)); arr.push(-ok); restRun -= ok; } };
+      for (t = 0; t < barT; ) { const abs = k * barT + t; if (ticks.includes(abs)) { flush(); arr.push(g); t += g; } else { restRun += g; t += g; if (t % m.beat === 0) flush(); } }
+      flush(); lists.push(arr);
+    }
+    const name = tk => { const k = Math.floor(tk / barT), r = tk % barT, b = Math.floor(r / m.beat) + 1, w = r % m.beat;
+      let pos; if (m.compound) pos = w === 0 ? `beat ${b}` : `the ${ORD[w / 6]} eighth of beat ${b}`; else pos = w === 0 ? `beat ${b}` : w === 6 ? `the “&” of ${b}` : w === 3 ? `the “e” of ${b}` : `the “a” of ${b}`;
+      return `bar ${k + 1}, ${pos}`; };
+    setR(m, fromLists(m, lists), { hide: true, cueText: "Clap on: " + ticks.map(name).join(" · ") });
+    $("info").hidden = false;
+    $("info").innerHTML = `<p><b>Clap on cue.</b> Listen to the one-bar count-in, keep counting through the rests (${m.compound ? "“1 la li 2 la li”, or count the eighths" : "“1 e & a 2 e & a…”"}), and clap only where the cue says. ${nb} bars of ${S.meter}.</p>`;
+  }
+
+  // ---------- phasing (Clapping Music) ----------
+  const rot = (P, s) => P.map((_, i) => P[(i + s) % 12]);
+  const groupsOf = P => { const k = P.indexOf(false); if (k < 0) return []; const r = rot(P, k), out = []; let c = 0; r.forEach(x => { if (x) c++; else { if (c) out.push(c); c = 0; } }); if (c) out.push(c); return out; };
+  function genPhase() {
+    for (let g = 0; g < 500; g++) {
+      const groups = []; let used = 0;
+      while (used < 12) { const n = 1 + Math.floor(Math.random() * 3), gap = Math.random() < .8 ? 1 : 2; if (used + n + gap > 12) break; groups.push([n, gap]); used += n + gap; }
+      if (used !== 12 || groups.length < 3) continue;
+      const P = []; groups.forEach(([n, gap]) => { for (let i = 0; i < n; i++) P.push(true); for (let i = 0; i < gap; i++) P.push(false); });
+      const claps = P.filter(Boolean).length; if (claps < 6 || claps > 9) continue;
+      let sym = false; for (let s = 1; s < 12; s++) if (rot(P, s).every((x, i) => x === P[i])) sym = true; if (sym) continue;
+      const gs = groupsOf(P).join(","); if (["3,2,1,2", "2,1,2,3", "1,2,3,2", "2,3,2,1"].includes(gs)) continue;   // not the original piece's grouping
+      return P.map(x => x ? "x" : ".").join("");
+    }
+    return "xx.x.xxx.x..";
+  }
+  let genPat = null;
+  function phaseRhythm() {
+    let str = S.mode === "cmg" ? (genPat = genPat || genPhase()) : (S.cm || "");
+    const ok = /^[xX.]{12}$/.test(str) && /x/i.test(str);
+    const m = METERS["12/8"];
+    if (!ok) {
+      setR(m, fromLists(m, [[72]]), { grid: { P: Array(12).fill(false), secs: [0], bad: true } });
+      $("info").hidden = false; $("info").innerHTML = `<p><b>Clapping Music.</b> Type the 12-pulse pattern from your score into the Pattern box, using <b>x</b> for a clap and <b>.</b> for a rest (12 characters). The pattern isn't printed here because the piece is under copyright. Or choose <b>Clapping Music Generator</b> for a new pattern of the same kind.</p>`;
+      return;
+    }
+    const P = [...str].map(c => c.toLowerCase() === "x");
+    const secs = []; for (let i = 0; i < S.nsec && S.from + i <= 12; i++) secs.push(S.from + i);
+    const lists = [], other = [], barT = 72; let k = 0;
+    secs.forEach(sc => { const steady = P, moving = rot(P, sc), mine = S.part === "steady" ? steady : moving, theirs = S.part === "steady" ? moving : steady;
+      for (let r = 0; r < S.reps; r++, k++) { lists.push(mine.map(x => x ? 6 : -6)); theirs.forEach((x, i) => { if (x) other.push(k * barT + i * 6); }); } });
+    setR(m, fromLists(m, lists), { grid: { P, secs }, other });
+    $("info").hidden = false;
+    $("info").innerHTML = (S.mode === "cmg" ? `<p><b>Clapping Music Generator.</b> A new 12-pulse pattern made the same way: groups of claps separated by rests, with no repeat inside the cycle, so every shift sounds different. Press <b>New pattern</b> for another.</p>` : `<p><b>Clapping Music</b> (Steve Reich, 1972) is for two performers. Both clap the same 12-pulse pattern. One keeps it unchanged throughout; the other, after a number of repeats, moves the pattern one eighth note ahead, and keeps doing so until, after 12 shifts, both are back in unison. There is no gradual drift: each shift is a sudden jump.</p>`)
+      + `<p>You are the <b>${S.part === "steady" ? "steady" : "moving"} clapper</b>; the app claps the other part (the lower sound). Sections ${secs[0] + 1}–${secs[secs.length - 1] + 1}, ${S.reps} repeats each. Tip: count the 12 eighths in four groups of three.</p>`;
+  }
+  function drawGrid(colors) {
+    const G = R.grid, box = $("score");
+    if (G.bad) { box.innerHTML = `<p class="cue">Enter a pattern to begin<small>12 characters: x = clap, . = rest</small></p>`; return; }
+    const row = (lab, P, id) => `<span class="lab">${lab}</span>` + P.map((x, i) => `<i class="${x ? "x" : ""}" data-${id}="${i}"></i>`).join("");
+    const sc = G.cur != null ? G.cur : G.secs[0], st = G.P, mv = rot(G.P, sc);
+    let html = `<div class="pgrid" role="img" aria-label="Steady part ${st.map(x => x ? "clap" : "rest").join(" ")}; moving part ${mv.map(x => x ? "clap" : "rest").join(" ")}">${row(S.part === "steady" ? "Steady (you)" : "Steady", st, "s")}${row(S.part === "moving" ? "Moving (you)" : "Moving", mv, "m")}</div>`;
+    html += `<p class="phase-stat" id="pstat">Section ${sc + 1}${sc ? ` (moved ${sc})` : " (unison)"}</p>`;
+    if (colors) {
+      const per = G.secs.map((s, j) => { let g = 0, n = 0; for (let r = 0; r < S.reps; r++) (colors[j * S.reps + r] || []).forEach(c => { if (c) { n++; if (c === "--fi-green-dk") g++; } }); return `<tr><td>${s + 1}</td><td>${g} / ${n}</td></tr>`; });
+      html += `<table class="restab"><caption class="sr">Results by section</caption><thead><tr><th scope="col">Section</th><th scope="col">Claps on time</th></tr></thead><tbody>${per.join("")}</tbody></table>`;
+    }
+    box.innerHTML = html; G.drawn = sc;
+  }
+  function gridAt(tick) {
+    const G = R.grid; if (G.bad) return;
+    const bar = Math.floor(tick / 72), sc = G.secs[Math.min(G.secs.length - 1, Math.floor(bar / S.reps))], slot = Math.floor((tick % 72) / 6);
+    if (G.drawn !== sc) { G.cur = sc; drawGrid(); }
+    const box = $("score"); box.querySelectorAll("i.now").forEach(e => e.classList.remove("now"));
+    box.querySelectorAll(`[data-s="${slot}"],[data-m="${slot}"]`).forEach(e => e.classList.add("now"));
+    const ps = $("pstat"); if (ps) ps.textContent = `Section ${sc + 1}${sc ? ` (moved ${sc})` : " (unison)"} · repeat ${bar % S.reps + 1} of ${S.reps}`;
+  }
+  function progLabel() {
+    if (S.mode === "gen") return `Level ${S.lv} · ${S.meter}`;
+    if (LIB[S.mode]) return LIB[S.mode][S.pat[S.mode] || 0].n;
+    if (S.mode === "cue") return `Clap on cue · ${S.meter}`;
+    return `Phasing · ${S.part} clapper`;
+  }
+  function modeUI() {
+    const md = S.mode, lib = !!LIB[md], ph = md === "cm" || md === "cmg";
+    const show = (id, on) => { $(id).hidden = !on; };
+    show("lPat", lib); show("lCm", md === "cm"); ["lPart", "lReps", "lFrom", "lNsec"].forEach(id => show(id, ph));
+    $("sLv").closest("label").hidden = !(md === "gen" || md === "cue");
+    $("sMt").closest("label").hidden = !(md === "gen" || md === "cue");
+    $("sBars").closest("label").hidden = !(md === "gen" || md === "cue");
+    if (lib) { $("sPat").innerHTML = LIB[md].map((p, i) => `<option value="${i}">${p.n}</option>`).join(""); $("sPat").value = Math.min(S.pat[md] || 0, LIB[md].length - 1); }
+    $("next").textContent = md === "gen" || md === "cue" ? "New rhythm ›" : md === "cmg" ? "New pattern ›" : lib ? "Next pattern ›" : "Restart";
+    $("next").hidden = md === "cm";
   }
 
   // ---------- notation ----------
@@ -165,6 +344,8 @@ input[type=number]{width:5.5em}
   }
   function draw(colors) {
     const box = $("score"); box.innerHTML = "";
+    if (R.grid) { geo = null; drawGrid(colors); return; }
+    if (R.hide && !colors) { geo = null; box.innerHTML = `<p class="cue">${R.cueText}<small>The notation appears after you perform. Count along with the click and clap only on the cue.</small></p>`; return; }
     if (!window.Vex || !Vex.Flow) { box.textContent = describe(); return; }
     const VF = Vex.Flow, ink = css("--fi-ink");
     const widths = R.bars.map((ev, k) => 40 + ev.reduce((s, e) => s + (e.d <= 4 ? 30 : e.d <= 6 ? 34 : e.d <= 12 ? 44 : 56), 0) + (k === 0 ? 70 : 0));
@@ -208,6 +389,7 @@ input[type=number]{width:5.5em}
   function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); out = AC.createGain(); out.gain.value = .9; out.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); return AC; }
   function click(t, accent) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = accent ? 1760 : 1175; o.type = "square"; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(accent ? .22 : .13, t + .002); g.gain.exponentialRampToValueAtTime(.001, t + .05); o.connect(g); g.connect(out); o.start(t); o.stop(t + .06); }
   function block(t) { [[620, .5], [1240, .18]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }); }
+  function block2(t) { [[300, .55], [760, .16]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); g.connect(out); o.start(t); o.stop(t + .14); }); }
   const outLat = () => AC ? (AC.outputLatency || AC.baseLatency || 0) : 0;
   const tickSec = () => 60 / S.tempo / R.m.beat;   // tempo counts the beat (dotted quarter in 6/8)
 
@@ -222,9 +404,10 @@ input[type=number]{width:5.5em}
     const ts = tickSec(), beatS = ts * R.m.beat, t0 = AC.currentTime + .25, rs = t0 + R.m.beats * beatS, end = rs + R.total * ts;
     run = { perform, t0, rs, end, taps: [], timers: [], raf: 0 };
     for (let b = 0; b < R.m.beats; b++) click(t0 + b * beatS, b === 0);   // count-in bar
-    if (S.click === "on" || !perform) for (let b = 0; b < R.m.beats * S.bars; b++) click(rs + b * beatS, b % R.m.beats === 0);
+    if (S.click === "on" || !perform) for (let b = 0; b < R.m.beats * R.nb; b++) click(rs + b * beatS, b % R.m.beats === 0);
     if (!perform) R.onsets.forEach(o => block(rs + o.tick * ts));
-    if (geo) geo.head.setAttribute("opacity", .75);
+    if (R.other) R.other.forEach(tk => block2(rs + tk * ts));
+    if (geo && geo.head) geo.head.setAttribute("opacity", .75);
     $("fb").className = "fb2"; $("fb").textContent = perform ? "Count-in… then perform." : "Listen.";
     $("go").textContent = perform ? "■ Stop" : "▶ Perform it"; if (perform) $("tap").focus();
     if (perform && S.input === "clap") startClap();
@@ -233,7 +416,8 @@ input[type=number]{width:5.5em}
       const now = AC.currentTime - outLat();
       const beatNo = Math.floor((now - t0) / beatS);
       if (now >= t0 && now < end) drawCount(((beatNo % R.m.beats) + R.m.beats) % R.m.beats, beatNo < R.m.beats);
-      if (geo && now >= rs && now <= end) { const xx = xAt((now - rs) / ts); geo.head.setAttribute("x1", xx); geo.head.setAttribute("x2", xx); }
+      if (R.grid && now >= rs && now <= end) gridAt((now - rs) / ts);
+      if (geo && geo.head && now >= rs && now <= end) { const xx = xAt((now - rs) / ts); geo.head.setAttribute("x1", xx); geo.head.setAttribute("x2", xx); }
       if (now >= rs && now < rs + .05 && perform) $("fb").textContent = "Go!";
       if (now > end + .35) { finish(); return; }
       run.raf = requestAnimationFrame(frame);
@@ -251,7 +435,7 @@ input[type=number]{width:5.5em}
   const TOL = { relaxed: .17, normal: .12, strict: .075 };
   function finish() {
     const r = run; stopRun(); drawCount(-1); $("go").textContent = "▶ Perform it";
-    if (geo) geo.head.setAttribute("opacity", 0);
+    if (geo && geo.head) geo.head.setAttribute("opacity", 0);
     if (!r.perform) { $("fb").textContent = ""; return; }
     const ts = tickSec(), exp = R.onsets.map(o => r.rs + o.tick * ts), used = new Set();
     const res = exp.map((t, i) => {
@@ -267,7 +451,7 @@ input[type=number]{width:5.5em}
     const good = res.filter(x => x.good).length, miss = res.filter(x => x.miss).length, offs = res.filter(x => !x.miss).map(x => x.off);
     const ok = good === res.length && extra.length === 0;
     if (window.SFX) SFX.play(ok);
-    if (window.SAprogress) SAprogress.record(`Level ${S.lv} · ${S.meter}`, ok);
+    if (window.SAprogress) SAprogress.record(progLabel(), ok);
     // color notes
     const colors = R.bars.map(ev => ev.map(() => null)); res.forEach((x, i) => { const o = R.onsets[i]; colors[o.bar][o.i] = x.good ? "--fi-green-dk" : "--fi-red-dk"; });
     draw(colors);
@@ -280,7 +464,7 @@ input[type=number]{width:5.5em}
   function timeline(r, res, extra) {
     const ts = tickSec(), W = 760, H = 96, x = t => 20 + (W - 40) * ((t - r.rs) / (R.total * ts)), svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Timing chart. ${res.map((q, i) => `Note ${i + 1}: ${q.miss ? "missed" : `${Math.round(q.off * 1000)} ms ${q.off < 0 ? "early" : "late"}`}`).join("; ")}${extra.length ? `; ${extra.length} extra taps` : ""}.` });
     el("line", { x1: 20, x2: W - 20, y1: 48, y2: 48, stroke: css("--fi-line"), "stroke-width": 1.5 }, svg);
-    const beatS = ts * R.m.beat; for (let b = 0; b <= R.m.beats * S.bars; b++) { const xx = x(r.rs + b * beatS); el("line", { x1: xx, x2: xx, y1: b % R.m.beats ? 40 : 30, y2: b % R.m.beats ? 56 : 66, stroke: css("--fi-muted"), "stroke-width": b % R.m.beats ? 1 : 2 }, svg); }
+    const beatS = ts * R.m.beat; for (let b = 0; b <= R.m.beats * R.nb; b++) { const xx = x(r.rs + b * beatS); el("line", { x1: xx, x2: xx, y1: b % R.m.beats ? 40 : 30, y2: b % R.m.beats ? 56 : 66, stroke: css("--fi-muted"), "stroke-width": b % R.m.beats ? 1 : 2 }, svg); }
     res.forEach(q => { const xx = x(q.t); el("rect", { x: xx - 2, y: 20, width: 4, height: 56, rx: 2, fill: css("--fi-ink"), opacity: .35 }, svg);
       if (q.miss) el("circle", { cx: xx, cy: 48, r: 8, fill: "none", stroke: css("--fi-red-dk"), "stroke-width": 3 }, svg);
       else el("circle", { cx: x(q.tap), cy: 48, r: 7, fill: css(q.good ? "--fi-green-dk" : "--fi-red-dk") }, svg); });
@@ -336,12 +520,12 @@ input[type=number]{width:5.5em}
   // ---------- wiring ----------
   $("go").onclick = async () => { if (run && run.perform) { stopRun(); drawCount(-1); $("go").textContent = "▶ Perform it"; $("fb").textContent = ""; return; } if (S.input === "clap" && !(await micOn())) return; start(true); };
   $("hear").onclick = () => start(false);
-  $("next").onclick = () => { stopRun(); newRhythm(); };
+  $("next").onclick = () => { stopRun(); if (LIB[S.mode]) { S.pat[S.mode] = ((S.pat[S.mode] || 0) + 1) % LIB[S.mode].length; save(); $("sPat").value = S.pat[S.mode]; } if (S.mode === "cmg") genPat = genPhase(); newRhythm(); };
   $("cal").onclick = async () => { if (S.input === "clap" && !(await micOn())) return; calibrate(); };
   $("tap").addEventListener("pointerdown", e => { e.preventDefault(); tapNow(e); });
   $("tap").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!e.repeat) tapNow(e); } });
   document.addEventListener("keydown", e => { if (e.target.closest && e.target.closest("select,input,button,a")) return; if (e.key === " ") { e.preventDefault(); if (!e.repeat) tapNow(e); } });
-  updateInputUI(); newRhythm();
+  updateInputUI(); modeUI(); newRhythm();
   window.__rp = { get R() { return R; }, get run() { return run; }, get AC() { return AC; }, tap: () => tapNow(), tickSec: () => tickSec() };   // used by automated tests
 })();
 </script>

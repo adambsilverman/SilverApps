@@ -333,6 +333,12 @@ details.panel[open] summary::after { content: "−"; }
 .footnotes { margin-top: 1.2em; padding-top: .6em; border-top: 1px solid currentColor; font-size: .88em; opacity: .9; }
 .footnotes ol { margin: 0; padding-left: 1.4em; }
 .footnotes a { overflow-wrap: anywhere; }
+.ldet { border: 1.5px solid var(--line, #ddd); border-radius: 12px; padding: 0 14px; margin: 10px 0; background: var(--field, transparent); }
+.ldet > summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: 8px; }
+.ldet[open] > summary { border-bottom: 1px solid var(--line, #ddd); margin-bottom: 8px; }
+.lbtns { display: flex; flex-wrap: wrap; gap: 8px; }
+.lnote { font-size: .92rem; color: var(--muted, #666); }
+.fig-box .lbtns { justify-content: center; margin: 6px 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -344,7 +350,7 @@ details.panel[open] summary::after { content: "−"; }
   <header class="top">
     <div class="brand">
       <h1>Understanding Major and Minor Scales</h1>
-      <p>A step-by-step lesson: half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, and natural, harmonic and melodic minor and why they differ.</p>
+      <p>A step-by-step lesson: half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, natural, harmonic and melodic minor and why they differ, and solfège in major and minor (do-based and la-based minor, movable and fixed do), sung in Adam Silverman's voice.</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -445,6 +451,10 @@ window.FAM = (() => {
   const spell = (H, ns) => ns.map(H.nm).join(" ");
 
   const FACTS = [
+    ["In movable-do solfège, raised notes change their vowel to…", "i (di, ri, fi, si, li)", ["e (me, le, te)", "a (ra)", "o"], "Lowered notes take e (me, se, le, te), except re, which becomes ra."],
+    ["In la-based minor, the tonic is sung as…", "la", ["do", "mi", "ti"], "Minor uses the syllables of its relative major; the raised 7th is si."],
+    ["In do-based minor, minor's 3rd, 6th and 7th are sung…", "me, le, te", ["mi, la, ti", "ma, la, ta", "re, sol, la"], "The tonic stays do; the raised 7th is ti."],
+    ["In fixed-do solfège, do always means…", "C, in every key", ["the tonic", "the lowest note", "the dominant"], "In movable do, do is the tonic."],
     ["Why do we use key signatures?", "so the key's sharps or flats don't have to be written on every note, and the key is clear at a glance", ["to set the tempo", "to show which instrument plays", "because accidentals aren't allowed in music"], "A key signature applies to every octave, all the way through, until it changes."],
     ["A key signature's sharps or flats apply…", "to every note with that letter name, in every octave, until the key signature changes", ["only in the first bar", "only in the octave where they're written", "only to the first note"], "Accidentals in the music, by contrast, last only until the bar line."],
     ["Why isn't the raised 7th of a minor key in its key signature?", "the key signature shows the natural minor (the relative major's notes); raised 6th and 7th degrees are written as accidentals", ["it's a mistake in the tradition", "minor keys never use the raised 7th", "it would make the key major"], "Relative major and minor share one key signature."],
@@ -461,6 +471,48 @@ window.FAM = (() => {
     ["A major scale is made of two identical tetrachords (W W H) joined by…", "a whole step", ["a half step", "a minor 3rd", "nothing"], "C D E F + (W) + G A B C."],
     ["Which keys sound the same but are spelled differently?", "enharmonic keys, like F♯ major and G♭ major", ["relative keys", "parallel keys", "closely related keys"], "B/C♭, F♯/G♭ and C♯/D♭ major are the enharmonic pairs."],
   ];
+
+  // ===== Sung solfège with Adam Silverman's recorded voice (assets/solfege-voice.js, shared with Ear Training) =====
+  let SAC = null, SV = null, svP = null, sbus = null;
+  function svLoad() {
+    if (svP) return svP;
+    svP = new Promise(res => {
+      const go = async () => { try {
+        const V = window.SOLFEGE_VOICE; if (!V) return res(null);
+        SV = await Promise.all(V.map(async a => { const bin = atob(a.mp3), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+          return { m: a.m, clips: a.clips, buf: await new Promise((ok, no) => SAC.decodeAudioData(u.buffer, ok, no)) }; }));
+        res(SV); } catch (e) { res(null); } };
+      if (window.SOLFEGE_VOICE) return go();
+      const sc = document.createElement("script"); sc.src = "assets/solfege-voice.js"; sc.onload = go; sc.onerror = () => res(null); document.head.appendChild(sc);
+    });
+    return svP;
+  }
+  async function singSyl(syls, ms, gap = .6) {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    if (!SAC) SAC = new C(); if (SAC.state === "suspended") SAC.resume();
+    const V = await svLoad(); if (!V) return;
+    if (sbus) { const o = sbus; o.gain.setTargetAtTime(0, SAC.currentTime, .03); setTimeout(() => o.disconnect(), 300); }
+    sbus = SAC.createGain(); sbus.connect(SAC.destination);
+    const lo = 41, hi = 65; let best = 0, score = 1e9;
+    for (let k = -48; k <= 12; k += 12) { const sc = ms.reduce((a, m) => a + Math.max(0, lo - (m + k), (m + k) - hi), 0) * 10 + Math.abs(ms.reduce((a, m) => a + m + k, 0) / ms.length - 53); if (sc < score) { score = sc; best = k; } }
+    const t0 = SAC.currentTime + .3;
+    syls.forEach((s, i) => {
+      const m = ms[i] + best; let pick = null;
+      V.forEach(a => { const c = a.clips[s]; if (!c) return; const d = Math.abs(m - (a.m + c[3])); if (!pick || d < pick.d) pick = { a, c, d }; });
+      if (!pick) return;
+      const [off, len, vo, tune] = pick.c, rate = Math.pow(2, (m - (pick.a.m + tune)) / 12), t = t0 + i * gap;
+      const src = SAC.createBufferSource(); src.buffer = pick.a.buf; src.playbackRate.value = rate;
+      const g = SAC.createGain(), start = t - vo / rate, end = t + gap * .85 + .1;
+      g.gain.setValueAtTime(.9, start); g.gain.setTargetAtTime(0, end - .05, .03);
+      src.connect(g); g.connect(sbus); src.start(Math.max(SAC.currentTime, start), off, Math.min(len, (end - start + .1) * rate));
+    });
+  }
+  if (!window.__solSingHooked) { window.__solSingHooked = true;
+    document.addEventListener("click", e => { const b = e.target.closest("[data-sing]"); if (!b) return; singSyl(b.dataset.sing.split(" "), b.dataset.mid.split(" ").map(Number)); }); }
+  const singBtn = (H, syls, notes, label) => `<button class="play" data-sing="${syls.join(" ")}" data-mid="${notes.map(n => H.midi(n)).join(" ")}"><span aria-hidden="true">▶ </span>${label}</button>`;
+  const SOLMAJ = ["do", "re", "mi", "fa", "sol", "la", "ti", "do"];
+  const FIXED = { 0: "do", 1: "re", 2: "mi", 3: "fa", 4: "sol", 5: "la", 6: "ti" };
+  const solTable = (rows) => `<div class="ltable-wrap"><table class="ltable"><tbody>${rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
   function make(mode, H) {
     if (mode === "spell") {
@@ -562,6 +614,47 @@ window.FAM = (() => {
         ${U.fig(staffOf(H, h, { vf: k.vf, sig: k.sig }), `${k.label}, harmonic: ${steps(H, h).join(" ")}`, { play: { chords: h.map(n => [H.midi(n)]), gap: .4 } })}${U.fig(staffOf(H, m.concat(desc.slice(1)), { vf: k.vf, sig: k.sig, split: 8 }), `${k.label}, melodic: up with raised 6̂ and 7̂, down as natural minor`, { play: { chords: m.concat(desc.slice(1)).map(n => [H.midi(n)]), gap: .35 } })}
         <p>The key signature shows the <b>natural</b> minor. The raised 6th and 7th are written as accidentals in the music, which is why minor-key music so often has the same accidental (the leading tone) throughout.</p>`
         + H.check(`In ${k.label}, what is the leading tone?`, H.nm(h[6]), [H.nm(nat[6]), H.nm(nat[5]), H.nm(m[5])], "The raised 7th degree.");
+    } },
+    { title: "Solfège in major", kick: "Do re mi", keyed: "major", render: (H, k, U) => {
+      const { notes } = scale(H, k.name, "major"), down = notes.slice().reverse();
+      const up = SOLMAJ, CH = [["di", 0, 1], ["ri", 1, 1], ["fi", 3, 1], ["si", 4, 1], ["li", 5, 1]], CL = [["ra", 1, -1], ["me", 2, -1], ["se", 4, -1], ["le", 5, -1], ["te", 6, -1]];
+      const alt = (i, a) => H.up(notes[i], 0, a);
+      return `<p><b>Solfège</b> gives every scale degree a singable syllable. In major the syllables are <b>do re mi fa sol la ti do</b> for 1̂ 2̂ 3̂ 4̂ 5̂ 6̂ 7̂ 8̂. (Some traditions say <i>so</i> for sol and <i>si</i> for ti.) Every syllable ends in a vowel, so it can be sustained.</p>`
+        + U.fig(staffOf(H, notes, { vf: k.vf, sig: k.sig, ly: up }), `${k.label} in solfège.`, { play: false })
+        + `<p class="lbtns">${singBtn(H, up, notes, "Sing it up")} ${singBtn(H, up.slice().reverse(), down, "Sing it down")}</p>
+        <p><b>Chromatic syllables</b> change the vowel: raised notes change their vowel to <b>i</b> (do → di, re → ri, fa → fi, sol → si, la → li); lowered notes change it to <b>e</b> (ti → te, la → le, sol → se, mi → me), except re, which becomes <b>ra</b>.</p>`
+        + solTable([["Raised", ...CH.map(([s0]) => `<b>${s0}</b>`)], ["", ...CH.map(([, i, a]) => H.nm(alt(i, a)))], ["Lowered", ...CL.map(([s0]) => `<b>${s0}</b>`)], ["", ...CL.map(([, i, a]) => H.nm(alt(i, a)))]])
+        + `<p class="lbtns">${singBtn(H, ["do", "di", "re", "ri", "mi", "fa", "fi", "sol", "si", "la", "li", "ti", "do"], [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7].map((i, j) => [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0][j] ? alt(i, 1) : notes[i]), "Sing the chromatic scale up")} ${singBtn(H, ["do", "ti", "te", "la", "le", "sol", "se", "fa", "mi", "me", "re", "ra", "do"], [7, 6, 6, 5, 5, 4, 4, 3, 2, 2, 1, 1, 0].map((i, j) => [0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0][j] ? alt(i, -1) : notes[i]), "Sing it down")}</p>`
+        + H.check("In major, which syllable is the leading tone?", "ti", ["te", "la", "do"], "7̂ in major is ti; lowered, it becomes te.");
+    } },
+    { title: "Solfège in minor", kick: "Do-based or la-based?", keyed: "minor", render: (H, k, U) => {
+      const nat = scale(H, k.name, "natural").notes, har = scale(H, k.name, "harmonic").notes;
+      const DOM = ["do", "re", "me", "fa", "sol", "le", "te", "do"], DOMh = ["do", "re", "me", "fa", "sol", "le", "ti", "do"];
+      const LAM = ["la", "ti", "do", "re", "mi", "fa", "sol", "la"], LAMh = ["la", "ti", "do", "re", "mi", "fa", "si", "la"];
+      return `<p>There are two common ways to sing a minor key with movable do. Both are widely taught; choose the one your class uses.</p>
+        ${solTable([["Degree", "1̂", "2̂", "3̂", "4̂", "5̂", "6̂", "7̂", "raised 7̂"], ["Do-based minor", "do", "re", "<b>me</b>", "fa", "sol", "<b>le</b>", "<b>te</b>", "ti"], ["La-based minor", "<b>la</b>", "ti", "do", "re", "mi", "fa", "sol", "<b>si</b>"]])}
+        <details class="ldet"><summary>Do-based minor</summary>
+        <p>The tonic is always <b>do</b>, in major and minor. Minor's lowered 3rd, 6th and 7th get the lowered syllables <b>me, le, te</b>; the raised 7th of harmonic minor is <b>ti</b>, as in major.</p>
+        <ul><li><b>Strength:</b> the syllables always tell you the scale degree and the tonic, and parallel major and minor (C major and C minor) share their tonic syllable.</li><li><b>Trade-off:</b> minor needs three altered syllables.</li></ul>
+        <p class="lbtns">${singBtn(H, DOM, nat, "Sing natural minor")} ${singBtn(H, DOMh, har, "Sing harmonic minor")}</p></details>
+        <details class="ldet"><summary>La-based minor</summary>
+        <p>Minor is sung with the syllables of its <b>relative major</b>, so the tonic is <b>la</b>. Natural minor needs no altered syllables; the raised 7th becomes <b>si</b> (and a raised 6th, <b>fi</b>).</p>
+        <ul><li><b>Strength:</b> relative major and minor (which share a key signature) share their syllables, and natural minor uses only the seven basic syllables.</li><li><b>Trade-off:</b> the tonic syllable changes between major and minor, so do no longer always means “tonic.”</li></ul>
+        <p class="lbtns">${singBtn(H, LAM, nat, "Sing natural minor")} ${singBtn(H, LAMh, har, "Sing harmonic minor")}</p></details>`
+        + U.fig(staffOf(H, har, { vf: k.vf, sig: k.sig, ly: DOMh }), `${k.label} (harmonic), do-based syllables.`, { play: false })
+        + H.check("In la-based minor, what is the syllable of the raised 7th (the leading tone)?", "si", ["ti", "te", "sol"], "Raised sol: si.");
+    } },
+    { title: "Movable do and fixed do", kick: "Which do?", keyed: "major", render: (H, k, U) => {
+      const { notes } = scale(H, k.name, "major"), fx = notes.map(n => FIXED[n.l]);
+      return `<p>Solfège systems also differ in what <b>do</b> means.</p>
+        <details class="ldet" open><summary>Movable do</summary>
+        <p><b>Do</b> is the tonic of whatever key you're in, so the syllables name <b>scale degrees</b>. In any major key the scale is do re mi fa sol la ti do, and sol–do always sounds like 5̂–1̂. This trains hearing <b>relationships</b> in a key (relative pitch) and transfers to every key. Widely used in the US, the UK and many other countries, in schools and in the Kodály approach.</p>
+        <p class="lbtns">${singBtn(H, SOLMAJ, notes, `${k.label} in movable do`)}</p></details>
+        <details class="ldet"><summary>Fixed do</summary>
+        <p><b>Do</b> is always C, re is always D, and so on, whatever the key: the syllables work as <b>note names</b>. In most fixed-do systems the accidental isn't sung (C, C♯ and C♭ are all do), and B is usually called <i>si</i>; this site uses <i>ti</i> for B. Fixed do is the standard way of naming notes in France, Italy, Spain, Latin America and many other countries, and it's taught in some conservatories everywhere. It trains <b>reading</b> and pitch names rather than scale-degree function.</p>
+        <p class="lbtns">${singBtn(H, fx, notes, `${k.label} in fixed do`)}</p></details>`
+        + solTable([["Note", ...notes.map(n => H.nm(n))], ["Movable do", ...SOLMAJ], ["Fixed do", ...fx]])
+        + H.check(`In fixed do, what is the syllable for the note D, whatever the key?`, "re", ["do", "la", "it depends on the key"], "Fixed do: C = do, D = re, E = mi…");
     } },
     { title: "Quick check", kick: "Before the drills", render: (H) => [FACTS[0], FACTS[2], FACTS[5], FACTS[9]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") },
   ] };
@@ -1242,6 +1335,7 @@ window.FAM = (() => {
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${c.bigFmt ? fmtVal(c.big, c.bigFmt) : rich(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${rich(c.text)}</p>`;
+    if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML from the content file (e.g. pulse buttons)
     if (c.staff) h += `<div class="staff ${wideOf(c.staff)}" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;

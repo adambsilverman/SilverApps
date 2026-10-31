@@ -7,6 +7,14 @@
       "color": "red",
       "topics": [
         {
+          "name": "Introduction to Pitch",
+          "topic": "Sound & pitch",
+          "blurb": "Frequency, overtones, absolute and relative pitch, how voices, instruments and synths make pitch, and polyrhythms that become intervals.",
+          "lesson": "introduction-to-pitch-lesson.html",
+          "drills": "introduction-to-pitch.html",
+          "class": true
+        },
+        {
           "name": "Reading Pitch",
           "topic": "Clefs & staff",
           "blurb": "Treble, bass, alto, tenor and grand staff, with memory devices and clef history.",
@@ -202,7 +210,7 @@
         {
           "name": "Rhythm Performance",
           "topic": "Rhythm & meter",
-          "blurb": "Tap or clap written rhythms and see your timing note by note.",
+          "blurb": "Tap or clap written rhythms, clave and other world rhythms, classical dance rhythms, drum rudiments, cues in rests, and Clapping Music-style phasing; see your timing note by note.",
           "open": "rhythm-performance.html",
           "note": "Solo practice"
         }
@@ -246,6 +254,13 @@
           "topic": "Keyboards",
           "blurb": "Piano, organ, celesta and harpsichord: pedals, accompaniments, organ stops, prepared piano.",
           "drills": "orchestration-piano.html",
+          "class": true
+        },
+        {
+          "name": "Plucked Hand-held Instruments",
+          "topic": "Guitar family",
+          "blurb": "Guitar, mandolin, banjo, bouzouki, tenor guitar and ukulele: tunings, tab, chord diagrams, capo and techniques.",
+          "drills": "orchestration-plucked.html",
           "class": true
         },
         {

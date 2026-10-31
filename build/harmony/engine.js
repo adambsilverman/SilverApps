@@ -666,6 +666,7 @@
     let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${c.bigFmt ? fmtVal(c.big, c.bigFmt) : rich(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${rich(c.text)}</p>`;
+    if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML from the content file (e.g. pulse buttons)
     if (c.staff) h += `<div class="staff ${wideOf(c.staff)}" id="promptStaff"></div>`;
     if (c.playQ) h += PLAY_BTN(c.playQLabel || "Play", "q");
     promptEl.innerHTML = h;

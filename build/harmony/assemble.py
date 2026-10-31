@@ -10,7 +10,7 @@ HEAD = HEAD.replace(".modes button:first-child { grid-column: 1 / -1; }\n", "")
 EXTRA = (B.parent / "transposition" / "extra.css").read_text(encoding="utf-8") + (B / "extra.css").read_text(encoding="utf-8")
 
 APPS = [
-  dict(src="Reading Pitch.html", drills="reading-pitch.html", lesson="reading-pitch-lesson.html", lesson_title="Understanding Clefs and Pitch Reading", lesson_desc="A step-by-step lesson: the staff, treble and bass clefs, the grand staff, alto and tenor clefs, the history of C clefs and how every clef is a window onto one great staff, memory devices and reading strategies, and how notes and accidentals line up.", data="clefs.js", title="Reading Pitch",
+  dict(src="Reading Pitch.html", drills="reading-pitch.html", lesson="reading-pitch-lesson.html", lesson_title="Understanding Clefs and Pitch Reading", lesson_desc="A step-by-step lesson: the staff, treble and bass clefs, the grand staff, alto and tenor clefs, clef history, reading strategies, alignment, and accidentals (the bar-line rule, writing and stacking, enharmonics).", data="clefs.js", title="Reading Pitch",
        desc="Name notes in treble, bass, alto and tenor clefs and on the grand staff, find lines and spaces, move a pitch between clefs, and review memory devices and alignment principles.",
        modes=[("name", "Name the note", "letter name", "name a note on the staff"),
               ("octave", "Note + octave", "C4, G2…", "name a note with its octave number"),
@@ -76,7 +76,17 @@ APPS = [
             "<b>Transposition:</b> real (exact intervals) or tonal (in the key). <b>Inversion:</b> upside down. <b>Retrograde:</b> backwards.",
             "<b>Augmentation / diminution:</b> longer / shorter values. <b>Fragmentation:</b> part of the motive, developed on its own.",
             "<b>Sequence:</b> a pattern repeated higher or lower; tonal, real, mixed or modified; melodic and/or harmonic."]),
-  dict(src="Scales.html", drills="major-and-minor-scales.html", lesson="major-and-minor-scales-lesson.html", lesson_title="Understanding Major and Minor Scales", lesson_desc="A step-by-step lesson: half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, and natural, harmonic and melodic minor and why they differ.", data="scales.js", title="Major and Minor Scales",
+  dict(src="Pitch.html", drills="introduction-to-pitch.html", lesson="introduction-to-pitch-lesson.html", lesson_title="Introduction to Pitch", lesson_desc="A step-by-step lesson with sound: frequency and hertz, octaves, ratios and cents, overtones and the harmonic series, how pulses turn into pitch and polyrhythms into intervals (a listening game), absolute and relative pitch, how voices and instruments make pitch, and synthesis.", data="pitch.js", title="Pitch",
+       desc="Work with frequencies and ratios, the harmonic series, pulses that become pitches, and the facts of how pitch is heard, sung, played and synthesized.",
+       modes=[("freq", "Frequency", "Hz · octaves · ratios", "frequencies, octaves and interval ratios"),
+              ("series", "Harmonic series", "partials", "the harmonic series"),
+              ("pulse", "Pulses", "rhythm into pitch", "pulse streams that become intervals"),
+              ("facts", "How pitch works", "voice · instruments · synths", "absolute and relative pitch, sound production and synthesis")],
+       how=["<b>Octave</b> = frequency ×2. <b>3:2</b> = P5, <b>4:3</b> = P4, <b>5:4</b> = M3, <b>6:5</b> = m3.",
+            "<b>Harmonic series</b> on C2: C2 C3 G3 C4 E4 G4 B♭4 C5 …; partial n = n × the fundamental.",
+            "<b>Pulses</b> faster than about 20 per second fuse into pitch; a polyrhythm's ratio becomes an interval.",
+            "<b>A4 = 440 Hz</b>; MIDI 69 = A4, 60 = middle C."]),
+  dict(src="Scales.html", drills="major-and-minor-scales.html", lesson="major-and-minor-scales-lesson.html", lesson_title="Understanding Major and Minor Scales", lesson_desc="A step-by-step lesson: half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, natural, harmonic and melodic minor and why they differ, and solfège in major and minor (do-based and la-based minor, movable and fixed do), sung in Adam Silverman's voice.", data="scales.js", title="Major and Minor Scales",
        desc="Spell and identify major and minor scales, read key signatures, find relative and parallel keys, and know why each scale and key signature works the way it does.",
        modes=[("spell", "Spell the scale", "major · minor", "spell a major or minor scale"),
               ("type", "Name the scale", "on the staff", "name the kind of scale"),

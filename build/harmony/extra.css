@@ -91,3 +91,9 @@
 .footnotes { margin-top: 1.2em; padding-top: .6em; border-top: 1px solid currentColor; font-size: .88em; opacity: .9; }
 .footnotes ol { margin: 0; padding-left: 1.4em; }
 .footnotes a { overflow-wrap: anywhere; }
+.ldet { border: 1.5px solid var(--line, #ddd); border-radius: 12px; padding: 0 14px; margin: 10px 0; background: var(--field, transparent); }
+.ldet > summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: 8px; }
+.ldet[open] > summary { border-bottom: 1px solid var(--line, #ddd); margin-bottom: 8px; }
+.lbtns { display: flex; flex-wrap: wrap; gap: 8px; }
+.lnote { font-size: .92rem; color: var(--muted, #666); }
+.fig-box .lbtns { justify-content: center; margin: 6px 0; }

@@ -80,6 +80,16 @@ FAMILIES = [
             "<b>Organ:</b> manuals plus pedalboard on three staves; 8′ = written pitch, 4′ = octave higher, 16′ = octave lower.",
             "<b>Prepared piano:</b> give a preparation table, get permission, and allow setup time.",
             "<b>Score order:</b> keyboards come after the harp and before the strings. The celesta sounds an octave higher than written."]),
+  dict(src="Orchestration Plucked.html", title="Plucked Hand-held Instruments", vex=True, sound=True,
+       desc="Guitar, mandolin, banjo, bouzouki, tenor guitar and ukulele: tunings, how each is written, tab and chord diagrams, the capo, playing techniques and using them in an ensemble.",
+       modes=[("inst", "Instruments", "guitar · mandolin · banjo…", "the six instruments and their sound"),
+              ("tune", "Tunings", "open strings", "open-string tunings"),
+              ("fret", "Fretboard", "tab · capo · chords", "tab, the capo, chord diagrams and written versus sounding pitch"),
+              ("tech", "Techniques", "strum · pick · notation", "playing techniques and their notation")],
+       how=["<b>Guitar</b> E A D G B E, written in treble clef an octave higher than it sounds.",
+            "<b>Mandolin</b> G D A E (like the violin); <b>tenor guitar</b> C G D A (like the viola); <b>ukulele</b> G C E A with a high G.",
+            "<b>5-string banjo</b> open G: g D G B D, the short 5th string a high drone. <b>Irish bouzouki</b> G D A D.",
+            "<b>Capo at fret N:</b> every chord shape sounds N semitones higher."]),
   dict(src="Score and Parts Preparation.html", title="Score and Parts Preparation", vex=False, sound=False,
        desc="What a professional score and set of parts must include, and the typesetting conventions players and conductors expect.",
        modes=[("score", "The score", "pages · names · bars", "what a score must include and how it's laid out"),
@@ -163,7 +173,7 @@ MODES_CSS = """
 @media (min-width: 640px) { .modes.m3 button:last-child:nth-child(odd) { grid-column: auto; } }
 """
 ENGINE = (B / "engine.js").read_text(encoding="utf-8")
-DATA = {"Orchestration Strings.html": "strings.js", "Orchestration Winds and Brass.html": "winds.js", "Orchestration Percussion.html": "percussion.js", "Score and Parts Preparation.html": "scoreparts.js", "Orchestration Harp.html": "harp.js", "Orchestration Piano.html": "piano.js"}
+DATA = {"Orchestration Strings.html": "strings.js", "Orchestration Winds and Brass.html": "winds.js", "Orchestration Percussion.html": "percussion.js", "Score and Parts Preparation.html": "scoreparts.js", "Orchestration Harp.html": "harp.js", "Orchestration Piano.html": "piano.js", "Orchestration Plucked.html": "plucked.js"}
 for f in FAMILIES:
     head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(f['title'])}</title>")
     head = head.replace("@media (min-width: 640px) { .modes { grid-template-columns: repeat(5, 1fr); } .modes button:first-child { grid-column: auto; } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }", "")
