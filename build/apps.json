@@ -320,6 +320,92 @@
           "note": "Practice tool"
         }
       ]
+    },
+    {
+      "id": "creating",
+      "title": "Creating Music",
+      "color": "purple",
+      "topics": [
+        {
+          "name": "Composition",
+          "topic": "Writing music",
+          "blurb": "Finding ideas, developing motives, form, texture, and drafting and revising pieces.",
+          "lesson": "composition-lesson.html",
+          "drills": "composition.html",
+          "class": true
+        },
+        {
+          "name": "Improvisation",
+          "topic": "Improvising",
+          "blurb": "Phrasing, pentatonic and blues scales, guide tones and modes, traditions from jazz to raga, and how to practice.",
+          "lesson": "improvisation-lesson.html",
+          "drills": "improvisation.html",
+          "class": true
+        },
+        {
+          "name": "Collaboration",
+          "topic": "Working together",
+          "blurb": "Roles, feedback, rehearsals and shared files, co-writing, and credit, splits and agreements.",
+          "lesson": "collaboration-lesson.html",
+          "drills": "collaboration.html",
+          "class": true
+        },
+        {
+          "name": "Lyrics and Lyric Analysis",
+          "topic": "Words and music",
+          "blurb": "Rhyme, prosody, song form and hooks, lyric analysis, and whether lyrics or music come first.",
+          "lesson": "lyrics-lesson.html",
+          "drills": "lyrics.html",
+          "class": true
+        },
+        {
+          "name": "Minimalism and Ambient Music",
+          "topic": "Repetition and texture",
+          "blurb": "Phasing, additive process, drones, tintinnabuli, loops of different lengths and generative ambient music.",
+          "lesson": "minimalism-and-ambient-lesson.html",
+          "drills": "minimalism-and-ambient.html",
+          "class": true
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "title": "Music Technology and the Music Business",
+      "color": "green",
+      "topics": [
+        {
+          "name": "Music Software",
+          "topic": "Music technology",
+          "blurb": "Digital audio, MIDI, DAWs, synthesizers and virtual instruments, notation and production software.",
+          "lesson": "music-software-lesson.html",
+          "drills": "music-software.html",
+          "class": true
+        },
+        {
+          "name": "How Pop Music Is Produced",
+          "topic": "Production",
+          "blurb": "Producers, topliners and engineers; tracking, mixing and mastering; workflows from bedroom studios to co-writes.",
+          "lesson": "pop-production-lesson.html",
+          "drills": "pop-production.html",
+          "class": true
+        },
+        {
+          "name": "Film and Game Scoring",
+          "topic": "Media music",
+          "blurb": "Spotting, leitmotifs, hit points and timecode, adaptive game music, and the scoring team.",
+          "lesson": "film-and-game-scoring-lesson.html",
+          "drills": "film-and-game-scoring.html",
+          "class": true
+        },
+        {
+          "name": "Music Distribution and Rights",
+          "topic": "Music business",
+          "blurb": "Streaming, shops and sheet music; lead sheets to full scores; arrangements, covers, licenses and royalties.",
+          "lesson": "music-distribution-and-rights-lesson.html",
+          "drills": "music-distribution-and-rights.html",
+          "class": true
+        }
+      ]
     }
   ]
 }
