@@ -320,13 +320,6 @@
           "blurb": "A tuner that sings back a reference pitch.",
           "open": "shadow-tuner.html",
           "note": "Practice tool"
-        },
-        {
-          "name": "Audio Clip Editor",
-          "topic": "Audio editing",
-          "blurb": "Trim, normalize, fade, add reverb, convert sample rate and channels, and export WAV or MP3. Files stay on your device.",
-          "open": "audio-clip-editor.html",
-          "note": "Practice tool"
         }
       ]
     },
@@ -389,6 +382,13 @@
           "lesson": "music-software-lesson.html",
           "drills": "music-software.html",
           "class": true
+        },
+        {
+          "name": "Audio Clip Editor",
+          "topic": "Audio editing",
+          "blurb": "Trim, normalize, fade, add reverb, convert sample rate and channels, and export WAV or MP3. Files stay on your device.",
+          "open": "audio-clip-editor.html",
+          "note": "Practice tool"
         },
         {
           "name": "How Pop Music Is Produced",
