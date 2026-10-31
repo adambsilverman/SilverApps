@@ -93,6 +93,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       <label class="f2" for="sPat" id="lPat">Pattern<select id="sPat"></select></label>
       <label class="f2" for="sCm" id="lCm">Pattern (x = clap, . = rest)<input id="sCm" type="text" maxlength="12" spellcheck="false" autocomplete="off" placeholder="12 pulses"></label>
       <label class="f2" for="sPart" id="lPart">Your part<select id="sPart"><option value="steady">Steady clapper</option><option value="moving">Moving clapper</option></select></label>
+      <label class="f2" for="sSnd" id="lSnd">Clap sound<select id="sSnd"><option value="clap">Hand claps</option><option value="block">Wood blocks</option></select></label>
       <label class="f2" for="sReps" id="lReps">Repeats per section<select id="sReps"><option>2</option><option>4</option><option>8</option><option>12</option></select></label>
       <label class="f2" for="sFrom" id="lFrom">Start at section<select id="sFrom"></select></label>
       <label class="f2" for="sNsec" id="lNsec">Sections<select id="sNsec"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="13">All (to unison)</option></select></label>
@@ -130,17 +131,17 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
 
   // ---------- settings ----------
   const LEVELS = [[1, "Quarters and halves"], [2, "+ Eighth notes"], [3, "+ Dotted rhythms, eighth rests"], [4, "+ Sixteenth notes"], [5, "+ Syncopation"], [6, "+ Triplets"]];
-  let S = { lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", reps: 4, from: 0, nsec: 13, cm: "" };
+  let S = { lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", snd: "clap", reps: 4, from: 0, nsec: 13, cm: "" };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-rhythmperf") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("silverapps-rhythmperf", JSON.stringify(S)); } catch (e) {} };
   $("sLv").innerHTML = LEVELS.map(([v, t]) => `<option value="${v}">${v}. ${t}</option>`).join("");
   $("sFrom").innerHTML = Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i + 1}${i ? ` (shifted ${i})` : " (unison)"}</option>`).join("");
-  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
+  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sSnd").value = S.snd; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
   syncForm();
   $("settings").onchange = e => {
     const v = e.target.value, id = e.target.id;
-    if (["sMode", "sPat", "sPart", "sReps", "sFrom", "sNsec", "sCm"].includes(id)) {
-      ({ sMode: () => S.mode = v, sPat: () => S.pat[S.mode] = +v, sPart: () => S.part = v, sReps: () => S.reps = +v, sFrom: () => S.from = +v, sNsec: () => S.nsec = +v, sCm: () => S.cm = v.trim() })[id]();
+    if (["sMode", "sPat", "sPart", "sSnd", "sReps", "sFrom", "sNsec", "sCm"].includes(id)) {
+      ({ sMode: () => S.mode = v, sPat: () => S.pat[S.mode] = +v, sPart: () => S.part = v, sSnd: () => S.snd = v, sReps: () => S.reps = +v, sFrom: () => S.from = +v, sNsec: () => S.nsec = +v, sCm: () => S.cm = v.trim() })[id]();
       save(); stopRun(); modeUI(); newRhythm(); return;
     }
     ({ sLv: () => S.lv = +v, sMt: () => S.meter = v, sBars: () => S.bars = +v, sTp: () => S.tempo = Math.max(40, Math.min(160, +v || 80)), sTol: () => S.tol = v, sClk: () => S.click = v, sIn: () => S.input = v })[e.target.id]();
@@ -312,7 +313,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
     setR(m, fromLists(m, lists), { grid: { P, secs }, other });
     $("info").hidden = false;
     $("info").innerHTML = (S.mode === "cmg" ? `<p><b>Clapping Music Generator.</b> A new 12-pulse pattern made the same way: groups of claps separated by rests, with no repeat inside the cycle, so every shift sounds different. Press <b>New pattern</b> for another.</p>` : `<p><b>Clapping Music</b> (Steve Reich, 1972) is for two performers. Both clap the same 12-pulse pattern. One keeps it unchanged throughout; the other, after a number of repeats, moves the pattern one eighth note ahead, and keeps doing so until, after 12 shifts, both are back in unison. There is no gradual drift: each shift is a sudden jump.</p>`)
-      + `<p>You are the <b>${S.part === "steady" ? "steady" : "moving"} clapper</b>; the app claps the other part (the lower sound). Sections ${secs[0] + 1}–${secs[secs.length - 1] + 1}, ${S.reps} repeats each. Tip: count the 12 eighths in four groups of three.</p>`;
+      + `<p>You are the <b>${S.part === "steady" ? "steady" : "moving"} clapper</b>; the app claps the other part (the lower sound). Use headphones if you're clapping into the microphone. Sections ${secs[0] + 1}–${secs[secs.length - 1] + 1}, ${S.reps} repeats each. Tip: count the 12 eighths in four groups of three.</p>`;
   }
   function drawGrid(colors) {
     const G = R.grid, box = $("score");
@@ -344,7 +345,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
   function modeUI() {
     const md = S.mode, lib = !!LIB[md], ph = md === "cm" || md === "cmg";
     const show = (id, on) => { $(id).hidden = !on; };
-    show("lPat", lib); show("lCm", md === "cm"); ["lPart", "lReps", "lFrom", "lNsec"].forEach(id => show(id, ph));
+    show("lPat", lib); show("lCm", md === "cm"); ["lPart", "lSnd", "lReps", "lFrom", "lNsec"].forEach(id => show(id, ph));
     $("sLv").closest("label").hidden = !(md === "gen" || md === "cue");
     $("sMt").closest("label").hidden = !(md === "gen" || md === "cue");
     $("sBars").closest("label").hidden = !(md === "gen" || md === "cue");
@@ -406,8 +407,21 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
   let AC = null, out = null;
   function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); out = AC.createGain(); out.gain.value = .9; out.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); return AC; }
   function click(t, accent) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = accent ? 1760 : 1175; o.type = "square"; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(accent ? .22 : .13, t + .002); g.gain.exponentialRampToValueAtTime(.001, t + .05); o.connect(g); g.connect(out); o.start(t); o.stop(t + .06); }
-  function block(t) { [[620, .5], [1240, .18]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }); }
-  function block2(t) { [[300, .55], [760, .16]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); g.connect(out); o.start(t); o.stop(t + .14); }); }
+  function block(t) { if (clapping()) return clap(t, true); [[620, .5], [1240, .18]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }); }
+  // Hand clap: a few quick bursts of band-passed noise and a short tail. hi = brighter clap (your part), else a lower one.
+  let noiseBuf = null;
+  function clap(t, hi) {
+    if (!noiseBuf) { noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * .3), AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = AC.createBufferSource(), bp = AC.createBiquadFilter(), hp = AC.createBiquadFilter(), g = AC.createGain();
+    src.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = hi ? 1500 : 950; bp.Q.value = 1.1; hp.type = "highpass"; hp.frequency.value = 400;
+    const pk = hi ? .9 : .8;
+    g.gain.setValueAtTime(0, t);
+    [0, .009, .018].forEach(o => { g.gain.linearRampToValueAtTime(pk, t + o + .001); g.gain.exponentialRampToValueAtTime(pk * .25, t + o + .008); });
+    g.gain.linearRampToValueAtTime(pk * .7, t + .028); g.gain.exponentialRampToValueAtTime(.001, t + .028 + (hi ? .13 : .17));
+    src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out); src.start(t, Math.random() * .1); src.stop(t + .25);
+  }
+  const clapping = () => R && R.grid && S.snd === "clap";
+  function block2(t) { if (clapping()) return clap(t, false); [[300, .55], [760, .16]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); g.connect(out); o.start(t); o.stop(t + .14); }); }
   const outLat = () => AC ? (AC.outputLatency || AC.baseLatency || 0) : 0;
   const tickSec = () => 60 / S.tempo / R.m.beat;   // tempo counts the beat (dotted quarter in 6/8)
 
