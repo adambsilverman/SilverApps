@@ -340,6 +340,53 @@ details.panel[open] summary::after { content: "−"; }
 .lnote { font-size: .92rem; color: var(--muted, #666); }
 .fig-box .lbtns { justify-content: center; margin: 6px 0; }
 
+/* ---- Music Software toys ---- */
+.toy { border: 1.5px solid var(--line, #ccc); border-radius: 14px; padding: 12px; margin: 12px 0; background: var(--field, rgba(0,0,0,.02)); display: grid; gap: 10px; }
+.toy-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.toy label { font-weight: 600; font-size: .92rem; display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.toy select, .toy input[type=number] { font: inherit; min-height: 40px; padding: 4px 8px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+.toy input[type=number] { width: 5em; }
+.toy button[aria-pressed="true"] { background: var(--ink, #222); color: var(--card, #fff); }
+.skb { position: relative; height: 150px; user-select: none; -webkit-user-select: none; touch-action: none; }
+.skb .wk, .skb .bk { position: absolute; top: 0; padding: 0; border: 1.5px solid var(--ink, #222); cursor: pointer; }
+.skb .wk { height: 100%; background: #fffdf8; border-radius: 0 0 6px 6px; color: #333; display: flex; align-items: flex-end; justify-content: center; font-size: 11px; padding-bottom: 4px; }
+.skb .bk { height: 60%; background: #222; z-index: 2; border-radius: 0 0 4px 4px; }
+.skb .wk.on { background: #ffd36b; } .skb .bk.on { background: #c0392b; }
+.skb button:focus-visible { outline: 3px solid var(--accent, #c0392b); outline-offset: -3px; z-index: 3; }
+.wheels { gap: 20px; } .wheel input { width: 200px; max-width: 70vw; }
+.midimon { background: var(--card, #fff); border: 1px solid var(--line, #ddd); border-radius: 10px; padding: 8px 12px; }
+.midimon p { margin: 0 0 6px; } .midimon ol { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; font-size: .9rem; }
+.midimon li { display: grid; grid-template-columns: 7.5em 1fr; gap: 10px; padding: 3px 0; border-bottom: 1px dotted var(--line, #ddd); }
+.midimon code { font: 600 .9rem ui-monospace, Menlo, monospace; }
+.sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.sygrid fieldset { border: 1px solid var(--line, #ccc); border-radius: 10px; margin: 0; padding: 6px 10px 10px; display: grid; gap: 6px; }
+.sygrid legend { font-weight: 700; padding: 0 4px; }
+.syk { display: grid !important; grid-template-columns: 6.5em 1fr 4.5em; align-items: center; }
+.syk output { font-size: .85rem; text-align: right; } .syk select { grid-column: 2 / 4; }
+.envsvg { width: 100%; height: auto; color: var(--ink, #222); }
+.dmgrid { overflow-x: auto; display: grid; gap: 4px; padding-bottom: 6px; }
+.dmrow { display: flex; align-items: center; gap: 6px; }
+.dml { flex: 0 0 8.5em; font-size: .85rem; font-weight: 600; position: sticky; left: 0; background: var(--field, #faf7f0); z-index: 1; }
+.dmcells { display: flex; gap: 3px; }
+.dmc { flex: 0 0 30px; height: 30px; border-radius: 6px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); padding: 0; cursor: pointer; font-size: 9px; line-height: 1; }
+.dmc.beat { border-color: var(--ink, #333); border-width: 2px; margin-left: 4px; }
+.dmc.on { background: var(--ink, #222); color: var(--card, #fff); }
+.dmc.now { box-shadow: 0 0 0 3px #ffb400; }
+.dmc small { font-size: 9px; }
+.mixer { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; align-items: stretch; }
+.strip { flex: 0 0 132px; border: 1px solid var(--line, #ccc); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; align-items: stretch; background: var(--card, #fff); font-size: .85rem; }
+.strip > b { text-align: center; }
+.ms { display: flex; gap: 6px; justify-content: center; }
+.mbtn { width: 38px; min-height: 34px; border-radius: 8px; border: 1.5px solid var(--line, #999); background: var(--card, #fff); font-weight: 700; cursor: pointer; color: inherit; }
+.mk { display: grid !important; gap: 2px; font-size: .8rem !important; } .mk input[type=range], .mk select { width: 100%; }
+.fadebox { display: flex; justify-content: center; gap: 8px; height: 140px; margin-top: auto; }
+.fader { writing-mode: vertical-lr; direction: rtl; width: 28px; height: 140px; }
+.meter { width: 10px; background: rgba(0,0,0,.12); border-radius: 3px; position: relative; overflow: hidden; }
+.meter i { position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: linear-gradient(to top, #2e8b57 60%, #e0b000 85%, #c0392b); }
+.strip output { text-align: center; font-variant-numeric: tabular-nums; }
+.mixdiv { flex: 0 0 2px; background: var(--line, #ccc); }
+.linkgrid a { font-weight: 600; }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -1257,6 +1304,7 @@ window.FAM = (() => {
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}
+  { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) { LS.step = Math.max(0, +mh[1] - 1); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); } }   // deep link: lesson.html#step=N
   const saveL = () => { try { localStorage.setItem(FAM.key + ":lesson", JSON.stringify(LS)); } catch (e) {} };
   let figs = {};
   function lessonKey(st) {

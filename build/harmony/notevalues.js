@@ -34,6 +34,8 @@ window.FAM = (() => {
   }
 
   const FACTS = [
+    ["Tempo is measured in…", "beats per minute (BPM)", ["bars per minute", "hertz", "notes per bar"], "At 60 BPM each beat lasts one second."],
+    ["Ritardando means…", "gradually slowing down", ["gradually getting louder", "suddenly faster", "return to the original tempo"], "Accelerando speeds up; a tempo returns to the earlier speed."],
     ["The division of the beat is…", "the beat split into its first smaller level (two parts in simple meter, three in compound)", ["the beat itself", "a whole bar", "the tempo"], "Below the division comes the subdivision."],
     ["In 6/8, the subdivision is…", "six sixteenth notes per dotted-quarter beat", ["three eighth notes", "two eighth notes", "four sixteenth notes"], "Beat: dotted quarter. Division: three eighths. Subdivision: six sixteenths."],
     ["A dot after a note adds…", "half of the note's value", ["one beat", "a quarter of its value", "the value of the next note"], "A dotted half = half + quarter = 3 quarter-note beats."],
@@ -133,6 +135,15 @@ window.FAM = (() => {
       <div class="lfigs">${fig(U, rh("2/4", ["q q", "8 8 8 8", "16 16 16 16 16 16 16 16"]), "2/4: beat, division, subdivision")}${fig(U, rh("6/8", ["qd qd", "8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16"]), "6/8: beat, division, subdivision")}</div>`
       + H.check("In 6/8, how many beats are in a bar?", "2", ["6", "3", "8"], "Two dotted-quarter beats.")
       + H.check("In 3/4, the division of the beat is…", "two eighth notes", ["three eighth notes", "four sixteenth notes", "a half note"], "Simple meter: the beat divides in two; the subdivision is four sixteenths.") },
+    { title: "Tempo", kick: "How fast the beat goes", render: (H) => `<p><b>Tempo</b> is the speed of the beat, measured in <b>beats per minute</b> (BPM). At 60 BPM each beat lasts one second; at 120 BPM, half a second. Tempo is separate from meter: a 3/4 waltz can be slow or fast, and the time signature doesn't say which.</p>
+      <ul><li>A <b>metronome mark</b> such as ♩ = 96 gives the beat unit and its speed. In compound meters the beat is the dotted quarter: ♩. = 60 in 6/8 means one beat per second, with three eighth notes in each.</li>
+      <li>The mechanical metronome was patented by Johann Maelzel in 1815; "M.M." in old scores stands for Maelzel's Metronome. The <a href="metronome.html">Metronome</a> app on this site keeps time for practice.</li>
+      <li>DAWs, drum machines and sequencers set the tempo in BPM, and their bars-and-beats ruler follows it.</li></ul>
+      <div class="ltable-wrap" tabindex="0" role="region" aria-label="Tempo terms"><table class="ltable"><caption>Common tempo terms (approximate; sources and styles differ)</caption><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th><th scope="col">About</th></tr></thead><tbody>
+      ${[["Grave, Largo", "very slow, broad", "40–60"], ["Adagio", "slow, at ease", "66–76"], ["Andante", "at a walking pace", "76–108"], ["Moderato", "moderate", "108–120"], ["Allegro", "fast, lively", "120–156"], ["Vivace", "lively and fast", "156–176"], ["Presto", "very fast", "168–200"], ["Prestissimo", "as fast as possible", "200+"]].map(r => `<tr><td><i>${r[0]}</i></td><td>${r[1]}</td><td>${r[2]} BPM</td></tr>`).join("")}</tbody></table></div>
+      <p><b>Changing tempo:</b> <i>accelerando</i> (accel.) speeds up; <i>ritardando</i> (rit.) and <i>rallentando</i> (rall.) slow down; <i>a tempo</i> returns to the previous tempo; <i>rubato</i> means flexible, expressive timing; a <b>fermata</b> (𝄐) holds a note or rest longer than written.</p>`
+      + H.check("At 120 BPM, how long does each beat last?", "half a second", ["one second", "two seconds", "a quarter of a second"], "60 seconds ÷ 120 beats = 0.5 seconds per beat.")
+      + H.check("Which tempo term means 'at a walking pace'?", "Andante", ["Allegro", "Presto", "Largo"], "From the Italian andare, to walk.") },
     { title: "Triplets and tuplets", kick: "Three in the time of two", render: (H, k, U) => {
       const dup = rh("6/8", ["8t1 8t1 8 8 8"]); dup.bars[0].t[0].forEach((n, i) => { if (i < 2) { n.tun = 2; n.tuo = 3; } });
       const q5 = rh("4/4", ["16t1 16t1 16t1 16t1 16t1 q h"]); q5.bars[0].t[0].forEach((n, i) => { if (i < 5) { n.tun = 5; n.tuo = 4; } });
@@ -148,7 +159,7 @@ window.FAM = (() => {
       return `<ul><li>Notes and rests that happen at the same moment line up <b>vertically</b>, across every staff of a system.</li><li>Horizontal space follows time: longer values get more room (though not strictly in proportion), so the beat is easy to see.</li><li>Beam by beat, and don't hide the middle of a 4/4 bar (see the Rhythm Notation lesson for more).</li></ul>`
         + U.fig(sp, "Beat 3 lines up in both staves, even though the hands have different rhythms.");
     } },
-    { title: "Quick check", kick: "Before the drills", render: (H) => H.check("How many sixteenth notes equal a dotted quarter?", "6", ["4", "3", "8"], "1½ beats = 6 sixteenths.") + H.check(FACTS[5][0], FACTS[5][1], FACTS[5][2], FACTS[5][3]) + H.check(FACTS[3][0], FACTS[3][1], FACTS[3][2], FACTS[3][3]) + H.check(FACTS[8][0], FACTS[8][1], FACTS[8][2], FACTS[8][3]) },
+    { title: "Quick check", kick: "Before the drills", render: (H) => H.check("How many sixteenth notes equal a dotted quarter?", "6", ["4", "3", "8"], "1½ beats = 6 sixteenths.") + H.check(FACTS[7][0], FACTS[7][1], FACTS[7][2], FACTS[7][3]) + H.check(FACTS[5][0], FACTS[5][1], FACTS[5][2], FACTS[5][3]) + H.check(FACTS[10][0], FACTS[10][1], FACTS[10][2], FACTS[10][3]) },
   ] };
 
   return {

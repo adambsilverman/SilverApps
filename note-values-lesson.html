@@ -340,6 +340,53 @@ details.panel[open] summary::after { content: "−"; }
 .lnote { font-size: .92rem; color: var(--muted, #666); }
 .fig-box .lbtns { justify-content: center; margin: 6px 0; }
 
+/* ---- Music Software toys ---- */
+.toy { border: 1.5px solid var(--line, #ccc); border-radius: 14px; padding: 12px; margin: 12px 0; background: var(--field, rgba(0,0,0,.02)); display: grid; gap: 10px; }
+.toy-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.toy label { font-weight: 600; font-size: .92rem; display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.toy select, .toy input[type=number] { font: inherit; min-height: 40px; padding: 4px 8px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+.toy input[type=number] { width: 5em; }
+.toy button[aria-pressed="true"] { background: var(--ink, #222); color: var(--card, #fff); }
+.skb { position: relative; height: 150px; user-select: none; -webkit-user-select: none; touch-action: none; }
+.skb .wk, .skb .bk { position: absolute; top: 0; padding: 0; border: 1.5px solid var(--ink, #222); cursor: pointer; }
+.skb .wk { height: 100%; background: #fffdf8; border-radius: 0 0 6px 6px; color: #333; display: flex; align-items: flex-end; justify-content: center; font-size: 11px; padding-bottom: 4px; }
+.skb .bk { height: 60%; background: #222; z-index: 2; border-radius: 0 0 4px 4px; }
+.skb .wk.on { background: #ffd36b; } .skb .bk.on { background: #c0392b; }
+.skb button:focus-visible { outline: 3px solid var(--accent, #c0392b); outline-offset: -3px; z-index: 3; }
+.wheels { gap: 20px; } .wheel input { width: 200px; max-width: 70vw; }
+.midimon { background: var(--card, #fff); border: 1px solid var(--line, #ddd); border-radius: 10px; padding: 8px 12px; }
+.midimon p { margin: 0 0 6px; } .midimon ol { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; font-size: .9rem; }
+.midimon li { display: grid; grid-template-columns: 7.5em 1fr; gap: 10px; padding: 3px 0; border-bottom: 1px dotted var(--line, #ddd); }
+.midimon code { font: 600 .9rem ui-monospace, Menlo, monospace; }
+.sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.sygrid fieldset { border: 1px solid var(--line, #ccc); border-radius: 10px; margin: 0; padding: 6px 10px 10px; display: grid; gap: 6px; }
+.sygrid legend { font-weight: 700; padding: 0 4px; }
+.syk { display: grid !important; grid-template-columns: 6.5em 1fr 4.5em; align-items: center; }
+.syk output { font-size: .85rem; text-align: right; } .syk select { grid-column: 2 / 4; }
+.envsvg { width: 100%; height: auto; color: var(--ink, #222); }
+.dmgrid { overflow-x: auto; display: grid; gap: 4px; padding-bottom: 6px; }
+.dmrow { display: flex; align-items: center; gap: 6px; }
+.dml { flex: 0 0 8.5em; font-size: .85rem; font-weight: 600; position: sticky; left: 0; background: var(--field, #faf7f0); z-index: 1; }
+.dmcells { display: flex; gap: 3px; }
+.dmc { flex: 0 0 30px; height: 30px; border-radius: 6px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); padding: 0; cursor: pointer; font-size: 9px; line-height: 1; }
+.dmc.beat { border-color: var(--ink, #333); border-width: 2px; margin-left: 4px; }
+.dmc.on { background: var(--ink, #222); color: var(--card, #fff); }
+.dmc.now { box-shadow: 0 0 0 3px #ffb400; }
+.dmc small { font-size: 9px; }
+.mixer { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; align-items: stretch; }
+.strip { flex: 0 0 132px; border: 1px solid var(--line, #ccc); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; align-items: stretch; background: var(--card, #fff); font-size: .85rem; }
+.strip > b { text-align: center; }
+.ms { display: flex; gap: 6px; justify-content: center; }
+.mbtn { width: 38px; min-height: 34px; border-radius: 8px; border: 1.5px solid var(--line, #999); background: var(--card, #fff); font-weight: 700; cursor: pointer; color: inherit; }
+.mk { display: grid !important; gap: 2px; font-size: .8rem !important; } .mk input[type=range], .mk select { width: 100%; }
+.fadebox { display: flex; justify-content: center; gap: 8px; height: 140px; margin-top: auto; }
+.fader { writing-mode: vertical-lr; direction: rtl; width: 28px; height: 140px; }
+.meter { width: 10px; background: rgba(0,0,0,.12); border-radius: 3px; position: relative; overflow: hidden; }
+.meter i { position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: linear-gradient(to top, #2e8b57 60%, #e0b000 85%, #c0392b); }
+.strip output { text-align: center; font-variant-numeric: tabular-nums; }
+.mixdiv { flex: 0 0 2px; background: var(--line, #ccc); }
+.linkgrid a { font-weight: 600; }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -354,7 +401,7 @@ details.panel[open] summary::after { content: "−"; }
   <header class="top">
     <div class="brand">
       <h1>Understanding Note Values and Rhythm</h1>
-      <p>A step-by-step lesson: note values and rests, the parts of a note, dots and ties, simple and compound meter, triplets and other tuplets, counting, and lining rhythms up across staves.</p>
+      <p>A step-by-step lesson: note values and rests, the parts of a note, dots and ties, simple and compound meter, tempo and tempo terms, triplets and other tuplets, counting, and lining rhythms up across staves.</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -467,6 +514,8 @@ window.FAM = (() => {
   }
 
   const FACTS = [
+    ["Tempo is measured in…", "beats per minute (BPM)", ["bars per minute", "hertz", "notes per bar"], "At 60 BPM each beat lasts one second."],
+    ["Ritardando means…", "gradually slowing down", ["gradually getting louder", "suddenly faster", "return to the original tempo"], "Accelerando speeds up; a tempo returns to the earlier speed."],
     ["The division of the beat is…", "the beat split into its first smaller level (two parts in simple meter, three in compound)", ["the beat itself", "a whole bar", "the tempo"], "Below the division comes the subdivision."],
     ["In 6/8, the subdivision is…", "six sixteenth notes per dotted-quarter beat", ["three eighth notes", "two eighth notes", "four sixteenth notes"], "Beat: dotted quarter. Division: three eighths. Subdivision: six sixteenths."],
     ["A dot after a note adds…", "half of the note's value", ["one beat", "a quarter of its value", "the value of the next note"], "A dotted half = half + quarter = 3 quarter-note beats."],
@@ -566,6 +615,15 @@ window.FAM = (() => {
       <div class="lfigs">${fig(U, rh("2/4", ["q q", "8 8 8 8", "16 16 16 16 16 16 16 16"]), "2/4: beat, division, subdivision")}${fig(U, rh("6/8", ["qd qd", "8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16"]), "6/8: beat, division, subdivision")}</div>`
       + H.check("In 6/8, how many beats are in a bar?", "2", ["6", "3", "8"], "Two dotted-quarter beats.")
       + H.check("In 3/4, the division of the beat is…", "two eighth notes", ["three eighth notes", "four sixteenth notes", "a half note"], "Simple meter: the beat divides in two; the subdivision is four sixteenths.") },
+    { title: "Tempo", kick: "How fast the beat goes", render: (H) => `<p><b>Tempo</b> is the speed of the beat, measured in <b>beats per minute</b> (BPM). At 60 BPM each beat lasts one second; at 120 BPM, half a second. Tempo is separate from meter: a 3/4 waltz can be slow or fast, and the time signature doesn't say which.</p>
+      <ul><li>A <b>metronome mark</b> such as ♩ = 96 gives the beat unit and its speed. In compound meters the beat is the dotted quarter: ♩. = 60 in 6/8 means one beat per second, with three eighth notes in each.</li>
+      <li>The mechanical metronome was patented by Johann Maelzel in 1815; "M.M." in old scores stands for Maelzel's Metronome. The <a href="metronome.html">Metronome</a> app on this site keeps time for practice.</li>
+      <li>DAWs, drum machines and sequencers set the tempo in BPM, and their bars-and-beats ruler follows it.</li></ul>
+      <div class="ltable-wrap" tabindex="0" role="region" aria-label="Tempo terms"><table class="ltable"><caption>Common tempo terms (approximate; sources and styles differ)</caption><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th><th scope="col">About</th></tr></thead><tbody>
+      ${[["Grave, Largo", "very slow, broad", "40–60"], ["Adagio", "slow, at ease", "66–76"], ["Andante", "at a walking pace", "76–108"], ["Moderato", "moderate", "108–120"], ["Allegro", "fast, lively", "120–156"], ["Vivace", "lively and fast", "156–176"], ["Presto", "very fast", "168–200"], ["Prestissimo", "as fast as possible", "200+"]].map(r => `<tr><td><i>${r[0]}</i></td><td>${r[1]}</td><td>${r[2]} BPM</td></tr>`).join("")}</tbody></table></div>
+      <p><b>Changing tempo:</b> <i>accelerando</i> (accel.) speeds up; <i>ritardando</i> (rit.) and <i>rallentando</i> (rall.) slow down; <i>a tempo</i> returns to the previous tempo; <i>rubato</i> means flexible, expressive timing; a <b>fermata</b> (𝄐) holds a note or rest longer than written.</p>`
+      + H.check("At 120 BPM, how long does each beat last?", "half a second", ["one second", "two seconds", "a quarter of a second"], "60 seconds ÷ 120 beats = 0.5 seconds per beat.")
+      + H.check("Which tempo term means 'at a walking pace'?", "Andante", ["Allegro", "Presto", "Largo"], "From the Italian andare, to walk.") },
     { title: "Triplets and tuplets", kick: "Three in the time of two", render: (H, k, U) => {
       const dup = rh("6/8", ["8t1 8t1 8 8 8"]); dup.bars[0].t[0].forEach((n, i) => { if (i < 2) { n.tun = 2; n.tuo = 3; } });
       const q5 = rh("4/4", ["16t1 16t1 16t1 16t1 16t1 q h"]); q5.bars[0].t[0].forEach((n, i) => { if (i < 5) { n.tun = 5; n.tuo = 4; } });
@@ -581,7 +639,7 @@ window.FAM = (() => {
       return `<ul><li>Notes and rests that happen at the same moment line up <b>vertically</b>, across every staff of a system.</li><li>Horizontal space follows time: longer values get more room (though not strictly in proportion), so the beat is easy to see.</li><li>Beam by beat, and don't hide the middle of a 4/4 bar (see the Rhythm Notation lesson for more).</li></ul>`
         + U.fig(sp, "Beat 3 lines up in both staves, even though the hands have different rhythms.");
     } },
-    { title: "Quick check", kick: "Before the drills", render: (H) => H.check("How many sixteenth notes equal a dotted quarter?", "6", ["4", "3", "8"], "1½ beats = 6 sixteenths.") + H.check(FACTS[5][0], FACTS[5][1], FACTS[5][2], FACTS[5][3]) + H.check(FACTS[3][0], FACTS[3][1], FACTS[3][2], FACTS[3][3]) + H.check(FACTS[8][0], FACTS[8][1], FACTS[8][2], FACTS[8][3]) },
+    { title: "Quick check", kick: "Before the drills", render: (H) => H.check("How many sixteenth notes equal a dotted quarter?", "6", ["4", "3", "8"], "1½ beats = 6 sixteenths.") + H.check(FACTS[7][0], FACTS[7][1], FACTS[7][2], FACTS[7][3]) + H.check(FACTS[5][0], FACTS[5][1], FACTS[5][2], FACTS[5][3]) + H.check(FACTS[10][0], FACTS[10][1], FACTS[10][2], FACTS[10][3]) },
   ] };
 
   return {
@@ -1365,6 +1423,7 @@ window.FAM = (() => {
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}
+  { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) { LS.step = Math.max(0, +mh[1] - 1); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); } }   // deep link: lesson.html#step=N
   const saveL = () => { try { localStorage.setItem(FAM.key + ":lesson", JSON.stringify(LS)); } catch (e) {} };
   let figs = {};
   function lessonKey(st) {

@@ -21,7 +21,7 @@ APPS = [
             "<b>Alto</b> lines F A C E G (middle C on the middle line). <b>Tenor</b> lines D F A C E (middle C on the 4th line).",
             "<b>Landmarks:</b> G4 (treble clef's curl), F3 (bass clef's dots), middle C (C clef's center).",
             "<b>Alignment:</b> simultaneous notes line up vertically; seconds put the higher note to the right; accidentals sit just before the notehead, highest closest to the chord."]),
-  dict(src="Note Values.html", drills="note-values.html", lesson="note-values-lesson.html", lesson_title="Understanding Note Values and Rhythm", lesson_desc="A step-by-step lesson: note values and rests, the parts of a note, dots and ties, simple and compound meter, triplets and other tuplets, counting, and lining rhythms up across staves.", data="notevalues.js", title="Note Values and Rhythm",
+  dict(src="Note Values.html", drills="note-values.html", lesson="note-values-lesson.html", lesson_title="Understanding Note Values and Rhythm", lesson_desc="A step-by-step lesson: note values and rests, the parts of a note, dots and ties, simple and compound meter, tempo and tempo terms, triplets and other tuplets, counting, and lining rhythms up across staves.", data="notevalues.js", title="Note Values and Rhythm",
        desc="Note and rest values, dots and double dots, value math, completing bars, triplets and duplets, and meter.",
        modes=[("value", "Note values", "how many beats?", "how many beats a note or rest lasts"),
               ("math", "Value math", "equivalents", "how many of one value equal another"),

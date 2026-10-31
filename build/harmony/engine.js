@@ -763,6 +763,7 @@
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}
+  { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) { LS.step = Math.max(0, +mh[1] - 1); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); } }   // deep link: lesson.html#step=N
   const saveL = () => { try { localStorage.setItem(FAM.key + ":lesson", JSON.stringify(LS)); } catch (e) {} };
   let figs = {};
   function lessonKey(st) {
