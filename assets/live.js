@@ -125,29 +125,34 @@
     let ac = null, out = null, nz = null, timer = 0, next = 0, step = 0, on = false;
     const enabled = () => { try { return localStorage.getItem(BEAT_KEY) !== "off"; } catch (e) { return true; } };
     const setEnabled = v => { try { localStorage.setItem(BEAT_KEY, v ? "on" : "off"); } catch (e) {} };
-    function ctx() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!ac) { ac = new C(); out = ac.createGain(); out.gain.value = .32; const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 9000; out.connect(lp); lp.connect(ac.destination); nz = ac.createBuffer(1, ac.sampleRate * .5, ac.sampleRate); const d = nz.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } if (ac.state === "suspended") ac.resume(); return ac; }
+    function ctx() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!ac) { ac = new C(); out = ac.createGain(); out.gain.value = .36; const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 9000; out.connect(lp); lp.connect(ac.destination); nz = ac.createBuffer(1, ac.sampleRate * .5, ac.sampleRate); const d = nz.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } if (ac.state === "suspended") ac.resume(); return ac; }
     function env(g, t, a, len) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(0.0001, t + len); }
     function noise(t, type, f, a, len) { const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = nz; fl.type = type; fl.frequency.value = f; env(g, t, a, len); s.connect(fl); fl.connect(g); g.connect(out); s.start(t, Math.random() * .3); s.stop(t + len + .02); }
     function osc(t, type, f0, f1, a, len) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + len * .6); env(g, t, a, len); o.connect(g); g.connect(out); o.start(t); o.stop(t + len + .02); }
-    const BASS = [41, 41, 0, 41, 44, 0, 46, 0, 39, 39, 0, 39, 41, 0, 44, 0];   // a simple F-minor bass figure (MIDI; 0 = rest), one note per eighth
+    // a driving 6/8 groove: 12 sixteenths per bar, 2-bar loop; dotted-quarter beat = 80
+    const BASS = [38, 0, 38, 45, 0, 43, 41, 0, 41, 40, 0, 45];   // D-minor bass, one note per eighth over two bars (0 = rest)
     const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+    let loops = 0;
     function tick() {
-      const spb = 60 / 104 / 4;   // sixteenth notes at 104 BPM
+      const sx = 60 / 80 / 6;   // a sixteenth: six per dotted-quarter beat
       while (next < ac.currentTime + .15) {
-        const i = step % 32, t = next, urgent = H && H.deadline && H.deadline - Date.now() < 10000;
-        if (i % 8 === 0 || i === 22) osc(t, "sine", 140, 45, .9, .35);                        // kick
-        if (i % 8 === 4) { noise(t, "bandpass", 1800, .35, .18); osc(t, "triangle", 210, 160, .2, .1); }   // snare
-        if (i % 2 === 0) noise(t, "highpass", 8000, i % 4 === 2 ? .18 : .11, .045);           // hi-hat eighths
-        else if (urgent) noise(t, "highpass", 9000, .08, .03);                                // sixteenths when time is running out
-        if (i % 2 === 0) { const m = BASS[(i / 2) % 16]; if (m) osc(t, "triangle", mf(m), 0, .22, .2); }
-        if (urgent && i % 4 === 0) osc(t, "square", mf(77), 0, .03, .08);                     // a quiet tick that adds urgency
-        next += spb; step++;
+        const s = step % 24, p = s % 12, bar2 = s >= 12, t = next, urgent = H && H.deadline && H.deadline - Date.now() < 10000;
+        if (s === 0) { loops++; if (loops % 2 === 1) noise(t, "highpass", 5000, .22, 1.1); }                       // crash every other loop
+        if (p === 0 || p === 10 || (p === 4 && !bar2)) osc(t, "sine", 150, 42, p === 0 ? 1 : .75, .38);          // kick
+        if (p === 6) { noise(t, "bandpass", 1900, .45, .2); osc(t, "triangle", 220, 170, .25, .1); }             // backbeat snare on beat 2
+        else if (!bar2 && (p === 9 || p === 11)) noise(t, "bandpass", 2200, .1, .08);                            // ghost notes
+        if (bar2 && p >= 7) osc(t, "sine", [0, 0, 0, 0, 0, 0, 0, 240, 200, 170, 140, 115][p], 0, .5, .22);       // tom fill to the downbeat
+        if (p % 2 === 0) noise(t, "highpass", 8000, p === 0 || p === 6 ? .2 : .12, .05);                         // hi-hat eighths
+        noise(t, "highpass", 11000, urgent ? .1 : .045, .025);                                                   // shaker sixteenths
+        if (p % 2 === 0) { const m = BASS[(s / 2) % 12]; if (m) osc(t, "sawtooth", mf(m), 0, .11, .18); }
+        if (urgent) { if (bar2 && p >= 6) noise(t, "bandpass", 2000, .12 + (p - 6) * .05, .06); if (p === 0 || p === 6) osc(t, "square", mf(74 + (bar2 ? 3 : 0)), 0, .05, .12); }   // snare roll and rising stabs
+        next += sx; step++;
       }
     }
     return {
       enabled, setEnabled,
-      start() { if (on || !enabled() || !ctx()) return; on = true; step = 0; next = ac.currentTime + .08; out.gain.cancelScheduledValues(ac.currentTime); out.gain.setValueAtTime(.32, ac.currentTime); timer = setInterval(tick, 25); },
-      stop() { if (!on) return; on = false; clearInterval(timer); if (ac) { out.gain.setTargetAtTime(0.0001, ac.currentTime, .08); setTimeout(() => { if (!on && out) out.gain.value = .32; }, 600); } },
+      start() { if (on || !enabled() || !ctx()) return; on = true; step = 0; loops = 0; next = ac.currentTime + .08; out.gain.cancelScheduledValues(ac.currentTime); out.gain.setValueAtTime(.36, ac.currentTime); timer = setInterval(tick, 25); },
+      stop() { if (!on) return; on = false; clearInterval(timer); if (ac) { out.gain.setTargetAtTime(0.0001, ac.currentTime, .08); setTimeout(() => { if (!on && out) out.gain.value = .36; }, 600); } },
     };
   })();
   function beatBtn() { return `<button class="lc-btn" data-a="music" aria-pressed="${Beat.enabled()}">Waiting music: ${Beat.enabled() ? "on" : "off"}</button>`; }

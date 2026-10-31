@@ -201,6 +201,9 @@ def build(a):
             '<script src="assets/live.js"></script>\n<script src="assets/site.js"></script>\n')
     s = s[:app.start()] + libs + "<script>" + js + "</script>" + s[app.end():]
     s = before_body_close(s, CREDIT)
+    # cache-busting: ?v=<md5> on local scripts, so browsers fetch a changed live.js, sfx.js… (as build_pages.py does)
+    import hashlib
+    s = re.sub(r'(src="assets/[\w.-]+\.js)(")', lambda m: m.group(1) + "?v=" + hashlib.md5((OUT / m.group(1)[5:]).read_bytes()).hexdigest()[:8] + m.group(2) if (OUT / m.group(1)[5:]).exists() else m.group(0), s)
     (OUT / a["out"]).write_text(s, encoding="utf-8")
     print("built", a["out"], len(s))
 
