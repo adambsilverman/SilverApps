@@ -367,6 +367,13 @@
           "lesson": "minimalism-and-ambient-lesson.html",
           "drills": "minimalism-and-ambient.html",
           "class": true
+        },
+        {
+          "name": "Minimalist Process Lab",
+          "topic": "Repetition and process",
+          "blurb": "Write a fragment and run canons, phasing, additive and subtractive processes, chord loops, drones and drum beats on it; export audio.",
+          "open": "process-lab.html",
+          "note": "Creative tool"
         }
       ]
     },
@@ -389,6 +396,13 @@
           "blurb": "Trim, normalize, fade, add reverb, convert sample rate and channels, and export WAV or MP3. Files stay on your device.",
           "open": "audio-clip-editor.html",
           "note": "Practice tool"
+        },
+        {
+          "name": "Vocal Tuner",
+          "topic": "Pitch correction",
+          "blurb": "Auto-tune your own recording to a key, transpose it, shift formants, add harmonies, or make chipmunk, giant and robot voices; export WAV or MP3.",
+          "open": "vocal-tuner.html",
+          "note": "Creative tool · uses the microphone if you record"
         },
         {
           "name": "How Pop Music Is Produced",

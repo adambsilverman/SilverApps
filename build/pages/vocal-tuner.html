@@ -1,0 +1,268 @@
+<!-- title: Vocal Tuner | desc: Open or record a vocal clip, then tune it automatically to a key with adjustable amount and speed, transpose it, shift its formants, add harmonies, or turn it into a chipmunk, a giant or a robot. Export WAV or MP3. Everything stays on your device. -->
+<style>
+.tool{max-width:980px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
+.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool h1 span{color:var(--fi-red-dk)}
+.tool > header p{max-width:66ch;margin:10px 0 0}
+.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:16px 18px;display:grid;gap:12px;min-width:0}
+.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end}
+.tbtn{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:8px 14px;min-height:44px;cursor:pointer}
+.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
+.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.tbtn:disabled{opacity:.45;cursor:not-allowed}
+.tbtn:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+label.fld{display:grid;gap:4px;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+label.fld output{font:600 14px var(--fi-serif);text-transform:none;letter-spacing:0}
+select{font:15px var(--fi-serif);padding:6px 8px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:42px}
+input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
+.drop{border:2px dashed var(--fi-line);border-radius:var(--fi-r);padding:18px;text-align:center;background:var(--fi-paper)}
+.drop.over{background:#FFF2C2}
+.drop input{display:block;margin:10px auto 0;max-width:100%}
+.note{font-size:.92rem;color:var(--fi-muted);margin:0}
+.status{font:600 15px var(--fi-serif);margin:0;min-height:1.3em}
+#graph{width:100%;height:240px;display:block;background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem;color:var(--fi-muted)}
+.legend i{display:inline-block;width:18px;height:4px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+
+<main class="tool" id="main">
+  <header>
+    <h1>Vocal <span>Tuner</span></h1>
+    <p>Pitch-correct a vocal the way Auto-Tune does, move it to another key, shift its formants, add harmonies, or play with voice effects. Your recording never leaves your device. Learn how pitch correction works in <a href="music-software-lesson.html#step=9">About Music Software: Editing and pitch correction</a>.</p>
+  </header>
+
+  <section class="panel2" aria-labelledby="h-in">
+    <h2 id="h-in">1. A vocal clip</h2>
+    <div class="drop" id="drop"><p><b>Drop a recording here</b> or choose a file (WAV, MP3, M4A…). A dry solo voice works best: one singer, no instruments, little reverb. Up to 2 minutes.</p>
+      <label class="sr" for="file">Audio file</label><input type="file" id="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.aif,.aiff,.webm"></div>
+    <div class="row"><button class="tbtn" id="rec" type="button">● Record with the microphone</button><span class="note">Use headphones or a quiet room. Recording stops after 2 minutes.</span></div>
+    <p class="status" id="info" aria-live="polite">No clip loaded.</p>
+  </section>
+
+  <section class="panel2" aria-labelledby="h-fx" id="fxBox" hidden>
+    <h2 id="h-fx">2. Tune and transform</h2>
+    <div class="presets" role="group" aria-label="Presets">
+      <button class="tbtn" data-p="natural">Natural fix</button><button class="tbtn" data-p="hard">Hard tune (robotic)</button><button class="tbtn" data-p="robot">Robot monotone</button>
+      <button class="tbtn" data-p="chip">Chipmunk</button><button class="tbtn" data-p="deep">Deep voice</button><button class="tbtn" data-p="helium">Helium (formants up)</button><button class="tbtn" data-p="giant">Giant (formants down)</button>
+      <button class="tbtn" data-p="harm">Harmony in 3rds</button><button class="tbtn" data-p="octave">Octave double</button><button class="tbtn" data-p="off">All off</button></div>
+    <div class="row">
+      <label class="fld" for="key">Key<select id="key"></select></label>
+      <label class="fld" for="scale">Scale<select id="scale"><option>Major</option><option>Natural minor</option><option>Major pentatonic</option><option>Minor pentatonic</option><option>Chromatic</option></select></label>
+      <button class="tbtn" id="detect" type="button">Detect the key</button>
+    </div>
+    <div class="row">
+      <label class="fld" for="amt">Correction amount: <output id="amtO">100%</output><input type="range" id="amt" min="0" max="100" value="100"></label>
+      <label class="fld" for="spd">Retune speed: <output id="spdO">40 ms</output><input type="range" id="spd" min="0" max="400" step="5" value="40"></label>
+      <label class="fld" for="robot"><span>Robot monotone (one note)</span><input type="checkbox" id="robot"></label>
+    </div>
+    <div class="row">
+      <label class="fld" for="xp">Transpose: <output id="xpO">0 semitones</output><input type="range" id="xp" min="-12" max="12" value="0"></label>
+      <label class="fld" for="fm">Formant shift: <output id="fmO">0</output><input type="range" id="fm" min="-12" max="12" value="0"></label>
+      <label class="fld" for="harm">Harmony<select id="harm"><option value="">none</option><option value="3u">a 3rd above</option><option value="3d">a 3rd below</option><option value="5u">a 5th above</option><option value="6d">a 6th below</option><option value="8u">an octave above</option><option value="8d">an octave below</option><option value="35">3rd and 5th above (triad)</option></select></label>
+      <label class="fld" for="mix">Harmony level: <output id="mixO">60%</output><input type="range" id="mix" min="0" max="100" value="60"></label>
+    </div>
+    <p class="note"><b>Transpose</b> moves the pitch while keeping the voice's character (formants) in place. <b>Formant shift</b> changes the size of the "voice" without changing the pitch: up sounds smaller and brighter, down sounds bigger and darker. Chipmunk = pitch up + formants up.</p>
+    <canvas id="graph" role="img" aria-label="Pitch graph of the original and processed vocal"></canvas>
+    <div class="legend"><span><i style="background:#999"></i>sung pitch</span><span><i style="background:#c0392b"></i>after processing</span><span><i style="background:rgba(46,109,180,.8)"></i>harmony</span><span>faint lines: notes of the key</span></div>
+    <div class="row"><button class="tbtn" id="playO" type="button">▶ Original</button><button class="tbtn primary" id="playP" type="button">▶ Processed</button><button class="tbtn" id="stop" type="button">■ Stop</button></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <section class="panel2" aria-labelledby="h-exp" id="expBox" hidden>
+    <h2 id="h-exp">3. Export</h2>
+    <div class="row"><label class="fld" for="fmt">Format<select id="fmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label><button class="tbtn primary" id="export" type="button">Export the processed clip</button></div>
+    <p class="note">For trimming, normalizing or adding reverb afterwards, use the <a href="audio-clip-editor.html">Audio Clip Editor</a>. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL).</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const SCALES = { "Major": [0, 2, 4, 5, 7, 9, 11], "Natural minor": [0, 2, 3, 5, 7, 8, 10], "Major pentatonic": [0, 2, 4, 7, 9], "Minor pentatonic": [0, 3, 5, 7, 10], "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] };
+  $("key").innerHTML = NAMES.map((n, i) => `<option value="${i}">${n}</option>`).join("");
+  let AC = null; const ac = () => { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; AC = new C(); } if (AC.state === "suspended") AC.resume(); return AC; };
+  let X = null, SR = 44100, name = "vocal", P = null, OUTB = null, src = null;   // X: mono input; P: pitch analysis; OUTB: processed buffer
+
+  // ---------- loading ----------
+  function fileRate(u) { const s4 = o => String.fromCharCode(u[o], u[o + 1], u[o + 2], u[o + 3]), le32 = o => (u[o] | u[o + 1] << 8 | u[o + 2] << 16 | u[o + 3] << 24) >>> 0;
+    try { if (s4(0) === "RIFF") for (let o = 12; o < u.length - 8;) { const id = s4(o), sz = le32(o + 4); if (id === "fmt ") return le32(o + 12); o += 8 + sz + (sz & 1); } if (s4(0) === "fLaC") return (u[18] << 12) | (u[19] << 4) | (u[20] >> 4); } catch (e) {} return 0; }
+  async function loadData(data, nm) {
+    $("info").textContent = "Opening…";
+    try {
+      const r = fileRate(new Uint8Array(data)) || 44100, rate = [22050, 32000, 44100, 48000].includes(r) ? r : 44100;
+      let b; try { b = await new OfflineAudioContext(1, 1, rate).decodeAudioData(data.slice(0)); } catch (e) { b = await new Promise((ok, no) => ac().decodeAudioData(data, ok, no)); }
+      SR = b.sampleRate; const n = Math.min(b.length, SR * 120); X = new Float32Array(n);
+      for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) X[i] += d[i] / b.numberOfChannels; }
+      name = nm.replace(/\.[^.]+$/, "");
+      $("info").textContent = `${nm}: ${(n / SR).toFixed(1)} s${b.length > n ? " (shortened to 2 minutes)" : ""}. Analyzing pitch…`;
+      await new Promise(r => setTimeout(r, 30));
+      P = analyze(X, SR); $("fxBox").hidden = false; $("expBox").hidden = false;
+      const voiced = P.f0.filter(f => f > 0).length / Math.max(1, P.f0.length);
+      $("info").textContent = `${nm}: ${(n / SR).toFixed(1)} s, ${SR.toLocaleString("en-US")} Hz. ${voiced < .1 ? "Very little pitched singing was found; results may be odd." : "Pitch analyzed."}`;
+      detectKey(); process();
+    } catch (e) { $("info").textContent = "This browser couldn't read that file. Try WAV or MP3."; }
+  }
+  $("file").onchange = async e => { const f = e.target.files[0]; if (f) loadData(await f.arrayBuffer(), f.name); };
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", async e => { const f = e.dataTransfer.files[0]; if (f) loadData(await f.arrayBuffer(), f.name); });
+  let rec = null;
+  $("rec").onclick = async () => {
+    if (rec) { rec.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { $("info").textContent = "Recording isn't available in this browser."; return; }
+    try { const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); const chunks = []; rec = new MediaRecorder(stream);
+      rec.ondataavailable = e => chunks.push(e.data); rec.onstop = async () => { stream.getTracks().forEach(t => t.stop()); clearTimeout(rec.__t); rec = null; $("rec").textContent = "● Record with the microphone"; $("rec").setAttribute("aria-pressed", "false"); loadData(await new Blob(chunks).arrayBuffer(), "recording"); };
+      rec.start(); rec.__t = setTimeout(() => rec && rec.stop(), 120000); $("rec").textContent = "■ Stop recording"; $("rec").setAttribute("aria-pressed", "true"); $("info").textContent = "Recording… sing, then press Stop recording."; }
+    catch (e) { $("info").textContent = "The microphone is blocked or unavailable."; }
+  };
+
+  // ---------- pitch analysis (YIN on a 4× downsampled copy) ----------
+  function analyze(x, sr) {
+    const ds = sr >= 44100 ? 4 : sr >= 22050 ? 2 : 1, r = sr / ds, y = new Float32Array(Math.floor(x.length / ds));
+    for (let i = 0; i < y.length; i++) { let s = 0; for (let k = 0; k < ds; k++) s += x[i * ds + k]; y[i] = s / ds; }
+    const W = Math.round(r * .04), hop = Math.round(r * .01), tmin = Math.floor(r / 1000), tmax = Math.ceil(r / 65), f0 = [], d = new Float32Array(tmax + 1);
+    let peak = 0; for (let i = 0; i < x.length; i += 64) peak = Math.max(peak, Math.abs(x[i]));
+    for (let s = 0; s + W + tmax < y.length; s += hop) {
+      let e = 0; for (let i = 0; i < W; i++) e += y[s + i] * y[s + i]; const rms = Math.sqrt(e / W);
+      if (rms < peak * .03) { f0.push(0); continue; }
+      let run = 0; d[0] = 1;
+      for (let t = 1; t <= tmax; t++) { let sum = 0; for (let i = 0; i < W; i++) { const q = y[s + i] - y[s + i + t]; sum += q * q; } run += sum; d[t] = run ? sum * t / run : 1; }
+      let tau = -1; for (let t = tmin; t <= tmax; t++) if (d[t] < .15) { while (t + 1 <= tmax && d[t + 1] < d[t]) t++; tau = t; break; }
+      if (tau < 0) { f0.push(0); continue; }
+      const a = d[tau - 1] || d[tau], b = d[tau], c = d[tau + 1] || d[tau], den = a - 2 * b + c, tt = tau + (den ? (a - c) / (2 * den) : 0);
+      f0.push(r / tt);
+    }
+    // median-smooth and remove isolated blips
+    const m = f0.map((v, i) => { const w = f0.slice(Math.max(0, i - 2), i + 3).filter(z => z > 0).sort((p, q) => p - q); return v > 0 && w.length >= 3 ? w[w.length >> 1] : 0; });
+    return { f0: m, hop: hop * ds / sr };
+  }
+  const midiOf = f => 69 + 12 * Math.log2(f / 440);
+
+  // ---------- target pitch curve ----------
+  const S = { amt: 100, spd: 40, robot: false, xp: 0, fm: 0, harm: "", mix: 60 };
+  function snap(m, key, sc) { let best = m, bd = 99; for (let o = -1; o <= 10; o++) sc.forEach(pc => { const c = 12 * o + key + pc, dd = Math.abs(c - m); if (dd < bd) { bd = dd; best = c; } }); return best; }
+  function shiftCurve() {   // semitone shift per analysis frame (0 for unvoiced frames, plus transposition)
+    const key = +$("key").value, sc = SCALES[$("scale").value], f0 = P.f0, out = new Float32Array(f0.length), a = 1 - Math.exp(-P.hop * 1000 / Math.max(1, S.spd));
+    let robotNote = null; if (S.robot) { const ms = f0.filter(f => f > 0).map(midiOf).sort((p, q) => p - q); robotNote = ms.length ? snap(ms[ms.length >> 1], key, [0]) : 60; }
+    let c = 0, was = false;
+    for (let i = 0; i < f0.length; i++) {
+      if (!f0[i]) { out[i] = 0; was = false; continue; }
+      const m = midiOf(f0[i]), target = S.robot ? robotNote : snap(m, key, sc), want = (target - m) * S.amt / 100;
+      c = !was || S.spd <= 0 ? want : c + (want - c) * a; was = true; out[i] = c;
+    }
+    return out;
+  }
+
+  // ---------- TD-PSOLA pitch shifting with optional formant shift ----------
+  function psola(x, sr, f0, hop, shiftSt, formant) {
+    const N = x.length, y = new Float32Array(N), fr = i => Math.min(f0.length - 1, Math.max(0, Math.floor(i / sr / hop)));
+    // analysis marks: one period apart in voiced parts, every 5 ms elsewhere
+    const marks = []; let t = 0;
+    while (t < N) {
+      const k = fr(t), f = f0[k], T = f > 0 ? sr / f : sr * .005;
+      marks.push([t, T, f > 0]); t += Math.max(1, T);   // marks one period apart (fractional), so the grains stay in phase
+    }
+    let ts = 0, mi = 0;
+    while (ts < N) {
+      while (mi + 1 < marks.length && Math.abs(marks[mi + 1][0] - ts) <= Math.abs(marks[mi][0] - ts)) mi++;
+      const [ta, Ta, voiced] = marks[mi], k = fr(ts), ratio = Math.pow(2, ((voiced ? shiftSt[k] : 0) + (voiced ? S.xp : 0)) / 12), To = voiced ? Ta / ratio : Ta;
+      const fmr = voiced ? formant : 1, half = Math.max(2, Math.round(Ta / fmr)), g = (To * fmr) / Ta;
+      for (let j = -half; j <= half; j++) {
+        const o = Math.round(ts) + j; if (o < 0 || o >= N) continue;
+        const sp = ta + j * fmr, i0 = Math.floor(sp), fra = sp - i0; if (i0 < 0 || i0 + 1 >= N) continue;
+        const w = .5 + .5 * Math.cos(Math.PI * j / half);
+        y[o] += (x[i0] * (1 - fra) + x[i0 + 1] * fra) * w * g;
+      }
+      ts += Math.max(1, To);
+    }
+    return y;
+  }
+  const HARM = { "3u": [{ d: 2 }], "3d": [{ d: -2 }], "5u": [{ d: 4 }], "6d": [{ d: -5 }], "8u": [{ st: 12 }], "8d": [{ st: -12 }], "35": [{ d: 2 }, { d: 4 }] };   // d: scale steps, st: semitones
+  function harmonyCurve(sh, steps) {   // a diatonic interval above/below the corrected note
+    const key = +$("key").value, sc = SCALES[$("scale").value].length >= 7 ? SCALES[$("scale").value] : SCALES.Major, out = new Float32Array(sh.length);
+    P.f0.forEach((f, i) => { if (!f) return; const m = Math.round(midiOf(f) + sh[i]), rel = ((m - key) % 12 + 12) % 12; let idx = sc.indexOf(rel); if (idx < 0) { out[i] = sh[i] + (steps > 0 ? 3 : -3); return; }
+      const j = idx + steps, oct = Math.floor(j / sc.length), tgt = key + sc[((j % sc.length) + sc.length) % sc.length] + 12 * oct + (m - key - rel); out[i] = sh[i] + (tgt - m); });
+    return out;
+  }
+  let busy = 0;
+  function process() {
+    if (!X) return; const my = ++busy; $("status").textContent = "Processing…";
+    setTimeout(() => {
+      if (my !== busy) return;
+      const t = performance.now(), sh = shiftCurve(), fmt = Math.pow(2, S.fm / 12), main = psola(X, SR, P.f0, P.hop, sh, fmt);
+      const voices = [main]; let hcurves = [];
+      if (S.harm) HARM[S.harm].forEach(h => { const hc = h.st ? sh.map(v => v + h.st) : harmonyCurve(sh, h.d); hcurves.push(hc); voices.push(psola(X, SR, P.f0, P.hop, hc, fmt)); });
+      const b = ac().createBuffer(2, X.length, SR), L = b.getChannelData(0), R = b.getChannelData(1), hm = S.mix / 100;
+      for (let i = 0; i < X.length; i++) { let l = main[i], r = main[i]; for (let v = 1; v < voices.length; v++) { const pan = voices.length === 2 ? 0 : v === 1 ? -.5 : .5; l += voices[v][i] * hm * (1 - pan) * .8; r += voices[v][i] * hm * (1 + pan) * .8; } L[i] = l; R[i] = r; }
+      let pk = 0; for (let i = 0; i < X.length; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i])); let xp = 0; for (let i = 0; i < X.length; i++) xp = Math.max(xp, Math.abs(X[i]));
+      if (pk > .98 || pk > xp * 1.4) { const g = Math.min(.98, xp * 1.2) / pk; for (let i = 0; i < X.length; i++) { L[i] *= g; R[i] *= g; } }
+      OUTB = b; draw(sh, hcurves); $("status").textContent = `Done in ${Math.round(performance.now() - t)} ms.`;
+    }, 20);
+  }
+
+  // ---------- pitch graph ----------
+  function draw(sh, hcs) {
+    const cv = $("graph"), W = cv.clientWidth * devicePixelRatio, H = cv.clientHeight * devicePixelRatio; cv.width = W; cv.height = H;
+    const g = cv.getContext("2d"), f0 = P.f0, ms = f0.filter(f => f > 0).map(midiOf); if (!ms.length) { g.clearRect(0, 0, W, H); return; }
+    const all = ms.concat(f0.map((f, i) => f ? midiOf(f) + sh[i] : null).filter(v => v != null)), lo = Math.floor(Math.min(...all)) - 2, hi = Math.ceil(Math.max(...all)) + 2 + (hcs.length ? 6 : 0), lo2 = lo - (hcs.length ? 6 : 0);
+    const x = i => 40 * devicePixelRatio + (W - 46 * devicePixelRatio) * i / f0.length, y = m => H - 6 - (H - 12) * (m - lo2) / (hi - lo2);
+    const key = +$("key").value, sc = SCALES[$("scale").value];
+    g.clearRect(0, 0, W, H); g.font = `${11 * devicePixelRatio}px sans-serif`;
+    for (let m = Math.ceil(lo2); m <= hi; m++) { const pc = ((m - key) % 12 + 12) % 12; if (!sc.includes(pc)) continue; g.fillStyle = pc === 0 ? "rgba(0,0,0,.18)" : "rgba(0,0,0,.08)"; g.fillRect(40 * devicePixelRatio, y(m), W, 1); if ((hi - lo2) < 30 || pc === 0) { g.fillStyle = "#777"; g.fillText(NAMES[m % 12] + (Math.floor(m / 12) - 1), 2, y(m) + 4); } }
+    const line = (fn, color, wd) => { g.strokeStyle = color; g.lineWidth = wd * devicePixelRatio; g.beginPath(); let on = false; f0.forEach((f, i) => { if (!f) { on = false; return; } const v = fn(f, i); if (!on) g.moveTo(x(i), y(v)); else g.lineTo(x(i), y(v)); on = true; }); g.stroke(); };
+    line(f => midiOf(f), "#999", 2);
+    hcs.forEach(hc => line((f, i) => midiOf(f) + hc[i] + S.xp, "rgba(46,109,180,.8)", 1.5));
+    line((f, i) => midiOf(f) + sh[i] + S.xp, "#c0392b", 2);
+  }
+
+  // ---------- key detection ----------
+  function detectKey() {
+    const w = new Array(12).fill(0); P.f0.forEach(f => { if (f) w[((Math.round(midiOf(f)) % 12) + 12) % 12]++; });
+    let best = 0, bs = -1, minor = false; for (let k = 0; k < 12; k++) [[SCALES.Major, false], [SCALES["Natural minor"], true]].forEach(([sc, mi]) => { const s = sc.reduce((a, pc) => a + w[(k + pc) % 12], 0) + w[k] * .5 + w[(k + 7) % 12] * .25; if (s > bs) { bs = s; best = k; minor = mi; } });
+    $("key").value = best; $("scale").value = minor ? "Natural minor" : "Major"; return NAMES[best] + (minor ? " minor" : " major");
+  }
+  $("detect").onclick = () => { if (!P) return; const k = detectKey(); $("status").textContent = `Best guess: ${k}.`; process(); };
+
+  // ---------- controls ----------
+  const sync = () => { $("amtO").textContent = S.amt + "%"; $("spdO").textContent = S.spd + " ms" + (S.spd === 0 ? " (instant)" : ""); $("xpO").textContent = (S.xp > 0 ? "+" : "") + S.xp + " semitone" + (Math.abs(S.xp) === 1 ? "" : "s"); $("fmO").textContent = S.fm === 0 ? "0" : (S.fm > 0 ? "+" : "") + S.fm + (S.fm > 0 ? " (smaller voice)" : " (bigger voice)"); $("mixO").textContent = S.mix + "%";
+    $("amt").value = S.amt; $("spd").value = S.spd; $("xp").value = S.xp; $("fm").value = S.fm; $("mix").value = S.mix; $("harm").value = S.harm; $("robot").checked = S.robot; };
+  let deb = 0; const later = () => { clearTimeout(deb); deb = setTimeout(process, 250); };
+  ["amt", "spd", "xp", "fm", "mix"].forEach(id => $(id).addEventListener("input", e => { S[id] = +e.target.value; sync(); later(); }));
+  $("harm").onchange = e => { S.harm = e.target.value; later(); };
+  $("robot").onchange = e => { S.robot = e.target.checked; later(); };
+  ["key", "scale"].forEach(id => $(id).addEventListener("change", later));
+  const PRE = { natural: { amt: 80, spd: 120, robot: false, xp: 0, fm: 0, harm: "" }, hard: { amt: 100, spd: 0, robot: false, xp: 0, fm: 0, harm: "" }, robot: { amt: 100, spd: 0, robot: true, xp: 0, fm: 0, harm: "" },
+    chip: { amt: 0, spd: 40, robot: false, xp: 7, fm: 7, harm: "" }, deep: { amt: 0, spd: 40, robot: false, xp: -7, fm: -4, harm: "" }, helium: { amt: 0, spd: 40, robot: false, xp: 0, fm: 8, harm: "" }, giant: { amt: 0, spd: 40, robot: false, xp: 0, fm: -7, harm: "" },
+    harm: { amt: 100, spd: 30, robot: false, xp: 0, fm: 0, harm: "3u", mix: 60 }, octave: { amt: 90, spd: 40, robot: false, xp: 0, fm: 0, harm: "8d", mix: 55 }, off: { amt: 0, spd: 40, robot: false, xp: 0, fm: 0, harm: "" } };
+  document.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { Object.assign(S, PRE[b.dataset.p]); sync(); document.querySelectorAll("[data-p]").forEach(x => x.setAttribute("aria-pressed", x === b)); process(); });
+  sync();
+
+  // ---------- playback and export ----------
+  function stop() { if (src) { try { src.stop(); } catch (e) {} src = null; } }
+  function playBuf(b) { stop(); ac(); src = AC.createBufferSource(); src.buffer = b; src.connect(AC.destination); src.start(); }
+  $("playO").onclick = () => { if (!X) return; const b = ac().createBuffer(1, X.length, SR); b.getChannelData(0).set(X); playBuf(b); };
+  $("playP").onclick = () => { if (OUTB) playBuf(OUTB); };
+  $("stop").onclick = stop;
+  function wav(b) {
+    const ch = b.numberOfChannels, n = b.length, ab = new ArrayBuffer(44 + n * ch * 2), v = new DataView(ab), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n * ch * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true); v.setUint32(24, b.sampleRate, true); v.setUint32(28, b.sampleRate * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * ch * 2, true);
+    const cs = Array.from({ length: ch }, (_, c) => b.getChannelData(c)); let o = 44; for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const x = Math.max(-1, Math.min(1, cs[c][i])); v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true); o += 2; }
+    return new Blob([ab], { type: "audio/wav" });
+  }
+  async function mp3(b) {
+    if (!window.lamejs) await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "assets/lame.min.js"; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+    const rate = [32000, 44100, 48000].includes(b.sampleRate) ? b.sampleRate : 44100;
+    if (rate !== b.sampleRate) { const off = new OfflineAudioContext(2, Math.ceil(b.duration * rate), rate), s = off.createBufferSource(); s.buffer = b; s.connect(off.destination); s.start(); b = await off.startRendering(); }
+    const enc = new lamejs.Mp3Encoder(2, rate, 192), I = d => Int16Array.from(d, x => Math.max(-32768, Math.min(32767, x * 32767))), L = I(b.getChannelData(0)), R = I(b.getChannelData(1)), parts = [];
+    for (let i = 0; i < L.length; i += 1152) { const x = enc.encodeBuffer(L.subarray(i, i + 1152), R.subarray(i, i + 1152)); if (x.length) parts.push(new Uint8Array(x)); }
+    const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" });
+  }
+  $("export").onclick = async () => { if (!OUTB) return; const f = $("fmt").value, blob = f === "mp3" ? await mp3(OUTB) : wav(OUTB), url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = `${name}-tuned.${f}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); $("status").textContent = `Saved ${a.download}.`; };
+  window.__vt = { get P() { return P; }, get OUTB() { return OUTB; }, analyze, S, process, loadData };   // used by automated tests
+})();
+</script>

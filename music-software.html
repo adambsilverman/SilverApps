@@ -650,6 +650,7 @@ window.FAM = (() => {
         <label>Swing <input type="range" data-dmx="swing" min="0" max="60" value="${DM.swing}"></label></div>
       <div class="toy-row"><label>Pitch for beeps and boops <select data-dmx="brush">${PITCHES.map(m => `<option value="${m}" ${m === DM.brush ? "selected" : ""}>${nn(m)}</option>`).join("")}</select></label>
         <button class="play" data-dmx="p:rock">Rock beat</button><button class="play" data-dmx="p:four">Four on the floor</button><button class="play" data-dmx="p:clave">Clave</button><button class="play" data-dmx="p:melody">Random melody</button><button class="play" data-dmx="p:clear">Clear</button></div>
+      <div class="toy-row"><label>Export <select data-dmx="xloops">${[1, 2, 4, 8, 16].map(n => `<option value="${n}" ${n === (DM.xloops || 4) ? "selected" : ""}>${n} loop${n > 1 ? "s" : ""}</option>`).join("")}</select></label><label>as <select data-dmx="xfmt"><option value="wav">WAV</option><option value="mp3" ${DM.xfmt === "mp3" ? "selected" : ""}>MP3</option></select></label><button class="play" data-dmx="export">Export audio file</button><span class="lnote" id="dmX" aria-live="polite"></span></div>
       <div class="dmgrid" tabindex="0" role="region" aria-label="Drum machine grid" style="--n:${n}">${ROWS.map(([r, l]) => `<div class="dmrow"><span class="dml">${l}</span><div class="dmcells">${cells(r)}</div></div>`).join("")}</div>
       <p class="lnote">${DM.beats} beats × ${DM.div} division${DM.div > 1 ? "s" : ""} = ${n} steps per loop. Try 3 or 6 divisions for triplet and compound feels, 5 or 7 for something unusual.</p></div>`;
   };
@@ -661,6 +662,7 @@ window.FAM = (() => {
       if (v && ac()) drum(r, AC.currentTime + .01, OUT, .9, typeof v === "number" ? v : 60); return; }
     const x = e.target.closest("[data-dmx]"); if (!x) return; const k = x.dataset.dmx;
     if (k === "play") { DM.playing ? dmStop() : dmStart(); x.textContent = DM.playing ? "■ Stop" : "▶ Play"; }
+    if (k === "export") dmExport();
     if (k.startsWith("p:")) { const p = k.slice(2); if (p === "clear") DM.grid = {}; else dmPreset(p); dmRedraw(); }
   });
   document.addEventListener("change", e => {
@@ -670,8 +672,34 @@ window.FAM = (() => {
       Object.entries(DM.grid).forEach(([key, val]) => { const [r, i] = key.split(":"), b = Math.floor(i / old.d), s = i % old.d, frac = s / old.d, ns = Math.round(frac * DM.div); if (b < DM.beats && ns < DM.div) ng[r + ":" + (b * DM.div + ns)] = val; });
       DM.grid = ng; dmRedraw(); }
     if (k === "brush") DM.brush = v;
+    if (k === "xloops") DM.xloops = v;
+    if (k === "xfmt") DM.xfmt = x.value;
   });
   document.addEventListener("input", e => { const x = e.target.closest('[data-dmx="swing"]'); if (x) DM.swing = +x.value; });
+  // render the pattern offline (the same drum() voices, swapped onto an OfflineAudioContext) and download it
+  function wavBlob(b) {
+    const ch = b.numberOfChannels, n = b.length, ab = new ArrayBuffer(44 + n * ch * 2), v = new DataView(ab), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n * ch * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true); v.setUint32(24, b.sampleRate, true); v.setUint32(28, b.sampleRate * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * ch * 2, true);
+    const cs = Array.from({ length: ch }, (_, c) => b.getChannelData(c)); let o = 44; for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const x = Math.max(-1, Math.min(1, cs[c][i])); v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true); o += 2; }
+    return new Blob([ab], { type: "audio/wav" });
+  }
+  async function mp3Blob(b) {
+    if (!window.lamejs) await new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = "assets/lame.min.js"; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+    const enc = new lamejs.Mp3Encoder(2, b.sampleRate, 192), I = d => Int16Array.from(d, x => Math.max(-32768, Math.min(32767, x * 32767))), L = I(b.getChannelData(0)), R = I(b.getChannelData(b.numberOfChannels > 1 ? 1 : 0)), parts = [];
+    for (let i = 0; i < L.length; i += 1152) { const x = enc.encodeBuffer(L.subarray(i, i + 1152), R.subarray(i, i + 1152)); if (x.length) parts.push(new Uint8Array(x)); }
+    const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" });
+  }
+  async function dmExport() {
+    if (!ac()) return; const loops = DM.xloops || 4, fmt = DM.xfmt || "wav", st = $q("#dmX"), stepDur = 60 / DM.bpm / DM.div, len = loops * steps() * stepDur;
+    if (st) st.textContent = "Rendering…"; noise();
+    const keep = { AC, OUT }; try {
+      AC = new OfflineAudioContext(2, Math.ceil(44100 * (len + 1)), 44100); OUT = AC.createGain(); OUT.gain.value = .8; OUT.connect(AC.destination);
+      for (let i = 0; i < loops * steps(); i++) { const p = i % steps(), sw = DM.div % 2 === 0 && p % 2 === 1 ? DM.swing / 100 * stepDur * .66 : 0, t = .02 + i * stepDur + sw; ROWS.forEach(([r]) => { const v = DM.grid[r + ":" + p]; if (v) drum(r, t, OUT, p % DM.div === 0 ? 1 : .8, typeof v === "number" ? v : 60); }); }
+      const buf = await AC.startRendering(); AC = keep.AC; OUT = keep.OUT;
+      const blob = fmt === "mp3" ? await mp3Blob(buf) : wavBlob(buf), url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = `drum-pattern-${DM.bpm}bpm.${fmt}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+      if (st) st.textContent = `Saved ${a.download} (${loops} loop${loops > 1 ? "s" : ""}, ${len.toFixed(1)} s).`;
+    } catch (e) { AC = keep.AC; OUT = keep.OUT; if (st) st.textContent = "Export failed: " + e.message; }
+  }
   let dmTimer = 0, dmNext = 0, dmI = 0, dmQ = [];
   function dmStart() { if (!ac()) return; DM.playing = true; dmI = 0; dmNext = AC.currentTime + .08; dmQ = []; dmTimer = setInterval(dmTick, 25); requestAnimationFrame(dmDraw); }
   function dmStop() { DM.playing = false; clearInterval(dmTimer); document.querySelectorAll(".dmc.now").forEach(c => c.classList.remove("now")); }
@@ -1037,6 +1065,7 @@ window.FAM = (() => {
         <ul><li><b>Automatic (real-time)</b>, like <a href="https://www.antarestech.com/" target="_blank" rel="noopener">Antares Auto-Tune</a>: you set the key or scale and a <b>retune speed</b>. Gentle settings fix small slips invisibly; a speed of 0 snaps every note instantly, removing scoops and vibrato. That's the stepped, robotic sound made famous in late-1990s pop and now a standard vocal style in hip-hop, pop and many other genres.</li>
         <li><b>Graphical (note-by-note)</b>, like <a href="https://www.celemony.com/" target="_blank" rel="noopener">Celemony Melodyne</a>, Logic's Flex Pitch or Cubase's VariAudio: each sung note appears as a blob you can move, re-center, flatten or re-shape by hand, even changing the melody. Melodyne can also edit single notes inside chords.</li></ul>
         Free tools for trying it in a DAW include <a href="https://www.meldaproduction.com/MAutoPitch" target="_blank" rel="noopener">MAutoPitch</a> (MeldaProduction) and the free edition of <a href="https://www.auburnsounds.com/products/Graillon.html" target="_blank" rel="noopener">Graillon</a> (Auburn Sounds); <a href="https://www.celemony.com/" target="_blank" rel="noopener">Melodyne</a> has a free trial.</li></ul>
+      <p><b>Try it on a real voice:</b> the <a href="vocal-tuner.html">Vocal Tuner</a> tunes your own recording to a key, with amount and speed controls, and adds harmonies and voice effects.</p>
       <h3>Try it: a pitch-correction simulator</h3>
       <p>Here is a synthetic singer with realistic flaws: scooping up into notes, landing a little sharp or flat, wobbling with vibrato. Choose a key, set the retune speed and compare. (It's a simulation of the idea, not a real vocal processor.)</p>
       ${atToy()}` },

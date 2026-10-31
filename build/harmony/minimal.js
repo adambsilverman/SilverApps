@@ -47,9 +47,9 @@ window.FAM = (() => {
     },
     harm: H => { const m = H.rnd(Object.keys(TRI)); return H.mc(`Tintinnabuli in A minor: the triad voice uses only A, C and E, taking the nearest triad note above the melody note. If the melody note is ${m}, which note does the triad voice take?`, TRI[m], ["A", "C", "E"].filter(x => x !== TRI[m]).concat([m]), `The nearest A-minor triad note above ${m} is ${TRI[m]}.`); },
   };
-  const add = { type: "score", clefs: ["treble"], time: null, vf: "C", sig: {}, bpm: 160, minBar: 90, final: false, bars: [
-    { t: [[{ k: ["C5"], d: "8", ly: "1" }, { k: ["G4"], d: "8" }]] }, { t: [[{ k: ["C5"], d: "8", ly: "2" }, { k: ["G4"], d: "8" }, { k: ["E5"], d: "8" }]] },
-    { t: [[{ k: ["C5"], d: "8", ly: "3" }, { k: ["G4"], d: "8" }, { k: ["E5"], d: "8" }, { k: ["G4"], d: "8" }]] }, { t: [[{ k: ["C5"], d: "8", ly: "4" }, { k: ["G4"], d: "8" }, { k: ["E5"], d: "8" }, { k: ["G4"], d: "8" }, { k: ["D5"], d: "8" }]] }] };
+  // additive process: each bar adds an eighth, so the meter grows (2/8, 3/8, 4/8, 5/8); each bar beamed as one group
+  const ADD = ["C5", "G4", "E5", "G4", "D5"];
+  const add = { type: "score", clefs: ["treble"], time: "2/8", vf: "C", sig: {}, bpm: 160, minBar: 60, final: true, bars: [2, 3, 4, 5].map((n, b) => Object.assign({ t: [ADD.slice(0, n).map((k, i) => Object.assign({ k: [k], d: "8" }, i === 0 ? { ly: String(b + 1) } : {}))], groups: [n + "/8"] }, b ? { time: n + "/8" } : {})) };
   const lesson = { steps: [
     { title: "Less, slowly", kick: "What minimalism is", render: () => `<p><b>Minimalism</b> emerged in the 1960s in the United States, in the work of La Monte Young, Terry Riley, Steve Reich and Philip Glass, and soon spread widely. Its music typically uses:</p>
       <ul><li><b>Repetition</b> of short patterns, often over a steady <b>pulse</b>.</li><li><b>Gradual change</b>: small, audible steps rather than sudden contrasts.</li><li><b>Limited material</b>: few pitches, a single mode or chord for a long time.</li><li><b>Process</b>: a rule that generates the music, which the listener can follow.</li></ul>
@@ -77,6 +77,7 @@ window.FAM = (() => {
       <li>Hold one chord or a drone for a long time and vary only timbre, register or density.</li>
       <li>Write a melody by step and add a triad voice in the tintinnabuli way.</li>
       <li>In a DAW: long reverbs, delays synced to unusual note values, slow filter and volume automation.</li></ul>
+      <p>Try all of these in the <a href="process-lab.html">Minimalist Process Lab</a>: write a fragment and set canons, phasing, additive and subtractive processes, chord loops and drones running in several voices.</p>
       <p>These techniques are everywhere: in film and game scores, electronic dance music, pop production and contemporary classical music.</p>` },
     { title: "Quick check", kick: "Before the drills", render: H => Object.keys(F).map(m => { const [q, a, w, y] = F[m][0]; return H.check(q, a, w, y); }).join("") },
   ] };
