@@ -56,7 +56,7 @@ window.FAM = (() => {
   function kDraw() { if (!MP.on) return; let cur = null; while (kQ.length && kQ[0][0] <= KAC.currentTime) cur = kQ.shift()[1]; if (cur != null) { document.querySelectorAll(".mpd.now").forEach(e => e.classList.remove("now")); const el = document.querySelector(`.mpd[data-i="${cur}"]`); if (el) el.classList.add("now"); } requestAnimationFrame(kDraw); }
   const mpDots = () => { const g = MTR[MP.m][0]; let i = 0; return g.map((d, b) => `<span class="mpb">${Array.from({ length: d }, (_, k) => `<i class="mpd${k === 0 ? " beat" : ""}${k === 0 && b === 0 ? " one" : ""}" data-i="${i++}"></i>`).join("")}</span>`).join(""); };
   const mpView = () => `<div class="toy" data-mp>
-    <div class="toy-row" role="group" aria-label="Meter">${Object.keys(MTR).map(m => `<button class="play" data-mpm="${m}" aria-pressed="${m === MP.m}">${m}</button>`).join("")}</div>
+    ${[["Simple", ["2/4", "3/4", "4/4"]], ["Compound", ["6/8", "9/8", "12/8"]], ["Asymmetrical", ["5/8 (2+3)", "5/8 (3+2)", "7/8 (2+2+3)", "7/8 (3+2+2)"]]].map(([lab, ms]) => `<div class="toy-row mprow" role="group" aria-label="${lab} meters"><span class="mplab">${lab}</span>${ms.map(m => `<button class="play" data-mpm="${m}" aria-pressed="${m === MP.m}">${m}</button>`).join("")}</div>`).join("")}
     <div class="toy-row"><button class="play" data-mpx="go">${MP.on ? "■ Stop" : "▶ Play"}</button>
       <label><input type="checkbox" data-mpx="beat" ${MP.beat ? "checked" : ""}> Beats (kick, snare${"/"}tom)</label>
       <label><input type="checkbox" data-mpx="div" ${MP.div ? "checked" : ""}> Divisions (hi-hat)</label>
