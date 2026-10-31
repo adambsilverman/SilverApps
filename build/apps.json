@@ -15,6 +15,14 @@
           "class": true
         },
         {
+          "name": "Timbre",
+          "topic": "Tone color",
+          "blurb": "Spectra, envelopes, formants and noise: what makes instruments and voices sound different, with sound toys and ear drills.",
+          "lesson": "timbre-lesson.html",
+          "drills": "timbre.html",
+          "class": true
+        },
+        {
           "name": "Reading Pitch",
           "topic": "Clefs & staff",
           "blurb": "Treble, bass, alto, tenor and grand staff, with memory devices and clef history.",
@@ -83,6 +91,22 @@
           "blurb": "9ths, 11ths, 13ths, altered tones and how to write chord symbols.",
           "lesson": "extended-and-altered-chords-lesson.html",
           "drills": "chord-extension-practicer.html",
+          "class": true
+        },
+        {
+          "name": "Texture",
+          "topic": "Texture",
+          "blurb": "Monophony, heterophony, homophony and polyphony, with a layer builder and freshly generated listening examples.",
+          "lesson": "texture-lesson.html",
+          "drills": "texture.html",
+          "class": true
+        },
+        {
+          "name": "Introduction to Roman Numeral Analysis",
+          "topic": "Roman numerals",
+          "blurb": "Diatonic and chromatic Roman numerals, two ways to label minor, and why numerals survive transposition.",
+          "lesson": "roman-numeral-analysis-lesson.html",
+          "drills": "roman-numerals.html",
           "class": true
         }
       ]
@@ -373,6 +397,13 @@
           "topic": "Repetition and process",
           "blurb": "Write a fragment and run canons, phasing, additive and subtractive processes, chord loops, drones and drum beats on it; export audio.",
           "open": "process-lab.html",
+          "note": "Creative tool"
+        },
+        {
+          "name": "Chord Progression Lab",
+          "topic": "Roman numerals in action",
+          "blurb": "Build progressions from diatonic and chromatic Roman numerals, voice them, add bass and drums, transpose and export audio.",
+          "open": "chord-progression-lab.html",
           "note": "Creative tool"
         }
       ]

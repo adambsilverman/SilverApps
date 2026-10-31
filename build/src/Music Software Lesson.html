@@ -408,6 +408,21 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .ikbnote { font-size: .85rem; color: var(--muted, #666); text-align: center; margin: 4px 0 0; }
 .mprow { gap: 8px; } .mplab { flex: 0 0 8.5em; font-weight: 700; font-size: .9rem; }
 @media (max-width: 480px) { .mplab { flex-basis: 100%; } }
+.pcpanel { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 6px 0; }
+.pcf { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.pcf input[type=number] { width: 7em; min-height: 40px; font: inherit; padding: 4px 6px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+.pcf select { min-height: 40px; font: inherit; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+
+.fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 10px 0; }
+.fxcard { border: 1px solid var(--line, #ccc); border-radius: 10px; margin: 0; padding: 6px 10px 10px; display: grid; gap: 6px; opacity: .8; }
+.fxcard.on { opacity: 1; border-color: var(--accent, #1a5fb4); box-shadow: inset 4px 0 0 var(--accent, #1a5fb4); }
+.fxcard legend { font-weight: 700; padding: 0 4px; }
+
+.tmspec { width: 100%; max-width: 320px; height: auto; color: var(--ink, #222); display: block; }
+.tmwave { width: 100%; max-width: 300px; height: auto; color: var(--accent, #1a5fb4); display: block; }
+.txlay { border: 1px solid var(--line, #ccc); border-radius: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 14px; padding: 8px 12px; margin: 0; }
+.txlay legend { font-weight: 700; padding: 0 4px; }
+.txlay label { display: flex; gap: 8px; align-items: center; min-height: 32px; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -953,6 +968,10 @@ window.FAM = (() => {
       ["Common plug-in formats are…", "VST3, AU and AAX", ["MP3, WAV and AIFF", "PDF, PNG and SVG", "MIDI, OSC and DMX"], "AU is Apple's; AAX is for Pro Tools; VST3 works in most DAWs."],
       ["'Bouncing' a mix means…", "rendering the tracks and effects into a single audio file", ["deleting the project", "speeding it up", "printing the score"], "Also called exporting or mixdown."],
       ["Which DAW layout is built around launching loops and clips in real time?", "a clip (session) view, as in Ableton Live or Bitwig", ["a notation view", "a cue sheet", "a tape machine"], "Most DAWs also have a linear timeline (arrangement) view."],
+      ["A chorus effect works by…", "mixing in copies delayed by a few tens of milliseconds whose delay time slowly wobbles", ["repeating the sound every beat", "clipping the waveform", "turning down loud moments"], "The wobbling delay makes the copies drift slightly out of tune, like several players on one part."],
+      ["A compressor with a 4:1 ratio…", "lets the signal rise only 1 dB for every 4 dB it goes above the threshold", ["makes the track 4 times louder", "cuts frequencies above 4 kHz", "repeats the sound 4 times"], "Compression reduces the level of whatever exceeds the threshold; makeup gain restores the overall level."],
+      ["Tremolo is a regular change of…", "volume", ["pitch", "tempo", "stereo position only"], "Vibrato is a regular change of pitch; tremolo changes loudness."],
+      ["Reverb differs from delay in that it…", "blends thousands of reflections into a smooth tail instead of distinct repeats", ["changes the pitch", "removes noise", "only works on drums"], "Delay gives audible echoes; reverb simulates the many reflections of a room."],
     ],
     synth: [
       ["In subtractive synthesis, the filter…", "removes some overtones from a bright oscillator wave", ["adds new notes", "changes the tempo", "records audio"], "A low-pass filter's cutoff sets how bright the sound is; resonance boosts the area near the cutoff."],
@@ -995,6 +1014,115 @@ window.FAM = (() => {
       return H.mc(`Middle C (C4) is MIDI note 60. What MIDI note number is ${nm}?`, String(n), [n + 1, n - 1, n + 12, n - 12].map(String), `One number per semitone: ${nm} is ${n - 60 >= 0 ? n - 60 + " above" : 60 - n + " below"} C4, so ${n}.`);
     },
   };
+  // ================= effects rack: a source (built-in loop or the user's file) through a chain of classic effects =================
+  const FXD = [   // [id, name, params [key, label, min, max, step, value, unit]]
+    ["eq", "EQ", [["low", "Low shelf (100 Hz)", -15, 15, .5, 0, "dB"], ["mid", "Mid boost/cut", -15, 15, .5, 0, "dB"], ["midF", "Mid frequency", 200, 5000, 10, 1000, "Hz"], ["high", "High shelf (6 kHz)", -15, 15, .5, 0, "dB"]]],
+    ["filter", "Filter / auto-wah", [["cut", "Cutoff", 100, 10000, 10, 1500, "Hz"], ["q", "Resonance", .5, 20, .1, 6, ""], ["rate", "LFO rate", 0, 8, .1, 2, "Hz"], ["depth", "LFO depth", 0, 100, 1, 60, "%"]]],
+    ["dist", "Distortion", [["drive", "Drive", 1, 100, 1, 30, ""], ["tone", "Tone", 500, 12000, 50, 4000, "Hz"], ["mix", "Mix", 0, 100, 1, 100, "%"]]],
+    ["lofi", "Lo-fi (bit crusher)", [["bits", "Bit depth", 2, 12, 1, 5, "bits"], ["lp", "Bandwidth", 800, 12000, 50, 4000, "Hz"]]],
+    ["comp", "Compressor", [["thr", "Threshold", -60, 0, 1, -28, "dB"], ["ratio", "Ratio", 1, 20, .5, 6, ": 1"], ["atk", "Attack", 0, 200, 1, 5, "ms"], ["rel", "Release", 10, 1000, 10, 150, "ms"], ["makeup", "Makeup gain", 0, 24, .5, 8, "dB"]]],
+    ["chorus", "Chorus", [["rate", "Rate", .05, 3, .05, .6, "Hz"], ["depth", "Depth", 0, 8, .1, 3, "ms"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    ["flanger", "Flanger", [["rate", "Rate", .05, 3, .05, .25, "Hz"], ["depth", "Depth", 0, 5, .1, 2, "ms"], ["fb", "Feedback", 0, 90, 1, 60, "%"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    ["phaser", "Phaser", [["rate", "Rate", .05, 4, .05, .5, "Hz"], ["depth", "Depth", 0, 100, 1, 70, "%"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    ["trem", "Tremolo", [["rate", "Rate", .5, 15, .1, 6, "Hz"], ["depth", "Depth", 0, 100, 1, 60, "%"]]],
+    ["delay", "Delay / echo", [["time", "Time", 20, 1000, 5, 375, "ms"], ["fb", "Feedback", 0, 90, 1, 40, "%"], ["mix", "Mix", 0, 100, 1, 35, "%"], ["pp", "Ping-pong", 0, 1, 1, 1, ""]]],
+    ["reverb", "Reverb", [["size", "Decay", .3, 8, .1, 2.5, "s"], ["pre", "Pre-delay", 0, 150, 1, 20, "ms"], ["mix", "Mix", 0, 100, 1, 30, "%"]]],
+  ];
+  const FXS = { on: {}, p: {}, src: "drums", buf: {}, playing: false, bypass: false, upName: "" };
+  FXD.forEach(([id, , ps]) => { FXS.on[id] = false; FXS.p[id] = Object.fromEntries(ps.map(q => [q[0], q[5]])); });
+  // build one chain on any context; returns { input, output, update(), comp }
+  function fxChain(C) {
+    const node = (t) => C["create" + t](), G = v => { const g = C.createGain(); g.gain.value = v; return g; }, nodes = {};
+    const input = G(1); let prev = input;
+    const block = (id, build) => { const dry = G(1), wet = G(0), out = G(1), b = build(); prev.connect(dry); prev.connect(b.in); b.out.connect(wet); dry.connect(out); wet.connect(out); nodes[id] = Object.assign(b, { dry, wet }); prev = out; };
+    const lfo = (rate, amt, target) => { const o = C.createOscillator(), g = G(amt); o.frequency.value = rate; o.connect(g); g.connect(target); o.start(); return { o, g }; };
+    const curveDist = (k) => { const n = 2048, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const curveBits = (bits) => { const n = 4096, c = new Float32Array(n), st = Math.pow(2, bits - 1); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.round(x * st) / st; } return c; };
+    const ir = (dec) => { const L = Math.floor(C.sampleRate * dec), b = C.createBuffer(2, L, C.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(10, -3 * i / L); } return b; };
+    block("eq", () => { const lo = node("BiquadFilter"), mid = node("BiquadFilter"), hi = node("BiquadFilter"); lo.type = "lowshelf"; lo.frequency.value = 100; mid.type = "peaking"; mid.Q.value = 1; hi.type = "highshelf"; hi.frequency.value = 6000; lo.connect(mid); mid.connect(hi); return { in: lo, out: hi, lo, mid, hi }; });
+    block("filter", () => { const f = node("BiquadFilter"); f.type = "lowpass"; const l = lfo(2, 0, f.frequency); return { in: f, out: f, f, l }; });
+    block("dist", () => { const pre = G(1), ws = node("WaveShaper"), tone = node("BiquadFilter"), d = G(0), w = G(1), out = G(1); ws.oversample = "4x"; tone.type = "lowpass"; pre.connect(ws); ws.connect(tone); tone.connect(w); pre.connect(d); w.connect(out); d.connect(out); return { in: pre, out, ws, tone, d, w }; });
+    block("lofi", () => { const lp1 = node("BiquadFilter"), ws = node("WaveShaper"), lp2 = node("BiquadFilter"); lp1.type = lp2.type = "lowpass"; lp1.connect(ws); ws.connect(lp2); return { in: lp1, out: lp2, ws, lp1, lp2 }; });
+    block("comp", () => { const c = node("DynamicsCompressor"), mk = G(1); c.knee.value = 3; c.connect(mk); return { in: c, out: mk, c, mk }; });
+    const mod = (id, n, fbOn) => block(id, () => { const inp = G(1), out = G(1), dryG = G(1), wetG = G(0), ds = [], fbs = []; inp.connect(dryG); dryG.connect(out);
+      for (let i = 0; i < n; i++) { const d = C.createDelay(.1); const fb = G(0); inp.connect(d); d.connect(wetG); if (fbOn) { d.connect(fb); fb.connect(d); } const l = lfo(.5, 0, d.delayTime); ds.push({ d, l }); fbs.push(fb); } wetG.connect(out); return { in: inp, out, ds, fbs, dryG, wetG }; });
+    mod("chorus", 3, false); mod("flanger", 1, true);
+    block("phaser", () => { const inp = G(1), out = G(1), dryG = G(1), wetG = G(0), aps = []; let p = inp; for (let i = 0; i < 4; i++) { const a = node("BiquadFilter"); a.type = "allpass"; a.frequency.value = 800; a.Q.value = .7; p.connect(a); p = a; aps.push(a); } p.connect(wetG); inp.connect(dryG); dryG.connect(out); wetG.connect(out); const ls = aps.map(a => lfo(.5, 0, a.frequency)); return { in: inp, out, aps, ls, dryG, wetG }; });
+    block("trem", () => { const g = G(1); const l = lfo(6, 0, g.gain); return { in: g, out: g, g, l }; });
+    block("delay", () => { const inp = G(1), out = G(1), dryG = G(1), wetG = G(0), dl = C.createDelay(2), dr = C.createDelay(2), fbL = G(0), fbR = G(0), mg = C.createChannelMerger(2), x = G(0), y = G(0);
+      inp.connect(dryG); dryG.connect(out); inp.connect(dl); dl.connect(fbL); fbL.connect(dr); dr.connect(fbR); fbR.connect(dl); dl.connect(mg, 0, 0); dr.connect(mg, 0, 1); dl.connect(x); x.connect(mg, 0, 1); dr.connect(y); y.connect(mg, 0, 0); mg.connect(wetG); wetG.connect(out); return { in: inp, out, dl, dr, fbL, fbR, x, y, dryG, wetG }; });
+    block("reverb", () => { const inp = G(1), out = G(1), dryG = G(1), wetG = G(0), pd = C.createDelay(1), cv = C.createConvolver(); inp.connect(dryG); dryG.connect(out); inp.connect(pd); pd.connect(cv); cv.connect(wetG); wetG.connect(out); return { in: inp, out, pd, cv, dryG, wetG, size: 0 }; });
+    const output = prev;
+    function update() {
+      const P = FXS.p, now = C.currentTime || 0, set = (prm, v) => prm.setTargetAtTime(v, now, .02);
+      Object.keys(nodes).forEach(id => { const on = FXS.on[id] && !FXS.bypass; set(nodes[id].wet.gain, on ? 1 : 0); set(nodes[id].dry.gain, on ? 0 : 1); });
+      let n = nodes.eq; set(n.lo.gain, P.eq.low); set(n.mid.gain, P.eq.mid); set(n.mid.frequency, P.eq.midF); set(n.hi.gain, P.eq.high);
+      n = nodes.filter; set(n.f.frequency, P.filter.cut); set(n.f.Q, P.filter.q); set(n.l.o.frequency, P.filter.rate); set(n.l.g.gain, P.filter.rate ? P.filter.cut * P.filter.depth / 100 * .9 : 0);
+      n = nodes.dist; if (n.k !== P.dist.drive) { n.ws.curve = curveDist(P.dist.drive / 5); n.k = P.dist.drive; } set(n.tone.frequency, P.dist.tone); set(n.w.gain, P.dist.mix / 100 * .7); set(n.d.gain, 1 - P.dist.mix / 100);
+      n = nodes.lofi; if (n.b !== P.lofi.bits) { n.ws.curve = curveBits(P.lofi.bits); n.b = P.lofi.bits; } set(n.lp1.frequency, P.lofi.lp); set(n.lp2.frequency, P.lofi.lp);
+      n = nodes.comp; set(n.c.threshold, P.comp.thr); set(n.c.ratio, P.comp.ratio); set(n.c.attack, P.comp.atk / 1000); set(n.c.release, P.comp.rel / 1000); set(n.mk.gain, Math.pow(10, P.comp.makeup / 20));
+      n = nodes.chorus; n.ds.forEach(({ d, l }, i) => { set(d.delayTime, .012 + i * .007); set(l.o.frequency, P.chorus.rate * (1 + i * .23)); set(l.g.gain, P.chorus.depth / 1000); }); set(n.wetG.gain, P.chorus.mix / 100); set(n.dryG.gain, 1 - P.chorus.mix / 200);
+      n = nodes.flanger; n.ds.forEach(({ d, l }) => { set(d.delayTime, .003 + P.flanger.depth / 2000); set(l.o.frequency, P.flanger.rate); set(l.g.gain, P.flanger.depth / 2000); }); n.fbs.forEach(f => set(f.gain, P.flanger.fb / 100)); set(n.wetG.gain, P.flanger.mix / 100); set(n.dryG.gain, 1 - P.flanger.mix / 200);
+      n = nodes.phaser; n.ls.forEach(l => { set(l.o.frequency, P.phaser.rate); set(l.g.gain, 700 * P.phaser.depth / 100); }); set(n.wetG.gain, P.phaser.mix / 100); set(n.dryG.gain, 1 - P.phaser.mix / 200);
+      n = nodes.trem; set(n.l.o.frequency, P.trem.rate); set(n.l.g.gain, P.trem.depth / 200); set(n.g.gain, 1 - P.trem.depth / 200);
+      n = nodes.delay; set(n.dl.delayTime, P.delay.time / 1000); set(n.dr.delayTime, P.delay.time / 1000); set(n.fbL.gain, P.delay.pp ? Math.sqrt(P.delay.fb / 100) : P.delay.fb / 100); set(n.fbR.gain, P.delay.pp ? Math.sqrt(P.delay.fb / 100) : 0); set(n.x.gain, P.delay.pp ? 0 : 1); set(n.y.gain, 0); set(n.wetG.gain, P.delay.mix / 100); set(n.dryG.gain, 1);
+      n = nodes.reverb; if (n.size !== P.reverb.size) { n.cv.buffer = ir(P.reverb.size); n.size = P.reverb.size; } set(n.pd.delayTime, P.reverb.pre / 1000); set(n.wetG.gain, P.reverb.mix / 100 * 1.4); set(n.dryG.gain, 1 - P.reverb.mix / 250);
+    }
+    update(); return { input, output, update, comp: nodes.comp.c };
+  }
+  // built-in sources, rendered once into buffers
+  async function fxSource(kind) {
+    if (FXS.buf[kind]) return FXS.buf[kind];
+    const sr = 44100, bpm = 100, beat = 60 / bpm, D = beat * 8, C = new OfflineAudioContext(2, Math.ceil(sr * D), sr), out = C.createGain(); out.connect(C.destination);
+    const keep = { AC, OUT }; AC = C; OUT = out; noise();
+    const note = (type, m, t, dur, amp, cut, a = .005, r = .1) => { const o = C.createOscillator(), f = C.createBiquadFilter(), g = C.createGain(); o.type = type; o.frequency.value = mtof(m); f.type = "lowpass"; f.frequency.setValueAtTime(cut * 3, t); f.frequency.setTargetAtTime(cut, t, .08); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + a); g.gain.setTargetAtTime(amp * .4, t + a, .3); g.gain.setTargetAtTime(0, t + dur, r); o.connect(f); f.connect(g); g.connect(out); o.start(t); o.stop(t + dur + r * 6); };
+    if (kind === "drums") for (let i = 0; i < 32; i++) { const t = i * beat / 4; if (i % 8 === 0 || i === 22) drum("kick", t, out); if (i % 8 === 4) drum("snare", t, out); if (i % 2 === 0) drum("chh", t, out, i % 4 ? .6 : .9); if (i === 30) drum("ohh", t, out); }
+    if (kind === "guitar") [[52, 59, 64, 67, 71], [48, 55, 60, 64, 67], [50, 57, 62, 66, 69], [55, 59, 62, 67, 71]].forEach((ch, bar) => [0, 1.5, 2, 3].forEach(bt => ch.forEach((m, k) => note("sawtooth", m, (bar * 2 + bt / 2) * beat + k * .012, beat * .45, .07, 1800, .002, .15))));
+    if (kind === "pad") [[57, 60, 64, 67], [53, 57, 60, 64], [48, 52, 55, 59], [55, 59, 62, 65]].forEach((ch, bar) => ch.forEach(m => note("sawtooth", m, bar * 2 * beat, 2 * beat - .05, .05, 1400, .3, .4)));
+    if (kind === "bass") [40, 40, 43, 45, 36, 36, 38, 43].forEach((m, i) => { note("sawtooth", m, i * beat, beat * .6, .3, 500); note("sawtooth", m + 12, i * beat + beat / 2, beat * .3, .15, 700); });
+    if (kind === "vocal") { const mel = [[64, 1], [67, 1], [69, 2], [67, .5], [64, .5], [62, 1], [60, 2]]; let t = 0; mel.forEach(([m, d]) => { const o = C.createOscillator(), g = C.createGain(), mix = C.createGain(), l = C.createOscillator(), lg = C.createGain(); o.type = "sawtooth"; o.frequency.value = mtof(m); l.frequency.value = 5.5; lg.gain.value = 18; l.connect(lg); lg.connect(o.detune); [[730, 10, 1], [1090, 12, .5], [2440, 14, .25]].forEach(([fq, q, a]) => { const bp = C.createBiquadFilter(), ga = C.createGain(); bp.type = "bandpass"; bp.frequency.value = fq; bp.Q.value = q; ga.gain.value = a * 2; o.connect(bp); bp.connect(ga); ga.connect(mix); }); mix.connect(g); g.connect(out); const s0 = t * beat, e = (t + d) * beat; g.gain.setValueAtTime(0, s0); g.gain.linearRampToValueAtTime(.25, s0 + .06); g.gain.setValueAtTime(.25, e - .08); g.gain.linearRampToValueAtTime(0, e - .01); o.start(s0); o.stop(e); l.start(s0); l.stop(e); t += d; }); }
+    const b = await C.startRendering(); AC = keep.AC; OUT = keep.OUT; let pk = 0; for (let c = 0; c < 2; c++) b.getChannelData(c).forEach(x => { if (Math.abs(x) > pk) pk = Math.abs(x); }); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c), g = .6 / (pk || 1); for (let i = 0; i < d.length; i++) d[i] *= g; } FXS.buf[kind] = b; return b;
+  }
+  let fxRT = null, fxSrc = null, fxGR = 0;
+  async function fxPlay() {
+    if (!ac()) return; const b = FXS.src === "upload" ? FXS.buf.upload : await fxSource(FXS.src); if (!b) { fxStatus("Choose a file first."); return; }
+    if (!fxRT) { fxRT = fxChain(AC); fxRT.output.connect(OUT); }
+    fxStop(); fxSrc = AC.createBufferSource(); fxSrc.buffer = b; fxSrc.loop = true; fxSrc.connect(fxRT.input); fxSrc.start(); FXS.playing = true; fxBtn(); requestAnimationFrame(fxMeter);
+  }
+  function fxStop() { if (fxSrc) { try { fxSrc.stop(); } catch (e) {} fxSrc = null; } FXS.playing = false; fxBtn(); }
+  const fxBtn = () => { const b = $q('[data-fxa="play"]'); if (b) b.textContent = FXS.playing ? "■ Stop" : "▶ Play"; };
+  const fxStatus = t => { const s = $q("#fxStat"); if (s) s.textContent = t; };
+  function fxMeter() { if (!FXS.playing || !fxRT) return; const el = $q("#fxGR"); if (el) el.textContent = FXS.on.comp && !FXS.bypass ? `Compressor gain reduction: ${(-fxRT.comp.reduction).toFixed(1)} dB` : ""; if (!$q('[data-toy="fx"]')) { fxStop(); return; } requestAnimationFrame(fxMeter); }
+  async function fxExport() {
+    const b = FXS.src === "upload" ? FXS.buf.upload : await fxSource(FXS.src); if (!b) return; fxStatus("Rendering…");
+    const loops = FXS.src === "upload" ? 1 : 2, tail = 3, C = new OfflineAudioContext(2, Math.ceil(b.sampleRate * (b.duration * loops + tail)), b.sampleRate), ch = fxChain(C); ch.output.connect(C.destination);
+    for (let i = 0; i < loops; i++) { const s = C.createBufferSource(); s.buffer = b; s.connect(ch.input); s.start(i * b.duration); }
+    const out = await C.startRendering(), fmt = (($q('[data-fxa="fmt"]') || {}).value) || "wav", blob = fmt === "mp3" ? await mp3Blob(out) : wavBlob(out), url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = `${FXS.src === "upload" ? FXS.upName || "clip" : FXS.src}-effects.${fmt}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); fxStatus(`Saved ${a.download}.`);
+  }
+  const fxToy = () => `<div class="toy" data-toy="fx">
+    <div class="toy-row"><label>Sound <select data-fxa="src">${[["drums", "Drum loop"], ["guitar", "Strummed chords"], ["pad", "Synth pad"], ["bass", "Bass line"], ["vocal", "Synthetic voice"], ["upload", "My own file…"]].map(([v, l]) => `<option value="${v}" ${FXS.src === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label ${FXS.src === "upload" ? "" : "hidden"}>File <input type="file" accept="audio/*" data-fxa="file"></label>
+      <button class="play" data-fxa="play">${FXS.playing ? "■ Stop" : "▶ Play"}</button><button class="play" data-fxa="bypass" aria-pressed="${FXS.bypass}">Bypass all (compare)</button></div>
+    <div class="fxgrid">${FXD.map(([id, name, ps]) => `<fieldset class="fxcard${FXS.on[id] ? " on" : ""}"><legend><label><input type="checkbox" data-fxon="${id}" ${FXS.on[id] ? "checked" : ""}> ${name}</label></legend>
+      ${ps.map(([k, l, mn, mx, st, , u]) => `<label class="syk">${l}<input type="range" data-fxp="${id}.${k}" min="${mn}" max="${mx}" step="${st}" value="${FXS.p[id][k]}"><output data-fxo="${id}.${k}">${k === "pp" ? (FXS.p[id][k] ? "on" : "off") : FXS.p[id][k] + " " + u}</output></label>`).join("")}</fieldset>`).join("")}</div>
+    <p class="lnote" id="fxGR" aria-live="off"></p>
+    <div class="toy-row"><label>Export as <select data-fxa="fmt"><option value="wav">WAV</option><option value="mp3">MP3</option></select></label><button class="play" data-fxa="export">Export with effects</button><span class="lnote" id="fxStat" aria-live="polite"></span></div>
+    <p class="lnote">Effects run in this order, as in a typical chain: EQ → filter → distortion → lo-fi → compressor → chorus → flanger → phaser → tremolo → delay → reverb. Your file stays on your device.</p></div>`;
+  document.addEventListener("change", async e => {
+    const on = e.target.closest("[data-fxon]"); if (on) { FXS.on[on.dataset.fxon] = on.checked; on.closest(".fxcard").classList.toggle("on", on.checked); if (fxRT) fxRT.update(); return; }
+    const a = e.target.closest("[data-fxa]"); if (!a) return;
+    if (a.dataset.fxa === "src") { FXS.src = a.value; fxStop(); const t = $q('[data-toy="fx"]'); if (t) t.outerHTML = fxToy(); }
+    if (a.dataset.fxa === "file" && a.files[0]) { const f = a.files[0];
+      try { const data = await f.arrayBuffer(); FXS.buf.upload = await new Promise((ok, no) => ac().decodeAudioData(data, ok, no)); FXS.upName = f.name.replace(/\.[^.]+$/, ""); fxStatus(`Loaded ${f.name} (${FXS.buf.upload.duration.toFixed(1)} s).`); } catch (x) { fxStatus("This browser couldn't read that file."); } }
+  });
+  document.addEventListener("input", e => { const p = e.target.closest("[data-fxp]"); if (!p) return; const [id, k] = p.dataset.fxp.split("."), v = +p.value; FXS.p[id][k] = v; const d = FXD.find(x => x[0] === id)[2].find(q => q[0] === k), o = $q(`[data-fxo="${id}.${k}"]`); if (o) o.textContent = k === "pp" ? (v ? "on" : "off") : v + " " + d[6];
+    if (!FXS.on[id]) { FXS.on[id] = true; const c = $q(`[data-fxon="${id}"]`); if (c) { c.checked = true; c.closest(".fxcard").classList.add("on"); } } if (fxRT) fxRT.update(); });
+  document.addEventListener("click", e => { const a = e.target.closest("button[data-fxa]"); if (!a) return; const k = a.dataset.fxa;
+    if (k === "play") FXS.playing ? fxStop() : fxPlay();
+    if (k === "bypass") { FXS.bypass = !FXS.bypass; a.setAttribute("aria-pressed", FXS.bypass); if (fxRT) fxRT.update(); }
+    if (k === "export") fxExport(); });
+
   const lesson = { steps: [
     { title: "Sound becomes numbers", kick: "Sampling", render: () => `<p>A microphone turns air-pressure waves into a changing voltage. An <b>analog-to-digital converter</b> (in an audio interface) measures that voltage thousands of times per second and stores each measurement as a number. Playing back reverses the process.</p>
       <ul><li><b>Sample rate</b>: measurements per second. 44.1 kHz (CD), 48 kHz (video and most production), 96 kHz (some high-resolution work). A system can capture frequencies up to half its sample rate, the <b>Nyquist frequency</b>; higher frequencies must be filtered out first or they fold back as false tones (<b>aliasing</b>).</li>
@@ -1074,6 +1202,18 @@ window.FAM = (() => {
       <li><b>Automation</b>: rides on vocals, effect throws, builds and drops.</li>
       <li><b>Check</b>: compare with reference tracks at matched loudness; listen on headphones, small speakers, a phone and a car.</li></ol>
       <p>Try buses, sends and compression in the <b>Try a mixer</b> step. Widely used plug-in makers include <a href="https://www.fabfilter.com/" target="_blank" rel="noopener">FabFilter</a>, <a href="https://www.waves.com/" target="_blank" rel="noopener">Waves</a>, <a href="https://www.uaudio.com/" target="_blank" rel="noopener">Universal Audio</a>, <a href="https://www.izotope.com/" target="_blank" rel="noopener">iZotope</a> and <a href="https://www.soundtoys.com/" target="_blank" rel="noopener">Soundtoys</a>; every DAW also includes good EQs, compressors and reverbs.</p>` },
+    { title: "Audio effects", kick: "Chorus, delay, distortion, reverb and more", render: () => `<p>Effects (plug-ins in a DAW, pedals for a guitarist, outboard gear in a studio) change a sound in a few basic ways:</p>
+      ${tbl("Families of audio effects", ["Family", "Effects", "What they change"], [["Tone (frequency)", "EQ, filters, auto-wah", "boost or cut ranges of frequencies; a moving filter makes the sound 'talk'"], ["Dynamics", "compressor, limiter, gate, expander", "the difference between loud and soft moments"], ["Distortion and color", "overdrive, distortion, fuzz, saturation, bit crusher", "adds harmonics by clipping or reshaping the wave; a bit crusher lowers resolution for a lo-fi, digital grit"], ["Modulation", "chorus, flanger, phaser, tremolo, vibrato", "something moves slowly, controlled by an LFO (low-frequency oscillator): a short delay time, a filter's phase, or the volume"], ["Time and space", "delay (echo), reverb", "adds copies of the sound later in time: distinct repeats (delay) or thousands of blurred reflections (reverb)"]])}
+      <ul><li><b>Chorus</b> mixes the sound with copies delayed by about 10–30 ms whose delay time slowly wobbles, so they drift slightly out of tune: like several players on one part. (Compare the harmonic beating in the Introduction to Pitch.)</li>
+      <li><b>Flanger</b> uses one very short delay (1–5 ms) with feedback; the moving comb filter gives a jet-plane sweep. A <b>phaser</b> sweeps a few all-pass filters for a gentler, swirling notch pattern.</li>
+      <li><b>Tremolo</b> is a regular change of volume (on a guitar amp it's often mislabeled "vibrato", which is properly a change of pitch).</li>
+      <li><b>Delay</b> repeats the sound; <i>feedback</i> sets how many repeats, and <i>ping-pong</i> bounces them between left and right. Delay times are often set to the beat (375 ms is a dotted eighth at 120 bpm).</li>
+      <li><b>Reverb</b> simulates a room: a short <i>pre-delay</i>, then a dense tail whose <i>decay</i> time suggests the room's size. This one is a convolution reverb using a synthetic impulse response.</li>
+      <li><b>Compression</b> turns down whatever rises above the <i>threshold</i> by the <i>ratio</i>; <i>attack</i> and <i>release</i> set how fast it reacts, and <i>makeup gain</i> restores the level. It evens out a performance and can add punch.</li>
+      <li><b>Order matters</b>: distortion after reverb sounds very different from reverb after distortion. Effects can also go on a <b>send</b> (shared, mixed in parallel) rather than an <b>insert</b> (in the channel's own chain); see Try a mixer.</li></ul>
+      <h3>Try it: an effects rack</h3>
+      <p>Pick a built-in sound or load your own file, press Play, then switch effects on (moving a slider switches its effect on too). Use <b>Bypass all</b> to compare with the original, and export the result.</p>
+      ${fxToy()}` },
     { title: "Mastering", kick: "The final polish", render: () => `<p><b>Mastering</b> is the last creative and technical step: a fresh set of ears makes the mix sound its best on every system and prepares it for release.</p>
       ${tbl("Mastering tools", ["Tool", "What it does in mastering"], [["EQ", "small, broad tonal corrections (often under 2 dB); linear-phase EQs avoid phase shifts"], ["Bus compression", "gentle 'glue': low ratio (1.5:1–2:1), a few dB of gain reduction"], ["Multiband compression", "controls separate frequency ranges, e.g. a boomy low end only when it builds up"], ["Stereo imaging", "widens or narrows; low frequencies are often kept in mono"], ["Saturation / exciters", "harmonic color and perceived loudness"], ["Limiter", "the last processor: raises the level and catches peaks at a ceiling (often −1 dBTP)"], ["Dither", "low-level noise added when reducing bit depth (e.g. 24-bit to 16-bit for CD)"], ["Meters", "LUFS loudness, true peak, dynamic range, spectrum and phase correlation"]])}
       <ul><li><b>Loudness</b>: streaming services normalize playback to a target (about −14 LUFS integrated for Spotify and YouTube, −16 for Apple Music), so squashing a master to be louder mostly costs punch. Peaks are usually kept at or below −1 dBTP (true peak) so lossy encoding doesn't distort.</li>

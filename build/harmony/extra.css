@@ -166,3 +166,18 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .ikbnote { font-size: .85rem; color: var(--muted, #666); text-align: center; margin: 4px 0 0; }
 .mprow { gap: 8px; } .mplab { flex: 0 0 8.5em; font-weight: 700; font-size: .9rem; }
 @media (max-width: 480px) { .mplab { flex-basis: 100%; } }
+.pcpanel { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 6px 0; }
+.pcf { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.pcf input[type=number] { width: 7em; min-height: 40px; font: inherit; padding: 4px 6px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+.pcf select { min-height: 40px; font: inherit; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+
+.fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 10px 0; }
+.fxcard { border: 1px solid var(--line, #ccc); border-radius: 10px; margin: 0; padding: 6px 10px 10px; display: grid; gap: 6px; opacity: .8; }
+.fxcard.on { opacity: 1; border-color: var(--accent, #1a5fb4); box-shadow: inset 4px 0 0 var(--accent, #1a5fb4); }
+.fxcard legend { font-weight: 700; padding: 0 4px; }
+
+.tmspec { width: 100%; max-width: 320px; height: auto; color: var(--ink, #222); display: block; }
+.tmwave { width: 100%; max-width: 300px; height: auto; color: var(--accent, #1a5fb4); display: block; }
+.txlay { border: 1px solid var(--line, #ccc); border-radius: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 14px; padding: 8px 12px; margin: 0; }
+.txlay legend { font-weight: 700; padding: 0 4px; }
+.txlay label { display: flex; gap: 8px; align-items: center; min-height: 32px; }
