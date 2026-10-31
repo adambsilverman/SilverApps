@@ -55,7 +55,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     </div>
     <div class="row">
       <label class="fld" for="amt">Correction amount: <output id="amtO">100%</output><input type="range" id="amt" min="0" max="100" value="100"></label>
-      <label class="fld" for="spd">Retune speed: <output id="spdO">40 ms</output><input type="range" id="spd" min="0" max="400" step="5" value="40"></label>
+      <label class="fld" for="spd">Retune speed: <output id="spdO">40 ms</output><input type="range" id="spd" min="0" max="400" step="5" value="20"></label>
       <label class="fld" for="robot"><span>Robot monotone (one note)</span><input type="checkbox" id="robot"></label>
     </div>
     <div class="row">
@@ -132,28 +132,32 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
       if (rms < peak * .03) { f0.push(0); continue; }
       let run = 0; d[0] = 1;
       for (let t = 1; t <= tmax; t++) { let sum = 0; for (let i = 0; i < W; i++) { const q = y[s + i] - y[s + i + t]; sum += q * q; } run += sum; d[t] = run ? sum * t / run : 1; }
-      let tau = -1; for (let t = tmin; t <= tmax; t++) if (d[t] < .15) { while (t + 1 <= tmax && d[t + 1] < d[t]) t++; tau = t; break; }
+      let tau = -1; for (let t = tmin; t <= tmax; t++) if (d[t] < .2) { while (t + 1 <= tmax && d[t + 1] < d[t]) t++; tau = t; break; }
+      if (tau < 0) { let bt = tmin; for (let t = tmin; t <= tmax; t++) if (d[t] < d[bt]) bt = t; if (d[bt] < .35) tau = bt; }   // a less clear but still pitched frame
       if (tau < 0) { f0.push(0); continue; }
       const a = d[tau - 1] || d[tau], b = d[tau], c = d[tau + 1] || d[tau], den = a - 2 * b + c, tt = tau + (den ? (a - c) / (2 * den) : 0);
       f0.push(r / tt);
     }
-    // median-smooth and remove isolated blips
-    const m = f0.map((v, i) => { const w = f0.slice(Math.max(0, i - 2), i + 3).filter(z => z > 0).sort((p, q) => p - q); return v > 0 && w.length >= 3 ? w[w.length >> 1] : 0; });
+    // fix octave jumps against the local median, median-smooth, drop isolated blips, and bridge short gaps (up to 80 ms)
+    const med = (a, i, r) => { const w = a.slice(Math.max(0, i - r), i + r + 1).filter(z => z > 0).sort((p, q) => p - q); return w.length ? w[w.length >> 1] : 0; };
+    let m = f0.map((v, i) => { if (!v) return 0; const md = med(f0, i, 6); if (!md) return v; const r = v / md; return r > 1.8 && r < 2.2 ? v / 2 : r > .45 && r < .55 ? v * 2 : v; });
+    m = m.map((v, i) => { const w = m.slice(Math.max(0, i - 2), i + 3).filter(z => z > 0).sort((p, q) => p - q); return v > 0 && w.length >= 3 ? w[w.length >> 1] : 0; });
+    for (let i = 1; i < m.length; i++) if (!m[i] && m[i - 1]) { let j = i; while (j < m.length && !m[j]) j++; if (j < m.length && j - i <= 8) { const a = Math.log(m[i - 1]), b = Math.log(m[j]); for (let k = i; k < j; k++) m[k] = Math.exp(a + (b - a) * (k - i + 1) / (j - i + 1)); } i = j; }
     return { f0: m, hop: hop * ds / sr };
   }
   const midiOf = f => 69 + 12 * Math.log2(f / 440);
 
   // ---------- target pitch curve ----------
-  const S = { amt: 100, spd: 40, robot: false, xp: 0, fm: 0, harm: "", mix: 60 };
+  const S = { amt: 100, spd: 20, robot: false, xp: 0, fm: 0, harm: "", mix: 60 };
   function snap(m, key, sc) { let best = m, bd = 99; for (let o = -1; o <= 10; o++) sc.forEach(pc => { const c = 12 * o + key + pc, dd = Math.abs(c - m); if (dd < bd) { bd = dd; best = c; } }); return best; }
   function shiftCurve() {   // semitone shift per analysis frame (0 for unvoiced frames, plus transposition)
     const key = +$("key").value, sc = SCALES[$("scale").value], f0 = P.f0, out = new Float32Array(f0.length), a = 1 - Math.exp(-P.hop * 1000 / Math.max(1, S.spd));
     let robotNote = null; if (S.robot) { const ms = f0.filter(f => f > 0).map(midiOf).sort((p, q) => p - q); robotNote = ms.length ? snap(ms[ms.length >> 1], key, [0]) : 60; }
     let c = 0, was = false;
     for (let i = 0; i < f0.length; i++) {
-      if (!f0[i]) { out[i] = 0; was = false; continue; }
+      if (!f0[i]) { out[i] = c; was = false; continue; }
       const m = midiOf(f0[i]), target = S.robot ? robotNote : snap(m, key, sc), want = (target - m) * S.amt / 100;
-      c = !was || S.spd <= 0 ? want : c + (want - c) * a; was = true; out[i] = c;
+      c = S.spd <= 0 ? want : !was && i && !f0[i - 1] && Math.abs(want - c) > 1 ? want : c + (want - c) * a; was = true; out[i] = c;
     }
     return out;
   }
@@ -170,8 +174,8 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     let ts = 0, mi = 0;
     while (ts < N) {
       while (mi + 1 < marks.length && Math.abs(marks[mi + 1][0] - ts) <= Math.abs(marks[mi][0] - ts)) mi++;
-      const [ta, Ta, voiced] = marks[mi], k = fr(ts), ratio = Math.pow(2, ((voiced ? shiftSt[k] : 0) + (voiced ? S.xp : 0)) / 12), To = voiced ? Ta / ratio : Ta;
-      const fmr = voiced ? formant : 1, half = Math.max(2, Math.round(Ta / fmr)), g = (To * fmr) / Ta;
+      const [ta, Ta, voiced] = marks[mi], k = fr(ts), ratio = Math.pow(2, ((voiced ? shiftSt[k] : 0) + S.xp) / 12), To = Ta / ratio;
+      const fmr = formant, half = Math.max(2, Math.round(Math.max(Ta, To) / fmr)), g = To / half;   // grains at least as long as the output spacing, so big downward shifts don't leave gaps
       for (let j = -half; j <= half; j++) {
         const o = Math.round(ts) + j; if (o < 0 || o >= N) continue;
         const sp = ta + j * fmr, i0 = Math.floor(sp), fra = sp - i0; if (i0 < 0 || i0 + 1 >= N) continue;
