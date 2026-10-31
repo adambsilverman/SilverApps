@@ -306,6 +306,23 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   const SPL = [[0, 0], [0, 1], [1, 0], [2, -1], [2, 0], [3, 0], [3, 1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
   // Note values in beats (quarter = 1) ↔ VexFlow durations and names.
   const DUR = { 0.5: ["8", "eighth", "♪"], 1: ["q", "quarter", "♩"], 1.5: ["qd", "dotted quarter", "♩."], 2: ["h", "half", "half"], 3: ["hd", "dotted half", "dotted half"], 4: ["w", "whole", "whole"] };
+  // Proportional justification: VexFlow otherwise pushes a bar's last note against the bar line. Justify to the point where the
+  // last note starts (as a share of the bar), so the space after it matches its value; never narrower than the notes need.
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
   function staffOf(box, notes, o = {}) {   // notes: [{l,a,o}] or null for blanks; o.durs: beats per note (rhythmic dictation), o.time: "3/4"
     box.innerHTML = ""; if (!window.Vex || !Vex.Flow) { box.textContent = notes.map(n => n ? LET[n.l] + ACC[n.a] : "?").join(" "); return; }
     const durs = o.durs, bpb = o.time ? +o.time.split("/")[0] : 0;
@@ -332,7 +349,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     const voice = new VF.Voice({ num_beats: Math.max(1, Math.ceil(total)), beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tick);
     // beam pairs of eighths that fill one beat
     const beams = []; for (let i = 0; i < real.length - 1; i++) { const a = real[i], b = real[i + 1]; if (a._dv === .5 && b._dv === .5 && a._beat % 1 === 0 && tick.indexOf(b) === tick.indexOf(a) + 1) { beams.push(new VF.Beam([a, b], true)); i++; } }
-    new VF.Formatter().joinVoices([voice]).format([voice], st.getNoteEndX() - st.getNoteStartX() - 10); voice.draw(ctx, st);
+    { const fm = new VF.Formatter().joinVoices([voice]); justifyW(VF, fm, [voice], st.getNoteEndX() - st.getNoteStartX() - 10); } voice.draw(ctx, st);
     beams.forEach(b => { b.setStyle({ fillStyle: ink, strokeStyle: ink }); b.setContext(ctx).draw(); });
     const svg = box.querySelector("svg");
     if (o.fixed) svg.setAttribute("viewBox", `0 0 ${W} ${H}`);

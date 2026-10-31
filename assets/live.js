@@ -118,6 +118,40 @@
   const brokerFor = code => BROKERS[ALPH.indexOf(code[0]) % BROKERS.length];
 
   /* =============================================================== HOST */
+
+  // ---------- a waiting-music drum loop for the host while answers come in (toggle remembered per browser) ----------
+  const BEAT_KEY = "silverapps-game-music";
+  const Beat = (() => {
+    let ac = null, out = null, nz = null, timer = 0, next = 0, step = 0, on = false;
+    const enabled = () => { try { return localStorage.getItem(BEAT_KEY) !== "off"; } catch (e) { return true; } };
+    const setEnabled = v => { try { localStorage.setItem(BEAT_KEY, v ? "on" : "off"); } catch (e) {} };
+    function ctx() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!ac) { ac = new C(); out = ac.createGain(); out.gain.value = .32; const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 9000; out.connect(lp); lp.connect(ac.destination); nz = ac.createBuffer(1, ac.sampleRate * .5, ac.sampleRate); const d = nz.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } if (ac.state === "suspended") ac.resume(); return ac; }
+    function env(g, t, a, len) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(0.0001, t + len); }
+    function noise(t, type, f, a, len) { const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = nz; fl.type = type; fl.frequency.value = f; env(g, t, a, len); s.connect(fl); fl.connect(g); g.connect(out); s.start(t, Math.random() * .3); s.stop(t + len + .02); }
+    function osc(t, type, f0, f1, a, len) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + len * .6); env(g, t, a, len); o.connect(g); g.connect(out); o.start(t); o.stop(t + len + .02); }
+    const BASS = [41, 41, 0, 41, 44, 0, 46, 0, 39, 39, 0, 39, 41, 0, 44, 0];   // a simple F-minor bass figure (MIDI; 0 = rest), one note per eighth
+    const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+    function tick() {
+      const spb = 60 / 104 / 4;   // sixteenth notes at 104 BPM
+      while (next < ac.currentTime + .15) {
+        const i = step % 32, t = next, urgent = H && H.deadline && H.deadline - Date.now() < 10000;
+        if (i % 8 === 0 || i === 22) osc(t, "sine", 140, 45, .9, .35);                        // kick
+        if (i % 8 === 4) { noise(t, "bandpass", 1800, .35, .18); osc(t, "triangle", 210, 160, .2, .1); }   // snare
+        if (i % 2 === 0) noise(t, "highpass", 8000, i % 4 === 2 ? .18 : .11, .045);           // hi-hat eighths
+        else if (urgent) noise(t, "highpass", 9000, .08, .03);                                // sixteenths when time is running out
+        if (i % 2 === 0) { const m = BASS[(i / 2) % 16]; if (m) osc(t, "triangle", mf(m), 0, .22, .2); }
+        if (urgent && i % 4 === 0) osc(t, "square", mf(77), 0, .03, .08);                     // a quiet tick that adds urgency
+        next += spb; step++;
+      }
+    }
+    return {
+      enabled, setEnabled,
+      start() { if (on || !enabled() || !ctx()) return; on = true; step = 0; next = ac.currentTime + .08; out.gain.cancelScheduledValues(ac.currentTime); out.gain.setValueAtTime(.32, ac.currentTime); timer = setInterval(tick, 25); },
+      stop() { if (!on) return; on = false; clearInterval(timer); if (ac) { out.gain.setTargetAtTime(0.0001, ac.currentTime, .08); setTimeout(() => { if (!on && out) out.gain.value = .32; }, 600); } },
+    };
+  })();
+  function beatBtn() { return `<button class="lc-btn" data-a="music" aria-pressed="${Beat.enabled()}">Waiting music: ${Beat.enabled() ? "on" : "off"}</button>`; }
+  function bindBeat() { const b = q$('[data-a="music"]'); if (b) b.onclick = () => { const v = !Beat.enabled(); Beat.setEnabled(v); b.setAttribute("aria-pressed", v); b.textContent = "Waiting music: " + (v ? "on" : "off"); if (v && H && H.phase === "q") Beat.start(); else Beat.stop(); }; }
   function hostSetup() {
     el.innerHTML = `<div class="lc-panel"><p class="lc-label">Host a class game</p>
       <div class="lc-row">
@@ -227,10 +261,10 @@
     el.innerHTML = `<div class="lc-panel"><div class="lc-row"><div class="lc-grow"><p class="lc-label">Question ${H.qn} · ${esc(H.label)}</p>
         ${H.deadline ? `<div class="lc-timer" data-timer>${fmtT(H.limit)}</div><div class="lc-tbar"><i data-tbar style="width:100%"></i></div>` : `<p>No time limit — stop answering whenever the class is ready.</p>`}</div>
         <div><p class="lc-label">Answers in</p><div class="lc-big"><span data-ans>0</span><span style="font-size:.5em"> / <span data-of>0</span></span></div><p data-allin hidden style="font-weight:700">Everyone's in!</p></div></div>
-      <div class="lc-row" style="margin-top:10px">${H.deadline ? '<button class="lc-btn" data-a="more">+15 s</button>' : ""}${fsBtn()}<span class="lc-grow"></span><button class="lc-btn primary big" data-a="stop">Stop &amp; show answer</button></div></div>`;
+      <div class="lc-row" style="margin-top:10px">${H.deadline ? '<button class="lc-btn" data-a="more">+15 s</button>' : ""}${fsBtn()}${beatBtn()}<span class="lc-grow"></span><button class="lc-btn primary big" data-a="stop">Stop &amp; show answer</button></div></div>`;
     q$('[data-a="stop"]').onclick = () => hostReveal(false);
     const more = q$('[data-a="more"]'); if (more) more.onclick = () => { H.deadline = Math.max(H.deadline, Date.now()) + 15000; H.limit = Math.max(H.limit, H.deadline - Date.now()); publish(); };
-    bindFs(); hostCounts();
+    bindFs(); bindBeat(); hostCounts(); Beat.start();
   }
   function hostCounts() {
     if (!H) return;
@@ -242,6 +276,7 @@
   }
   function hostReveal(timeUp) {
     if (!H || H.phase !== "q") return;
+    Beat.stop();
     timeUp = timeUp || H.timeUp;
     let c = 0; H.answers.forEach(ok => { if (ok) c++; });
     const n = H.answers.size;
@@ -272,7 +307,7 @@
   function hostEndSession() {
     if (!H) return idle();
     try { H.client.publish(topic(H.code) + "/down", JSON.stringify({ phase: "closed" }), { retain: true, qos: 1 }); const c = H.client; setTimeout(() => c.end(true), 500); } catch (e) {}
-    (H.timers || []).forEach(clearInterval); H = null; idle();
+    Beat.stop(); (H.timers || []).forEach(clearInterval); H = null; idle();
   }
   function bars(pct, n) {
     if (!n) return "";

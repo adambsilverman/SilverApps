@@ -389,6 +389,23 @@ details.panel[open] summary::after { content: "−"; }
 .atsvg { width: 100%; height: auto; color: var(--ink, #222); background: var(--card, #fff); border-radius: 8px; }
 .mameter { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; font-variant-numeric: tabular-nums; }
 .toy h3, .lslide h3 { margin: 14px 0 4px; }
+.mpdots { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; padding: 6px 0; }
+.mpb { display: flex; gap: 6px; padding: 6px 8px; border-radius: 999px; background: rgba(0,0,0,.05); }
+.mpd { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line, #999); background: var(--card, #fff); }
+.mpd.beat { width: 26px; height: 26px; border-color: var(--ink, #222); }
+.mpd.one { background: var(--ink, #222); }
+.mpd.now { background: #ffb400; border-color: #c07a00; transform: scale(1.15); }
+.mpkind { margin: 0; }
+details.ikbd { margin: 8px auto 0; max-width: 560px; }
+details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+.ikbwrap { overflow-x: auto; }
+.ikb { position: relative; height: 120px; min-width: 420px; user-select: none; -webkit-user-select: none; }
+.ik { position: absolute; top: 0; padding: 0; border: 1.5px solid var(--ink, #222); cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; font-size: 10px; }
+.ik.w { height: 100%; background: #fffdf8; color: #333; border-radius: 0 0 5px 5px; padding-bottom: 3px; }
+.ik.b { height: 60%; background: #222; color: #fff; z-index: 2; border-radius: 0 0 4px 4px; padding-bottom: 3px; }
+.ik.mk.w { background: #ffd36b; } .ik.mk.b { background: #c0392b; }
+.ik b { font-size: 13px; } .ik:focus-visible { outline: 3px solid var(--accent, #c0392b); outline-offset: -3px; z-index: 3; }
+.ikbnote { font-size: .85rem; color: var(--muted, #666); text-align: center; margin: 4px 0 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -482,7 +499,7 @@ window.FAM = (() => {
   const P = "B4";
   const tokN = x => { const rest = /r/.test(x), tie = /~/.test(x), d = x.replace(/[r~]/g, ""); return { k: rest ? [] : [P], d, tie }; };
   // percussion rhythm: bars are strings of tokens, or { r: "tokens", time: "5/8", groups: [...] }
-  const rh = (time, bars, o = {}) => ({ type: "score", clefs: ["percussion"], time, vf: "C", sig: {}, bpm: o.bpm || 96, final: o.final, groups: o.groups, minBar: o.minBar, bars: bars.map(b => typeof b === "string" ? { t: [b.split(" ").map(tokN)] } : Object.assign({ t: [b.r.split(" ").map(tokN)] }, b.time ? { time: b.time } : {}, b.groups ? { groups: b.groups } : {})) });
+  const rh = (time, bars, o = {}) => ({ type: "score", clefs: ["percussion"], time, vf: "C", sig: {}, bpm: o.bpm || 96, final: o.final, groups: o.groups, minBar: o.minBar, bars: bars.map(b => typeof b === "string" ? { t: [b.split(" ").map(tokN)] } : Object.assign({ t: [b.r.split(" ").map(tokN)] }, b.time ? { time: b.time } : {}, b.groups ? { groups: b.groups } : {}, b.minBar ? { minBar: b.minBar } : {})) });
   const fig = (U, sp, cap, o) => U.fig(sp, cap, Object.assign({ small: true, play: window.__harm ? window.__harm.H.withClick(sp) : null }, o || {}));
   const KIND = {
     "2/4": "simple duple", "3/4": "simple triple", "4/4": "simple quadruple", "2/2": "simple duple", "3/8": "simple triple", "3/2": "simple triple",
@@ -499,6 +516,54 @@ window.FAM = (() => {
     for (let g = 0; g < 30; g++) { cells = Array.from({ length: n }, () => H.rnd(t === "s" ? SIMPLE : COMPOUND)); if (t === "s" && ts !== "2/4" ? cells.some(c => c.length > 1 && c[0] !== "q") : true) break; }
     return cells.flat().join(" ");
   }
+
+  // ---------- meter player: beats and divisions on a synthesized drum kit ----------
+  const MP = { m: "4/4", div: true, beat: true, bpm: 84, on: false };
+  const MTR = {   // groups: divisions per beat; kind
+    "2/4": [[2, 2], "Simple duple"], "3/4": [[2, 2, 2], "Simple triple"], "4/4": [[2, 2, 2, 2], "Simple quadruple"],
+    "6/8": [[3, 3], "Compound duple"], "9/8": [[3, 3, 3], "Compound triple"], "12/8": [[3, 3, 3, 3], "Compound quadruple"],
+    "5/8 (2+3)": [[2, 3], "Asymmetrical: 2 + 3"], "5/8 (3+2)": [[3, 2], "Asymmetrical: 3 + 2"], "7/8 (2+2+3)": [[2, 2, 3], "Asymmetrical: 2 + 2 + 3"], "7/8 (3+2+2)": [[3, 2, 2], "Asymmetrical: 3 + 2 + 2"] };
+  let KAC = null, KNZ = null, kTimer = 0, kNext = 0, kI = 0, kQ = [];
+  function kac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!KAC) KAC = new C(); if (KAC.state === "suspended") KAC.resume(); return KAC; }
+  function kdrum(kind, t, v) {
+    const A = KAC; if (!KNZ) { KNZ = A.createBuffer(1, A.sampleRate * .5, A.sampleRate); const d = KNZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const g = A.createGain(); g.connect(A.destination);
+    const nz = (type, f, len, a) => { const n = A.createBufferSource(), fl = A.createBiquadFilter(), ng = A.createGain(); n.buffer = KNZ; fl.type = type; fl.frequency.value = f; ng.gain.setValueAtTime(a * v, t); ng.gain.exponentialRampToValueAtTime(.001, t + len); n.connect(fl); fl.connect(ng); ng.connect(g); n.start(t); n.stop(t + len + .02); };
+    const osc = (f0, f1, len, a) => { const o = A.createOscillator(), og = A.createGain(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len * .5); og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(a * v, t + .002); og.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(og); og.connect(g); o.start(t); o.stop(t + len + .02); };
+    if (kind === "kick") osc(150, 45, .45, 1);
+    if (kind === "snare") { nz("bandpass", 2000, .2, .55); osc(200, 150, .12, .35); }
+    if (kind === "tom") osc(170, 110, .3, .7);
+    if (kind === "hat") nz("highpass", 7500, .05, .35);
+  }
+  // strong beat = kick; medium (the 3rd beat of quadruple meters) = tom; weak beats = snare; divisions = hi-hat
+  function kStart() { if (!kac()) return; MP.on = true; kI = 0; kQ = []; kNext = KAC.currentTime + .1; kTimer = setInterval(kTick, 25); requestAnimationFrame(kDraw); }
+  function kStop() { MP.on = false; clearInterval(kTimer); document.querySelectorAll(".mpd.now").forEach(e => e.classList.remove("now")); }
+  function kTick() {
+    if (!document.querySelector("[data-mp]")) { kStop(); return; }
+    const g = MTR[MP.m][0], n = g.reduce((a, b) => a + b, 0), simple = g.every(x => x === 2), dv = simple ? 60 / MP.bpm / 2 : 60 / MP.bpm / 3;   // in compound and asymmetrical meters the eighth stays constant
+    const starts = []; g.reduce((a, b) => (starts.push(a), a + b), 0);
+    while (kNext < KAC.currentTime + .12) {
+      const i = kI % n, b = starts.indexOf(i), quad = g.length === 4;
+      if (b >= 0 && MP.beat) kdrum(b === 0 ? "kick" : quad && b === 2 ? "tom" : "snare", kNext, b === 0 ? 1 : .8);
+      if (MP.div) kdrum("hat", kNext, b >= 0 ? .9 : .6);
+      kQ.push([kNext, i]); kNext += dv; kI++;
+    }
+  }
+  function kDraw() { if (!MP.on) return; let cur = null; while (kQ.length && kQ[0][0] <= KAC.currentTime) cur = kQ.shift()[1]; if (cur != null) { document.querySelectorAll(".mpd.now").forEach(e => e.classList.remove("now")); const el = document.querySelector(`.mpd[data-i="${cur}"]`); if (el) el.classList.add("now"); } requestAnimationFrame(kDraw); }
+  const mpDots = () => { const g = MTR[MP.m][0]; let i = 0; return g.map((d, b) => `<span class="mpb">${Array.from({ length: d }, (_, k) => `<i class="mpd${k === 0 ? " beat" : ""}${k === 0 && b === 0 ? " one" : ""}" data-i="${i++}"></i>`).join("")}</span>`).join(""); };
+  const mpView = () => `<div class="toy" data-mp>
+    <div class="toy-row" role="group" aria-label="Meter">${Object.keys(MTR).map(m => `<button class="play" data-mpm="${m}" aria-pressed="${m === MP.m}">${m}</button>`).join("")}</div>
+    <div class="toy-row"><button class="play" data-mpx="go">${MP.on ? "■ Stop" : "▶ Play"}</button>
+      <label><input type="checkbox" data-mpx="beat" ${MP.beat ? "checked" : ""}> Beats (kick, snare${"/"}tom)</label>
+      <label><input type="checkbox" data-mpx="div" ${MP.div ? "checked" : ""}> Divisions (hi-hat)</label>
+      <label>Tempo <input type="range" data-mpx="bpm" min="40" max="160" value="${MP.bpm}"> <output id="mpBpm">${MP.bpm}</output></label></div>
+    <p class="mpkind" id="mpKind"><b>${MTR[MP.m][1]}</b>: ${MTR[MP.m][0].length} beats, each divided into ${[...new Set(MTR[MP.m][0])].join(" or ")}.</p>
+    <div class="mpdots" id="mpDots" aria-hidden="true">${mpDots()}</div></div>`;
+  if (!window.__mpWired) { window.__mpWired = true;
+    document.addEventListener("click", e => { const m = e.target.closest("[data-mpm]"); if (m) { MP.m = m.dataset.mpm; document.querySelectorAll("[data-mpm]").forEach(b => b.setAttribute("aria-pressed", b === m)); document.getElementById("mpDots").innerHTML = mpDots(); const g = MTR[MP.m][0]; document.getElementById("mpKind").innerHTML = `<b>${MTR[MP.m][1]}</b>: ${g.length} beats, each divided into ${[...new Set(g)].join(" or ")}.`; kI = 0; kQ = []; if (!MP.on) kStart(); return; }
+      const x = e.target.closest('[data-mpx="go"]'); if (x) { MP.on ? kStop() : kStart(); x.textContent = MP.on ? "■ Stop" : "▶ Play"; } });
+    document.addEventListener("change", e => { const x = e.target.closest("[data-mpx]"); if (!x || x.type !== "checkbox") return; MP[x.dataset.mpx] = x.checked; });
+    document.addEventListener("input", e => { const x = e.target.closest('[data-mpx="bpm"]'); if (!x) return; MP.bpm = +x.value; document.getElementById("mpBpm").textContent = MP.bpm; }); }
 
   const FACTS = [
     ["Meter is…", "the recurring pattern of strong and weak beats", ["the speed of the beat", "the length of a phrase", "the key of a piece"], "Duple (strong–weak), triple (strong–weak–weak), quadruple."],
@@ -576,6 +641,12 @@ window.FAM = (() => {
     { title: "Beat and meter", kick: "Strong and weak", render: (H, k, U) => `<p>The <b>beat</b> is the steady pulse; <b>meter</b> groups beats into recurring patterns of strong and weak, marked off by bar lines: <b>duple</b> (strong–weak), <b>triple</b> (strong–weak–weak) and <b>quadruple</b> (strong–weak–medium–weak).</p>
       <div class="lfigs">${fig(U, rh("2/4", ["q q", "q q"]), "Duple")}${fig(U, rh("3/4", ["q q q", "q q q"]), "Triple")}${fig(U, rh("4/4", ["q q q q", "q q q q"]), "Quadruple")}</div>
       <p>The <b>time signature</b> sets the meter. Each beat can also divide: into two (simple meter) or three (compound meter).</p>` },
+    { title: "Kinds of meter", kick: "Simple, compound, asymmetrical", render: () => `<p>Meters are named in two ways at once: by <b>how many beats</b> are in a bar (duple = 2, triple = 3, quadruple = 4), and by <b>how each beat divides</b>:</p>
+      <ul><li><b>Simple</b>: every beat divides into <b>two</b> (1 & 2 &).</li>
+      <li><b>Compound</b>: every beat divides into <b>three</b> (1 la li 2 la li).</li>
+      <li><b>Asymmetrical</b> (additive): the beats are <b>unequal</b>, mixing groups of two and three (1 & 1 la li).</li></ul>
+      <p>Choose a meter and listen. The kick drum marks beat 1, the snare (and in quadruple meters a tom on the medium-strong beat 3) marks the other beats, and the hi-hat plays the divisions. Turn the layers on and off to hear the beat alone, then how it divides. The next steps show how each kind is written.</p>
+      ${mpView()}` },
     { title: "Simple meter", kick: "Beats divide in two", render: (H, k, U) => `<p>In <b>simple meter</b> the beat is an undotted note and divides into two. The top number is the number of beats; the bottom number is the beat's note value (4 = quarter, 2 = half, 8 = eighth).</p>
       <div class="lfigs">${fig(U, rh("2/4", ["8 8 q", "16 16 8 q"]), "2/4")}${fig(U, rh("3/4", ["q 8 8 q", "hd"]), "3/4")}${fig(U, rh("4/4", ["8 8 8 8 q q", "h h"]), "4/4")}${fig(U, rh("2/2", ["h q q", "w"]), "2/2 (cut time): half-note beats")}</div>` },
     { title: "Compound meter", kick: "Beats divide in three", render: (H, k, U) => `<p>In <b>compound meter</b> the beat is a <b>dotted</b> note and divides into three. The top number counts the divisions, so divide it by 3 to get the beats: 6/8 = 2 beats, 9/8 = 3, 12/8 = 4, each a dotted quarter.</p>
@@ -600,14 +671,16 @@ window.FAM = (() => {
       <li>Don't use a note value that hides a beat (see the Rhythm Notation lesson): <b>clarity for the reader</b> comes first.</li></ul>
       <div class="lfigs">${fig(U, rh("4/4", ["8 8 8 8 8 8 8 8"], { groups: ["2/8"] }), "Clear: by beat")}${fig(U, rh("4/4", ["8 8 8 8 8 8 8 8"], { groups: ["4/8"] }), "Clear: half bars")}${fig(U, rh("4/4", ["8 8 8 8 8 8 8 8"], { groups: ["3/8", "2/8", "3/8"] }), "Unclear: hides beats 2 and 3")}${fig(U, rh("6/8", ["8 8 8 8 8 8"], { groups: ["2/8"] }), "Unclear in 6/8: looks like 3/4")}</div>` },
     { title: "Historical vocal beaming", kick: "One flag per syllable", render: (H, k, U) => {
-      const notes = [["G4", "Glo-"], ["A4", "ri-"], ["B4", "a"], ["C5", "in"], ["D5", "ex-"], ["C5", ""], ["B4", ""], ["C5", "cel-"]];
-      const mk = (bm) => ({ type: "score", clefs: ["treble"], time: "2/4", vf: "C", sig: {}, bpm: 90, beam: bm ? undefined : false, bars: [{ t: [notes.slice(0, 4).map(([p, l]) => ({ k: [p], d: "8", ly: l }))] }, { t: [notes.slice(4).map(([p, l], i) => Object.assign({ k: [p], d: "8", ly: l }, bm ? {} : (i < 3 ? { bm: "m" } : {})))] }] });
+      // syllables with hy (a hyphen follows) and slurs over the melisma on "ex-"
+      const notes = [["G4", "Glo", 1], ["A4", "ri", 1], ["B4", "a"], ["C5", "in"], ["D5", "ex", 1, "s"], ["C5", null], ["B4", null, 0, "e"], ["C5", "cel", 1]];
+      const nt = ([p, l, hy, sl], bm) => Object.assign({ k: [p], d: "8" }, l != null ? { ly: l } : {}, hy ? { hy: true } : {}, sl === "s" ? { sls: true } : {}, sl === "e" ? { sle: true } : {}, bm ? { bm } : {});
+      const mk = (bm) => ({ type: "score", clefs: ["treble"], time: "2/4", vf: "C", sig: {}, bpm: 90, beam: bm ? undefined : false, bars: [{ t: [notes.slice(0, 4).map(x => nt(x))] }, { t: [notes.slice(4).map((x, i) => nt(x, !bm && i < 3 ? "m" : null))] }, { t: [[{ k: ["B4"], d: "q", ly: "sis" }, { k: [], d: "q" }]] }] });
       return `<p>Older vocal music (and many editions into the 20th century) beamed notes only when they were sung to one syllable: in a <b>melisma</b>. Every new syllable got its own flagged note, so the beams showed the text, not the beat.</p>
       <div class="lfigs">${fig(U, mk(false), "Traditional vocal notation: flags for each syllable, a beam only for the melisma on “ex-”")}${fig(U, mk(true), "Modern practice: beamed by beat, as in instrumental music")}</div>
-      <p>Today most editions beam vocal parts by beat, like instrumental music, because it shows the meter and is easier to read. Syllables are still placed under their notes, with hyphens and extender lines.</p>`;
+      <p>Today most editions beam vocal parts by beat, like instrumental music, because it shows the meter and is easier to read. Either way, a <b>slur</b> joins the notes of a melisma, each syllable is centered under its first note, and a <b>hyphen</b> sits centered in the space between the syllables of a word (in a long melisma, several hyphens may be spread through the gap). A word's last syllable sung to a melisma gets an <b>extender line</b> instead.</p>`;
     } },
-    { title: "Pick-ups", kick: "Anacrusis", render: (H, k, U) => `<p>An <b>anacrusis</b> (pick-up, upbeat) is one or more notes before the first downbeat of a phrase. The first bar is incomplete, and the final bar is often shortened to balance it, so the two together make one full bar. Bar numbering usually starts with the first <i>complete</i> bar.</p>`
-      + fig(U, rh("3/4", [{ r: "q" }, "h q", "q q q", "h"]), "A one-beat pick-up in 3/4 (the click starts on beat 3); the last bar has two beats.", { small: false }) },
+    { title: "Pick-ups", kick: "Anacrusis", render: (H, k, U) => `<p>An <b>anacrusis</b> (pick-up, upbeat) is one or more notes before the first downbeat of a phrase. The first bar is incomplete. Traditionally the final bar is shortened to balance it, so the two together make one full bar, but many pieces simply end with a full bar. Bar numbering usually starts with the first <i>complete</i> bar.</p>`
+      + fig(U, rh("3/4", [{ r: "q", minBar: 26 }, "h q", "q q q", "q q q", "hd"]), "A one-beat pick-up in 3/4 (the click starts on beat 3). This example ends with a full bar.", { small: false }) },
     { title: "Syncopation", kick: "Against the beat", render: (H, k, U) => `<p><b>Syncopation</b> begins a note on a weak beat or an offbeat and sustains it into a normally accented position, so the accent falls “between” beats.</p>
       <div class="lfigs">${fig(U, rh("4/4", ["8 q 8 q q", "q q h"]), "Eighth–quarter–eighth: a classic syncopation")}${fig(U, rh("4/4", ["8 8~ 8 8~ 8 8 q", "w"]), "Ties across beats, keeping every beat visible")}</div>` },
     { title: "Hemiola", kick: "Three against two", render: (H, k, U) => `<p>A <b>hemiola</b> shifts the feel of the meter by asserting three groups in the time of two, or vice versa. The classic case: two bars of 3/4 (2 × 3 beats) heard as three half notes (3 × 2), often just before a cadence.</p>`
@@ -881,12 +954,29 @@ window.FAM = (() => {
   const DURQ = { w: 4, h: 2, q: 1, "8": .5, "16": .25 };
   const durOf = d => { const m = /^(w|h|q|8|16)(d*)$/.exec(d); let b = DURQ[m[1]], add = b; for (let i = 0; i < m[2].length; i++) { add /= 2; b += add; } return b; };
   const staffIds = o => o.ids || (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");   // o.ids lets two staves share a clef (e.g. two percussion staves)
+  // Proportional justification: VexFlow otherwise pushes a bar's last note against the bar line. Justify to the point where the
+  // last note starts (as a share of the bar), so the space after it matches its value; never narrower than the notes need.
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
   function drawScore(el, o) {
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.includes("d") ? 8 : 0) + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
-    const barW = bar => (bar.time ? 26 : 0) + Math.max(o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    const barW = bar => (bar.time ? 26 : 0) + Math.max(bar.minBar || o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
     const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
     const MAXW = o.rowW || 680, rows = [];
     let cur = [], w = 0;
@@ -908,10 +998,14 @@ window.FAM = (() => {
       let x = 8; const y0 = ri * rowH + above + 10;
       const rowStaves = [];
       row.forEach((bi, j) => {
-        const bar = o.bars[bi], bw = barW(bar) + (j ? 0 : headW(bi === 0));
+        const bar = o.bars[bi]; let bw = barW(bar) + (j ? 0 : headW(bi === 0));
         if (bar.time) curT = bar.time;
         const nextT = j === row.length - 1 && o.bars[bi + 1] && o.bars[bi + 1].time;   // cautionary time signature at the end of the line
         const staves = clefs.map((c, si) => { const s = new VF.Stave(x, y0 + si * gap, bw); if (j === 0) { s.addClef(c); if (c !== "percussion" && o.vf && o.vf !== "C" && o.vf !== "Am") s.addKeySignature(o.vf); } if ((bi === 0 && o.time !== null) || (bi > 0 && bar.time)) s.addTimeSignature(curT); if (nextT && s.setEndTimeSignature) s.setEndTimeSignature(nextT); if (bar.dbl) s.setEndBarType(VF.Barline.type.DOUBLE); if (bi === o.bars.length - 1 && o.final !== false) s.setEndBarType(VF.Barline.type.END); return s; });
+        { // size the bar from the space its clef, key and time signatures really take, so equal bars get equal room for notes
+          const plain = new VF.Stave(x, 0, 100), offS = plain.getNoteStartX() - x, offE = x + 100 - plain.getNoteEndX();
+          const head = Math.max(...staves.map(s => s.getNoteStartX())) - x - offS, tail = x + bw - Math.min(...staves.map(s => s.getNoteEndX())) - offE;
+          bw = barW(bar) - (bar.time ? 26 : 0) + Math.max(0, head) + Math.max(0, tail); staves.forEach(s => s.setWidth(bw)); }
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
         if (clefs.length > 1) { const types = j === 0 ? ["brace", "singleLeft"] : []; if (j === row.length - 1) types.push(bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight"); else types.push("singleRight"); types.forEach(t => { const c = new VF.StaveConnector(staves[0], staves[1]); c.setType(t); st(c); c.setContext(ctx).draw(); }); }
         const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
@@ -950,7 +1044,7 @@ window.FAM = (() => {
         });
         const fmt = new VF.Formatter();
         clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
-        if (vlist.length) fmt.format(vlist.map(x => x.v), Math.max(20, staves[0].getNoteEndX() - startX - 12));
+        if (vlist.length) { const vs = vlist.map(x => x.v); justifyW(VF, fmt, vs, Math.max(20, staves[0].getNoteEndX() - startX - 12)); }
         vlist.forEach(x => x.v.draw(ctx, x.s));
         beams.forEach(b => { st(b); b.setContext(ctx).draw(); });
         tuplets.forEach(t => { st(t); t.setContext(ctx).draw(); });
@@ -968,7 +1062,7 @@ window.FAM = (() => {
     const NS = "http://www.w3.org/2000/svg";
     const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
     const txt = (x, y, s, at) => { const t = mk("text", Object.assign({ x, y, "text-anchor": "middle", "font-size": 15, "font-family": "'Schibsted Grotesk', Arial, sans-serif", fill: ink }, at || {}), svg); t.textContent = s; return t; };
-    const brOpen = {}, rowTop = {};
+    const brOpen = {}, rowTop = {}, lyr = [];
     meta.forEach(({ sn, si, ri, staves }) => { if (si) return; const ys = sn.getYs ? sn.getYs() : []; rowTop[ri] = Math.min(rowTop[ri] ?? staves[0].getYForLine(0), staves[0].getYForLine(0), ...ys.map(y => y - (sn.getStemDirection && sn.getStemDirection() === 1 && sn.getDuration() !== "w" ? 34 : 6))); });
     const hasN = has("n"), hasTag = all.some(n => n.tag), hasSym = has("sym");
     meta.forEach(({ sn, n, si, ri, staves }) => {
@@ -980,10 +1074,23 @@ window.FAM = (() => {
       if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
       if (n.sym) txt(x, symY, n.sym, { "font-size": 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
       if (n.lab) rnSVG(mk, svg, x, bot + 44, n.lab, ink);
-      if (n.ly != null) txt(x, staves[si].getYForLine(4) + 34, n.ly, { "font-size": 15, "font-family": "Literata, serif" });
+      lyr.push({ si, ri, x, y: staves[si].getYForLine(4) + 34, n, sn, el: n.ly != null ? txt(x, staves[si].getYForLine(4) + 34, n.ly, { "font-size": 15, "font-family": "Literata, serif" }) : null });
       if (n.bs) brOpen[si + ":" + n.bs] = { x: x - 10, ri, label: n.bs };
       if (n.be) { const key = Object.keys(brOpen).find(k2 => k2.startsWith(si + ":") && (n.be === true || k2 === si + ":" + n.be)); if (key) { const b = brOpen[key]; delete brOpen[key]; const yb = brY - 6; mk("path", { d: `M${b.x} ${yb + 7} V${yb} H${x + 12} V${yb + 7}`, fill: "none", stroke: ink, "stroke-width": 1.6 }, svg); txt(b.x + 2, yb - 5, b.label, { "text-anchor": "start", "font-size": 15, "font-weight": 700, "font-style": "italic", "font-family": "Literata, serif" }); } }
     });
+    // lyric hyphens (n.hy: centered between this syllable and the next), extender lines (n.ex) and slurs (n.sls … n.sle)
+    const edge = (el, side) => { try { const b = el.getBBox(); return side < 0 ? b.x : b.x + b.width; } catch (e) { return +el.getAttribute("x"); } };
+    lyr.forEach((L, i) => {
+      if (L.el && (L.n.hy || L.n.ex)) {
+        let j = i + 1; while (j < lyr.length && lyr[j].si === L.si && !lyr[j].el) j++;
+        const nx = j < lyr.length && lyr[j].si === L.si && lyr[j].ri === L.ri ? lyr[j] : null, x1 = edge(L.el, 1);
+        if (L.n.hy) { const x2 = nx ? edge(nx.el, -1) : x1 + 24, gapW = x2 - x1, count = gapW > 120 ? Math.floor(gapW / 60) : 1;
+          for (let h = 1; h <= count; h++) mk("line", { x1: x1 + gapW * h / (count + 1) - 4, x2: x1 + gapW * h / (count + 1) + 4, y1: L.y - 5, y2: L.y - 5, stroke: ink, "stroke-width": 1.3 }, svg); }
+        if (L.n.ex) { const last = lyr[Math.max(i, j - 1)]; mk("line", { x1: x1 + 2, x2: last.x + 8, y1: L.y + 1, y2: L.y + 1, stroke: ink, "stroke-width": 1.2 }, svg); }
+      }
+    });
+    const slOpen = {};
+    lyr.forEach(L => { if (L.n.sls) slOpen[L.si] = L.sn; if (L.n.sle && slOpen[L.si]) { try { const c = new VF.Curve(slOpen[L.si], L.sn, { cps: [{ x: 0, y: 18 }, { x: 0, y: 18 }] }); st(c); c.setContext(ctx).draw(); } catch (e) {} delete slOpen[L.si]; } });
     let vb = `0 0 ${totalW} ${rows.length * rowH}`;
     try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
     svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
@@ -1010,7 +1117,7 @@ window.FAM = (() => {
       const [num, den] = T.split("/").map(Number), full = num * 4 / den;
       const beat = den === 8 && num % 3 === 0 && num > 3 ? 1.5 : den === 8 ? .5 : 4 / den;
       const len = barLen(b) || full, start = i === 0 && len < full - 1e-9 ? full - len : 0;
-      for (let q = Math.ceil(start / beat - 1e-9) * beat; q < full - 1e-9; q += beat) ev.push([q < 1e-9 ? 96 : 89, t + (q - start) * spb, .05, q < 1e-9 ? .5 : .32]);
+      for (let q = Math.ceil(start / beat - 1e-9) * beat; q < full - 1e-9; q += beat) ev.push([q < 1e-9 ? 96 : 89, t + (q - start) * spb, .05, q < 1e-9 ? .9 : .6, q < 1e-9 ? "clickHi" : "click"]);
       t += len * spb;
     });
     return Object.assign({}, p, { ev });
@@ -1026,7 +1133,7 @@ window.FAM = (() => {
           const d = durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1) * spb;
           if (n.k.length) {
             if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
-            else { const evs = n.k.map(s => [perc ? 76 : midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length)]); ev.push(...evs); held = { k: n.k.join(), evs }; }
+            else { const evs = n.k.map(s => perc ? [76, t, d * .95, .9, "perc"] : [midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length)]); ev.push(...evs); held = { k: n.k.join(), evs }; }
             if (!n.tie) held = null;
           } else held = null;
           t += d;
@@ -1047,6 +1154,24 @@ window.FAM = (() => {
     AC = new C(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4; comp.connect(AC.destination); AC._out = comp; return AC;
   }
   function newBus() { if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => old.disconnect(), 400); } bus = AC.createGain(); bus.gain.value = 1; bus.connect(AC._out); return bus; }
+  // unpitched sounds: "click" / "clickHi" (metronome), "perc" (a clear, mid-low drum hit for rhythms)
+  let NZ = null;
+  function hit(out, kind, t0, vel) {
+    if (!NZ) { NZ = AC.createBuffer(1, AC.sampleRate * .5, AC.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const g = AC.createGain(); g.connect(out);
+    if (kind === "click" || kind === "clickHi") {   // a woody metronome tick: a very short tone plus a burst of filtered noise
+      const f = kind === "clickHi" ? 2000 : 1300, o = AC.createOscillator(), og = AC.createGain(), n = AC.createBufferSource(), bp = AC.createBiquadFilter(), ng = AC.createGain();
+      o.type = "sine"; o.frequency.value = f; og.gain.setValueAtTime(0, t0); og.gain.linearRampToValueAtTime(.5 * vel, t0 + .001); og.gain.exponentialRampToValueAtTime(.001, t0 + .035);
+      n.buffer = NZ; bp.type = "bandpass"; bp.frequency.value = f * 1.6; bp.Q.value = 2.5; ng.gain.setValueAtTime(.6 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .015);
+      o.connect(og); og.connect(g); n.connect(bp); bp.connect(ng); ng.connect(g); g.gain.value = .9; o.start(t0); o.stop(t0 + .05); n.start(t0); n.stop(t0 + .03); return;
+    }
+    // "perc": a tom-like drum with a sharp attack, well below the click's range
+    const o = AC.createOscillator(), og = AC.createGain(), n = AC.createBufferSource(), lp = AC.createBiquadFilter(), ng = AC.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(260, t0); o.frequency.exponentialRampToValueAtTime(150, t0 + .08);
+    og.gain.setValueAtTime(0, t0); og.gain.linearRampToValueAtTime(.75 * vel, t0 + .002); og.gain.exponentialRampToValueAtTime(.001, t0 + .28);
+    n.buffer = NZ; lp.type = "lowpass"; lp.frequency.value = 3500; ng.gain.setValueAtTime(.35 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .03);
+    o.connect(og); og.connect(g); n.connect(lp); lp.connect(ng); ng.connect(g); o.start(t0); o.stop(t0 + .3); n.start(t0); n.stop(t0 + .04);
+  }
   function tone(out, m, t0, dur, vel = 1, timbre) {
     const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
     lp.type = "lowpass"; lp.frequency.value = Math.min(f * 7, 6000); g.connect(out); lp.connect(g);
@@ -1059,7 +1184,7 @@ window.FAM = (() => {
   }
   function play(p) {
     if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .06;
-    if (p.ev) { p.ev.forEach(([m, s, d, v]) => tone(out, m, t + s, d, v || .8, p.timbre)); return; }
+    if (p.ev) { p.ev.forEach(([m, s, d, v, kind]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, p.timbre)); return; }
     const gap = p.gap || 1.05;
     (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach(m => tone(out, m, t + i * gap, (p.dur || .95) * gap, 1 / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }

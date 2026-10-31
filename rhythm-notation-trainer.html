@@ -895,7 +895,22 @@ details.panel[open] summary::after { content: "−"; }
   }
 
   // spec: { m, bars, ts: "show"|"hide"|"ask", pickup, gap: {bar, at, len}, barNums, nums, hl: [bars], mark: {bar: [event idx]}, snippet, label }
-  function drawMusic(el, spec) {
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
+   function drawMusic(el, spec) {
     el._spec = spec;
     el.innerHTML = "";
     if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Check your connection and reload the page.</p>'; return null; }
@@ -964,7 +979,7 @@ details.panel[open] summary::after { content: "−"; }
         const voice = new VF.Voice({ num_beats: m.num, beat_value: m.den }).setMode(VF.Voice.Mode.SOFT);
         voice.addTickables(tick);
         const fw = Math.max(20, stave.getNoteEndX() - stave.getNoteStartX() - (spec.snippet ? 4 : 16));
-        new VF.Formatter().joinVoices([voice]).format([voice], fw);
+        { const fm = new VF.Formatter().joinVoices([voice]); justifyW(VF, fm, [voice], fw); }
         voice.draw(ctx, stave);
         beams.forEach(b => b.setContext(ctx).draw());
         info.staves[bi] = stave; info.notes[bi] = map; info.rowOf[bi] = ri; info.ghosts[bi] = ghosts;

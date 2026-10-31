@@ -361,6 +361,23 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
   function describe() {
     return `Time signature ${R.m.num} ${R.m.den}. ` + R.bars.map((ev, k) => `Bar ${k + 1}: ` + ev.map(e => (NAMES[e.d] || "note") + (e.rest ? " rest" : "")).join(", ") + ".").join(" ");
   }
+  // Proportional justification: VexFlow otherwise pushes a bar's last note against the bar line. Justify to the point where the
+  // last note starts (as a share of the bar), so the space after it matches its value; never narrower than the notes need.
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
   function draw(colors) {
     const box = $("score"); box.innerHTML = "";
     if (R.grid) { geo = null; drawGrid(colors); return; }
@@ -391,7 +408,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
         runs.forEach(rn => beams.push(new VF.Beam(rn)));
         if (idx.every(i => ev[i].trip)) tups.push(new VF.Tuplet(idx.map(i => sns[i]), { num_notes: 3, notes_occupied: 2, bracketed: false }));
       });
-      new VF.Formatter().joinVoices([voice]).format([voice], st.getNoteEndX() - st.getNoteStartX() - 12); voice.draw(ctx, st);
+      { const fm = new VF.Formatter().joinVoices([voice]); justifyW(VF, fm, [voice], st.getNoteEndX() - st.getNoteStartX() - 12); } voice.draw(ctx, st);
       beams.forEach(b => b.setContext(ctx).draw()); tups.forEach(t => t.setContext(ctx).draw());
       sns.forEach((n, i) => geo.notes.push({ tick: ev[i].start, x: n.getAbsoluteX() + 6 }));
       geo.bars.push({ tick: (k + 1) * R.barT, x: x + widths[k] - 6 });

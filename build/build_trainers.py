@@ -162,6 +162,7 @@ HARM = [
   ("Film and Game Scoring Lesson.html", "film-and-game-scoring-lesson.html", "scoring-lesson", "Understanding Film and Game Scoring"),
   ("Distribution and Rights.html", "music-distribution-and-rights.html", "distribution", "Music Distribution and Rights"),
   ("Distribution and Rights Lesson.html", "music-distribution-and-rights-lesson.html", "distribution-lesson", "Understanding Music Distribution and Rights"),
+  ("Intervals.html", "intervals.html", "intervals", "Intervals"),
   ("Scales.html", "major-and-minor-scales.html", "scales", "Major and Minor Scales"),
   ("Scales Lesson.html", "major-and-minor-scales-lesson.html", "scales-lesson", "Understanding Major and Minor Scales"),
   ("Harmonic Succession Lesson.html", "harmonic-succession-lesson.html", "harmsucc-lesson", "Understanding Harmonic Succession"),
