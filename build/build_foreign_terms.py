@@ -46,5 +46,6 @@ s = before_head_close(s, HEAD_ASSETS + '\n<link rel="stylesheet" href="assets/fo
 s = after_body_open(s, strip_html(full_screen=False, sound=True))
 rep(r'<p class="credit"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b></p>', "", True)
 s = before_body_close(s, PROGRESS_SCRIPTS + '<script>SAprogress.init({ id: "foreignterms", name: "Orchestration Foreign Terms", before: ".fi-credit" });</script>\n' + CREDIT)
+s = before_body_close(s, '<script src="assets/site.js"></script>')
 (SITE_DIR / "orchestration-foreign-terms.html").write_text(s, encoding="utf-8")
 print("built orchestration-foreign-terms.html", len(s))

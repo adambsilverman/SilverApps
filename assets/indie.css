@@ -228,3 +228,30 @@ body.lc-fs .lc-timer{font-size:clamp(90px,11vw,170px)}
 .site-logo{height:30px;width:auto;display:block}
 .site-home .site-sub,.brand .site-sub{font-family:var(--fi-title);font-size:26px;line-height:1;color:var(--fi-ink);white-space:nowrap}
 @media (max-width:760px){.site-home .site-sub,.brand .site-sub{display:none}}
+
+/* "Jump to…" app menu (assets/site.js) */
+#saJumpDlg{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink);padding:0;width:min(920px,calc(100vw - 24px));max-height:calc(100vh - 40px);box-shadow:var(--fi-shadow)}
+#saJumpDlg::backdrop{background:rgba(20,16,12,.45)}
+.saj-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 6px;position:sticky;top:0;background:var(--fi-card)}
+.saj-head h2{font:400 30px/1 var(--fi-display);margin:0}
+.saj-x{font:700 18px var(--fi-ui);border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);background:var(--fi-card);color:var(--fi-ink);min-width:44px;min-height:44px;cursor:pointer}
+.saj-find{display:flex;gap:8px;align-items:center;padding:0 18px 10px;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+.saj-find input{flex:1;font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-paper);color:var(--fi-ink);min-height:44px}
+.saj-body{padding:0 18px 18px;columns:2 300px;column-gap:24px}
+.saj-sec{break-inside:avoid;margin-bottom:12px}
+.saj-sec h3{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;color:var(--fi-muted)}
+.saj-sec ul{list-style:none;margin:0;padding:0}
+.saj-sec li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:3px 0;border-bottom:1px solid var(--fi-soft)}
+.saj-name{flex:1 1 140px;font:600 15px var(--fi-serif)}
+.saj-sec a{font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.04em;color:var(--fi-ink);border:1.5px solid var(--fi-line);border-radius:var(--fi-pill);padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;text-decoration:none}
+.saj-sec a:hover,.saj-sec a:focus-visible{background:var(--fi-ink);color:#fff}
+.saj-sec a[aria-current="page"]{background:var(--fi-red);border-color:var(--fi-red-dk);color:var(--fi-ink)}
+.saj-home{margin:0;padding:4px 18px 18px}
+/* Touch screens (iPad and phones): no double-tap zoom on controls, bigger slider thumbs */
+button,a,input,select,label,[role="button"]{touch-action:manipulation}
+@media (pointer:coarse){
+  input[type=range]{min-height:36px}
+  input[type=range]::-webkit-slider-thumb{width:28px;height:28px}
+  input[type=range]::-moz-range-thumb{width:28px;height:28px}
+}
+#saJumpDlg [hidden]{display:none!important}

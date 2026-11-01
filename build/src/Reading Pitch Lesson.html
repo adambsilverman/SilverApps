@@ -424,6 +424,26 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .txlay legend { font-weight: 700; padding: 0 4px; }
 .txlay label { display: flex; gap: 8px; align-items: center; min-height: 32px; }
 
+.fstk { display: inline-flex; flex-direction: column; line-height: .95; font-size: .85em; vertical-align: middle; text-align: center; }
+
+.ministaff { width: 100%; max-width: 640px; height: auto; color: var(--ink, #222); display: block; margin: 8px auto; overflow: visible; }
+.ministaff .mshit { fill: transparent; cursor: pointer; }
+.ministaff g[role="button"]:hover .mshit, .ministaff g[role="button"]:focus .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .6; }
+.ministaff g[role="button"]:focus { outline: none; }
+.ministaff g[role="button"]:focus-visible .mshit { stroke: var(--accent, #1a5fb4); stroke-width: 2; }
+.ministaff g[aria-pressed="true"] .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .9; }
+.msinfo { text-align: center; font-weight: 600; min-height: 1.5em; }
+
+.mvstaff svg { max-width: 360px; touch-action: none; }
+.mvstaff svg:focus-visible, #azG:focus-visible { outline: 3px solid var(--accent, #1a5fb4); outline-offset: 2px; }
+.histsvg { width: 100%; max-width: 460px; height: auto; color: var(--ink, #222); display: block; margin: 0 auto; }
+
+.rgrow { line-height: 2.2; margin: 4px 0; }
+.rgn { font: 700 12px var(--fi-ui, sans-serif); text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
+.rgw { font: 500 15px var(--fi-serif, serif); border: 1px solid var(--line, #ccc); border-radius: 999px; background: var(--card, #fff); color: var(--ink, #222); padding: 3px 10px; min-height: 32px; cursor: pointer; }
+.rgw:hover, .rgw:focus-visible { background: var(--hl, #F7E3A1); }
+#rgQ { font: 16px var(--fi-serif, serif); padding: 6px 8px; min-height: 40px; border-radius: 8px; border: 1.5px solid var(--line, #ccc); }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -534,8 +554,8 @@ window.FAM = (() => {
   }
   const nameO = (H, n) => H.nm(n) + n.o + (n.l === 0 && n.o === 4 ? " (middle C)" : "");
   // one staff, a row of whole notes (no time signature); notes: [{ k, ly, hl }]
-  const one = (clef, notes, o = {}) => ({ type: "score", clefs: [clef], time: null, vf: "C", sig: {}, bpm: 70, final: false, rowW: o.rowW || 700, minBar: notes.length === 1 ? 110 : 70, scale: notes.length === 1 ? 1.9 : 1.25, bars: [{ [clef === "bass" ? "b" : "t"]: [notes.map(n => Object.assign({ d: "w" }, n))] }] });
-  const grand = (cols, o = {}) => ({ type: "score", clefs: ["treble", "bass"], time: null, vf: "C", sig: {}, bpm: 70, final: false, rowW: o.rowW || 760, minBar: cols.length === 1 ? 110 : 70, scale: cols.length === 1 ? 1.6 : 1.25, bars: [{ t: [cols.map(c => Object.assign({ d: "w" }, c.t))], b: [cols.map(c => Object.assign({ d: "w" }, c.b))] }] });
+  const one = (clef, notes, o = {}) => ({ type: "score", clefs: [clef], time: null, vf: "C", sig: {}, bpm: 240, final: false, rowW: o.rowW || 700, minBar: notes.length === 1 ? 110 : 70, scale: notes.length === 1 ? 1.9 : 1.25, bars: [{ [clef === "bass" ? "b" : "t"]: [notes.map(n => Object.assign({ d: "w" }, n))] }] });
+  const grand = (cols, o = {}) => ({ type: "score", clefs: ["treble", "bass"], time: null, vf: "C", sig: {}, bpm: 240, final: false, rowW: o.rowW || 760, minBar: cols.length === 1 ? 110 : 70, scale: cols.length === 1 ? 1.6 : 1.25, bars: [{ t: [cols.map(c => Object.assign({ d: "w" }, c.t))], b: [cols.map(c => Object.assign({ d: "w" }, c.b))] }] });
   const rest = { k: [], ghost: true };
   const clefsOn = H => ["treble", "bass", "alto", "tenor"].filter(c => H.topicOn(c));
   function pickStep(H) {
@@ -611,11 +631,89 @@ window.FAM = (() => {
   }
 
   const lineNotes = (H, clef, which) => [0, 1, 2, 3, 4].map(i => which === "lines" ? 2 * i : 2 * i + 1).filter(s => s <= 8).map(s => { const n = noteAt(H, clef, s); return { k: [H.nmO(n)], ly: H.nm(n) }; });
+
+  // ---------- interactive: move a note on the staff ----------
+  let HC = null; const MV = { clef: "treble", s: 4, a: 0 };
+  function mvInner(H) {
+    const n = noteAt(H, MV.clef, MV.s), nn = H.N(n.l, MV.a, n.o);
+    const svg = H.miniStaff({ clef: MV.clef, notes: [{ s: MV.s, acc: MV.a ? MV.a : null }], startX: 110, dx: 80, w: 260, label: `${MV.clef} clef, a note on the ${where(MV.s)}: ${nameO(H, nn)}` });
+    return `${svg}<p class="msinfo" aria-live="polite">${where(MV.s)[0].toUpperCase() + where(MV.s).slice(1)}: <b>${H.nm(nn)}</b> (${nameO(H, nn)})</p>`;
+  }
+  function mvToy(H) {
+    HC = H;
+    return `<div class="toy mvtoy" id="mvToy"><div class="toy-row" role="group" aria-label="Clef">${["treble", "bass", "alto", "tenor"].map(c => `<button class="play" data-mvc="${c}" aria-pressed="${MV.clef === c}">${c}</button>`).join("")}</div>
+      <div id="mvStaff" class="mvstaff">${mvInner(H)}</div>
+      <div class="toy-row"><button class="play" data-mv="1">▲ Up a step</button><button class="play" data-mv="-1">▼ Down a step</button><span role="group" aria-label="Accidental">${[[-1, "♭"], [0, "none"], [1, "♯"]].map(([a, l]) => `<button class="play" data-mva="${a}" aria-pressed="${MV.a === a}">${l}</button>`).join("")}</span></div>
+      <p class="lnote">Drag the note up or down, use the buttons, or select the staff and press the arrow keys.</p></div>`;
+  }
+  function mvSet(st, sound = true) {
+    MV.s = Math.max(-6, Math.min(14, st)); const box = document.getElementById("mvStaff"); if (!box || !HC) return; box.innerHTML = mvInner(HC);
+    const svg = box.querySelector("svg"); svg.setAttribute("tabindex", "0"); svg.setAttribute("role", "slider"); svg.setAttribute("aria-valuemin", "-6"); svg.setAttribute("aria-valuemax", "14"); svg.setAttribute("aria-valuenow", MV.s);
+    const n = noteAt(HC, MV.clef, MV.s); svg.setAttribute("aria-valuetext", nameO(HC, HC.N(n.l, MV.a, n.o)));
+    if (sound) HC.play({ chords: [[HC.midi(HC.N(n.l, MV.a, n.o))]], gap: 1.05 });
+  }
+  if (!window.__mvWired) { window.__mvWired = true;
+    document.addEventListener("click", e => {
+      const c = e.target.closest("[data-mvc]"); if (c) { MV.clef = c.dataset.mvc; document.querySelectorAll("[data-mvc]").forEach(b => b.setAttribute("aria-pressed", String(b === c))); mvSet(MV.s); return; }
+      const a = e.target.closest("[data-mva]"); if (a) { MV.a = +a.dataset.mva; document.querySelectorAll("[data-mva]").forEach(b => b.setAttribute("aria-pressed", String(b === a))); mvSet(MV.s); return; }
+      const m = e.target.closest("[data-mv]"); if (m) mvSet(MV.s + +m.dataset.mv);
+    });
+    document.addEventListener("keydown", e => { if (!e.target.closest || !e.target.closest("#mvStaff svg")) return; if (e.key === "ArrowUp") { e.preventDefault(); mvSet(MV.s + 1); setTimeout(() => { const s = document.querySelector("#mvStaff svg"); if (s) s.focus(); }); } if (e.key === "ArrowDown") { e.preventDefault(); mvSet(MV.s - 1); setTimeout(() => { const s = document.querySelector("#mvStaff svg"); if (s) s.focus(); }); } });
+    let drag = false;
+    const yToS = (svg, ev) => { const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); return Math.round((80 - p.y) / 5); };
+    document.addEventListener("pointerdown", e => { const svg = e.target.closest && e.target.closest("#mvStaff svg"); if (!svg) return; drag = true; svg.setPointerCapture && svg.setPointerCapture(e.pointerId); const st = yToS(svg, e); if (st !== MV.s) mvSet(st); });
+    document.addEventListener("pointermove", e => { if (!drag) return; const svg = document.querySelector("#mvStaff svg"); if (!svg) return; const st = yToS(svg, e); if (st !== MV.s && st >= -6 && st <= 14) mvSet(st, false); });
+    document.addEventListener("pointerup", () => { if (drag) { drag = false; mvSet(MV.s, true); } });
+  }
+
+  // ---------- interactive: place and size an accidental ----------
+  const AZ = {};
+  function azNew() { Object.assign(AZ, { acc: [1, 0, -1][Math.floor(Math.random() * 3)], s: Math.floor(Math.random() * 9), x: 30 + Math.random() * 40, y: 20 + Math.random() * 70, sc: [.5, .6, 1.6, 1.9][Math.floor(Math.random() * 4)], done: false }); }
+  const AZX = 150, azY = () => 80 - AZ.s * 5;
+  function azSVG(H) {
+    const st = H.miniStaff({ notes: [{ s: AZ.s }], startX: 110, dx: 80, w: 260, label: "" }), P = H.ACCP[AZ.acc];
+    const g = `<g id="azG" transform="translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})" tabindex="0" role="img" aria-label="${AZ.acc > 0 ? "sharp" : AZ.acc < 0 ? "flat" : "natural"} sign: drag it, or use the arrow keys; plus and minus change its size" style="cursor:grab"><rect x="-.3" y="${P.top - .3}" width="${P.w + .6}" height="${P.bot - P.top + .6}" fill="transparent"/><path d="${P.d}" fill="currentColor"/></g>`;
+    return st.replace("</svg>", g + "</svg>");
+  }
+  function azDraw() { const box = document.getElementById("azBox"); if (!box || !HC) return; box.innerHTML = azSVG(HC); const sz = document.getElementById("azSize"); if (sz) sz.value = AZ.sc; }
+  function azToy(H) { HC = H; if (AZ.acc == null) azNew(); return `<div class="toy"><div id="azBox" class="mvstaff">${azSVG(H)}</div>
+    <div class="toy-row"><label>Size <input type="range" id="azSize" min=".4" max="2.2" step=".05" value="${AZ.sc}"></label><button class="play" data-az="check">Check</button><button class="play" data-az="new">New note</button></div>
+    <p class="msinfo" id="azFb" aria-live="polite">Drag the ${AZ.acc > 0 ? "sharp" : AZ.acc < 0 ? "flat" : "natural"} into place in front of the note and make it the right size.</p></div>`; }
+  function azCheck() {
+    const P = HC.ACCP[AZ.acc], k = AZ.sc * 10, right = AZ.x + P.w * k, noteL = AZX - 8, dy = AZ.y - azY(), gap = noteL - right, out = [];
+    const vOK = Math.abs(dy) <= 2.5, sOK = AZ.sc >= .8 && AZ.sc <= 1.25, hOK = gap >= 0 && gap <= 9;
+    out.push(vOK ? "✓ Height: centered on the note's " + (AZ.s % 2 ? "space" : "line") + (AZ.acc < 0 ? " (the flat's round belly sits on it)" : "") : `✗ Height: move it ${dy > 0 ? "up" : "down"}; ${AZ.acc < 0 ? "the flat's belly" : "its center"} should sit on the note's ${AZ.s % 2 ? "space" : "line"}`);
+    out.push(sOK ? "✓ Size: about three staff spaces tall" + (AZ.acc < 0 ? " (a flat is a little shorter)" : "") : `✗ Size: make it ${AZ.sc < .8 ? "bigger" : "smaller"}: about three staff spaces tall`);
+    out.push(hOK ? "✓ Placement: just in front of the notehead" : gap < 0 ? "✗ Placement: it touches or overlaps the notehead; move it left" : "✗ Placement: it's too far from the note; move it right, just in front of the notehead");
+    const ok = vOK && sOK && hOK; document.getElementById("azFb").innerHTML = (ok ? "<b>Well placed!</b> " : "") + out.join("<br>");
+    if (ok && window.SFX) SFX.play(true);
+  }
+  if (!window.__azWired) { window.__azWired = true;
+    let dr = null;
+    const pt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    document.addEventListener("pointerdown", e => { const g = e.target.closest && e.target.closest("#azG"); if (!g) return; e.preventDefault(); const svg = g.ownerSVGElement, p = pt(svg, e); dr = { svg, dx: p.x - AZ.x, dy: p.y - AZ.y }; });
+    document.addEventListener("pointermove", e => { if (!dr) return; const p = pt(dr.svg, e); AZ.x = p.x - dr.dx; AZ.y = p.y - dr.dy; const g = document.getElementById("azG"); if (g) g.setAttribute("transform", `translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})`); });
+    document.addEventListener("pointerup", () => { if (dr) { dr = null; azDraw(); const g = document.getElementById("azG"); if (g) g.focus(); } });
+    document.addEventListener("input", e => { if (e.target.id === "azSize") { AZ.sc = +e.target.value; const g = document.getElementById("azG"); if (g) g.setAttribute("transform", `translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})`); } });
+    document.addEventListener("keydown", e => { if (!e.target.closest || !e.target.closest("#azG")) return; const st = e.shiftKey ? 5 : 1, K = e.key; let hit = true;
+      if (K === "ArrowLeft") AZ.x -= st; else if (K === "ArrowRight") AZ.x += st; else if (K === "ArrowUp") AZ.y -= st; else if (K === "ArrowDown") AZ.y += st; else if (K === "+" || K === "=") AZ.sc = Math.min(2.2, AZ.sc + .05); else if (K === "-") AZ.sc = Math.max(.4, AZ.sc - .05); else hit = false;
+      if (hit) { e.preventDefault(); azDraw(); document.getElementById("azG").focus(); } });
+    document.addEventListener("click", e => { const b = e.target.closest("[data-az]"); if (!b) return; if (b.dataset.az === "check") azCheck(); else { azNew(); const t = b.closest(".toy"); if (t) t.outerHTML = azToy(HC); } });
+  }
+
+  // ---------- clef history pictures ----------
+  const guidoSVG = `<svg class="histsvg" viewBox="0 0 420 120" role="img" aria-label="A four-line chant staff with letter clefs: the F line is red and the C line is yellow, with square notes on the lines and spaces">
+    ${[0, 1, 2, 3].map(i => `<line x1="40" x2="410" y1="${25 + i * 20}" y2="${25 + i * 20}" stroke="${i === 1 ? "#c0392b" : i === 3 ? "#d4a017" : "currentColor"}" stroke-width="${i === 1 || i === 3 ? 3 : 1.2}"/>`).join("")}
+    <text x="14" y="${45 + 6}" font-size="22" font-family="serif" font-weight="700" fill="#c0392b">F</text><text x="14" y="${85 + 6}" font-size="22" font-family="serif" font-weight="700" fill="#8a6a00">C</text>
+    ${[[70, 65], [100, 55], [130, 45], [160, 55], [190, 35], [220, 45], [250, 55], [280, 65], [310, 75], [340, 65], [370, 85]].map(([x, y]) => `<rect x="${x - 7}" y="${y - 7}" width="14" height="14" fill="currentColor"/>`).join("")}</svg>`;
+  const lettersSVG = `<svg class="histsvg" viewBox="0 0 420 150" role="img" aria-label="Letters G, F and C gradually became the treble, bass and C clef signs">
+    ${[["G", "&#x1D11E;", 40], ["F", "&#x1D122;", 92], ["C", "&#x1D121;", 140]].map(([L, gl, y]) => `<text x="30" y="${y}" font-size="34" font-family="'UnifrakturMaguntia', 'Old English Text MT', serif" font-style="italic" fill="currentColor">${L}</text><text x="80" y="${y - 8}" font-size="22" fill="currentColor">→ · · · →</text><text x="200" y="${y}" font-size="30" font-family="serif" font-style="italic" fill="currentColor">${L}</text><text x="250" y="${y - 8}" font-size="22" fill="currentColor">→</text><text x="300" y="${y + 6}" font-size="44" font-family="'Noto Music', serif" fill="currentColor">${gl}</text>`).join("")}</svg>`;
   const lesson = { steps: [
     { title: "The staff", kick: "Lines, spaces, letters", render: (H, k, U) => `<p>Pitch is written on a <b>staff</b> of five lines and four spaces, counted from the <b>bottom</b>. Moving from a line to the next space (or a space to the next line) is one <b>step</b>: the next letter. Line to line, or space to space, is a <b>skip</b> (a 3rd): every other letter.</p>
       <p>The musical alphabet is just seven letters, <b>A B C D E F G</b>, repeating. Octave numbers tell the repetitions apart: each octave starts on C, and <b>middle C</b> is <b>C4</b>.</p>`
       + U.fig(one("treble", [0, 1, 2, 3, 4, 5, 6, 7, 8].map(s => { const n = noteAt(H, "treble", s); return { k: [H.nmO(n)], ly: H.nm(n) }; })), "Line, space, line, space…: each step is the next letter.")
-      + `<p><b>Ledger lines</b> extend the staff above and below for notes outside it. A <b>clef</b> tells you which line is which pitch.</p>` },
+      + `<p><b>Ledger lines</b> extend the staff above and below for notes outside it. A <b>clef</b> tells you which line is which pitch.</p>
+      <h3>Try it: move the note</h3>${mvToy(H)}` },
     { title: "Treble clef", kick: "The G clef", render: (H, k, U) => `<p>The treble clef is a <b>G clef</b>: it began as a letter G, and its curl still circles the 2nd line, <b>G4</b> (the G above middle C).</p>
       <div class="lfigs">${U.fig(one("treble", lineNotes(H, "treble", "lines")), `<b>Lines: E G B D F</b>: “Every Good Boy Does Fine”`, { small: true })}${U.fig(one("treble", lineNotes(H, "treble", "spaces")), "<b>Spaces: F A C E</b>: they spell “FACE”", { small: true })}</div>`
       + H.check("Treble clef, 3rd line:", "B", ["G", "D", "C"], "E G B D F: the 3rd line is B.") },
@@ -636,9 +734,12 @@ window.FAM = (() => {
       <div class="lfigs">${U.fig(one("alto", lineNotes(H, "alto", "lines")), "<b>Alto lines: F A C E G</b>: “Fat Alley Cats Eat Grapes”", { small: true })}${U.fig(one("alto", lineNotes(H, "alto", "spaces")), "<b>Alto spaces: G B D F</b>: “Good Birds Don't Fly”", { small: true })}${U.fig(one("tenor", lineNotes(H, "tenor", "lines")), "<b>Tenor lines: D F A C E</b>: “Don't Forget Any Cello Etudes”", { small: true })}${U.fig(one("tenor", lineNotes(H, "tenor", "spaces")), "<b>Tenor spaces: E G B D</b>: “Every Good Bassoon Delights”", { small: true })}</div>
       <p>On the great staff, the alto clef's five lines are the <i>middle</i> five (F3 A3 C4 E4 G4); the tenor clef's are the next five down (D3 F3 A3 C4 E4).</p>`
       + H.check("Alto clef, middle line:", "C", ["B", "D", "A"], "The C clef's center marks middle C.") },
-    { title: "A short history of clefs", kick: "Letters on lines", render: () => `<p>Early chant notation (neumes) showed the shape of a melody but not exact pitches. Around the year 1000, <b>Guido of Arezzo</b> is credited with the staff of lines a 3rd apart, marking key lines with letters (and colors: red for F, yellow for C) so singers could find exact pitches.</p>
+    { title: "A short history of clefs", kick: "Letters on lines", render: (H, k, U) => `<p>Early chant notation (neumes) showed the shape of a melody but not exact pitches. Around the year 1000, <b>Guido of Arezzo</b> is credited with the staff of lines a 3rd apart, marking key lines with letters (and colors: red for F, yellow for C) so singers could find exact pitches.</p>
+      <figure class="lfig">${guidoSVG}<figcaption>A chant staff of four lines in the style of Guido's time: a red F line and a yellow C line, each labeled with its letter, and square notes.</figcaption></figure>
       <p>Those letters are our clefs. Over centuries the written <b>C</b>, <b>F</b> and <b>G</b> became today's stylized signs: the C clef's two curves frame its line, the F clef's two dots frame theirs, and the G clef's curl circles G.</p>
+      <figure class="lfig">${lettersSVG}<figcaption>From letters to signs: scribes' G, F and C were gradually stylized into the treble, bass and C clefs.</figcaption></figure>
       <p>Clefs were <b>movable</b>. Rather than add ledger lines, scribes slid the clef up or down so each voice's range fit on the five lines. The C clef had a position for each voice: <b>soprano</b> (C on the 1st line), <b>mezzo-soprano</b> (2nd), <b>alto</b> (3rd), <b>tenor</b> (4th) and <b>baritone</b> (5th; the F clef on the 3rd line made the same staff). Renaissance and Baroque choral parts, and many older editions, use them.</p>
+      <div class="lfigs">${[["soprano", "Soprano clef"], ["mezzo-soprano", "Mezzo-soprano clef"], ["alto", "Alto clef"], ["tenor", "Tenor clef"], ["baritone-c", "Baritone clef"]].map(([c, l]) => U.fig({ type: "score", clefs: [c], time: null, vf: "C", sig: {}, bpm: 240, final: false, minBar: 90, scale: 1.4, bars: [{ t: [[{ k: ["C4"], d: "w", ly: "C4" }]] }] }, `<b>${l}</b>: middle C on line ${{ soprano: 1, "mezzo-soprano": 2, alto: 3, tenor: 4, "baritone-c": 5 }[c]}`, { small: true })).join("")}</div>
       <p>As music standardized, most parts settled into the G clef on the 2nd line (treble) and the F clef on the 4th line (bass). Today the C clef survives as the <b>alto</b> clef (viola) and <b>tenor</b> clef (cello, bassoon, trombone). Every one of these is still a five-line window onto the same great staff.</p>` },
     { title: "Reading strategies", kick: "Faster reading", render: () => `<ul><li><b>Memory devices</b> (EGBDF, FACE, GBDFA, ACEG…) get you started; drill until you don't need them.</li>
       <li><b>Landmarks:</b> know the clef's own note (G4, F3, middle C) and a few others instantly; read nearby notes by counting steps.</li>
@@ -646,7 +747,7 @@ window.FAM = (() => {
       <li><b>Patterns:</b> lines and spaces each spell every other letter, so if you know one line you know them all.</li>
       <li><b>Same pitch, different clef:</b> find middle C in each clef first, then count.</li></ul>` },
     { title: "Lining things up", kick: "Notes and accidentals", render: (H, k, U) => {
-      const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 80, minBar: 260, bars: [{ t: [[{ k: ["C5", "E5", "G5"], d: "h" }, { k: ["F♯4", "A4", "D5"], d: "q" }, { k: ["G4", "A4", "C5"], d: "q" }]], b: [[{ k: ["C3"], d: "q" }, { k: ["E3"], d: "q" }, { k: ["D3"], d: "q" }, { k: ["E♭3", "G3"], d: "q" }]] }, { t: [[{ k: ["C♯5", "E♭5", "G♯5"], d: "w" }]], b: [[{ k: ["A2"], d: "w" }]] }] };
+      const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 120, minBar: 260, bars: [{ t: [[{ k: ["C5", "E5", "G5"], d: "h" }, { k: ["F♯4", "A4", "D5"], d: "q" }, { k: ["G4", "A4", "C5"], d: "q" }]], b: [[{ k: ["C3"], d: "q" }, { k: ["E3"], d: "q" }, { k: ["D3"], d: "q" }, { k: ["E♭3", "G3"], d: "q" }]] }, { t: [[{ k: ["C♯5", "E♭5", "G♯5"], d: "w" }]], b: [[{ k: ["A2"], d: "w" }]] }] };
       return `<ul><li><b>Notes that sound together line up vertically</b>, across every staff of a system: chords, grand staff, full scores. Horizontal spacing follows time: longer values get more room, so a half note in one hand lines up with the first of two quarters in the other.</li>
         <li><b>Seconds in a chord:</b> the two noteheads sit on opposite sides of the stem, with the <b>higher note always to the right</b>.</li>
         <li><b>Accidentals</b> go immediately before the notehead, centered on exactly the same line or space, and last until the bar line for that line or space (in that octave).</li>
@@ -655,8 +756,8 @@ window.FAM = (() => {
         + U.fig(sp, "Noteheads align across both staves; a 2nd in a chord puts the higher note on the right; accidentals stack in columns in front of the chord.");
     } },
     { title: "Accidentals", kick: "Sharps, flats and naturals", render: (H, k, U) => {
-      const a = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 80, minBar: 240, bars: [{ t: [[{ k: ["F4"], d: "q", ly: "F" }, { k: ["F♯4"], d: "q", ly: "F♯" }, { k: ["G4"], d: "q", ly: "G" }, { k: ["F♯4"], d: "q", ly: "still F♯" }]] }, { t: [[{ k: ["F4"], d: "q", ly: "F again" }, { k: ["B♭4"], d: "q", ly: "B♭" }, { k: ["B4"], d: "q", ly: "B♮" }, { k: ["B4"], d: "q", ly: "still B♮" }]] }] };
-      const b = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 200, bars: [{ t: [[{ k: ["C4"], d: "q", ly: "C" }, { k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["C𝄪4"], d: "q", ly: "C𝄪" }, { k: ["D4"], d: "q", ly: "D" }]] }, { t: [[{ k: ["E4"], d: "q", ly: "E" }, { k: ["E♭4"], d: "q", ly: "E♭" }, { k: ["E𝄫4"], d: "q", ly: "E𝄫" }, { k: ["D4"], d: "q", ly: "D" }]] }] };
+      const a = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 60, minBar: 240, bars: [{ t: [[{ k: ["F4"], d: "q", ly: "F" }, { k: ["F♯4"], d: "q", ly: "F♯" }, { k: ["G4"], d: "q", ly: "G" }, { k: ["F♯4"], d: "q", ly: "still F♯" }]] }, { t: [[{ k: ["F4"], d: "q", ly: "F again" }, { k: ["B♭4"], d: "q", ly: "B♭" }, { k: ["B4"], d: "q", ly: "B♮" }, { k: ["B4"], d: "q", ly: "still B♮" }]] }] };
+      const b = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 60, minBar: 200, bars: [{ t: [[{ k: ["C4"], d: "q", ly: "C" }, { k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["C𝄪4"], d: "q", ly: "C𝄪" }, { k: ["D4"], d: "q", ly: "D" }]] }, { t: [[{ k: ["E4"], d: "q", ly: "E" }, { k: ["E♭4"], d: "q", ly: "E♭" }, { k: ["E𝄫4"], d: "q", ly: "E𝄫" }, { k: ["D4"], d: "q", ly: "D" }]] }] };
       return `<p>An <b>accidental</b> raises or lowers the note it is attached to:</p>
         <div class="ltable-wrap"><table class="ltable"><caption>Accidentals</caption><thead><tr><th scope="col">Sign</th><th scope="col">Name</th><th scope="col">Effect</th></tr></thead><tbody>
         <tr><td><span style="font-size:1.7em;line-height:1">♯</span></td><td>sharp</td><td>up one semitone</td></tr>
@@ -673,8 +774,8 @@ window.FAM = (() => {
         + U.fig(b, "Double sharps and double flats move two semitones: C𝄪 sounds the same as D, and E𝄫 the same as D.", { small: true });
     } },
     { title: "Writing accidentals", kick: "Size, place, stacking, enharmonics", render: (H, k, U) => {
-      const c = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 260, bars: [{ t: [[{ k: ["E♭4", "G4", "B♭4"], d: "h" }, { k: ["C♯4", "F♯4", "A♯4", "C♯5"], d: "h" }]] }, { t: [[{ k: ["D♭4", "F4", "A♭4", "C♭5"], d: "w" }]] }] };
-      const e = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 72, minBar: 220, bars: [{ t: [[{ k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["D♭4"], d: "q", ly: "D♭" }, { k: ["E♯4"], d: "q", ly: "E♯" }, { k: ["F4"], d: "q", ly: "F" }]] }, { t: [[{ k: ["B♯4"], d: "q", ly: "B♯" }, { k: ["C5"], d: "q", ly: "C" }, { k: ["C♭5"], d: "q", ly: "C♭" }, { k: ["B4"], d: "q", ly: "B" }]] }] };
+      const c = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 120, minBar: 260, bars: [{ t: [[{ k: ["E♭4", "G4", "B♭4"], d: "h" }, { k: ["C♯4", "F♯4", "A♯4", "C♯5"], d: "h" }]] }, { t: [[{ k: ["D♭4", "F4", "A♭4", "C♭5"], d: "w" }]] }] };
+      const e = { type: "score", clefs: ["treble"], time: "4/4", vf: "C", sig: {}, bpm: 60, minBar: 220, bars: [{ t: [[{ k: ["C♯4"], d: "q", ly: "C♯" }, { k: ["D♭4"], d: "q", ly: "D♭" }, { k: ["E♯4"], d: "q", ly: "E♯" }, { k: ["F4"], d: "q", ly: "F" }]] }, { t: [[{ k: ["B♯4"], d: "q", ly: "B♯" }, { k: ["C5"], d: "q", ly: "C" }, { k: ["C♭5"], d: "q", ly: "C♭" }, { k: ["B4"], d: "q", ly: "B" }]] }] };
       return `<ul><li><b>Placement:</b> immediately before the notehead, centered on exactly the same line or space. A sharp's center box or a flat's round belly sits on that line or space. In text, accidentals come after the letter (F♯), but on the staff they come first.</li>
         <li><b>Size:</b> about the height of three staff spaces for a sharp or natural (a flat is a little shorter), so the sign reaches roughly a space above and below its note. Too small and it is hard to read; too large and it crowds the notes around it. Accidentals for grace notes and cue notes are reduced with the notehead.</li>
         <li><b>Stacking in chords:</b> accidentals can't overlap, so they fan out to the left in columns. The usual order: highest accidental closest to the chord, then the lowest, then the next highest, then the next lowest, working in toward the middle. Accidentals a 7th or more apart can share a column. Notation software does this for you, but check it.</li>
@@ -682,6 +783,7 @@ window.FAM = (() => {
         + U.fig(c, "Accidentals in chords stack in columns to the left of the noteheads.")
         + `<p><b>Enharmonic</b> notes sound the same but are spelled differently: C♯ and D♭, F♯ and G♭, and also the white-key pairs E♯ = F, B♯ = C, C♭ = B and F♭ = E. Spelling matters because it shows the note's job: in A major the third of the chord is C♯, not D♭, and the leading tone of F♯ minor is E♯, not F. Each letter name is used once in a scale, so scales and chords "spell" correctly with stacked thirds.</p>`
         + U.fig(e, "Enharmonic pairs: each pair sounds the same pitch on a piano.", { small: true })
+        + `<h3>Try it: place the accidental</h3><p>Drag the sign in front of the note and set its size until all three checks pass. (Keyboard: select the sign, then use the arrow keys to move it and + or − to resize it.)</p>${azToy(H)}`
         + H.check("In the same bar, after a B♭, the next B on that line has no sign. It is…", "B♭", ["B natural", "B♯", "it depends on the clef"], "The flat lasts until the bar line.")
         + H.check("Which is enharmonic with B♯?", "C", ["B", "C♯", "A𝄪"], "B♯ is a semitone above B.");
     } },
@@ -878,11 +980,13 @@ window.FAM = (() => {
     const keyOf = s => { const x = parse(s); return { k: LET[x.l].toLowerCase() + "/" + x.o, x }; };
     const accFor = x => (o.sig && (o.sig[x.l] || 0)) === x.a ? null : VFACC[x.a];
     // Build tickables per stave: one note (or chord) per column, a barline between columns.
-    const make = (clef, list, stem) => {
+    const make = (clef, list, stem, light) => {
       const sorted = list.map(keyOf).sort((a, b) => midi(a.x) - midi(b.x));
       const sn = new VF.StaveNote({ clef, keys: sorted.map(y => y.k), duration: voiced ? "h" : "w", stem_direction: stem || 1, auto_stem: !stem && voiced });
       sorted.forEach((y, i) => { const a = accFor(y.x); if (a) sn.addModifier(new VF.Accidental(a), i); });
-      sn.setStyle({ fillStyle: ink, strokeStyle: ink }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      const col = light ? (cssVar("--muted-ink") || "#8a8178") : ink;
+      sn.setStyle({ fillStyle: col, strokeStyle: col }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      if (light) sn.getModifiers && sn.getModifiers().forEach(m => m.setStyle && m.setStyle({ fillStyle: col, strokeStyle: col }));
       return sn;
     };
     const voices = [], notesAt = [];
@@ -892,7 +996,7 @@ window.FAM = (() => {
       const tk = [];
       cols.forEach((c, i) => {
         if (i) tk.push(new VF.BarNote());
-        const sn = c[f] && c[f].length ? make(clef, c[f], stem) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
+        const sn = c[f] && c[f].length ? make(clef, c[f], stem, (o.light || []).includes(f)) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
         tk.push(sn); (notesAt[i] = notesAt[i] || []).push(sn);
       });
       const v = new VF.Voice({ num_beats: (voiced ? 2 : 4) * n, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tk);
@@ -909,9 +1013,9 @@ window.FAM = (() => {
       const NS = "http://www.w3.org/2000/svg";
       const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
       const yTop = tr.getYForLine(0), yBot = bs.getYForLine(4);
-      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
+      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs && !(x instanceof VF.GhostNote)).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
       cols.forEach((c, i) => {
-        const sn = notesAt[i].find(x => x.getAbsoluteX) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
+        const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
         if (c.hl) mk("rect", { x: x - 22, y: yTop - 34, width: 46, height: yBot - yTop + 68, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
         if (c.lab) rnSVG(mk, svg, x, Math.max(yBot + 46, yLow + 26), c.lab, ink);
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
@@ -1172,21 +1276,23 @@ window.FAM = (() => {
     n.buffer = NZ; lp.type = "lowpass"; lp.frequency.value = 3500; ng.gain.setValueAtTime(.35 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .03);
     o.connect(og); og.connect(g); n.connect(lp); lp.connect(ng); ng.connect(g); o.start(t0); o.stop(t0 + .3); n.start(t0); n.stop(t0 + .04);
   }
-  function tone(out, m, t0, dur, vel = 1, timbre) {
+  function tone(out, m, t0, dur, vel = 1, timbre, pan) {
     const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = Math.min(f * 7, 6000); g.connect(out); lp.connect(g);
-    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
-    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (timbre === "reed" ? 10 : 7), 7000);
+    if (pan && AC.createStereoPanner) { const pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
+    lp.connect(g);
+    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : timbre === "reed" ? [[1, 1], [3, .7], [5, .45], [7, .3], [9, .18]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" || timbre === "reed" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
     const pk = .22 * vel;
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + .02);
-    if (timbre === "voice") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
+    if (timbre === "voice" || timbre === "reed") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
     g.gain.setTargetAtTime(0, t0 + dur, .08);
   }
   function play(p) {
     if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .06;
-    if (p.ev) { p.ev.forEach(([m, s, d, v, kind]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, p.timbre)); return; }
+    if (p.ev) { p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan)); return; }
     const gap = p.gap || 1.05;
-    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach(m => tone(out, m, t + i * gap, (p.dur || .95) * gap, 1 / Math.sqrt(ch.length) * 1.3, p.timbre)));
+    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
   const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } };
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
@@ -1378,7 +1484,39 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+
+  // ---------- a light SVG staff for interactive figures (clickable notes, arrows) ----------
+  // Accidental shapes in staff-space units, anchored at (0, 0) = the line or space they belong to.
+  const ACCP = {
+    "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
+    "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
+    "-1": { w: .78, top: -2.3, bot: .48, d: "M0 -2.3h.13v2.78H0zM.13 .48C.95 .02 .9 -.55 .13 -.22V-.03C.58 -.3 .62 .08 .13 .3z" },
+  };
+  function miniStaff(o) {
+    const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
+    const lineY = i => y0 + i * sp, stepY = st => y0 + 4 * sp - st * sp / 2, ink = "currentColor";
+    let g = "";
+    for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 6}" y1="${lineY(i)}" y2="${lineY(i)}" stroke="${ink}" stroke-width="1"/>`;
+    const CL = { treble: ["&#x1D11E;", 3, 2.95], bass: ["&#x1D122;", 1, 3.0], alto: ["&#x1D121;", 2, 3.1], tenor: ["&#x1D121;", 1, 3.1] }[o.clef || "treble"];
+    g += `<text x="${x0 + 4}" y="${lineY(CL[1])}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
+    const xs = [];
+    o.notes.forEach((nt, i) => {
+      const x = startX + i * dx + dx / 2, y = stepY(nt.s); xs.push([x, y]);
+      let led = ""; for (let st = -2; st >= nt.s; st -= 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`; for (let st = 10; st <= nt.s; st += 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`;
+      const acc = nt.acc != null && ACCP[nt.acc] ? `<path d="${ACCP[nt.acc].d}" transform="translate(${x - 9 - 8 - ACCP[nt.acc].w * sp} ${y}) scale(${sp})" fill="${nt.fill || ink}"/>` : "";
+      const head = `<ellipse cx="${x}" cy="${y}" rx="${sp * .72}" ry="${sp * .5}" transform="rotate(-20 ${x} ${y})" fill="none" stroke="${nt.fill || ink}" stroke-width="${sp * .26}"/>`;
+      const lab = nt.label ? `<text x="${x}" y="${y0 + 4 * sp + 30}" text-anchor="middle" font-size="13" fill="${ink}">${nt.label}</text>` : "";
+      g += nt.attrs ? `<g ${nt.attrs}><rect x="${x - dx / 2 + 2}" y="${y0 - 34}" width="${dx - 4}" height="${4 * sp + 74}" rx="8" class="mshit"/>${led}${acc}${head}${lab}</g>` : led + acc + head + lab;
+    });
+    (o.arrows || []).forEach(([a, b, t]) => {
+      const [xa, ya] = xs[a], [xb, yb] = xs[b], top = Math.min(ya, yb, y0) - 14;
+      g += `<path d="M${xa} ${ya - 9} Q ${(xa + xb) / 2} ${top - 10} ${xb - 4} ${yb - 9}" fill="none" stroke="${ink}" stroke-width="1.6" marker-end="url(#ms-arr)"/>`;
+      if (t) g += `<text x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle" font-size="12" fill="${ink}">${t}</text>`;
+    });
+    const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
+    return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
+  }
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);

@@ -424,6 +424,26 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .txlay legend { font-weight: 700; padding: 0 4px; }
 .txlay label { display: flex; gap: 8px; align-items: center; min-height: 32px; }
 
+.fstk { display: inline-flex; flex-direction: column; line-height: .95; font-size: .85em; vertical-align: middle; text-align: center; }
+
+.ministaff { width: 100%; max-width: 640px; height: auto; color: var(--ink, #222); display: block; margin: 8px auto; overflow: visible; }
+.ministaff .mshit { fill: transparent; cursor: pointer; }
+.ministaff g[role="button"]:hover .mshit, .ministaff g[role="button"]:focus .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .6; }
+.ministaff g[role="button"]:focus { outline: none; }
+.ministaff g[role="button"]:focus-visible .mshit { stroke: var(--accent, #1a5fb4); stroke-width: 2; }
+.ministaff g[aria-pressed="true"] .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .9; }
+.msinfo { text-align: center; font-weight: 600; min-height: 1.5em; }
+
+.mvstaff svg { max-width: 360px; touch-action: none; }
+.mvstaff svg:focus-visible, #azG:focus-visible { outline: 3px solid var(--accent, #1a5fb4); outline-offset: 2px; }
+.histsvg { width: 100%; max-width: 460px; height: auto; color: var(--ink, #222); display: block; margin: 0 auto; }
+
+.rgrow { line-height: 2.2; margin: 4px 0; }
+.rgn { font: 700 12px var(--fi-ui, sans-serif); text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
+.rgw { font: 500 15px var(--fi-serif, serif); border: 1px solid var(--line, #ccc); border-radius: 999px; background: var(--card, #fff); color: var(--ink, #222); padding: 3px 10px; min-height: 32px; cursor: pointer; }
+.rgw:hover, .rgw:focus-visible { background: var(--hl, #F7E3A1); }
+#rgQ { font: 16px var(--fi-serif, serif); padding: 6px 8px; min-height: 40px; border-radius: 8px; border: 1.5px solid var(--line, #ccc); }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -450,11 +470,13 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
   <p class="other-page" id="views"><a href="voice-motion-and-polyphony.html">Practice: Voice Motion and Polyphony drills →</a></p>
   <section class="lesson-view" id="lessonView" aria-label="Lesson"></section>
   <div id="drillView" hidden>
-  <nav class="modes m4" aria-label="Practice mode">
+  <nav class="modes m6" aria-label="Practice mode">
     <button data-mode="motion" aria-pressed="true"><b>Motion types</b><small><span aria-hidden="true">contrary · oblique · similar · parallel</span><span class="sr">: name the motion between two voices</span></small></button>
     <button data-mode="parallels" aria-pressed="false"><b>Parallels</b><small><span aria-hidden="true">5ths and 8ves</span><span class="sr">: find forbidden parallel fifths and octaves</span></small></button>
     <button data-mode="satb" aria-pressed="false"><b>Ranges & spacing</b><small><span aria-hidden="true">SATB check</span><span class="sr">: voice ranges, crossing and spacing in four parts</span></small></button>
     <button data-mode="texture" aria-pressed="false"><b>Textures</b><small><span aria-hidden="true">hear it · name it</span><span class="sr">: monophony, homophony, polyphony, heterophony, organum, canon and more</span></small></button>
+    <button data-mode="harm" aria-pressed="false"><b>Harmonize the bass</b><small><span aria-hidden="true">choose the voicing</span><span class="sr">: choose upper voices for a given bass and Roman numeral</span></small></button>
+    <button data-mode="errs" aria-pressed="false"><b>Find the error</b><small><span aria-hidden="true">four-part check</span><span class="sr">: find the part-writing error in a harmonized bass</span></small></button>
   </nav>
   <main class="card" id="practice" tabindex="-1">
     <div class="prompt" id="prompt"></div>
@@ -615,28 +637,31 @@ window.FAM = (() => {
   const B = .5;   // beat length (s)
   function texture(H, kind) {
     const mel = melody(H), ev = [], t = mel.t;
-    const line = (ms, start = 0, oct = 0, vel = .85, durs) => ms.forEach((m, i) => ev.push([m + oct, start + (durs ? durs.slice(0, i).reduce((a, b) => a + b, 0) : i * B), (durs ? durs[i] : B) * .95, vel]));
+    // the second voice (organum, canon, countermelody, ornamented copy, answer) gets a reedy timbre and sits to the right; the melody is a voice on the left
+    const two = ["organum", "canon", "free", "hetero", "hocket", "anti"].includes(kind), L = two ? -.45 : 0;
+    const line = (ms, start = 0, oct = 0, vel = .85, durs, tim) => ms.forEach((m, i) => ev.push([m + oct, start + (durs ? durs.slice(0, i).reduce((a, b) => a + b, 0) : i * B), (durs ? durs[i] : B) * .95, tim ? vel * 1.1 : vel, 0, tim || "voice", tim ? .5 : L]));
+    const R = "reed";
     const len = mel.m.length * B;
     if (kind === "mono") line(mel.m);
     if (kind === "drone") { line(mel.m); ev.push([t - 24, 0, len + .4, .55]); ev.push([t - 17, 0, len + .4, .45]); }
-    if (kind === "organum") { line(mel.m); line(mel.m.map(m => m - H.rnd([5, 7])), 0, 0, .7); }
+    if (kind === "organum") { line(mel.m); line(mel.m.map(m => m - H.rnd([5, 7])), 0, 0, .7, undefined, R); }
     if (kind === "homo") {
       line(mel.m);
       mel.deg.forEach((d, i) => { if (i % 2) return; const r = [0, 3, 4].find(x => [x, x + 2, x + 4].some(y => (((d - y) % 7) + 7) % 7 === 0)) ?? 0; const root = sc(t, r) - 12; ev.push([root - 12, i * B, B * 1.9, .55], [root, i * B, B * 1.9, .4], [sc(t, r + 2) - 12, i * B, B * 1.9, .4], [sc(t, r + 4) - 12, i * B, B * 1.9, .4]); });
     }
-    if (kind === "canon") { const n = mel.m.length; line(mel.m); line(mel.m, 2 * B, -12, .75); ev.push(...[]); void n; }
+    if (kind === "canon") { const n = mel.m.length; line(mel.m); line(mel.m, 2 * B, -12, .75, undefined, R); ev.push(...[]); void n; }
     if (kind === "free") {   // non-imitative: a slower, independent second line
       line(mel.m);
       let i = H.rnd([-7, -5, -3]); const ms = [], durs = [];
       for (let tt = 0; tt < mel.m.length; tt += 2) { ms.push(sc(t, i)); durs.push(2 * B); i += H.rnd([-2, -1, 1, 2]); }
-      line(ms, B * .5, 0, .75, durs.map((d, j) => j === durs.length - 1 ? d - B * .5 : d));
+      line(ms, B * .5, 0, .75, durs.map((d, j) => j === durs.length - 1 ? d - B * .5 : d), R);
     }
     if (kind === "hetero") {
       line(mel.m);
-      mel.m.forEach((m, i) => { const st = i * B + .03; if (i < mel.m.length - 1 && Math.random() < .55) { const mid = mel.m[i + 1] > m ? sc(t, mel.deg[i] + 1) : mel.m[i + 1] < m ? sc(t, mel.deg[i] - 1) : sc(t, mel.deg[i] + 1); ev.push([m - 12, st, B * .48, .6], [mid - 12, st + B * .5, B * .45, .6]); } else ev.push([m - 12, st, B * .93, .6]); });
+      mel.m.forEach((m, i) => { const st = i * B + .03; if (i < mel.m.length - 1 && Math.random() < .55) { const mid = mel.m[i + 1] > m ? sc(t, mel.deg[i] + 1) : mel.m[i + 1] < m ? sc(t, mel.deg[i] - 1) : sc(t, mel.deg[i] + 1); ev.push([m - 12, st, B * .48, .7, 0, R, .5], [mid - 12, st + B * .5, B * .45, .7, 0, R, .5]); } else ev.push([m - 12, st, B * .93, .7, 0, R, .5]); });
     }
-    if (kind === "hocket") mel.m.forEach((m, i) => ev.push([m + (i % 2 ? -12 : 0), i * B, B * .9, .85]));
-    if (kind === "anti") { line(mel.m.slice(0, 4)); line(mel.m.slice(0, 4), 4 * B + .3, -12, .8); }
+    if (kind === "hocket") mel.m.forEach((m, i) => ev.push([m + (i % 2 ? -12 : 0), i * B, B * .9, .85, 0, i % 2 ? R : "voice", i % 2 ? .5 : L]));
+    if (kind === "anti") { line(mel.m.slice(0, 4)); line(mel.m.slice(0, 4), 4 * B + .3, -12, .8, undefined, R); }
     return { ev, timbre: "voice" };
   }
   const TEX = { mono: "Monophony", homo: "Homophony (melody + chords)", canon: "Imitative polyphony (canon)", free: "Non-imitative polyphony", hetero: "Heterophony", drone: "Melody over a drone", organum: "Parallel organum" };
@@ -670,7 +695,50 @@ window.FAM = (() => {
     ["What is the largest usual distance between adjacent upper voices?", "an octave", ["a fifth", "a tenth", "two octaves"], "Bass and tenor may be farther apart."],
   ];
 
+
+  // ---------- harmonizing a bass ----------
+  const HPAT = [["1", "4", "5", "1"], ["1", "26", "5", "1"], ["1", "6", "4", "5", "1"], ["1", "4", "57", "1"], ["1", "56", "1", "4", "5", "1"], ["1", "2", "57", "1"], ["1", "6", "26", "57", "1"], ["1", "16", "4", "5", "1"], ["1", "5", "6", "4", "57", "1"], ["1", "46", "5", "1"]];
+  const ERRN = { par5: "Parallel 5ths", par8: "Parallel octaves or unisons", lt: "The leading tone doesn't resolve", sev: "A chordal 7th doesn't resolve down", dblLT: "Doubled leading tone", space: "Spacing: upper voices too far apart", none: "No errors" };
+  const vtxt = (H, v) => `S ${H.nmO(v.S)} · A ${H.nmO(v.A)} · T ${H.nmO(v.T)}`;
+  const vcol = (H, v, lab) => ({ t: [H.nmO(v.S)], a: [H.nmO(v.A)], tn: [H.nmO(v.T)], b: [H.nmO(v.B)], lab });
+  const vplay = (H, vs) => ({ chords: vs.map(v => [v.S, v.A, v.T, v.B].map(H.midi)), timbre: "voice", gap: .95 });
+  function probs(H, k, c1, v1, c2, v2) {
+    const out = new Set(); if (v1) H.pwIssues(k, c1, v1, c2, v2).forEach(x => { if (["par5", "con5"].includes(x.code)) out.add("par5"); if (["par8", "con8"].includes(x.code)) out.add("par8"); if (x.code === "lt") out.add("lt"); if (x.code === "sev") out.add("sev"); if (["aug2", "leap", "overlap", "dir5", "dir8"].includes(x.code)) out.add("other"); });
+    (v2.flags || []).forEach(f => { if (f === "dblLT") out.add("dblLT"); else if (f === "space") out.add("space"); else out.add("other"); }); return out;
+  }
+  function harmQ(H, mode) {
+    for (let g = 0; g < 30; g++) {
+      const k = H.key(H.rnd(KEYS), "major"), toks = H.rnd(HPAT), x = H.voiceToks(k, toks); if (!x) continue;
+      const labs = x.chords.map(c => c.rn);
+      if (mode === "harm") {
+        const i = 1 + Math.floor(Math.random() * (toks.length - 1)), prev = x.vs[i - 1], good = x.vs[i], c1 = x.chords[i - 1], c2 = x.chords[i];
+        if (good.dcost > 0 || good.flags.length) continue;
+        const cands = H.satbCands(k, c2, { loose: true }).filter(v => H.midi(v.B) === H.midi(good.B) && vtxt(H, v) !== vtxt(H, good));
+        const bad = H.shuffle(cands.map(v => ({ v, p: [...probs(H, k, c1, prev, c2, v)] })).filter(o => o.p.length && !o.p.includes("other"))).filter((o, j, a) => a.findIndex(z => z.p[0] === o.p[0]) === j).slice(0, 3);
+        if (bad.length < 2) continue;
+        const cols = x.vs.map((v, j) => j < i ? vcol(H, v, labs[j]) : { b: [H.nmO(v.B)], lab: labs[j], hl: j === i });
+        const ans = x.vs.map((v, j) => Object.assign(vcol(H, v, labs[j]), { hl: j === i }));
+        const why = bad.map(o => `${vtxt(H, o.v)}: ${o.p.map(c => ERRN[c].toLowerCase()).join(", ")}.`).join(" ");
+        return H.mc(`In ${k.label}, the bass and Roman numerals are given, and the chords before the highlighted one are voiced. Which upper voices are best for the highlighted chord ({rn:${c2.rn}})?`, vtxt(H, good), bad.map(o => vtxt(H, o.v)), `Best: ${vtxt(H, good)}: each voice moves to a near chord tone with no forbidden parallels and good doubling. The others: ${why}`, { kicker: "Harmonize the bass", staff: voicesSpec(k, cols), staffAns: voicesSpec(k, ans), playQ: vplay(H, x.vs.slice(0, i)), playQLabel: "Play up to here", play: vplay(H, x.vs), playLabel: "Play the answer", nWrong: 3, topic: "harm" });
+      }
+      // find the error
+      const want = H.rnd(["par5", "par8", "lt", "sev", "dblLT", "none", "par5", "par8"]);
+      let vs = x.vs.slice(), at = -1;
+      if (want !== "none") {
+        const opts = [];
+        for (let i = 1; i < vs.length; i++) H.satbCands(k, x.chords[i], { loose: true }).forEach(v => {
+          if (H.midi(v.B) !== H.midi(vs[i].B)) return; const a = probs(H, k, x.chords[i - 1], vs[i - 1], x.chords[i], v), b = i + 1 < vs.length ? probs(H, k, x.chords[i], v, x.chords[i + 1], vs[i + 1]) : new Set();
+          const all = new Set([...a, ...b]); if (all.size === 1 && all.has(want)) opts.push([i, v]); });
+        if (!opts.length) continue; const [i, v] = H.rnd(opts); vs[i] = v; at = i;
+      }
+      const cols = vs.map((v, j) => vcol(H, v, labs[j])), ans = vs.map((v, j) => Object.assign(vcol(H, v, labs[j]), { hl: j === at || (want !== "none" && ["par5", "par8", "lt", "sev"].includes(want) && j === at - 1 && false) }));
+      const where = at < 0 ? "Every move is fine: no forbidden parallels, tendency tones resolve, and doubling is good." : `The problem is at chord ${at + 1} ({rn:${labs[at]}}): ${ERRN[want].toLowerCase()}${want === "par5" || want === "par8" || want === "lt" || want === "sev" ? ` (between chords ${at} and ${at + 1}, or ${at + 1} and ${at + 2})` : ""}.`;
+      return H.mc(`In ${k.label}: what's wrong with this four-part harmonization?`, ERRN[want], Object.values(ERRN), where, { kicker: "Find the error", staff: voicesSpec(k, cols), staffAns: voicesSpec(k, ans), playQ: vplay(H, vs), playQLabel: "Play", nWrong: 3, topic: "harm" });
+    }
+    return null;
+  }
   function make(mode, H) {
+    if (mode === "harm" || mode === "errs") return harmQ(H, mode);
     if (mode === "motion") {
       const want = H.rnd(Object.keys(MOT)), p = motionPair(H, want);
       if (!p) return null;
@@ -700,7 +768,7 @@ window.FAM = (() => {
     // texture
     if (Math.random() < .55) {
       const kinds = Object.keys(TEX), kind = H.rnd(kinds), snd = texture(H, kind);
-      return H.mc("Listen. Which texture is this?", TEX[kind], kinds.filter(x => x !== kind).map(x => TEX[x]), `It's ${TEX[kind].toLowerCase().replace(/ \(.*\)/, "")}: ${TEXWHY[kind]}`, { kicker: "Hear the texture", playQ: snd, playQLabel: "Play the example", play: snd, playLabel: "Play again", auto: true, topic: "texture" });
+      return H.mc("Listen. Which texture is this? (The melody is a voice on the left; a second part, if any, is a reed sound on the right.)", TEX[kind], kinds.filter(x => x !== kind).map(x => TEX[x]), `It's ${TEX[kind].toLowerCase().replace(/ \(.*\)/, "")}: ${TEXWHY[kind]}`, { kicker: "Hear the texture", playQ: snd, playQLabel: "Play the example", play: snd, playLabel: "Play again", auto: true, topic: "texture" });
     }
     const [q, a, w, why] = H.rnd(FACTS);
     return H.mc(q, a, w, why, { kicker: "Polyphony & texture", topic: "texture" });
@@ -732,15 +800,17 @@ window.FAM = (() => {
     } },
     { title: "Smooth voice leading", kick: "Nearest notes", render: (H, k, U) => {
       const G = H.key("G", "major");
-      const sp = voicesSpec(G, [{ t: ["B4"], a: ["G4"], tn: ["D4"], b: ["G2"] }, { t: ["C5"], a: ["G4"], tn: ["E4"], b: ["C3"] }, { t: ["B4"], a: ["F♯4"], tn: ["D4"], b: ["D3"] }, { t: ["B4"], a: ["G4"], tn: ["D4"], b: ["G2"] }]);
+      const sp = voicesSpec(G, [{ t: ["B4"], a: ["G4"], tn: ["D4"], b: ["G2"] }, { t: ["C5"], a: ["G4"], tn: ["E4"], b: ["C3"] }, { t: ["A4"], a: ["F♯4"], tn: ["D4"], b: ["D3"] }, { t: ["B4"], a: ["G4"], tn: ["D4"], b: ["G2"] }]);
       return `<ul><li>Move each voice to its <b>nearest</b> possible chord tone.</li><li>Keep <b>common tones</b> in the same voice.</li><li>Look hard at any leap in an upper voice; keep necessary leaps small (a 3rd or 4th). Leaps are more common in the bass.</li><li>Avoid the melodic <b>augmented 2nd</b> (le to ti in harmonic minor) and the augmented 4th.</li></ul>`
-      + U.fig(sp, "I – IV – V – I in G major: the upper voices move by step or hold common tones.", { play: { chords: [[71, 67, 62, 43], [72, 67, 64, 48], [71, 66, 62, 50], [71, 67, 62, 43]], timbre: "voice", gap: 1 } });
+      + U.fig(sp, "I – IV – V – I in G major: the upper voices move by step or hold common tones, and move down against the rising bass from IV to V.", { play: { chords: [[71, 67, 62, 43], [72, 67, 64, 48], [69, 66, 62, 50], [71, 67, 62, 43]], timbre: "voice", gap: 1 } });
     } },
     { title: "Forbidden parallels", kick: "5ths and octaves", render: (H, k, U) => {
       const C = H.key("C", "major");
-      const p5 = ex2(H, C, "G4", "A4", "C3", "D3"), p8 = ex2(H, C, "C4", "D4", "C3", "D3"), fix = ex2(H, C, "E4", "D4", "C3", "G2");
+      const ex4 = (cols) => ({ spec: voicesSpec(C, cols.map(([s, a, tn, b]) => ({ t: [s], a: [a], tn: [tn], b: [b] })), { light: ["a", "tn"] }), play: { chords: cols.map(c => c.map(x => H.midi(H.parse(x)))), vels: cols.map(() => [1.25, .45, .45, 1.25]), timbre: "voice" } });
+      const p5 = ex4([["G4", "E4", "C4", "C3"], ["A4", "F4", "A3", "D3"]]), p8 = ex4([["C5", "G4", "E4", "C3"], ["D5", "F4", "A3", "D3"]]), fix = ex4([["E4", "C4", "G3", "C3"], ["D4", "B3", "G3", "G2"]]);
       return `<p>The strongest rule in part-writing: avoid <b>parallel perfect unisons, fifths and octaves</b>, even at the expense of normal doubling, spacing or voice leading. Perfect intervals moving in parallel make two voices sound like one, and the independence of the parts is lost. Parallel 3rds and 6ths are fine.</p>
-      <div class="lfigs">${U.fig(p5.spec, "Parallel 5ths (avoid)", { small: true, play: p5.play })}${U.fig(p8.spec, "Parallel octaves (avoid)", { small: true, play: p8.play })}${U.fig(fix.spec, "Contrary motion: no problem", { small: true, play: fix.play })}</div>
+      <p>In these four-voice examples the soprano and bass are dark and loud; the inner voices are lighter and quieter so you can follow the outer pair.</p>
+      <div class="lfigs">${U.fig(p5.spec, "Parallel 5ths between soprano and bass (avoid)", { small: true, play: p5.play })}${U.fig(p8.spec, "Parallel octaves between soprano and bass (avoid)", { small: true, play: p8.play })}${U.fig(fix.spec, "Contrary motion: no problem", { small: true, play: fix.play })}</div>
       <p class="note">It is often useful to check the motion between important points too (successive strong beats or bars), not just between neighboring notes.</p>`
       + H.check("Bass C3 → D3, soprano G4 → A4. What's the problem?", "Parallel 5ths", ["Parallel octaves", "Voice crossing", "Nothing"], "C–G to D–A: perfect 5th to perfect 5th, both voices up.");
     } },
@@ -793,7 +863,7 @@ window.FAM = (() => {
 
   return {
     key: "silverapps-voicemotion-v1", lesson, make, reference,
-    modes: [{ id: "motion", kicker: "Motion types" }, { id: "parallels", kicker: "Parallels" }, { id: "satb", kicker: "Ranges & spacing" }, { id: "texture", kicker: "Textures" }],
+    modes: [{ id: "motion", kicker: "Motion types" }, { id: "parallels", kicker: "Parallels" }, { id: "satb", kicker: "Ranges & spacing" }, { id: "texture", kicker: "Textures" }, { id: "harm", kicker: "Harmonize the bass" }, { id: "errs", kicker: "Find the error" }],
     topics: [],
   };
 })();
@@ -803,7 +873,7 @@ window.FAM = (() => {
 <script src="assets/mqtt.min.js?v=c6d89040"></script>
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
 <script src="assets/live.js?v=3b6de12e"></script>
-<script src="assets/site.js?v=d0c07f0a"></script>
+<script src="assets/site.js?v=d19fc4d3"></script>
 <script>
 (() => {
   // ===== Harmony trainer engine (Secondary Function, Neapolitan, Augmented Sixth, Mode Mixture, Voice Motion & Polyphony).
@@ -986,11 +1056,13 @@ window.FAM = (() => {
     const keyOf = s => { const x = parse(s); return { k: LET[x.l].toLowerCase() + "/" + x.o, x }; };
     const accFor = x => (o.sig && (o.sig[x.l] || 0)) === x.a ? null : VFACC[x.a];
     // Build tickables per stave: one note (or chord) per column, a barline between columns.
-    const make = (clef, list, stem) => {
+    const make = (clef, list, stem, light) => {
       const sorted = list.map(keyOf).sort((a, b) => midi(a.x) - midi(b.x));
       const sn = new VF.StaveNote({ clef, keys: sorted.map(y => y.k), duration: voiced ? "h" : "w", stem_direction: stem || 1, auto_stem: !stem && voiced });
       sorted.forEach((y, i) => { const a = accFor(y.x); if (a) sn.addModifier(new VF.Accidental(a), i); });
-      sn.setStyle({ fillStyle: ink, strokeStyle: ink }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      const col = light ? (cssVar("--muted-ink") || "#8a8178") : ink;
+      sn.setStyle({ fillStyle: col, strokeStyle: col }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      if (light) sn.getModifiers && sn.getModifiers().forEach(m => m.setStyle && m.setStyle({ fillStyle: col, strokeStyle: col }));
       return sn;
     };
     const voices = [], notesAt = [];
@@ -1000,7 +1072,7 @@ window.FAM = (() => {
       const tk = [];
       cols.forEach((c, i) => {
         if (i) tk.push(new VF.BarNote());
-        const sn = c[f] && c[f].length ? make(clef, c[f], stem) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
+        const sn = c[f] && c[f].length ? make(clef, c[f], stem, (o.light || []).includes(f)) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
         tk.push(sn); (notesAt[i] = notesAt[i] || []).push(sn);
       });
       const v = new VF.Voice({ num_beats: (voiced ? 2 : 4) * n, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tk);
@@ -1017,9 +1089,9 @@ window.FAM = (() => {
       const NS = "http://www.w3.org/2000/svg";
       const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
       const yTop = tr.getYForLine(0), yBot = bs.getYForLine(4);
-      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
+      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs && !(x instanceof VF.GhostNote)).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
       cols.forEach((c, i) => {
-        const sn = notesAt[i].find(x => x.getAbsoluteX) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
+        const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
         if (c.hl) mk("rect", { x: x - 22, y: yTop - 34, width: 46, height: yBot - yTop + 68, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
         if (c.lab) rnSVG(mk, svg, x, Math.max(yBot + 46, yLow + 26), c.lab, ink);
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
@@ -1280,21 +1352,23 @@ window.FAM = (() => {
     n.buffer = NZ; lp.type = "lowpass"; lp.frequency.value = 3500; ng.gain.setValueAtTime(.35 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .03);
     o.connect(og); og.connect(g); n.connect(lp); lp.connect(ng); ng.connect(g); o.start(t0); o.stop(t0 + .3); n.start(t0); n.stop(t0 + .04);
   }
-  function tone(out, m, t0, dur, vel = 1, timbre) {
+  function tone(out, m, t0, dur, vel = 1, timbre, pan) {
     const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = Math.min(f * 7, 6000); g.connect(out); lp.connect(g);
-    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
-    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (timbre === "reed" ? 10 : 7), 7000);
+    if (pan && AC.createStereoPanner) { const pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
+    lp.connect(g);
+    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : timbre === "reed" ? [[1, 1], [3, .7], [5, .45], [7, .3], [9, .18]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" || timbre === "reed" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
     const pk = .22 * vel;
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + .02);
-    if (timbre === "voice") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
+    if (timbre === "voice" || timbre === "reed") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
     g.gain.setTargetAtTime(0, t0 + dur, .08);
   }
   function play(p) {
     if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .06;
-    if (p.ev) { p.ev.forEach(([m, s, d, v, kind]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, p.timbre)); return; }
+    if (p.ev) { p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan)); return; }
     const gap = p.gap || 1.05;
-    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach(m => tone(out, m, t + i * gap, (p.dur || .95) * gap, 1 / Math.sqrt(ch.length) * 1.3, p.timbre)));
+    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
   const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } };
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
@@ -1486,7 +1560,39 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+
+  // ---------- a light SVG staff for interactive figures (clickable notes, arrows) ----------
+  // Accidental shapes in staff-space units, anchored at (0, 0) = the line or space they belong to.
+  const ACCP = {
+    "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
+    "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
+    "-1": { w: .78, top: -2.3, bot: .48, d: "M0 -2.3h.13v2.78H0zM.13 .48C.95 .02 .9 -.55 .13 -.22V-.03C.58 -.3 .62 .08 .13 .3z" },
+  };
+  function miniStaff(o) {
+    const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
+    const lineY = i => y0 + i * sp, stepY = st => y0 + 4 * sp - st * sp / 2, ink = "currentColor";
+    let g = "";
+    for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 6}" y1="${lineY(i)}" y2="${lineY(i)}" stroke="${ink}" stroke-width="1"/>`;
+    const CL = { treble: ["&#x1D11E;", 3, 2.95], bass: ["&#x1D122;", 1, 3.0], alto: ["&#x1D121;", 2, 3.1], tenor: ["&#x1D121;", 1, 3.1] }[o.clef || "treble"];
+    g += `<text x="${x0 + 4}" y="${lineY(CL[1])}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
+    const xs = [];
+    o.notes.forEach((nt, i) => {
+      const x = startX + i * dx + dx / 2, y = stepY(nt.s); xs.push([x, y]);
+      let led = ""; for (let st = -2; st >= nt.s; st -= 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`; for (let st = 10; st <= nt.s; st += 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`;
+      const acc = nt.acc != null && ACCP[nt.acc] ? `<path d="${ACCP[nt.acc].d}" transform="translate(${x - 9 - 8 - ACCP[nt.acc].w * sp} ${y}) scale(${sp})" fill="${nt.fill || ink}"/>` : "";
+      const head = `<ellipse cx="${x}" cy="${y}" rx="${sp * .72}" ry="${sp * .5}" transform="rotate(-20 ${x} ${y})" fill="none" stroke="${nt.fill || ink}" stroke-width="${sp * .26}"/>`;
+      const lab = nt.label ? `<text x="${x}" y="${y0 + 4 * sp + 30}" text-anchor="middle" font-size="13" fill="${ink}">${nt.label}</text>` : "";
+      g += nt.attrs ? `<g ${nt.attrs}><rect x="${x - dx / 2 + 2}" y="${y0 - 34}" width="${dx - 4}" height="${4 * sp + 74}" rx="8" class="mshit"/>${led}${acc}${head}${lab}</g>` : led + acc + head + lab;
+    });
+    (o.arrows || []).forEach(([a, b, t]) => {
+      const [xa, ya] = xs[a], [xb, yb] = xs[b], top = Math.min(ya, yb, y0) - 14;
+      g += `<path d="M${xa} ${ya - 9} Q ${(xa + xb) / 2} ${top - 10} ${xb - 4} ${yb - 9}" fill="none" stroke="${ink}" stroke-width="1.6" marker-end="url(#ms-arr)"/>`;
+      if (t) g += `<text x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle" font-size="12" fill="${ink}">${t}</text>`;
+    });
+    const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
+    return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
+  }
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);

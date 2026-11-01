@@ -136,6 +136,7 @@ HARM = [
   ("Phrases Lesson.html", "phrases-lesson.html", "phrases-lesson", "Understanding Phrases and Phrase Combinations"),
   ("Forms.html", "forms.html", "forms", "Musical Forms"),
   ("Forms Lesson.html", "forms-lesson.html", "forms-lesson", "Understanding Musical Forms"),
+  ("Chord Figures Lesson.html", "chord-figures-and-symbols-lesson.html", "figlesson", "Understanding Chord Figures and Symbols"),
   ("Extended and Altered Chords Lesson.html", "extended-and-altered-chords-lesson.html", "extlesson", "Understanding Extended and Altered Chords"),
   ("Modulation Lesson.html", "modulation-lesson.html", "modlesson", "Understanding Modulation"),
   ("Rhythm Notation Lesson.html", "rhythm-notation-lesson.html", "rhythmlesson", "Understanding Rhythm Notation"),

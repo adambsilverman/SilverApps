@@ -45,6 +45,7 @@ window.FAM = (() => {
 
   // ---------- toys ----------
   const TS = { amps: [1, .5, .33, .25, .2, .17, .14, .12, .11, .1], env: [.02, .3, .7, .3], cut: 1500, f: 220, live: null };
+  try { const q = new URLSearchParams(location.search).get("tb"); if (q) { const v = q.split(",").map(Number).filter(x => !isNaN(x)).slice(0, 10); if (v.length) TS.amps = Array.from({ length: 10 }, (_, i) => Math.max(0, Math.min(1, v[i] || 0))); } } catch (e) {}
   function play(b) {
     if (!ac()) return; const k = b.dataset.tm, f = +b.dataset.f || 220, t = AC.currentTime + .05; fresh();
     if (k === "wave") specNote(SPEC[b.dataset.w], f, t, 1.4, undefined, .22);
@@ -66,6 +67,7 @@ window.FAM = (() => {
     if (k === "kfm") [["flute", 392], ["clarinet", 330], ["oboe", 349], ["violin", 294], ["trumpet", 262], ["plucked", 392], ["bell", 330]].forEach(([n, fr], i) => instr(n, fr, t + i * .55, .5));
     if (k === "stop") { /* fresh() silenced it */ }
   }
+  if (!window.__tmShare) { window.__tmShare = true; document.addEventListener("click", e => { if (!e.target.closest("[data-tmshare]")) return; const url = location.href.split(/[?#]/)[0] + "?tb=" + TS.amps.map(a => +a.toFixed(2)).join(",") + "#step=3", m = document.getElementById("tmShareMsg"); if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { if (m) m.textContent = "Link copied: it opens this timbre."; }, () => { if (m) m.textContent = url; }); else if (m) m.textContent = url; }); }
   if (!window.__tmWired) { window.__tmWired = true;
     document.addEventListener("click", e => { const b = e.target.closest("[data-tm]"); if (b) play(b); });
     document.addEventListener("input", e => {
@@ -86,7 +88,7 @@ window.FAM = (() => {
     const pts = []; for (let i = 0; i <= 200; i++) { const x = i / 200 * 2, ph = x % 1; const y = type === "sine" ? Math.sin(2 * Math.PI * x) : type === "square" ? (ph < .5 ? 1 : -1) : type === "sawtooth" ? 1 - 2 * ph : (ph < .25 ? 4 * ph : ph < .75 ? 2 - 4 * ph : 4 * ph - 4); pts.push(`${(i * 1.5).toFixed(1)},${(40 - y * 30).toFixed(1)}`); }
     return `<svg class="tmwave" viewBox="0 0 300 80" aria-hidden="true"><polyline points="${pts.join(" ")}" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="0" y1="40" x2="300" y2="40" stroke="currentColor" stroke-opacity=".3"/></svg>`;
   }
-  const buildToy = () => `<div class="toy" id="tmBuild"><div class="toy-row"><label>Start from <select id="tmPre"><option value="">choose…</option>${Object.keys(SPEC).map(k => `<option>${k}</option>`).join("")}</select></label>${btn("Play (2.5 s)", { tm: "build" })}</div>
+  const buildToy = () => `<div class="toy" id="tmBuild"><div class="toy-row"><label>Start from <select id="tmPre"><option value="">choose…</option>${Object.keys(SPEC).map(k => `<option>${k}</option>`).join("")}</select></label>${btn("Play (2.5 s)", { tm: "build" })}<button class="play" data-tmshare="1">Copy link to this timbre</button><span class="lnote" id="tmShareMsg" aria-live="polite"></span></div>
     <div class="sygrid">${TS.amps.map((a, i) => `<label class="syk">Partial ${i + 1}<input type="range" min="0" max="1" step=".01" value="${a}" data-tp="${i}"><output data-tpo="${i}">${a.toFixed(2)}</output></label>`).join("")}</div>
     ${specSVG(TS.amps, "Your spectrum", "tmSpec")}<p class="lnote">Move sliders while it plays to hear the color change. The pitch never changes: only the recipe of partials.</p></div>`;
   const adsrToy = () => `<div class="toy"><div class="sygrid">${[["Attack", 0, 0, 2, .005], ["Decay", 1, .01, 2, .01], ["Sustain level", 2, 0, 1, .01], ["Release", 3, .01, 3, .01]].map(([l, i, mn, mx, st]) => `<label class="syk">${l}<input type="range" min="${mn}" max="${mx}" step="${st}" value="${TS.env[i]}" data-te="${i}"><output data-teo="${i}">${TS.env[i]}${i === 2 ? "" : " s"}</output></label>`).join("")}</div>${row(btn("Play the same tone with this envelope", { tm: "adsr" }))}</div>`;

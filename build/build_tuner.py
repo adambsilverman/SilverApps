@@ -91,5 +91,6 @@ READOUT = r'''
 })();
 </script>'''
 s = before_body_close(s, READOUT + "\n" + CREDIT)
+s = before_body_close(s, '<script src="assets/site.js"></script>')
 (SITE_DIR / "shadow-tuner.html").write_text(s, encoding="utf-8")
 print("built shadow-tuner.html", len(s))

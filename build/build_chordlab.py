@@ -55,5 +55,6 @@ rep("<script>/*@@QRCODE@@*/</script>", '<script src="assets/qrcode.js"></script>
 assert "@@" not in s.replace("/*@@FONTS@@*/", "")
 s = s.replace("/*@@FONTS@@*/", "")   # fonts now come from assets/indie.css
 s = before_body_close(s, '<script>SAprogress.init({ id: "chordfig", name: "Chord Figures and Symbols" });</script>')
+s = before_body_close(s, '<script src="assets/site.js"></script>')
 (SITE_DIR / "chord-figures-and-symbols.html").write_text(s, encoding="utf-8")
 print("built chord-figures-and-symbols.html", len(s))

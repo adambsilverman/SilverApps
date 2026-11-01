@@ -17,6 +17,16 @@ def card(t, color):
     return f'''<li class="card t-{color}" data-q="{e(words)}"><div class="cname"><span class="course">{e(t["topic"])}</span>
         <h3 class="tname">{e(t["name"])}</h3></div><div class="cinfo"><p class="blurb">{e(t["blurb"])}</p>{f'<p class="note">{e(note)}</p>' if note else ""}</div>
         <div class="btns">{"".join(btns)}</div></li>'''
+
+# ---- data for the site-wide "Jump to…" menu (assets/nav.js, loaded on demand by assets/site.js) ----
+_nav = []
+for sec in cfg["sections"]:
+    items = []
+    for t in sec["topics"]:
+        links = [[k.capitalize() if k != "open" else "Open", t[k]] for k in ("lesson", "drills", "open") if t.get(k)]
+        if links: items.append([t["name"], links])
+    if items: _nav.append([sec["title"], items])
+(ROOT / "assets" / "nav.js").write_text("window.SA_NAV = " + json.dumps(_nav, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 tiles = []
 for sec in cfg["sections"]:
     tiles.append(f'''<section class="group" id="{sec["id"]}" aria-labelledby="h-{sec["id"]}"><h2 id="h-{sec["id"]}"><span class="dot t-{sec["color"]}" aria-hidden="true"></span>{e(sec["title"])}</h2>

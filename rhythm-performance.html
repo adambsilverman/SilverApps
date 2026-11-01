@@ -384,7 +384,9 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
     if (R.hide && !colors) { geo = null; box.innerHTML = `<p class="cue">${R.cueText}<small>The notation appears after you perform. Count along with the click and clap only on the cue.</small></p>`; return; }
     if (!window.Vex || !Vex.Flow) { box.textContent = describe(); return; }
     const VF = Vex.Flow, ink = css("--fi-ink");
-    const widths = R.bars.map((ev, k) => 40 + ev.reduce((s, e) => s + (e.d <= 4 ? 30 : e.d <= 6 ? 34 : e.d <= 12 ? 44 : 56), 0) + (k === 0 ? 70 : 0));
+    // bar width proportional to time: the densest note sets the pixels per tick, so the space after the last note can match its value
+    const minW = d => d <= 3 ? 24 : d <= 4 ? 26 : d <= 6 ? 30 : d <= 9 ? 34 : 38;
+    const dens = Math.max(3, ...R.bars.flat().map(e => minW(e.d) / e.d)), widths = R.bars.map((ev, k) => 46 + R.barT * dens + (k === 0 ? 70 : 0));
     const W = widths.reduce((a, b) => a + b, 0) + 10, H = 120;
     const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, H); const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
     let x = 4; geo = { notes: [], bars: [] };
@@ -581,5 +583,5 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=d0c07f0a"></script>
+<script src="assets/site.js?v=d19fc4d3"></script>
 </body></html>

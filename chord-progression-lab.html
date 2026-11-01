@@ -107,7 +107,8 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     <div class="twrap" tabindex="0" role="region" aria-label="Chords and notes"><table class="tbl" id="tbl"></table></div>
     <div class="row"><label class="fld" for="expN">Export<select id="expN"><option value="1">once through</option><option value="2" selected>twice through</option><option value="4">four times</option></select></label>
       <label class="fld" for="expFmt">Format<select id="expFmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label>
-      <button class="tbtn" id="export" type="button">Export audio file</button></div>
+      <button class="tbtn" id="export" type="button">Export audio file</button><button class="tbtn primary" id="studio" type="button">Open in Multitrack Studio</button></div>
+    <p class="note"><b>Multitrack Studio</b> opens this progression as a backing track so you can add a melody: play it on a synth (on-screen keys, your computer keyboard or a MIDI keyboard) or record yourself singing or playing.</p>
     <p class="note">MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL). Nothing is uploaded: everything runs in your browser.</p>
   </section>
 </main>
@@ -126,16 +127,16 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       ["Diatonic", [E("I", "", "I", "M", 1, 0, "M7", "tonic"), E("ii", "", "ii", "m", 2, 2, "m7", "supertonic"), E("iii", "", "iii", "m", 3, 4, "m7", "mediant"), E("IV", "", "IV", "M", 4, 5, "M7", "subdominant"), E("V", "", "V", "M", 5, 7, "7", "dominant"), E("vi", "", "vi", "m", 6, 9, "m7", "submediant"), E("vii", "", "vii", "d", 7, 11, "h7", "leading-tone chord")]],
       ["Borrowed from the parallel minor", [E("i", "", "i", "m", 1, 0, "m7", "minor tonic"), E("ii°", "", "ii", "d", 2, 2, "h7", "from minor"), E("bIII", "♭", "III", "M", 3, 3, "M7", "from minor"), E("iv", "", "iv", "m", 4, 5, "m7", "minor subdominant"), E("v", "", "v", "m", 5, 7, "m7", "minor dominant"), E("bVI", "♭", "VI", "M", 6, 8, "M7", "from minor"), E("bVII", "♭", "VII", "M", 7, 10, "7", "subtonic")]],
       ["Applied (secondary) chords", [E("V/ii", "", "V", "M", 6, 9, "7", "V of ii", "ii"), E("V/iii", "", "V", "M", 7, 11, "7", "V of iii", "iii"), E("V/IV", "", "V", "M", 1, 0, "7", "V of IV", "IV"), E("V/V", "", "V", "M", 2, 2, "7", "V of V", "V"), E("V/vi", "", "V", "M", 3, 4, "7", "V of vi", "vi"), E("vii/V", "", "vii", "d", 4, 6, "o7", "leading-tone chord of V", "V"), E("vii/vi", "", "vii", "d", 5, 8, "o7", "leading-tone chord of vi", "vi")]],
-      ["Other chromatic chords", [E("bII", "♭", "II", "M", 2, 1, "M7", "Neapolitan"), E("II", "", "II", "M", 2, 2, "7", "major II (pop)"), E("III", "", "III", "M", 3, 4, "7", "chromatic mediant"), E("VI", "", "VI", "M", 6, 9, "7", "chromatic mediant"), E("V+", "", "V", "A", 5, 7, "7", "augmented dominant"), E("It", "", "It", "It", 6, 8, null, "Italian augmented 6th"), E("Ger", "", "Ger", "Ger", 6, 8, null, "German augmented 6th")]],
+      ["Other chromatic chords", [E("bII", "♭", "II", "M", 2, 1, "M7", "Neapolitan"), E("II", "", "II", "M", 2, 2, "7", "major II (pop)"), E("III", "", "III", "M", 3, 4, "7", "chromatic mediant"), E("VI", "", "VI", "M", 6, 9, "7", "chromatic mediant"), E("V+", "", "V", "A", 5, 7, "7", "augmented dominant"), E("It", "", "It", "It", 6, 8, null, "Italian augmented 6th"), E("Fr", "", "Fr", "Fr", 6, 8, null, "French augmented 6th"), E("Ger", "", "Ger", "Ger", 6, 8, null, "German augmented 6th")]],
     ],
     minor: [
       ["Diatonic (natural and harmonic minor)", [E("i", "", "i", "m", 1, 0, "m7", "tonic"), E("ii°", "", "ii", "d", 2, 2, "h7", "supertonic"), E("III", "c", "III", "M", 3, 3, "M7", "mediant"), E("iv", "", "iv", "m", 4, 5, "m7", "subdominant"), E("v", "", "v", "m", 5, 7, "m7", "minor dominant"), E("V", "", "V", "M", 5, 7, "7", "dominant (raised 7th)"), E("VI", "c", "VI", "M", 6, 8, "M7", "submediant"), E("VII", "c", "VII", "M", 7, 10, "7", "subtonic"), E("vii", "", "vii", "d", 7, 11, "o7", "leading-tone chord")]],
       ["Borrowed from the parallel major", [E("I", "", "I", "M", 1, 0, "M7", "major tonic (Picardy third)"), E("ii", "", "ii", "m", 2, 2, "m7", "from major"), E("IV", "", "IV", "M", 4, 5, "7", "major IV (Dorian)"), E("III+", "c", "III", "A", 3, 3, null, "harmonic-minor mediant")]],
       ["Applied (secondary) chords", [E("V/iv", "", "V", "M", 1, 0, "7", "V of iv", "iv"), E("V/V", "", "V", "M", 2, 2, "7", "V of V", "V"), E("V/III", "", "V", "M", 7, 10, "7", "V of III", "III"), E("V/VI", "", "V", "M", 3, 3, "7", "V of VI", "VI"), E("vii/V", "", "vii", "d", 4, 6, "o7", "leading-tone chord of V", "V")]],
-      ["Other chromatic chords", [E("bII", "♭", "II", "M", 2, 1, "M7", "Neapolitan"), E("It", "", "It", "It", 6, 8, null, "Italian augmented 6th"), E("Ger", "", "Ger", "Ger", 6, 8, null, "German augmented 6th")]],
+      ["Other chromatic chords", [E("bII", "♭", "II", "M", 2, 1, "M7", "Neapolitan"), E("It", "", "It", "It", 6, 8, null, "Italian augmented 6th"), E("Fr", "", "Fr", "Fr", 6, 8, null, "French augmented 6th"), E("Ger", "", "Ger", "Ger", 6, 8, null, "German augmented 6th")]],
     ],
   };
-  const QT = { M: [[0, 0], [2, 4], [4, 7]], m: [[0, 0], [2, 3], [4, 7]], d: [[0, 0], [2, 3], [4, 6]], A: [[0, 0], [2, 4], [4, 8]], It: [[0, 0], [2, 4], [5, 10]], Ger: [[0, 0], [2, 4], [4, 7], [5, 10]] };
+  const QT = { M: [[0, 0], [2, 4], [4, 7]], m: [[0, 0], [2, 3], [4, 7]], d: [[0, 0], [2, 3], [4, 6]], A: [[0, 0], [2, 4], [4, 8]], It: [[0, 0], [2, 4], [5, 10]], Fr: [[0, 0], [2, 4], [3, 6], [5, 10]], Ger: [[0, 0], [2, 4], [4, 7], [5, 10]] };
   const S7 = { M7: 11, "7": 10, m7: 10, h7: 10, o7: 9 };
   const EXT = { triad: "Triad", "7": "Seventh chord", dom7: "Dominant 7th", "9": "Ninth chord", "6": "Added 6th", add9: "Added 9th", sus4: "Suspended 4th", sus2: "Suspended 2nd", "7sus4": "7sus4" };
   const VOIC = { close: "Close position", open: "Open (spread)", drop2: "Drop 2 (jazz guitar/piano)", shell: "Shell (root, 3rd, 7th)", rootless: "Rootless (3rd, 5th, 7th, 9th)", quartal: "Quartal (stacked 4ths)", power: "Power chord (root and 5th)", cluster: "Cluster (with added 2nd)" };
@@ -204,13 +205,13 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     if (ext === "sus2") iv[1] = [1, 2];
     return iv.map(([s, h]) => ({ n: upN(r, s, h), semi: h }));
   }
-  const isAug6 = e => e.q === "It" || e.q === "Ger";
+  const isAug6 = e => e.q === "It" || e.q === "Fr" || e.q === "Ger";
   const invOK = (c, t) => Math.min(c.inv, t.length - 1);
   // chord symbol
   function sym(c) {
     const e = entry(c.id), t = tones(c); if (!t.length) return "";
     const r = nm(t[0].n), ext = c.ext; let s;
-    if (e.q === "It") s = r + "7(no 5)"; else if (e.q === "Ger") s = r + "7";
+    if (e.q === "It") s = r + "7(no 5)"; else if (e.q === "Fr") s = r + "7(♭5)"; else if (e.q === "Ger") s = r + "7";
     else {
       const sev = (ext === "dom7" || ext === "7sus4") ? "7" : (e.q === "d" && !["h7", "o7"].includes(e.s) ? "h7" : e.s), q = e.q;
       const tri = { M: "", m: "m", d: "°", A: "+" }[q];
@@ -237,7 +238,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     if (isAug6(e)) { fig = "+6"; num = e.num; }
     else if (ext === "triad") fig = ["", "6", "64"][inv];
     else if (ext === "7" || ext === "dom7") { if (e.q === "d") qs = sev === "o7" ? "°" : "ø"; if (sev === "M7") qs = "△"; fig = ["7", "65", "43", "42"][inv]; }
-    else { if (e.q === "d") qs = sev === "o7" ? "°" : "ø"; ex = { "9": sev === "M7" ? "△9" : "9", "6": "add6", add9: "add9", sus4: "sus4", sus2: "sus2", "7sus4": "7sus4" }[ext]; if (inv) ex += ` (bass: ${["", "3rd", "5th", "7th", "9th"][inv] || "inv."})`; }
+    else { if (e.q === "d") qs = sev === "o7" ? "°" : "ø"; ex = { "9": sev === "M7" ? "△9" : "9", "6": "add6", add9: "add9", sus4: "sus4", sus2: "sus2", "7sus4": "7sus4" }[ext]; if (inv) ex += ` (bass ${nm(t[inv].n)})`; }
     let target = e.of || "";
     if (target && S.mode === "minor" && S.conv === "pop") target = { III: "♭III", VI: "♭VI", VII: "♭VII" }[target] || target;
     const qH = q => q === "°" ? '<span class="dg" aria-hidden="true"></span>' : q === "ø" ? '<span class="hd" aria-hidden="true"></span>' : q === "△" ? '<span class="ex">△</span>' : q;
@@ -245,7 +246,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     const tgtH = target ? "/" + target.replace("♭", '<span class="ac">♭</span>').replace("°", '<span class="dg"></span>') : "";
     const html = `<span class="rn"><span aria-hidden="true">${acc ? `<span class="ac">${acc}</span>` : ""}${num}${qH(qs)}${fH(fig)}${ex ? `<span class="ex">${ex}</span>` : ""}${tgtH}</span></span>`;
     const text = acc + num + qs + (fig === "+6" ? "+6" : fig) + (ex || "") + (target ? "/" + target : "");
-    const spokenNum = n => n === "It" ? "Italian augmented sixth" : n === "Ger" ? "German augmented sixth" : (n === n.toLowerCase() ? "small " : "") + WORD[n.toUpperCase()];
+    const spokenNum = n => n === "It" ? "Italian augmented sixth" : n === "Fr" ? "French augmented sixth" : n === "Ger" ? "German augmented sixth" : (n === n.toLowerCase() ? "small " : "") + WORD[n.toUpperCase()];
     const spoken = (acc === "♭" ? "flat " : "") + spokenNum(num) + (qs === "°" ? " diminished" : qs === "ø" ? " half-diminished" : qs === "+" ? " augmented" : qs === "△" ? " major" : "") + (fig && fig !== "+6" ? " " + fig.split("").join(" ") : "") + (ex ? " " + ex : "") + (target ? " of " + spokenNum(target.replace("♭", "")).replace(/^/, target.startsWith("♭") ? "flat " : "") : "");
     return { html: html.replace('<span class="rn">', `<span class="rn" role="img" aria-label="${spoken}">`), text, spoken };
   }
@@ -443,6 +444,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       <label class="fld" for="eInv">Bass note<select id="eInv">${invN.map((l, i) => `<option value="${i}" ${i === c.inv ? "selected" : ""}>${l}</option>`).join("")}</select></label>
       <label class="fld" for="eBeats">Length<select id="eBeats">${[1, 2, 3, 4, 6, 8].map(b => `<option value="${b}" ${b === c.beats ? "selected" : ""}>${b} beat${b > 1 ? "s" : ""}</option>`).join("")}</select></label>
       <label class="fld" for="eVoi">Voicing<select id="eVoi"><option value="">Same as the rest</option>${Object.entries(VOIC).map(([k, l]) => `<option value="${k}" ${k === c.voicing ? "selected" : ""}>${l}</option>`).join("")}</select></label></div>
+      <div class="row"><button class="tbtn sm" type="button" data-ed="sev" aria-pressed="${["7", "dom7", "9", "7sus4"].includes(c.ext)}" ${aug ? "disabled" : ""}>Add 7th</button><button class="tbtn sm" type="button" data-ed="sus" aria-pressed="${c.ext === "sus4" || c.ext === "7sus4"}" ${aug || dim ? "disabled" : ""}>sus4</button><span class="note">Tip: click a selected chord again to step through its inversions.</span></div>
       <div class="row"><button class="tbtn sm" type="button" data-ed="hear">▶ Hear it</button><button class="tbtn sm" type="button" data-ed="left" ${sel ? "" : "disabled"}>◀ Move left</button><button class="tbtn sm" type="button" data-ed="right" ${sel < S.ch.length - 1 ? "" : "disabled"}>Move right ▶</button><button class="tbtn sm" type="button" data-ed="dup">Duplicate</button><button class="tbtn sm" type="button" data-ed="del">Remove</button><button class="tbtn sm" type="button" data-ed="done">Done</button></div>`;
   }
   function drawTable() {
@@ -492,7 +494,9 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   $("share").onclick = async () => { saveHash(); try { await navigator.clipboard.writeText(location.href); status("Link copied: it opens this progression with these settings."); } catch (e) { status("Copy the address from your browser's address bar to share this progression."); } };
   $("play").onclick = () => playing ? stop() : start();
   $("palette").addEventListener("click", e => { const b = e.target.closest("[data-add]"); if (!b) return; S.ch.push(newChord(b.dataset.add)); sel = -1; drawProg(); audition(S.ch.length - 1); });
-  $("prog").addEventListener("click", e => { const b = e.target.closest("[data-card]"); if (!b) return; const i = +b.dataset.card; sel = sel === i ? -1 : i; drawProg(); if (sel >= 0) { audition(sel); const f = $("eExt"); if (f) f.focus(); } });
+  $("prog").addEventListener("click", e => { const b = e.target.closest("[data-card]"); if (!b) return; const i = +b.dataset.card;
+    if (sel === i) { const c = S.ch[i], n = isAug6(entry(c.id)) ? 1 : tones(c).length; c.inv = (c.inv + 1) % n; status(`${rn(c).text}: ${["root position", "1st inversion", "2nd inversion", "3rd inversion", "4th inversion"][c.inv]}`); } else sel = i;
+    drawProg(); audition(sel); const f = document.querySelector(`[data-card="${i}"]`); if (f) f.focus(); });
   $("edit").addEventListener("change", e => {
     const c = S.ch[sel]; if (!c) return;
     if (e.target.id === "eExt") { c.ext = e.target.value; c.inv = Math.min(c.inv, tones(c).length - 1); }
@@ -504,6 +508,8 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   $("edit").addEventListener("click", e => {
     const b = e.target.closest("[data-ed]"); if (!b) return; const k = b.dataset.ed, i = sel;
     if (k === "hear") return audition(i);
+    if (k === "sev" || k === "sus") { const c = S.ch[i], has7 = ["7", "dom7", "9", "7sus4"].includes(c.ext), hasS = c.ext === "sus4" || c.ext === "7sus4";
+      const n7 = k === "sev" ? !has7 : has7, nS = k === "sus" ? !hasS : hasS; c.ext = n7 && nS ? "7sus4" : nS ? "sus4" : n7 ? (c.ext === "dom7" || c.ext === "9" ? c.ext : "7") : "triad"; c.inv = Math.min(c.inv, tones(c).length - 1); drawProg(); audition(i); const f = $("edit").querySelector(`[data-ed="${k}"]`); if (f) f.focus(); return; }
     if (k === "left" && i > 0) { [S.ch[i - 1], S.ch[i]] = [S.ch[i], S.ch[i - 1]]; sel = i - 1; }
     if (k === "right" && i < S.ch.length - 1) { [S.ch[i + 1], S.ch[i]] = [S.ch[i], S.ch[i + 1]]; sel = i + 1; }
     if (k === "dup") { S.ch.splice(i + 1, 0, Object.assign({}, S.ch[i])); sel = i + 1; }
@@ -539,6 +545,21 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     ({ AC, OUT, BUS, NZ } = save); btn.disabled = false; if (was) start();
   };
 
+  // ---------- send to the Multitrack Studio (through IndexedDB, same site) ----------
+  const idbPut = (key, val) => new Promise((ok, no) => { const r = indexedDB.open("silverapps-studio", 1); r.onupgradeneeded = () => r.result.createObjectStore("x"); r.onerror = () => no(r.error); r.onsuccess = () => { const tx = r.result.transaction("x", "readwrite"); tx.objectStore("x").put(val, key); tx.oncomplete = () => ok(); tx.onerror = () => no(tx.error); }; });
+  $("studio").onclick = async () => {
+    if (!S.ch.length) { status("Add some chords first."); return; }
+    const nPass = +$("expN").value, btn = $("studio"); btn.disabled = true; status("Rendering the backing track…");
+    const was = playing; if (playing) stop(); const save = { AC, OUT, BUS, NZ };
+    try {
+      const one = events(); AC = new OfflineAudioContext(2, Math.ceil(44100 * (one.len * nPass + 2)), 44100); build();
+      for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, p * one.len + e.t); } catch (x) {} });
+      const buf = await AC.startRendering();
+      await idbPut("incoming", { ch: [buf.getChannelData(0), buf.getChannelData(1)], sr: buf.sampleRate, bpm: S.bpm, meter: S.meter, name: `Backing: ${S.ch.map(c => rn(c).text).join(" ")} in ${S.tonic} ${S.mode}`, swing: S.swing, len: one.len * nPass });
+      ({ AC, OUT, BUS, NZ } = save); location.href = "multitrack-studio.html#from=lab";
+    } catch (e) { ({ AC, OUT, BUS, NZ } = save); status("Couldn't send it to the studio: " + e.message); btn.disabled = false; if (was) start(); }
+  };
+
   // ---------- start ----------
   if (!loadHash()) { preset("axis"); } else { syncControls(); drawPalette(); drawProg(); }
   syncControls(); drawKb(null);
@@ -548,5 +569,5 @@ input[type=range]{accent-color:var(--fi-red-dk)}
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=d0c07f0a"></script>
+<script src="assets/site.js?v=d19fc4d3"></script>
 </body></html>

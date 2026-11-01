@@ -424,6 +424,26 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .txlay legend { font-weight: 700; padding: 0 4px; }
 .txlay label { display: flex; gap: 8px; align-items: center; min-height: 32px; }
 
+.fstk { display: inline-flex; flex-direction: column; line-height: .95; font-size: .85em; vertical-align: middle; text-align: center; }
+
+.ministaff { width: 100%; max-width: 640px; height: auto; color: var(--ink, #222); display: block; margin: 8px auto; overflow: visible; }
+.ministaff .mshit { fill: transparent; cursor: pointer; }
+.ministaff g[role="button"]:hover .mshit, .ministaff g[role="button"]:focus .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .6; }
+.ministaff g[role="button"]:focus { outline: none; }
+.ministaff g[role="button"]:focus-visible .mshit { stroke: var(--accent, #1a5fb4); stroke-width: 2; }
+.ministaff g[aria-pressed="true"] .mshit { fill: var(--hl, #F7E3A1); fill-opacity: .9; }
+.msinfo { text-align: center; font-weight: 600; min-height: 1.5em; }
+
+.mvstaff svg { max-width: 360px; touch-action: none; }
+.mvstaff svg:focus-visible, #azG:focus-visible { outline: 3px solid var(--accent, #1a5fb4); outline-offset: 2px; }
+.histsvg { width: 100%; max-width: 460px; height: auto; color: var(--ink, #222); display: block; margin: 0 auto; }
+
+.rgrow { line-height: 2.2; margin: 4px 0; }
+.rgn { font: 700 12px var(--fi-ui, sans-serif); text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
+.rgw { font: 500 15px var(--fi-serif, serif); border: 1px solid var(--line, #ccc); border-radius: 999px; background: var(--card, #fff); color: var(--ink, #222); padding: 3px 10px; min-height: 32px; cursor: pointer; }
+.rgw:hover, .rgw:focus-visible { background: var(--hl, #F7E3A1); }
+#rgQ { font: 16px var(--fi-serif, serif); padding: 6px 8px; min-height: 40px; border-radius: 8px; border: 1.5px solid var(--line, #ccc); }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -891,11 +911,13 @@ window.FAM = (() => {
     const keyOf = s => { const x = parse(s); return { k: LET[x.l].toLowerCase() + "/" + x.o, x }; };
     const accFor = x => (o.sig && (o.sig[x.l] || 0)) === x.a ? null : VFACC[x.a];
     // Build tickables per stave: one note (or chord) per column, a barline between columns.
-    const make = (clef, list, stem) => {
+    const make = (clef, list, stem, light) => {
       const sorted = list.map(keyOf).sort((a, b) => midi(a.x) - midi(b.x));
       const sn = new VF.StaveNote({ clef, keys: sorted.map(y => y.k), duration: voiced ? "h" : "w", stem_direction: stem || 1, auto_stem: !stem && voiced });
       sorted.forEach((y, i) => { const a = accFor(y.x); if (a) sn.addModifier(new VF.Accidental(a), i); });
-      sn.setStyle({ fillStyle: ink, strokeStyle: ink }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      const col = light ? (cssVar("--muted-ink") || "#8a8178") : ink;
+      sn.setStyle({ fillStyle: col, strokeStyle: col }); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
+      if (light) sn.getModifiers && sn.getModifiers().forEach(m => m.setStyle && m.setStyle({ fillStyle: col, strokeStyle: col }));
       return sn;
     };
     const voices = [], notesAt = [];
@@ -905,7 +927,7 @@ window.FAM = (() => {
       const tk = [];
       cols.forEach((c, i) => {
         if (i) tk.push(new VF.BarNote());
-        const sn = c[f] && c[f].length ? make(clef, c[f], stem) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
+        const sn = c[f] && c[f].length ? make(clef, c[f], stem, (o.light || []).includes(f)) : new VF.GhostNote({ duration: voiced ? "h" : "w" });
         tk.push(sn); (notesAt[i] = notesAt[i] || []).push(sn);
       });
       const v = new VF.Voice({ num_beats: (voiced ? 2 : 4) * n, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tk);
@@ -922,9 +944,9 @@ window.FAM = (() => {
       const NS = "http://www.w3.org/2000/svg";
       const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
       const yTop = tr.getYForLine(0), yBot = bs.getYForLine(4);
-      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
+      const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs && !(x instanceof VF.GhostNote)).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
       cols.forEach((c, i) => {
-        const sn = notesAt[i].find(x => x.getAbsoluteX) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
+        const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
         if (c.hl) mk("rect", { x: x - 22, y: yTop - 34, width: 46, height: yBot - yTop + 68, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
         if (c.lab) rnSVG(mk, svg, x, Math.max(yBot + 46, yLow + 26), c.lab, ink);
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
@@ -1185,21 +1207,23 @@ window.FAM = (() => {
     n.buffer = NZ; lp.type = "lowpass"; lp.frequency.value = 3500; ng.gain.setValueAtTime(.35 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .03);
     o.connect(og); og.connect(g); n.connect(lp); lp.connect(ng); ng.connect(g); o.start(t0); o.stop(t0 + .3); n.start(t0); n.stop(t0 + .04);
   }
-  function tone(out, m, t0, dur, vel = 1, timbre) {
+  function tone(out, m, t0, dur, vel = 1, timbre, pan) {
     const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = Math.min(f * 7, 6000); g.connect(out); lp.connect(g);
-    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
-    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (timbre === "reed" ? 10 : 7), 7000);
+    if (pan && AC.createStereoPanner) { const pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
+    lp.connect(g);
+    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : timbre === "reed" ? [[1, 1], [3, .7], [5, .45], [7, .3], [9, .18]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" || timbre === "reed" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
     const pk = .22 * vel;
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + .02);
-    if (timbre === "voice") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
+    if (timbre === "voice" || timbre === "reed") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
     g.gain.setTargetAtTime(0, t0 + dur, .08);
   }
   function play(p) {
     if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .06;
-    if (p.ev) { p.ev.forEach(([m, s, d, v, kind]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, p.timbre)); return; }
+    if (p.ev) { p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan)); return; }
     const gap = p.gap || 1.05;
-    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach(m => tone(out, m, t + i * gap, (p.dur || .95) * gap, 1 / Math.sqrt(ch.length) * 1.3, p.timbre)));
+    (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
   const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } };
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
@@ -1391,7 +1415,39 @@ window.FAM = (() => {
   const satbSpec = (x, o = {}) => ({ type: "voices", vf: x.k.vf, sig: x.k.sig, cols: satbCols(x.vs, o.labels === false ? null : x.chords.map((c, i) => (o.labs && o.labs[i] != null) ? o.labs[i] : c.rn)).map((c, i) => Object.assign(c, (o.hl || []).includes(i) ? { hl: true } : {})) });
   function satbFig(U, k, toks, cap, o = {}) { const x = voiceToks(k, toks, o); return x ? U.fig(satbSpec(x, o), cap, { small: o.small !== false, play: satbPlay(x.vs, o.gap || .9) }) : ""; }
 
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+
+  // ---------- a light SVG staff for interactive figures (clickable notes, arrows) ----------
+  // Accidental shapes in staff-space units, anchored at (0, 0) = the line or space they belong to.
+  const ACCP = {
+    "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
+    "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
+    "-1": { w: .78, top: -2.3, bot: .48, d: "M0 -2.3h.13v2.78H0zM.13 .48C.95 .02 .9 -.55 .13 -.22V-.03C.58 -.3 .62 .08 .13 .3z" },
+  };
+  function miniStaff(o) {
+    const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
+    const lineY = i => y0 + i * sp, stepY = st => y0 + 4 * sp - st * sp / 2, ink = "currentColor";
+    let g = "";
+    for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 6}" y1="${lineY(i)}" y2="${lineY(i)}" stroke="${ink}" stroke-width="1"/>`;
+    const CL = { treble: ["&#x1D11E;", 3, 2.95], bass: ["&#x1D122;", 1, 3.0], alto: ["&#x1D121;", 2, 3.1], tenor: ["&#x1D121;", 1, 3.1] }[o.clef || "treble"];
+    g += `<text x="${x0 + 4}" y="${lineY(CL[1])}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
+    const xs = [];
+    o.notes.forEach((nt, i) => {
+      const x = startX + i * dx + dx / 2, y = stepY(nt.s); xs.push([x, y]);
+      let led = ""; for (let st = -2; st >= nt.s; st -= 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`; for (let st = 10; st <= nt.s; st += 2) led += `<line x1="${x - 11}" x2="${x + 11}" y1="${stepY(st)}" y2="${stepY(st)}" stroke="${ink}" stroke-width="1.2"/>`;
+      const acc = nt.acc != null && ACCP[nt.acc] ? `<path d="${ACCP[nt.acc].d}" transform="translate(${x - 9 - 8 - ACCP[nt.acc].w * sp} ${y}) scale(${sp})" fill="${nt.fill || ink}"/>` : "";
+      const head = `<ellipse cx="${x}" cy="${y}" rx="${sp * .72}" ry="${sp * .5}" transform="rotate(-20 ${x} ${y})" fill="none" stroke="${nt.fill || ink}" stroke-width="${sp * .26}"/>`;
+      const lab = nt.label ? `<text x="${x}" y="${y0 + 4 * sp + 30}" text-anchor="middle" font-size="13" fill="${ink}">${nt.label}</text>` : "";
+      g += nt.attrs ? `<g ${nt.attrs}><rect x="${x - dx / 2 + 2}" y="${y0 - 34}" width="${dx - 4}" height="${4 * sp + 74}" rx="8" class="mshit"/>${led}${acc}${head}${lab}</g>` : led + acc + head + lab;
+    });
+    (o.arrows || []).forEach(([a, b, t]) => {
+      const [xa, ya] = xs[a], [xb, yb] = xs[b], top = Math.min(ya, yb, y0) - 14;
+      g += `<path d="M${xa} ${ya - 9} Q ${(xa + xb) / 2} ${top - 10} ${xb - 4} ${yb - 9}" fill="none" stroke="${ink}" stroke-width="1.6" marker-end="url(#ms-arr)"/>`;
+      if (t) g += `<text x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle" font-size="12" fill="${ink}">${t}</text>`;
+    });
+    const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
+    return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
+  }
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);

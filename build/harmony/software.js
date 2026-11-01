@@ -149,11 +149,19 @@ window.FAM = (() => {
         <label>Divisions per beat <input type="number" data-dmx="div" min="1" max="8" value="${DM.div}"></label>
         <label>Swing <input type="range" data-dmx="swing" min="0" max="60" value="${DM.swing}"></label></div>
       <div class="toy-row"><label>Pitch for beeps and boops <select data-dmx="brush">${PITCHES.map(m => `<option value="${m}" ${m === DM.brush ? "selected" : ""}>${nn(m)}</option>`).join("")}</select></label>
-        <button class="play" data-dmx="p:rock">Rock beat</button><button class="play" data-dmx="p:four">Four on the floor</button><button class="play" data-dmx="p:clave">Clave</button><button class="play" data-dmx="p:melody">Random melody</button><button class="play" data-dmx="p:clear">Clear</button></div>
+        <button class="play" data-dmx="share">Copy link to this pattern</button><span class="lnote" id="dmShareMsg" aria-live="polite"></span><button class="play" data-dmx="p:rock">Rock beat</button><button class="play" data-dmx="p:four">Four on the floor</button><button class="play" data-dmx="p:clave">Clave</button><button class="play" data-dmx="p:melody">Random melody</button><button class="play" data-dmx="p:clear">Clear</button></div>
       <div class="toy-row"><label>Export <select data-dmx="xloops">${[1, 2, 4, 8, 16].map(n => `<option value="${n}" ${n === (DM.xloops || 4) ? "selected" : ""}>${n} loop${n > 1 ? "s" : ""}</option>`).join("")}</select></label><label>as <select data-dmx="xfmt"><option value="wav">WAV</option><option value="mp3" ${DM.xfmt === "mp3" ? "selected" : ""}>MP3</option></select></label><button class="play" data-dmx="export">Export audio file</button><span class="lnote" id="dmX" aria-live="polite"></span></div>
       <div class="dmgrid" tabindex="0" role="region" aria-label="Drum machine grid" style="--n:${n}">${ROWS.map(([r, l]) => `<div class="dmrow"><span class="dml">${l}</span><div class="dmcells">${cells(r)}</div></div>`).join("")}</div>
       <p class="lnote">${DM.beats} beats × ${DM.div} division${DM.div > 1 ? "s" : ""} = ${n} steps per loop. Try 3 or 6 divisions for triplet and compound feels, 5 or 7 for something unusual.</p></div>`;
   };
+  // share a pattern as a link (?dm=…), reopening this step
+  try { const q = new URLSearchParams(location.search).get("dm"); if (q) { const o = JSON.parse(decodeURIComponent(escape(atob(q)))); Object.assign(DM, { beats: o.b, div: o.d, bpm: o.t, swing: o.s, grid: o.g || {} }); } } catch (e) {}
+  function dmShare(btn) {
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify({ b: DM.beats, d: DM.div, t: DM.bpm, s: DM.swing, g: DM.grid })))), url = location.href.split(/[?#]/)[0] + "?dm=" + encodeURIComponent(code) + "#step=" + ((document.querySelector(".lslide") && [...document.querySelectorAll("[data-lstep]")].findIndex(b => b.getAttribute("aria-current") === "step" || b.classList.contains("on") || b.getAttribute("aria-pressed") === "true") + 1) || 6);
+    const done = t => { const s = $q("#dmShareMsg"); if (s) s.textContent = t; };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => done("Link copied: it opens this pattern."), () => done(url)); else done(url);
+  }
+  document.addEventListener("click", e => { const b = e.target.closest('[data-dmx="share"]'); if (b) dmShare(b); });
   const dmRedraw = () => { const t = $q('[data-toy="dm"]'); if (t) { t.outerHTML = dmToy(); } };
   document.addEventListener("click", e => {
     const c = e.target.closest("[data-dm]"); if (c) { const [r] = c.dataset.dm.split(":"), key = c.dataset.dm, pitched = r === "beep" || r === "boop", cur = DM.grid[key];

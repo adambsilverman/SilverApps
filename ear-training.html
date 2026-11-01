@@ -61,6 +61,14 @@
 .dots .clue,.dots b{font:inherit}.dots:not(.clues) .clue,.dots.clues .nclue{display:none}.dots .nclue{color:var(--fi-muted)}
 .dots span.cur{outline:3px solid var(--fi-navy);outline-offset:2px}
 .dots span.ok{background:var(--fi-green)} .dots span.no{background:var(--fi-red-pale)}
+.pslots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 12px}
+.pslot{min-width:70px;min-height:64px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);font:600 20px var(--fi-serif);cursor:pointer;display:grid;place-items:center;padding:4px 8px}
+.pslot small{font:600 11px var(--fi-ui);color:var(--fi-muted)} .pslot[aria-pressed="true"]{box-shadow:0 0 0 3px var(--fi-red-dk) inset}
+.pslot.right{background:var(--fi-green)} .pslot.wrong{background:var(--fi-red-pale)} .pslot .pfix{font:600 14px var(--fi-serif);color:var(--fi-ink)}
+.pslot:disabled{cursor:default;opacity:1;color:var(--fi-ink)}
+.fg2{display:inline-grid;font-size:.6em;line-height:.95;vertical-align:middle;margin-left:1px} .pnum button sup,.pslot sup{font-size:.6em}
+.pfig{margin-top:8px} .pfig button{font-size:15px}
+.pchk label{white-space:nowrap}
 .opts2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%}
 .opts2 button{min-height:52px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);font:600 17px var(--fi-serif);cursor:pointer;color:var(--fi-ink)}
 .opts2 button small.sym{display:block;font:500 14px var(--fi-serif);color:var(--fi-muted)}
@@ -105,13 +113,14 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   <header class="lesson-head">
     <h1>Ear <span>Training</span></h1>
     <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. Use headphones so the microphone hears only you.</p>
-    <p class="ver">Version: Oct 30, 2026 (sung solfège in Adam Silverman's voice, rhythmic dictation). If you don't see “Sing it back” in Sing patterns, you have an older copy: reload the page.</p>
   </header>
   <nav class="tabs" aria-label="Exercise" id="tabs">
     <button type="button" data-t="sing" aria-pressed="true"><b>Sing intervals</b><small>above a given note</small></button>
     <button type="button" data-t="chord" aria-pressed="false"><b>Chord quality</b><small>major, minor, dim, aug, 7ths</small></button>
     <button type="button" data-t="pat" aria-pressed="false"><b>Sing patterns</b><small>short melodies</small></button>
     <button type="button" data-t="dict" aria-pressed="false"><b>Dictation</b><small>write what you hear</small></button>
+    <button type="button" data-t="prog" aria-pressed="false"><b>Progressions</b><small>name the chords</small></button>
+    <button type="button" data-t="zoo" aria-pressed="false"><b>Animal sounds</b><small>just for fun</small></button>
   </nav>
   <section class="slide" id="card" aria-live="off">
     <div class="settings2" id="settings"></div>
@@ -509,6 +518,13 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       let tries = 0;
       while (out.length < len && tries++ < 60) {
         const p = out[out.length - 1], r = Math.random();
+        const TRIADS = { tI: [[0, 2, 4]], tIV: [[0, 2, 4], [4, 6, 1]], tIVV: [[0, 2, 4], [4, 6, 1], [3, 5, 0]] }[motion];
+        if (TRIADS) {   // steps, plus skips (3rds and larger) only between members of the chosen triads
+          let n2 = null;
+          if (Math.random() < .55) n2 = p + rnd([-1, 1]);
+          else { const opts = []; for (let q = -3; q <= 7; q++) { const dd = Math.abs(q - p); if (dd < 2 || dd > 7) continue; if (TRIADS.some(t => t.includes(md(p)) && t.includes(md(q)))) opts.push(q); } if (opts.length) n2 = rnd(opts); }
+          if (n2 == null || n2 < -3 || n2 > 7) continue; const iv2 = Math.abs(semi(n2) - semi(p)); if (iv2 === 3 && Math.abs(n2 - p) === 1) continue; if (iv2 === 6 || iv2 === 10 || iv2 === 11) continue; out.push(n2); continue;
+        }
         const mv = motion === "steps" ? rnd([-1, 1])
           : motion === "skips" ? (r < .6 ? rnd([-1, 1]) : rnd([-2, 2]))
           : (r < .45 ? rnd([-1, 1]) : r < .7 ? rnd([-2, 2]) : rnd([-3, 3, -4, 4, -5, 5, -7, 7]));
@@ -523,6 +539,8 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
       if (len >= 3 && !chordTone(out[out.length - 1]) && Math.random() < .85) continue;
       if (motion === "leaps" && len >= 4 && !out.some((d, k) => k && Math.abs(d - out[k - 1]) >= 3)) continue;   // include at least one leap
       if (motion === "skips" && len >= 3 && !out.some((d, k) => k && Math.abs(d - out[k - 1]) === 2)) continue;
+      if (motion.startsWith("t") && len >= 3 && !out.some((d, k) => k && Math.abs(d - out[k - 1]) >= 2)) continue;
+      if ((motion === "tIV" || motion === "tIVV") && len >= 5 && !out.some((d, k) => k && Math.abs(d - out[k - 1]) >= 2 && ![0, 2, 4].includes(md(d)))) continue;   // use a V or IV skip too
       return out;
     }
     return [0, 1, 2, 1, 0, 1].slice(0, len);
@@ -704,29 +722,189 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
     $("psYes").onclick = () => patDone(true); $("psNo").onclick = () => patDone(false);
   }
 
+  // ================= 5. CHORD PROGRESSIONS =================
+  // chords in a major key: [root semitones above the tonic, intervals]; seventh chords have four tones
+  const PQ = { M: [0, 4, 7], m: [0, 3, 7], d: [0, 3, 6], "7": [0, 4, 7, 10], m7: [0, 3, 7, 10] };
+  const PCH = { I: [0, "M"], ii: [2, "m"], iii: [4, "m"], IV: [5, "M"], V: [7, "M"], vi: [9, "m"], "vii°": [11, "d"], V7: [7, "7"], ii7: [2, "m7"], "♭II": [1, "M"], "♭III": [3, "M"], iv: [5, "m"], "♭VI": [8, "M"], "♭VII": [10, "M"], "V7/V": [2, "7"] };
+  const PPOS = { I: 0, iii: .5, "♭III": .7, vi: 1, "♭VI": 1.5, IV: 2, ii: 2, ii7: 2, iv: 2.2, "♭II": 2.5, "♭VII": 2.8, "V7/V": 2.7, V: 3, V7: 3, "vii°": 3 };
+  const PPRE = { "145": ["I–IV–V", ["I", "IV", "V"]], "1245": ["I–ii–IV–V", ["I", "ii", "IV", "V"]], "16245": ["I–vi–ii–IV–V", ["I", "vi", "ii", "IV", "V"]], dia: ["All diatonic triads", ["I", "ii", "iii", "IV", "V", "vi", "vii°"]], sev: ["I–ii⁷–IV–V⁷–vi", ["I", "ii7", "IV", "V7", "vi"]], rule: ["Rule of the octave (stepwise bass)", "rule"], rock: ["I–♭III–IV–V–♭VI–♭VII", ["I", "♭III", "IV", "V", "♭VI", "♭VII"]], neap: ["Diatonic + ♭II (Neapolitan)", ["I", "ii", "IV", "V", "vi", "♭II"]], mix: ["Borrowed: I–iv–♭VI–♭VII–V", ["I", "IV", "iv", "♭VI", "♭VII", "V"]] };
+  const FIG3 = ["", "6", "64"], FIG7 = ["7", "65", "43", "42"];
+  const is7 = id => PQ[PCH[id][1]].length === 4;
+  const rnTxt = (id, inv) => { if (is7(id)) { const [b, of] = id.split("/"); return b.replace("7", "") + FIG7[inv] + (of ? "/" + of : ""); } return id + FIG3[inv]; };
+  const rnH = t => esc(t).replace(/(\d)(\d)(?=\/|$)/, '<span class="fg2"><span>$1</span><span>$2</span></span>').replace(/(?<![\d>])(\d)(?=\/|$)/, "<sup>$1</sup>");
+  if (!S.pChords) S.pChords = ["I", "IV", "V"]; if (S.pInv == null) S.pInv = false; if (!S.pLen) S.pLen = 4; if (S.pBal == null) S.pBal = 50; if (!S.pPre) S.pPre = "145";
+  let PQZ = null;
+  // functional order: from I anywhere; otherwise move forward on the chart (or a dominant back to I; V to vi is deceptive)
+  function progSeq(pool, n) {
+    for (let g = 0; g < 500; g++) {
+      const seq = ["I"];
+      while (seq.length < n - 1) { const cur = seq[seq.length - 1]; const c = rnd(pool.filter(x => x !== cur && (cur === "I" ? x !== "I" : (PPOS[x] > PPOS[cur] || (PPOS[cur] >= 2.8 && x === "vi" && cur.startsWith("V")) || (pool.includes("♭VII") && Math.random() < .25 && x !== "I"))))); if (!c) break; seq.push(c); }
+      if (seq.length < n - 1) continue; const pen = seq[seq.length - 1];
+      if (!(PPOS[pen] >= 2 || pen === "♭VI")) continue;   // the chord before the final I must lead home
+      seq.push("I"); if (new Set(seq).size < Math.min(pool.length, 3)) continue; return seq;
+    }
+    return ["I", "IV", "V", "I"].slice(0, n);
+  }
+  // logical inversions: stepwise or small bass motion; I⁶₄ only as a cadential 6/4 before V
+  function progInv(seq, useInv) {
+    const tonic = PQZ ? PQZ.tonic : 0, bassOf = (id, inv, prev) => { const [r, q] = PCH[id], pc = (tonic + r + PQ[q][inv]) % 12; let m = 36 + pc; while (m < 40) m += 12; if (prev != null) { while (m - prev > 6 && m - 12 >= 38) m -= 12; while (prev - m > 6 && m + 12 <= 57) m += 12; } return m; };
+    if (!useInv) { let pb = null; return seq.map(id => { const b = bassOf(id, 0, pb); pb = b; return { id, inv: 0, bass: b }; }); }
+    let layer = [{ st: null, cost: 0, path: [] }];
+    seq.forEach((id, i) => {
+      const n = PQ[PCH[id][1]].length, invs = i === 0 || i === seq.length - 1 ? [0] : n === 4 ? [0, 1, 2, 3] : [0, 1, 2];
+      const next = [];
+      invs.forEach(inv => {
+        if (n === 3 && inv === 2 && !(id === "I" && seq[i + 1] && seq[i + 1].startsWith("V"))) return;
+        let best = null;
+        layer.forEach(L => {
+          const b = bassOf(id, inv, L.st), d = L.st == null ? 2 : Math.abs(b - L.st);
+          let c = L.cost + (d === 0 ? 3 : d <= 2 ? 0 : d <= 4 ? 1 : d === 5 ? (inv ? 3 : 1.2) : d === 7 ? (inv ? 4 : 2) : 5) + (inv ? .5 : 0) + Math.random() * .9;
+          const prevId = seq[i - 1], pinv = L.path.length ? L.path[L.path.length - 1].inv : 0;
+          if (prevId && is7(prevId) && pinv === 3 && !(L.st - b >= 1 && L.st - b <= 2)) c += 6;   // ⁴₂ resolves with the bass down a step
+          if (!best || c < best.cost) best = { st: b, cost: c, path: L.path.concat([{ id, inv, bass: b }]) };
+        });
+        if (best) next.push(best);
+      });
+      layer = next;
+    });
+    return layer.sort((a, b) => a.cost - b.cost)[0].path;
+  }
+  function ruleOctave() {
+    const up = [["I", 0], ["V7", 2], ["I", 1], ["ii7", 1], ["V", 0], ["IV", 1], ["V7", 1], ["I", 0]], down = [["I", 0], ["V", 1], ["V7/V", 2], ["V", 0], ["V7", 3], ["I", 1], ["V7", 2], ["I", 0]];
+    const n = Math.min(8, Math.max(4, +S.pLen)), dir = Math.random() < .5 ? "up" : "down", src = dir === "up" ? up : down, st = 0;
+    const seg = src.slice(st, st + n); if (seg[seg.length - 1][0] !== "I") seg.push(["I", 0]);
+    let pb = null; return { dir, ch: seg.map(([id, inv]) => { const [r, q] = PCH[id], pc = (PQZ.tonic + r + PQ[q][inv]) % 12; let m = 36 + pc; while (m < 40) m += 12; if (pb != null) { while (m - pb > 6) m -= 12; while (pb - m > 6) m += 12; } pb = m; return { id, inv, bass: m }; }) };
+  }
+  function voiceUp(list) {   // close-position upper voices around middle C, moving to the nearest notes
+    let prev = null;
+    return list.map(c => { const [r, q] = PCH[c.id], pcs = PQ[q].map(x => (PQZ.tonic + r + x) % 12), up = pcs.length === 4 ? pcs.filter((_, i) => i !== 2 || c.inv === 2) : pcs;
+      const cands = []; for (let rot = 0; rot < up.length; rot++) for (let base = 55; base <= 67; base++) { if (base % 12 !== up[rot]) continue; const v = [base]; for (let j = 1; j < up.length; j++) { let x = v[j - 1] + 1; while (x % 12 !== up[(rot + j) % up.length]) x++; v.push(x); } if (v[0] > c.bass + 4) cands.push(v); }
+      const cost = v => prev ? v.reduce((a, x, i) => a + Math.abs(x - (prev[i] ?? prev[prev.length - 1])), 0) : Math.abs(v[0] - 60);
+      prev = cands.sort((a, b) => cost(a) - cost(b))[0] || [60, 64, 67]; return prev; });
+  }
+  function bassTone(out, m, t, d, v) {   // a bowed-bass sound, clearly apart from the piano-like chords
+    const f = 440 * Math.pow(2, (m - 69) / 12), o = AC.createOscillator(), o2 = AC.createOscillator(), lp = AC.createBiquadFilter(), g = AC.createGain();
+    o.type = "sawtooth"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = 900; lp.Q.value = 2; const g2 = AC.createGain(); g2.gain.value = .6;
+    o.connect(lp); o2.connect(g2); g2.connect(g); lp.connect(g); g.connect(out);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .05); g.gain.setValueAtTime(v, t + d - .08); g.gain.linearRampToValueAtTime(0, t + d);
+    [o, o2].forEach(x => { x.start(t); x.stop(t + d + .05); });
+  }
+  function progPlay(which = "all", list) {
+    if (!ac()) return; const out = newBus(), t0 = AC.currentTime + .08, gap = 1.15, bal = S.pBal / 100;
+    const bg = Math.min(1, (1 - bal) * 2) * .34, tg = Math.min(1, bal * 2) * .26;
+    const L = list || PQZ.ch, ups = voiceUp(L);
+    L.forEach((c, i) => { const t = t0 + i * gap; if (which !== "chords" && bg > 0) bassTone(out, c.bass, t, gap * .95, bg); if (which !== "bass" && tg > 0) ups[i].forEach(m => note(out, m, t, gap * .85, tg / Math.sqrt(ups[i].length) * 1.2)); });
+  }
+  function progNew() {
+    const k = rnd(KEYS); PQZ = { k, tonic: k[1] % 12, ans: [], sel: 1, done: false };
+    const rule = S.pPre === "rule";
+    if (rule) { const r = ruleOctave(); PQZ.ch = r.ch; PQZ.dir = r.dir; } else { const seq = progSeq(S.pChords.length >= 2 ? S.pChords : ["I", "IV", "V"], Math.max(3, +S.pLen)); PQZ.ch = progInv(seq, S.pInv); }
+    PQZ.figs = rule || S.pInv; PQZ.pool = rule ? ["I", "ii7", "IV", "V", "V7", "V7/V"] : S.pChords.slice();
+    PQZ.ans = PQZ.ch.map((c, i) => i === 0 ? { id: "I", inv: 0 } : null);
+    progDraw(); progPlay();
+  }
+  function progDraw() {
+    const Z = PQZ, n = Z.ch.length;
+    $("prompt").innerHTML = `<p class="ask">Name the chords (key: ${Z.k[0]} major).<small>The first chord, I, is given. Choose a box, then a numeral${Z.figs ? ", then its inversion" : ""}. Listen to the bass (the low, bowed sound) to find inversions.</small></p>
+      <div class="pslots" role="group" aria-label="Your answer">${Z.ch.map((c, i) => { const a = Z.ans[i], cls = Z.done ? (a && a.id === c.id && (!Z.figs || a.inv === c.inv) ? " right" : " wrong") : ""; return `<button type="button" class="pslot${cls}" data-slot="${i}" aria-pressed="${Z.sel === i}" ${i === 0 || Z.done ? "disabled" : ""}><small>${i + 1}</small>${a ? rnH(rnTxt(a.id, a.inv)) : "?"}${Z.done && cls === " wrong" ? `<small class="pfix">${rnH(rnTxt(c.id, c.inv))}</small>` : ""}</button>`; }).join("")}</div>
+      <div class="opts2 pnum" role="group" aria-label="Numerals">${Z.pool.map(id => `<button type="button" data-pid="${esc(id)}" ${Z.done ? "disabled" : ""}>${rnH(is7(id) ? id.replace("7", "⁷") : id)}</button>`).join("")}</div>
+      ${Z.figs ? `<div class="opts2 pfig" role="group" aria-label="Inversion">${["Root position", "1st inversion", "2nd inversion", "3rd inversion (7th chords)"].map((l, i) => `<button type="button" data-pinv="${i}" ${Z.done ? "disabled" : ""}>${l}</button>`).join("")}</div>` : ""}`;
+    $("ctrls").innerHTML = `<button class="lbtn primary" id="pgAll" type="button">▶ Play</button><button class="lbtn" id="pgBass" type="button">▶ Bass only</button><button class="lbtn" id="pgCh" type="button">▶ Chords only</button>${Z.done ? `<button class="lbtn" id="pgMine" type="button">▶ My answer</button>` : `<button class="lbtn" id="pgCheck" type="button">Check</button>`}<button class="lbtn" id="pgNext" type="button">Next ›</button>`;
+    $("pgAll").onclick = () => progPlay(); $("pgBass").onclick = () => progPlay("bass"); $("pgCh").onclick = () => progPlay("chords"); $("pgNext").onclick = progNew;
+    if ($("pgMine")) $("pgMine").onclick = () => { let pb = null; progPlay("all", Z.ans.map(a => { const x = a || { id: "I", inv: 0 }, [r, q] = PCH[x.id], pc = (Z.tonic + r + PQ[q][Math.min(x.inv, PQ[q].length - 1)]) % 12; let m = 36 + pc; while (m < 40) m += 12; if (pb != null) { while (m - pb > 6) m -= 12; while (pb - m > 6) m += 12; } pb = m; return { id: x.id, inv: Math.min(x.inv, PQ[q].length - 1), bass: m }; })); };
+    if ($("pgCheck")) $("pgCheck").onclick = () => { Z.done = true; const ok = Z.ch.every((c, i) => { const a = Z.ans[i]; return a && a.id === c.id && (!Z.figs || a.inv === c.inv); }); record("Progressions · " + (PPRE[S.pPre] ? PPRE[S.pPre][0] : "custom"), ok);
+      $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = (ok ? "All correct! " : "Not quite: corrections are shown under each box. ") + Z.ch.map(c => rnTxt(c.id, c.inv)).join(" – ") + (Z.dir ? ` (the rule of the octave, bass ${Z.dir === "up" ? "rising" : "falling"} by step)` : "") + "."; progDraw(); };
+    $("prompt").onclick = e => {
+      if (Z.done) return; const s = e.target.closest("[data-slot]"), p = e.target.closest("[data-pid]"), v = e.target.closest("[data-pinv]");
+      if (s) { Z.sel = +s.dataset.slot; progDraw(); $("prompt").querySelector(`[data-slot="${Z.sel}"]`).focus(); return; }
+      if (p) { Z.ans[Z.sel] = { id: p.dataset.pid, inv: Z.ans[Z.sel] && Z.ans[Z.sel].id === p.dataset.pid ? Z.ans[Z.sel].inv : 0 }; if (!Z.figs && Z.sel < n - 1) Z.sel++; progDraw(); const f = $("prompt").querySelector(Z.figs ? "[data-pinv]" : `[data-pid="${CSS.escape(p.dataset.pid)}"]`); if (f) f.focus(); return; }
+      if (v && Z.ans[Z.sel]) { const id = Z.ans[Z.sel].id, max = PQ[PCH[id][1]].length - 1; Z.ans[Z.sel].inv = Math.min(+v.dataset.pinv, max); if (Z.sel < n - 1) Z.sel++; progDraw(); const f = $("prompt").querySelector("[data-pid]"); if (f) f.focus(); }
+    };
+    $("fb").className = Z.done ? $("fb").className : "fb2"; if (!Z.done) $("fb").textContent = "";
+  }
+  const progSet = () => `<label class="f2" for="pPre">Preset<select id="pPre">${Object.entries(PPRE).map(([k, [l]]) => `<option value="${k}" ${S.pPre === k ? "selected" : ""}>${l}</option>`).join("")}<option value="custom" ${S.pPre === "custom" ? "selected" : ""}>Custom (tick chords below)</option></select></label>
+      <fieldset class="f2 clefs pchk"><legend>Chords to include</legend>${Object.keys(PCH).map(id => `<label><input type="checkbox" data-pc="${esc(id)}" ${S.pChords.includes(id) ? "checked" : ""} ${S.pPre === "rule" ? "disabled" : ""}> ${rnH(is7(id) ? id.replace("7", "⁷") : id)}</label>`).join("")}</fieldset>
+      <label class="f2 chk" for="pInv"><input type="checkbox" id="pInv" ${S.pInv || S.pPre === "rule" ? "checked" : ""} ${S.pPre === "rule" ? "disabled" : ""}> Include inversions (chosen for a smooth, stepwise bass)</label>
+      <label class="f2" for="pLen">Chords<select id="pLen">${[3, 4, 5, 6, 7, 8].map(n => `<option ${+S.pLen === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label class="f2" for="pBal">Balance: bass ↔ chords<input type="range" id="pBal" min="0" max="100" value="${S.pBal}" aria-valuetext="${S.pBal < 45 ? "bass louder" : S.pBal > 55 ? "chords louder" : "even"}"></label>`;
+  function progSetChange(e) {
+    const id = e.target.id; if (id === "pBal") { S.pBal = +e.target.value; save(); return true; }
+    if (id === "pPre") { S.pPre = e.target.value; if (PPRE[S.pPre] && PPRE[S.pPre][1] !== "rule") S.pChords = PPRE[S.pPre][1].slice(); save(); $("settings").innerHTML = progSet(); progNew(); return true; }
+    if (e.target.dataset.pc) { const c = e.target.dataset.pc; S.pChords = S.pChords.filter(x => x !== c); if (e.target.checked) S.pChords.push(c); if (!S.pChords.includes("I")) S.pChords.unshift("I"); S.pPre = Object.keys(PPRE).find(k => PPRE[k][1] !== "rule" && PPRE[k][1].slice().sort().join() === S.pChords.slice().sort().join()) || "custom"; save(); $("settings").innerHTML = progSet(); progNew(); return true; }
+    if (id === "pInv") { S.pInv = e.target.checked; save(); progNew(); return true; }
+    if (id === "pLen") { S.pLen = +e.target.value; save(); progNew(); return true; }
+    return false;
+  }
+
+  // ================= 6. ANIMAL SOUNDS (just for fun) =================
+  const ZOO = {
+    dog: ["Dog", "Woof! Short, loud barks with a quick drop in pitch."], cat: ["Cat", "Mee-ow: the vowel opens and closes while the pitch rises and falls."], cow: ["Cow", "A long, low, nasal moo."], crow: ["Crow", "Caw! Harsh, raspy calls in a row."],
+    chicken: ["Chicken", "Short clucks, then a 'ba-GAWK'."], lion: ["Lion", "A huge, rough, low roar that swells and fades."], chipmunk: ["Chipmunk", "Fast, high 'chip' notes in a steady rhythm."], squirrel: ["Squirrel", "Noisy, buzzy chatter."],
+    giraffe: ["Giraffe", "Giraffes are almost silent; researchers have recorded them humming at night, around 92 Hz. (Trick question?)"], duck: ["Duck", "Quack: nasal and buzzy."], owl: ["Owl", "Soft, low hoots: hoo, hoo-hoo, hooo."], sheep: ["Sheep", "Baa, with a wobbly, bleating vibrato."],
+    frog: ["Frog", "Rib-bit: a low, rattling croak in two parts."], elephant: ["Elephant", "A loud, brassy trumpet blast."], bee: ["Bee", "A steady buzz from fast-beating wings."], wolf: ["Wolf", "A long, smooth howl that slides up and down."],
+  };
+  function zooPlay(kind) {
+    if (!ac()) return; const out = newBus(), T = AC.currentTime + .08, nz = noiseBuf();
+    const src = (type, f0, path, t, d, forms, amp, opt = {}) => {   // oscillator through formant filters; path: [[time, freq]] relative to t
+      const o = AC.createOscillator(), g = AC.createGain(), mix = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); (path || []).forEach(([tt, f]) => o.frequency.exponentialRampToValueAtTime(f, t + tt));
+      if (opt.vib) { const l = AC.createOscillator(), lg = AC.createGain(); l.frequency.value = opt.vib[0]; lg.gain.value = opt.vib[1]; l.connect(lg); lg.connect(o.detune); l.start(t); l.stop(t + d + .1); }
+      if (opt.am) { const l = AC.createOscillator(), lg = AC.createGain(), ag = AC.createGain(); l.frequency.value = opt.am[0]; lg.gain.value = opt.am[1]; ag.gain.value = 1 - opt.am[1]; l.connect(lg); lg.connect(ag.gain); mix.connect(ag); ag.connect(g); l.start(t); l.stop(t + d + .1); } else mix.connect(g);
+      if (forms) forms.forEach(([f, q, a, f2]) => { const bp = AC.createBiquadFilter(), ga = AC.createGain(); bp.type = "bandpass"; bp.frequency.setValueAtTime(f, t); if (f2) bp.frequency.linearRampToValueAtTime(f2, t + d * .8); bp.Q.value = q; ga.gain.value = a; o.connect(bp); bp.connect(ga); ga.connect(mix); }); else o.connect(mix);
+      g.connect(out); const A = opt.a || .02; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + A); g.gain.setValueAtTime(amp, t + Math.max(A, d - (opt.r || .05))); g.gain.linearRampToValueAtTime(0, t + d); o.start(t); o.stop(t + d + .05);
+    };
+    const hiss = (t, d, f, q, amp, type = "bandpass") => { const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(); n.buffer = nz; bp.type = type; bp.frequency.value = f; bp.Q.value = q; n.connect(bp); bp.connect(g); g.connect(out); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + d); n.start(t, Math.random() * .5); n.stop(t + d + .05); };
+    if (kind === "dog") [0, .35, 1.0].forEach(s => { src("sawtooth", 520, [[.12, 300]], T + s, .16, [[650, 4, 4], [1500, 6, 2], [2600, 8, 1]], .5, { r: .1 }); hiss(T + s, .1, 1200, 1, .3); });
+    if (kind === "cat") src("sawtooth", 480, [[.35, 720], [.85, 430]], T, 1, [[350, 6, 3, 850], [2200, 8, 2, 1100], [3000, 8, .6]], .35, { a: .12, r: .25, vib: [6, 15] });
+    if (kind === "cow") src("sawtooth", 110, [[.5, 135], [1.5, 100]], T, 1.7, [[300, 5, 4, 520], [800, 6, 2, 950], [2400, 8, .4]], .55, { a: .25, r: .4 });
+    if (kind === "crow") [0, .5, 1].forEach(s => { src("sawtooth", 620, [[.3, 520]], T + s, .35, [[1200, 5, 3], [1900, 6, 2]], .4, { am: [70, .6] }); hiss(T + s, .3, 1600, 2, .12); });
+    if (kind === "chicken") { [0, .22, .44].forEach(s => src("sawtooth", 650, [[.08, 480]], T + s, .1, [[800, 5, 3], [1700, 6, 1.5]], .35)); src("sawtooth", 520, [[.15, 950], [.5, 600]], T + .8, .55, [[900, 5, 3], [1800, 6, 1.5]], .4, { am: [40, .3] }); }
+    if (kind === "lion") { src("sawtooth", 80, [[.6, 150], [2.2, 65]], T, 2.4, [[400, 2, 4], [900, 3, 2]], .7, { a: .35, r: .8, am: [28, .65] }); hiss(T + .2, 2, 500, .8, .25); }
+    if (kind === "chipmunk") for (let i = 0; i < 9; i++) src("sine", 3200, [[.035, 2300]], T + i * .17, .045, null, .3, { a: .005, r: .02 });
+    if (kind === "squirrel") { for (let i = 0; i < 18; i++) hiss(T + i * .065, .045, 3500 + Math.random() * 800, 3, .5); [1.4, 1.6].forEach(s => src("square", 1500, [[.05, 1100]], T + s, .07, [[1500, 4, 2]], .25)); }
+    if (kind === "giraffe") src("sawtooth", 92, [[1.5, 90], [2.5, 93]], T, 2.6, [[180, 2, 3], [300, 3, 1]], .55, { a: .4, r: .6, vib: [3, 6] });
+    if (kind === "duck") [0, .35, .7].forEach(s => src("sawtooth", 280, [[.2, 230]], T + s, .24, [[900, 9, 3], [2300, 12, 2]], .45, { am: [55, .3] }));
+    if (kind === "owl") [[0, .35], [.6, .25], [.9, .25], [1.3, .7]].forEach(([s, d]) => src("sine", 390, [[d, 360]], T + s, d, null, .35, { a: .06, r: .12 }));
+    if (kind === "sheep") src("sawtooth", 320, [[1.1, 290]], T, 1.2, [[800, 5, 3], [1300, 6, 2], [2500, 8, .6]], .35, { a: .06, r: .3, vib: [9, 60] });
+    if (kind === "frog") [0, .32, 1.1, 1.42].forEach(s => src("sawtooth", 160, [[.2, 140]], T + s, .22, [[400, 3, 3], [1100, 4, 1]], .5, { am: [32, .9] }));
+    if (kind === "elephant") { src("sawtooth", 480, [[.25, 700], [1.2, 620]], T, 1.3, [[1000, 3, 3], [2200, 4, 2], [3500, 5, 1]], .45, { a: .08, r: .3, vib: [12, 40] }); hiss(T, 1.2, 2500, 1, .1); }
+    if (kind === "bee") src("sawtooth", 235, null, T, 1.8, [[500, 3, 2], [1600, 4, 1]], .3, { a: .2, r: .4, vib: [17, 25] });
+    if (kind === "wolf") src("triangle", 360, [[.9, 620], [2.2, 520], [2.8, 380]], T, 2.9, [[400, 4, 2, 600], [900, 5, 1]], .45, { a: .4, r: .6, vib: [5, 12] });
+  }
+  let ZQ = null;
+  function zooNew() {
+    const ks = Object.keys(ZOO), k = rnd(ks), opts = shuffle([k].concat(shuffle(ks.filter(x => x !== k)).slice(0, 3))); ZQ = { k, done: false };
+    $("prompt").innerHTML = `<p class="ask">Which animal is this?<small>Just for fun: these are synthesized impressions, not recordings, so some are better than others.</small></p><div class="opts2" id="zOpts">${opts.map(x => `<button type="button" data-z="${x}">${ZOO[x][0]}</button>`).join("")}</div>`;
+    $("ctrls").innerHTML = `<button class="lbtn primary" id="zPlay" type="button">▶ Play</button><button class="lbtn" id="zNext" type="button">Next ›</button>`;
+    $("fb").textContent = ""; $("fb").className = "fb2"; $("zPlay").onclick = () => zooPlay(ZQ.k); $("zNext").onclick = zooNew;
+    $("zOpts").onclick = e => { const b = e.target.closest("[data-z]"); if (!b || ZQ.done) return; ZQ.done = true; const ok = b.dataset.z === ZQ.k; record("Animal sounds", ok);
+      $("zOpts").querySelectorAll("button").forEach(x => { x.disabled = true; if (x.dataset.z === ZQ.k) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); });
+      $("fb").className = "fb2 " + (ok ? "good" : "bad"); $("fb").textContent = `${ok ? "Yes!" : "Nope!"} It's a ${ZOO[ZQ.k][0].toLowerCase()}. ${ZOO[ZQ.k][1]}`; };
+    zooPlay(k);
+  }
+
   // ---------- tabs & settings ----------
   const SET = {
     sing: () => `<label class="f2" for="sIv">Intervals<select id="sIv">${[["easy", "Common (M2, M3, P4, P5, P8)"], ["steps", "2nds"], ["thirds", "3rds"], ["p", "4ths, 5ths, octaves"], ["six", "6ths"], ["seven", "7ths"], ["all", "All"]].map(([v, t]) => `<option value="${v}" ${S.ivs === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sVo">Your voice<select id="sVo"><option value="high" ${S.voice === "high" ? "selected" : ""}>Higher (treble)</option><option value="low" ${S.voice === "low" ? "selected" : ""}>Lower (bass)</option></select></label>`,
     chord: () => `<label class="f2" for="sCh">Chords<select id="sCh">${[["triads", "Triads (M, m, °, +)"], ["usual7", "Usual 7th chords (7, △7, m7, ø7, °7)"], ["all7", "All 7th chords (adds m△7, +7, +△7, °△7)"], ["triUsual", "Triads + usual 7ths"], ["triAll", "Triads + all 7ths"], ["ext", "Extended chords (9, 11, 13)"], ["extAlt", "Extended chords with alterations (♭9, ♯9, ♯11, ♭13)"], ["extAll", "All extended chords"]].map(([v, t]) => `<option value="${v}" ${S.chords === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sCp">Play first as<select id="sCp"><option value="block" ${S.chordPlay === "block" ? "selected" : ""}>Block chord</option><option value="arp" ${S.chordPlay === "arp" ? "selected" : ""}>Broken chord</option></select></label>`,
-    pat: () => patSet(), dict: () => patSet(),
+    pat: () => patSet(), dict: () => patSet(), prog: () => progSet(), zoo: () => `<p class="note">Sixteen animals, synthesized. Turn your sound up.</p>`,
   };
   const patSet = () => `${S.tab === "dict" ? `<label class="f2" for="sRh">Rhythm<select id="sRh">${[["steady", "Steady (all quarter notes)"], ["simple", "Rhythms: eighths, quarters, halves"], ["dotted", "Rhythms with dotted notes"]].map(([v, t]) => `<option value="${v}" ${S.rhythm === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>${S.rhythm !== "steady" ? `<label class="f2" for="sMe">Meter<select id="sMe">${[["any", "Any"], ["2/4", "2/4"], ["3/4", "3/4"], ["4/4", "4/4"]].map(([v, t]) => `<option value="${v}" ${S.meter === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<label class="f2" for="sChr">Chromatic notes<select id="sChr">${[["none", "None"], ["step", "Stepwise (passing, neighbor)"], ["leap", "Approached by leap"], ["both", "Both kinds"]].map(([v, t]) => `<option value="${v}" ${S.chrom === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}<fieldset class="f2 clefs"><legend>Clefs</legend>${["treble", "alto", "tenor", "bass"].map(c => `<label><input type="checkbox" id="clef-${c}" ${S.clefs.includes(c) ? "checked" : ""}> ${c[0].toUpperCase() + c.slice(1)}</label>`).join("")}</fieldset><label class="f2" for="sLen">Notes<select id="sLen">${(S.tab === "dict" ? [3, 4, 5, 6, 7, 8] : [3, 4, 5, 6]).map(n => `<option ${+S.len === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f2" for="sMo">Key<select id="sMo"><option value="major" ${S.mode === "major" ? "selected" : ""}>Major</option><option value="minor" ${S.mode === "minor" ? "selected" : ""}>Minor (harmonic)</option></select></label>
-      <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f2" for="sMot">Motion<select id="sMot">${[["steps", "Stepwise only"], ["tI", "Steps + skips in the tonic triad (I)"], ["tIV", "Steps + skips in I and V"], ["tIVV", "Steps + skips in I, IV and V"], ["skips", "Steps and skips (3rds)"], ["leaps", "Steps, skips and leaps"]].map(([v, t]) => `<option value="${v}" ${S.motion === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <label class="f2" for="sSy">Syllables<select id="sSy">${[["do", "Movable do (do-based minor)"], ["la", "Movable do (la-based minor)"]].concat(S.tab === "pat" ? [["fixed", "Fixed do (do = C)"]] : []).map(([v, t]) => `<option value="${v}" ${(S.syl === v || (S.tab !== "pat" && S.syl === "fixed" && v === "do")) ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       ${S.tab === "pat" ? `<label class="f2 chk" for="sClu"><input type="checkbox" id="sClu" ${S.clues ? "checked" : ""}> Show solfège under the notes</label>` : ""}
       <label class="f2" for="sSt">Start on<select id="sSt"><option value="tonic" ${S.start === "tonic" ? "selected" : ""}>The tonic</option><option value="any" ${S.start === "any" ? "selected" : ""}>Any scale degree</option></select></label>`;
-  const START = { sing: singNew, chord: chordNew, pat: () => patNew(false), dict: () => patNew(true) };
+  const START = { sing: singNew, chord: chordNew, pat: () => patNew(false), dict: () => patNew(true), prog: progNew, zoo: zooNew };
   function setTab(t, startNow) {
     stopListen(); trialId++; S.tab = t; save();
     document.querySelectorAll("#tabs [data-t]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
     $("settings").innerHTML = SET[t]();
-    $("settings").onchange = e => { const id = e.target.id, v = e.target.value;
+    $("settings").onchange = e => { if (S.tab === "prog" && progSetChange(e)) return; const id = e.target.id, v = e.target.value;
       if (id.startsWith("clef-")) { const c = id.slice(5); S.clefs = S.clefs.filter(x => x !== c); if (e.target.checked) S.clefs.push(c); if (!S.clefs.length) { S.clefs = [c]; e.target.checked = true; } } if (id === "sClu") { S.clues = e.target.checked; save(); const d = $("ptDots"); if (d && S.tab === "pat") d.classList.toggle("clues", S.clues); return; } if (id === "sIv") S.ivs = v; if (id === "sVo") S.voice = v; if (id === "sCh") S.chords = v; if (id === "sCp") S.chordPlay = v; if (id === "sLen") S.len = +v; if (id === "sMo") S.mode = v; if (id === "sMot") S.motion = v; if (id === "sSt") S.start = v; if (id === "sIn") S.input = v; if (id === "sChr") S.chrom = v; if (id === "sRh") { S.rhythm = v; save(); $("settings").innerHTML = SET[S.tab](); } if (id === "sMe") S.meter = v; if (id === "sSy") S.syl = v; save(); START[S.tab](); };
     $("mic").textContent = (t === "sing" || t === "pat") ? (mic ? "Microphone on." : "The app will ask to use your microphone. Any octave counts, so sing where it's comfortable.") : "";
-    if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
+    if (startNow) START[t](); else { $("prompt").innerHTML = `<p class="ask">${{ sing: "Sing intervals", chord: "Chord quality", pat: "Sing patterns", dict: "Melodic dictation", prog: "Chord progressions", zoo: "Animal sounds" }[t]}<small>Press Start when you're ready (turn your sound on).</small></p>`; $("ctrls").innerHTML = `<button class="lbtn primary" id="go1" type="button">▶ Start</button>`; $("go1").onclick = () => START[S.tab](); $("fb").textContent = ""; }
   }
   $("tabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) setTab(b.dataset.t, false); };
   setTab(S.tab, false);
@@ -735,5 +913,5 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=d0c07f0a"></script>
+<script src="assets/site.js?v=d19fc4d3"></script>
 </body></html>

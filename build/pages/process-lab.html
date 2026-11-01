@@ -73,7 +73,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
 
   <section class="panel2" aria-labelledby="h-play">
     <h2 id="h-play">3. Listen</h2>
-    <div class="row"><button class="tbtn primary" id="play" type="button">▶ Play</button><button class="tbtn" id="restart" type="button">Restart from the beginning</button></div>
+    <div class="row"><button class="tbtn primary" id="play" type="button">▶ Play</button><button class="tbtn" id="restart" type="button">Restart from the beginning</button><button class="tbtn" id="share" type="button">Copy link to this setup</button></div>
     <div class="row"><label class="fld" for="expLen">Export length<select id="expLen"><option value="30">30 seconds</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="240">4 minutes</option></select></label>
       <label class="fld" for="expFmt">Format<select id="expFmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label>
       <button class="tbtn" id="export" type="button">Export audio file</button></div>
@@ -348,6 +348,9 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   };
   $("play").onclick = () => playing ? stop() : start();
   $("restart").onclick = () => restart();
+  // share the whole setup as a link (?p=…)
+  try { const q = new URLSearchParams(location.search).get("p"); if (q) { const o = JSON.parse(decodeURIComponent(escape(atob(q)))); if (o.F) Object.assign(F, o.F); if (Array.isArray(o.V) && o.V.length) V = o.V.map(v => def(v)); ["tonic", "scale", "len", "stepv", "bpm"].forEach(k => { const el = $(k); if (el) el.value = F[k]; }); if ($("bpmO")) $("bpmO").textContent = F.bpm; } } catch (e) {}
+  $("share").onclick = () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify({ F, V })))), url = location.href.split(/[?#]/)[0] + "?p=" + encodeURIComponent(code); if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { $("status").textContent = "Link copied: it opens this setup."; }, () => { $("status").textContent = url; }); else $("status").textContent = url; };
   drawGrid(); drawVoices();
   window.__lab = { F, get V() { return V; }, cycle, get log() { return log; } };   // used by automated tests
 })();

@@ -86,14 +86,42 @@ window.FAM = (() => {
       <p class="legend">Stable tones: 1̂, 3̂, 5̂. Tendencies: 7̂ → 1̂, 4̂ → 3̂, chordal 7ths down, minor 6̂ → 5̂, 2̂ either way.</p>`;
   }
 
+  // clickable scale on a staff
+  let HH = null;
+  const stepOf = n => n.o * 7 + n.l - 30;   // treble staff: 0 = bottom line (E4)
+  function sdStaff(H, k) {
+    HH = H; const idx = k.mode === "minor" ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
+    const notes = idx.map(i => { const n = noteOf(H, k, i); return { n, i }; });
+    notes.push({ n: H.N(notes[0].n.l, notes[0].n.a, notes[0].n.o + 1), i: 0, top: true });
+    const spec = notes.map(({ n, i, top }) => ({ s: stepOf(n), acc: n.a ? n.a : null, attrs: `role="button" tabindex="0" data-sdg="${i}" data-sdn="${H.nmO(n)}" data-sdk="${k.mode}" aria-label="${H.nmO(n).replace("♯", " sharp").replace("♭", " flat")}: show its scale degree"` }));
+    return H.miniStaff({ notes: spec, role: "group", label: `${k.label} scale: select a note to see its scale degree` }) + `<p class="msinfo" id="sdInfo" aria-live="polite">Select a note to see its scale-degree number and name.</p>`;
+  }
+  if (!window.__sdWired) { window.__sdWired = true;
+    const go = el => { const i = +el.dataset.sdg, mode = el.dataset.sdk, info = document.getElementById("sdInfo"); document.querySelectorAll("[data-sdg]").forEach(x => x.setAttribute("aria-pressed", String(x === el)));
+      const deg = i === 7 ? "raised 7̂" : `${i + 1}̂`, sol = i === 7 ? "ti" : SOL[mode][i], name = i === 7 ? "leading tone" : (mode === "minor" && i === 6 ? "subtonic" : DN[i]);
+      if (info) info.textContent = `${el.dataset.sdn}: ${deg} (${sol}), the ${name}`; if (HH) HH.play({ chords: [[HH.midi(HH.parse(el.dataset.sdn))]], gap: 1.05 }); };
+    document.addEventListener("click", e => { const g = e.target.closest("[data-sdg]"); if (g) go(g); });
+    document.addEventListener("keydown", e => { const g = e.target.closest && e.target.closest("[data-sdg]"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(g); } });
+  }
+  // tendency tones and their resolutions, with arrows
+  function tendStaff(H, k) {
+    const deg = i => { const n = k.scale[((i % 7) + 7) % 7]; return H.N(n.l, n.a, n.o + Math.floor(i / 7)); };
+    const pairs = [[6, 7, "ti → do"], [3, 2, "fa → mi"], [5, 4, "la → sol"], [1, 0, "re → do"]];
+    const notes = [], arrows = [];
+    pairs.forEach(([a, b, t]) => { const i = notes.length; [a, b].forEach(d => { const n = deg(d); notes.push({ s: stepOf(n), acc: n.a ? n.a : null, label: SOL.major[d % 7] }); }); arrows.push([i, i + 1, ""]); });
+    return H.miniStaff({ notes, arrows, dx: 46, label: `Tendency tones in ${k.label} with arrows to their resolutions: ti to do, fa to mi, la to sol, re to do` })
+      + `<div class="lbtns">${pairs.map(([a, b, t]) => `<button class="play" data-tdp="${H.midi(deg(a))},${H.midi(deg(b))}"><span aria-hidden="true">▶ </span>${t}</button>`).join("")}</div>`;
+  }
+  if (!window.__tdWired) { window.__tdWired = true; document.addEventListener("click", e => { const b = e.target.closest("[data-tdp]"); if (b && HH) HH.play({ chords: b.dataset.tdp.split(",").map(m => [+m]), gap: 1.05 }); }); }
   const lesson = { defMode: "major", steps: [
     { title: "Keys and scale degrees", kick: "Prerequisites", render: () => `<p>This lesson assumes you know how major and minor keys organize the diatonic notes, how key signatures show them, and how <b>parallel</b> keys (same tonic) and <b>relative</b> keys (same signature) relate. If not, review them first in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson, especially its key-signature steps (“Why key signatures?” and “Reading key signatures”).</p>
       <p>Scale degrees are named by number or by name. A caret over the number marks a scale degree: 1̂, 2̂, 3̂… Some websites can't show the caret, so you may also see ^1, ^2. Altered degrees take a ♯ or ♭ (♯4̂, ♭7̂) whatever accidental the actual note uses: in E major, the lowered supertonic is ♭2̂ even though it's F♮.</p>` },
-    { title: "Scale-degree names", kick: "Tonic to leading tone", keyed: "both", render: (H, k) => `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Degree</th><th scope="col">Name</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
+    { title: "Scale-degree names", kick: "Tonic to leading tone", keyed: "both", render: (H, k) => `${sdStaff(H, k)}<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Degree</th><th scope="col">Name</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
       ${[0, 1, 2, 3, 4, 5, 6].map(i => `<tr><td>${i + 1}̂ (${SOL[k.mode][i]})</td><td>${nameOf(k, i)}</td><td>${H.nm(k.scale[i])}</td></tr>`).join("")}${k.mode === "minor" ? `<tr><td>raised 7̂ (ti)</td><td>leading tone</td><td>${H.nm(noteOf(H, k, 7))}</td></tr>` : ""}</tbody></table></div>
       ${k.mode === "minor" ? "<p>In minor, the 7th degree has two names: as in the key signature it's the <b>subtonic</b>; raised a half step (as in harmonic minor) it's the <b>leading tone</b>. The 6th degree also has two usual versions (lowered as in the signature, or raised in ascending melodic minor), but its name doesn't change.</p>" : "<p>Choose a minor key to see the subtonic and leading tone.</p>"}`
       + H.check(`What pitch is the subdominant in ${k.label}?`, H.nm(k.scale[3]), [H.nm(k.scale[4]), H.nm(k.scale[2]), H.nm(k.scale[5])], "The subdominant is 4̂.") },
     { title: "Stable and tendency tones", kick: "Anchors and pulls", keyed: "major", render: (H, k) => `<p><b>Stable tones</b> (“anchor tones”) give a sense of rest: <b>1̂, 3̂ and 5̂</b>, in major or minor. They end phrases that have harmonic closure. All other degrees are unstable and tend to move in a particular direction; satisfying that tendency is <b>resolution</b>.</p>
+      ${(HH = H, tendStaff(H, k))}
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Tendency tone</th><th scope="col">Resolves</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
       <tr><td>Leading tone (ti)</td><td>up to do: strong, especially in V → I</td><td>${H.nm(k.scale[6])} → ${H.nm(k.scale[0])}</td></tr>
       <tr><td>Subdominant (fa)</td><td>down to mi (plagal motion; the 7th of V⁷)</td><td>${H.nm(k.scale[3])} → ${H.nm(k.scale[2])}</td></tr>

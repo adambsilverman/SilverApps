@@ -29,6 +29,8 @@ These are included unmodified (or minified) and remain under their authors' lice
 | Bravura music font, © Steinberg Media Technologies | inside the VexFlow build | SIL Open Font License 1.1 |
 | MQTT.js, © MQTT.js contributors | `assets/mqtt.min.js` (class games) | MIT |
 | QR Code Generator for JavaScript, © Kazuhiko Arase | `assets/qrcode.js` | MIT (“QR Code” is a trademark of DENSO WAVE) |
+| CMU Pronouncing Dictionary, © Carnegie Mellon University | `assets/rhymes.txt` (Lyrics rhyme generator; a 22,000-word excerpt) | BSD-style license |
+| lamejs (LAME MP3 encoder in JavaScript) | `assets/lame.min.js` (MP3 export) | LGPL (see `assets/lame-LICENSE.txt`) |
 | League Gothic, Schibsted Grotesk, Literata, Barlow Condensed | `assets/fonts/` | SIL Open Font License 1.1 |
 | Satisfy (site title font) | `assets/fonts/title.woff2` | Apache License 2.0 |
 | Noto Music, © The Noto Project Authors | `assets/fonts/noto-music.woff2` and Google Fonts (music symbols) | SIL Open Font License 1.1 |

@@ -67,7 +67,8 @@
           "topic": "Triads & sevenths",
           "blurb": "Spell triads and seventh chords, figured bass and inversions.",
           "drills": "chord-figures-and-symbols.html",
-          "class": true
+          "class": true,
+          "lesson": "chord-figures-and-symbols-lesson.html"
         },
         {
           "name": "Cadences",
@@ -83,14 +84,6 @@
           "blurb": "Passing and neighbor tones, appoggiaturas, suspensions and more.",
           "lesson": "non-chord-tones-lesson.html",
           "drills": "non-chord-tones.html",
-          "class": true
-        },
-        {
-          "name": "Extended and Altered Chords",
-          "topic": "Extended chords",
-          "blurb": "9ths, 11ths, 13ths, altered tones and how to write chord symbols.",
-          "lesson": "extended-and-altered-chords-lesson.html",
-          "drills": "chord-extension-practicer.html",
           "class": true
         },
         {
@@ -138,6 +131,14 @@
           "blurb": "Mode mixture, the Neapolitan, augmented sixths and chromatic mediants.",
           "lesson": "chromatic-chords-lesson.html",
           "drills": "chromatic-chords.html",
+          "class": true
+        },
+        {
+          "name": "Extended and Altered Chords",
+          "topic": "Extended chords",
+          "blurb": "9ths, 11ths, 13ths, altered tones and how to write chord symbols.",
+          "lesson": "extended-and-altered-chords-lesson.html",
+          "drills": "chord-extension-practicer.html",
           "class": true
         },
         {
@@ -427,6 +428,13 @@
           "blurb": "Trim, normalize, fade, add reverb, convert sample rate and channels, and export WAV or MP3. Files stay on your device.",
           "open": "audio-clip-editor.html",
           "note": "Practice tool"
+        },
+        {
+          "name": "Multitrack Studio",
+          "topic": "Recording and layering",
+          "blurb": "Layer synth melodies and your own recordings over a backing track, mix them and export audio.",
+          "open": "multitrack-studio.html",
+          "note": "Creative tool"
         },
         {
           "name": "Vocal Tuner",
