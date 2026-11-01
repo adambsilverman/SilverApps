@@ -63,6 +63,13 @@
           "class": true
         },
         {
+          "name": "Triads and Seventh Chords: First Steps",
+          "topic": "Chord spelling",
+          "blurb": "A step-by-step walkthrough: read each note, measure the intervals, find the root, check the 3rd, 5th and 7th, and name the inversion.",
+          "open": "chord-first-steps.html",
+          "note": "Guided practice"
+        },
+        {
           "name": "Chord Figures and Symbols",
           "topic": "Triads & sevenths",
           "blurb": "Spell triads and seventh chords, figured bass and inversions.",

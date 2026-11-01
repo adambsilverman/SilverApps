@@ -1,3 +1,4 @@
+import json
 """Assemble the harmony / voice-leading apps into build/src/*.html (then build_trainers.py adds the site look + class game).
 Each page = the Modes Trainer's CSS + transposition/extra.css + EXTRA below + a body with a Lesson view and a Drills view
 + VexFlow + <app>.js (content: lesson steps, question makers, reference) + engine.js (shared logic)."""
@@ -9,6 +10,7 @@ assert HEAD.rstrip().endswith("</style>") and VEX.startswith("<script>")
 HEAD = HEAD.replace(".modes button:first-child { grid-column: 1 / -1; }\n", "")
 EXTRA = (B.parent / "transposition" / "extra.css").read_text(encoding="utf-8") + (B / "extra.css").read_text(encoding="utf-8")
 
+NOCLASS = set()   # drills pages without a class game (all current ones have one)
 APPS = [
   dict(src="Reading Pitch.html", drills="reading-pitch.html", lesson="reading-pitch-lesson.html", lesson_title="Understanding Clefs and Pitch Reading", lesson_desc="A step-by-step lesson: the staff, treble and bass clefs, the grand staff, alto and tenor clefs, clef history, reading strategies, alignment, and accidentals (the bar-line rule, writing and stacking, enharmonics).", data="clefs.js", title="Reading Pitch",
        desc="Name notes in treble, bass, alto and tenor clefs and on the grand staff, find lines and spaces, move a pitch between clefs, and review memory devices and alignment principles.",
@@ -405,7 +407,8 @@ for f, view in [(f, v) for f in APPS for v in (("lesson",) if f.get("lesson_only
     head = head.replace("@media (min-width: 640px) { .modes { grid-template-columns: repeat(5, 1fr); } .modes button:first-child { grid-column: auto; } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }", "")
     head = head[:head.rstrip().rindex("</style>")] + EXTRA + MODES_CSS + "\n</style>"
     data = "\n".join((B / d).read_text(encoding="utf-8") for d in ([f["data"]] if isinstance(f["data"], str) else f["data"]))
-    page = f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view == "lesson" else f["lesson"]}" }};</script>\n'
+    _oname = (f.get("drills_name") or (f["title"] + " drills")) if view == "lesson" else f["lesson_title"]
+    page = f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view == "lesson" else f["lesson"]}", otherName: {json.dumps(_oname)}, cls: {"true" if not f.get("lesson_only") or f["drills"] not in NOCLASS else "false"} }};</script>\n'
     out = head + "\n</head>\n" + body(f, view) + VEX + "\n" + page + "<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n"
     src = f["src"] if view == "drills" else (f["src"] if f.get("lesson_only") else f["src"].replace(".html", " Lesson.html"))
     (SRC / src).write_text(out, encoding="utf-8"); print("assembled", src, len(out))

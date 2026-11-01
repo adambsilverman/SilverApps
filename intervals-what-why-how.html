@@ -257,6 +257,12 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     <div class="cards3"><div class="c4" style="background:#FFF3C4"><b>Naming</b>size from letters, quality from half steps; spelling counts</div><div class="c1"><b>Melody</b>ups and downs, transposition and inversion</div><div class="c2"><b>Harmony</b>chords built from stacked intervals</div><div class="c3"><b>Structure</b>distance from home, tension and release</div></div>
     <div id="quiz"></div>
   </section>
+  <section class="slide" data-title="Practice" hidden>
+    <p class="kick">14 · Practice</p><h2>On to the drills</h2>
+    <p>You've finished the lesson. Now practice what you learned in the <b>Interval drills</b>:</p><ul><li>Name intervals on the staff</li><li>Write the note an interval above</li><li>Write the note an interval below</li><li>Count half steps</li></ul>
+    <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
+    <p><a class="lbtn primary" href="intervals.html">Start the drills →</a></p>
+  </section>
   </div>
   <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
 </main>
@@ -293,14 +299,14 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     cur = Math.max(0, Math.min(slides.length - 1, i)); seen.add(cur);
     slides.forEach((s, k) => s.hidden = k !== cur);
     [...stepsEl.querySelectorAll("button")].forEach((b, k) => { b.toggleAttribute("aria-current", k === cur); if (k === cur) b.setAttribute("aria-current", "step"); b.classList.toggle("seen", seen.has(k)); });
-    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Start again ↺" : "Next →";
+    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Start the drills →" : "Next →";
     $("where").textContent = `Step ${cur + 1} of ${slides.length}: ${slides[cur].dataset.title}`;
     if (focus) { const h = slides[cur].querySelector("h2"); h.tabIndex = -1; h.focus(); }
     if (slides[cur].onshow) slides[cur].onshow();
     try { localStorage.setItem("silverapps-intervals-step", cur); } catch (e) {}
   }
   $("back").onclick = () => go(cur - 1, true);
-  $("fwd").onclick = () => go(cur === slides.length - 1 ? 0 : cur + 1, true);
+  $("fwd").onclick = () => (cur === slides.length - 1 ? (location.href = "intervals.html") : go(cur + 1, true));
   document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select")) return; if (e.key === "ArrowRight") go(cur + 1, true); if (e.key === "ArrowLeft") go(cur - 1, true); });
 
   // ---------- 1. keyboard + tape ----------

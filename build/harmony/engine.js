@@ -848,6 +848,13 @@
 
   // ---------- Lesson (step-through) ----------
   const L = FAM.lesson, VKEY = FAM.key + ":view";
+  // every lesson ends on a page that leads to its drills
+  if (window.SA_PAGE && SA_PAGE.view === "lesson" && SA_PAGE.other && L && L.steps && !/^Practice/.test(L.steps[L.steps.length - 1].title)) {
+    const modes = (FAM.modes || []).map(m => m.kicker).filter(Boolean);
+    L.steps.push({ title: "Practice", kick: "On to the drills", render: () => `<p>You've finished the lesson. Now practice what you learned in the <b>${esc(SA_PAGE.otherName || "drills")}</b>${modes.length ? ":" : "."}</p>${modes.length ? `<ul>${modes.map(m => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
+      <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. ${SA_PAGE.cls !== false ? "Teachers can also host the drills as a <b>class game</b>: students join on their own devices." : ""}</p>
+      <p><a class="btn primary" href="${esc(SA_PAGE.other)}">Start the drills →</a></p><p class="note">You can come back to any page of this lesson with the numbered buttons above.</p>` });
+  }
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}
