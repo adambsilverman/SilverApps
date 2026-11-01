@@ -24,7 +24,8 @@ select{font:15px var(--fi-serif);padding:6px 8px;border-radius:var(--fi-r-sm);bo
 .staffbox{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-end}
 .staffbox figure{margin:0;text-align:center}
 .staffbox figcaption{font:600 13px var(--fi-ui);color:var(--fi-muted)}
-svg.cs{width:220px;height:auto;color:var(--fi-ink);overflow:visible}
+svg.cs{width:min(100%,400px);height:auto;color:var(--fi-ink);overflow:visible}
+.staffbox figure{flex:1 1 300px;max-width:400px}
 svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 .step{border-left:6px solid var(--fi-red);padding:10px 14px;background:var(--fi-paper);border-radius:0 var(--fi-r-sm) var(--fi-r-sm) 0;display:grid;gap:10px}
 .step h2{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:0;color:var(--fi-muted)}
@@ -110,6 +111,12 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   }
 
   // ---------- drawing ----------
+  // accidental shapes in staff-space units, anchored on the note's line or space (same shapes as the lessons use)
+  const ACCP = {
+    "1": { w: 1, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
+    "0": { w: .72, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
+    "-1": { w: .86, d: "M0 -1.9h.14v2.45H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36z" },
+  };
   const BOT = { treble: 30, bass: 18 };   // diatonic position of the bottom line: E4 = 4*7+2, G2 = 2*7+4
   function staffSVG(notes, clef, o = {}) {
     const sp = 10, top = 30, W = 200, bline = top + 40, x = 120, yOf = n => bline - (pos(n) - BOT[clef]) * sp / 2;
@@ -118,17 +125,25 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     s += `<text x="12" y="${clef === "treble" ? top + 30 : top + 10}" font-family="'Noto Music', serif" font-size="${clef === "treble" ? 42 : 40}" fill="currentColor">${clef === "treble" ? "&#x1D11E;" : "&#x1D122;"}</text>`;
     // noteheads: a note a 2nd above the previous one goes to the right side
     const xs = []; notes.forEach((n, i) => { const prev = notes[i - 1]; xs.push(prev && pos(n) - pos(prev) === 1 && xs[i - 1] === x ? x + 13 : x); });
-    // accidentals in columns, top note first
-    const accX = {}, cols = []; [...notes.keys()].reverse().forEach(i => { const n = notes[i]; if (!n.a && !o.showNat) return; let c = 0; while (cols.some(([cc, p]) => cc === c && Math.abs(p - pos(n)) < 6)) c++; cols.push([c, pos(n)]); accX[i] = x - 18 - c * 13; });
+    // accidentals in columns, in the usual order: highest closest to the chord, then the lowest, then the next highest, and so on;
+    // accidentals a 7th or more apart may share a column
+    const withAcc = [...notes.keys()].filter(i => notes[i].a || o.showNat).sort((p, q) => pos(notes[q]) - pos(notes[p])), seq = [];
+    while (withAcc.length) { seq.push(withAcc.shift()); if (withAcc.length) seq.push(withAcc.pop()); }
+    const left = Math.min(...xs) - 9, accX = {}, cols = [];
+    seq.forEach(i => { const n = notes[i], w = ACCP[n.a].w * sp; let c = 0; while (cols.some(([cc, p]) => cc === c && Math.abs(p - pos(n)) < 6)) c++; cols.push([c, pos(n)]); accX[i] = left - 2 - c * 12 - w; });
+    const labs = [];
     notes.forEach((n, i) => {
       const y = yOf(n), col = (o.hl || []).includes(i) ? "#c0392b" : (o.dim || []).includes(i) ? "#9a9088" : "currentColor";
       for (let p = BOT[clef] - 2; p >= pos(n); p -= 2) s += `<line x1="${xs[i] - 11}" x2="${xs[i] + 11}" y1="${bline - (p - BOT[clef]) * sp / 2}" y2="${bline - (p - BOT[clef]) * sp / 2}" stroke="currentColor"/>`;
       for (let p = BOT[clef] + 10; p <= pos(n); p += 2) s += `<line x1="${xs[i] - 11}" x2="${xs[i] + 11}" y1="${bline - (p - BOT[clef]) * sp / 2}" y2="${bline - (p - BOT[clef]) * sp / 2}" stroke="currentColor"/>`;
-      if (accX[i] != null) s += `<text x="${accX[i]}" y="${y + 6}" font-family="'Noto Music', serif" font-size="22" fill="${col}">${{ "-1": "&#x266D;", "1": "&#x266F;", "0": "&#x266E;" }[n.a]}</text>`;
+      if (accX[i] != null) s += `<path d="${ACCP[n.a].d}" transform="translate(${accX[i].toFixed(1)} ${y}) scale(${sp})" fill="${col}"/>`;
       s += `<ellipse cx="${xs[i]}" cy="${y}" rx="7.2" ry="5" transform="rotate(-20 ${xs[i]} ${y})" fill="none" stroke="${col}" stroke-width="2.6"/>`;
-      if (o.labels && o.labels[i]) s += `<text x="${Math.max(...xs) + 16}" y="${y + 4}" font-size="12" font-family="sans-serif" fill="${col}">${o.labels[i]}</text>`;
+      if (o.labels && o.labels[i]) labs.push({ y, t: o.labels[i], col });
     });
-    return `<svg class="cs" viewBox="0 -10 ${W + 60} 120" role="img" aria-label="${o.aria || ""}">${s}</svg>`;
+    // labels to the right of the staff, bottom to top in the same order as the notes, spread so they never overlap
+    labs.sort((p, q) => q.y - p.y); let last = 1e9; labs.forEach(L => { L.ly = Math.min(L.y + 4, last - 13); last = L.ly; });
+    const lx = W + 2; labs.forEach(L => { s += `<text x="${lx}" y="${L.ly}" font-size="11.5" font-family="sans-serif" font-weight="600" fill="${L.col}">${L.t}</text>`; });
+    return `<svg class="cs" viewBox="0 -10 ${W + 66} 120" role="img" aria-label="${o.aria || ""}">${s}</svg>`;
   }
   function drawStaves() {
     const st = C.steps[C.k] || {}, labels = C.notes.map((n, i) => i <= C.read ? nm(n) : "");

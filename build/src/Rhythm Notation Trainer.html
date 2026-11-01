@@ -738,7 +738,7 @@ details.panel[open] summary::after { content: "−"; }
         const st = starts(full), idx = st.indexOf(m.bar - L);
         if (idx <= 0 || full[idx - 1].t || full[idx].r) continue;
         if (full[idx].b != null && full[idx - 1].b === full[idx].b) continue;
-        pickup = clone(full.slice(idx));
+        pickup = clone(full.slice(idx)); if (pickup.some(e => e.r)) continue;   // a pickup is notes only
       }
       const body = [genBar(m, { sync: -1 }), genBar(m, { sync: -1 })];
       if (body.some(b => !b)) continue;
@@ -889,7 +889,7 @@ details.panel[open] summary::after { content: "−"; }
     let w = avail; fmt.format(vs, w);
     for (let it = 0; it < 5; it++) {
       let tot = 0; const pts = [];
-      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      vs.forEach(v => { let t = 0; v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); tot = Math.max(tot, t); });   // the bar's own length, so a pickup ends right after its last note
       if (pts.length < 2) return w;
       pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
       if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
@@ -908,6 +908,10 @@ details.panel[open] summary::after { content: "−"; }
     const m = M[spec.m], bars = spec.bars, ts = spec.ts || "show";
     const avail = spec.snippet ? 9999 : Math.max(260, Math.floor(el.clientWidth || 640));
     const natural = bars.map((ev, i) => (spec.snippet ? 10 : 30) + ev.reduce((s, e) => s + evW(e), 0) + (spec.gap && spec.gap.bar === i ? Math.max(56, spec.gap.len * 3.2) : 0) + (i === 0 && ts !== "hide" ? 34 : 0));
+    // an incomplete bar (a pickup) gets a width in proportion to its length, measured against the complete bars
+    { const dur = ev => ev.reduce((s, e) => s + (e.full ? m.bar : e.d), 0), fullI = bars.map((ev, i) => i).filter(i => dur(bars[i]) >= m.bar && !(spec.gap && spec.gap.bar === i));
+      if (fullI.length) { const per = fullI.reduce((s, i) => s + natural[i] - (i === 0 && ts !== "hide" ? 34 : 0), 0) / (fullI.length * m.bar);
+        bars.forEach((ev, i) => { const d = dur(ev); if (d < m.bar && !(spec.gap && spec.gap.bar === i)) natural[i] = Math.min(natural[i], Math.max((spec.snippet ? 10 : 30) + ev.reduce((s, e) => s + evW(e), 0) * .8, per * d + (i === 0 && ts !== "hide" ? 34 : 0))); }); } }
     const rows = []; let cur = [], w = 0;
     bars.forEach((_, i) => {
       if (cur.length && (w + natural[i] > avail - 12 || cur.length >= 4)) { rows.push(cur); cur = []; w = 0; }

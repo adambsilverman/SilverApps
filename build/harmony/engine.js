@@ -263,7 +263,7 @@
     let w = avail; fmt.format(vs, w);
     for (let it = 0; it < 5; it++) {
       let tot = 0; const pts = [];
-      vs.forEach(v => { let t = 0; tot = Math.max(tot, v.getTotalTicks().value()); v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); });
+      vs.forEach(v => { let t = 0; v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); tot = Math.max(tot, t); });   // the bar's own length: a pickup ends right after its last note
       if (pts.length < 2) return w;
       pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
       if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
@@ -689,7 +689,7 @@
   const ACCP = {
     "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
     "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
-    "-1": { w: .78, top: -2.3, bot: .48, d: "M0 -2.3h.13v2.78H0zM.13 .48C.95 .02 .9 -.55 .13 -.22V-.03C.58 -.3 .62 .08 .13 .3z" },
+    "-1": { w: .86, top: -1.9, bot: .55, d: "M0 -1.9h.14v2.45H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36z" },
   };
   function miniStaff(o) {
     const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
