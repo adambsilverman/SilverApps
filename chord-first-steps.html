@@ -51,10 +51,12 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 <main class="tool" id="main">
   <header>
     <h1>Triads and Seventh Chords: <span>First Steps</span></h1>
-    <p>Identify a chord one small step at a time. Read each note from the bottom up, measure the distance between neighbors, find the root, check the 3rd, 5th (and 7th) above the root, then name the chord's quality and its position. When you're comfortable, try the <a href="chord-figures-and-symbols.html">Chord Figures and Symbols</a> drills, or read the <a href="chord-figures-and-symbols-lesson.html">lesson</a>.</p>
+    <p>Two step-by-step activities: <b>identify</b> a chord you see, or <b>spell</b> a chord from its root, quality and position. To identify, you read each note from the bottom up, measure the distance between neighbors, find the root, check the 3rd, 5th (and 7th) above the root, then name the chord's quality and its position. To spell, you work from the root up: find each letter, count half steps, choose the accidental, then put the right note in the bass. When you're comfortable, try the <a href="chord-figures-and-symbols.html">Chord Figures and Symbols</a> drills, or read the <a href="chord-figures-and-symbols-lesson.html">lesson</a>.</p>
   </header>
 
   <section class="panel2" aria-label="Settings">
+    <div class="row" role="group" aria-label="Activity"><button class="tbtn" type="button" data-mode="id" aria-pressed="true">Identify a chord</button><button class="tbtn" type="button" data-mode="spell" aria-pressed="false">Spell a chord</button></div>
+    <p class="note" id="modeNote">Identify: you see a chord on the staff and work out what it is.</p>
     <div class="row">
       <label class="fld" for="kind">Chords<select id="kind"><option value="tri">Triads</option><option value="sev">Seventh chords</option><option value="both">Both</option></select></label>
       <label class="fld" for="acc">Accidentals<select id="acc"><option value="none">None (white keys only)</option><option value="some" selected>Sharps and flats</option></select></label>
@@ -66,6 +68,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 
   <section class="panel2" aria-labelledby="h-chord">
     <h2 id="h-chord" class="sr">The chord</h2>
+    <p class="summary" id="task" hidden></p>
     <div class="staffbox" id="staves"></div>
     <div class="row" style="justify-content:center"><button class="tbtn" id="playC" type="button">▶ Play the chord</button><button class="tbtn" id="playA" type="button">▶ Play bottom to top</button></div>
     <ol class="done" id="done" aria-label="Steps you've finished"></ol>
@@ -146,6 +149,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     return `<svg class="cs" viewBox="0 -10 ${W + 66} 120" role="img" aria-label="${o.aria || ""}">${s}</svg>`;
   }
   function drawStaves() {
+    if (MODE === "spell") return drawSpell();
     const st = C.steps[C.k] || {}, labels = C.notes.map((n, i) => i <= C.read ? nm(n) : "");
     let h = `<figure>${staffSVG(C.notes, C.clef, { hl: st.hl || [], labels, aria: `A ${C.notes.length}-note chord in ${C.clef} clef${C.read >= 0 ? ": notes read so far, from the bottom: " + C.notes.slice(0, C.read + 1).map(nm).join(", ") : ""}` })}<figcaption>As written</figcaption></figure>`;
     if (C.showStack) {
@@ -224,6 +228,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     if (st.hl && st.kind === "note") play([midi(C.notes[st.hl[0]])], .9);
   }
   function correct(st) {
+    C.busy = false;
     $("done").insertAdjacentHTML("beforeend", `<li><b>${st.title}${/[?.]$/.test(st.title) ? "" : "."}</b> ${st.why}</li>`);
     if (st.after) st.after();
     C.k++; picked = { l: null, a: 0 }; tries = 0; render();
@@ -235,14 +240,14 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const L = e.target.closest("[data-l]"), A = e.target.closest("[data-a]"), O = e.target.closest("[data-o]");
     if (L) { picked.l = +L.dataset.l; document.querySelectorAll("[data-l]").forEach(b => b.setAttribute("aria-pressed", String(b === L))); return; }
     if (A) { picked.a = +A.dataset.a; document.querySelectorAll("[data-a]").forEach(b => b.setAttribute("aria-pressed", String(b === A))); return; }
-    if (e.target.id === "show") { $("fb").className = "fb"; $("fb").innerHTML = `The answer: <b>${st.kind === "note" ? nm(st.ans) : st.ans}</b>. ${st.why}`; C.ok = false; setTimeout(() => correct(st), 1600); return; }
+    if (e.target.id === "show") { if (C.busy) return; C.busy = true; $("fb").className = "fb"; $("fb").innerHTML = `The answer: <b>${st.kind === "note" ? nm(st.ans) : st.ans}</b>. ${st.why}`; C.ok = false; setTimeout(() => correct(st), 1600); return; }
     if (e.target.id === "chk" && st.kind === "note") {
       if (picked.l == null) { $("fb").className = "fb bad"; $("fb").textContent = "Choose a letter first."; return; }
       if (picked.l === st.ans.l && picked.a === st.ans.a) return correct(st);
       if (picked.l !== st.ans.l) { const d = st.ans.l - picked.l; return wrong(st, `Not quite: count the lines and spaces again. Your note is ${Math.abs(d)} step${Math.abs(d) > 1 ? "s" : ""} ${d > 0 ? "too low" : "too high"}. ${C.clef === "treble" ? "Treble clef lines: E G B D F; spaces: F A C E." : "Bass clef lines: G B D F A; spaces: A C E G."}`); }
       return wrong(st, `The letter is right; look at the accidental in front of the note.`);
     }
-    if (O) { if (O.dataset.o === st.ans) { O.classList.add("right"); setTimeout(() => correct(st), 350); } else { O.classList.add("wrong"); wrong(st, hintFor(st, O.dataset.o)); } }
+    if (O) { if (C.busy) return; if (O.dataset.o === st.ans) { C.busy = true; O.classList.add("right"); setTimeout(() => correct(st), 350); } else { O.classList.add("wrong"); wrong(st, hintFor(st, O.dataset.o)); } }
   });
   function hintFor(st, v) {
     if (st.title === "How far apart?") return "Count the letter names from the lower note up to the higher one, counting both notes.";
@@ -251,14 +256,49 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     return "Not quite. Look at the step above for the information you need.";
   }
   function finish() {
+    if (MODE === "spell") C.known = C.tones.length, C.placed = true, drawSpell();
     const T = C.tones, sym = nm(T[0]) + SYM[C.q] + (C.inv ? "/" + nm(C.notes[0]) : ""), q = C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad", fig = C.sev ? FIG7[C.inv] : FIG3[C.inv];
     $("step").innerHTML = `<h2>Done</h2><p class="summary">${nm(T[0])} ${q}, ${INV[C.inv]}.</p><p>Spelled from the root: <b>${T.map(nm).join(" – ")}</b>. Chord symbol: <b>${sym}</b>. Figure: <b>${fig}</b>.</p><p>${C.ok ? "All steps right on the first try. 🎉" : "Finished. Try another chord, and see if you can do every step on the first try."}</p><div class="row"><button type="button" class="tbtn primary" id="again">Next chord</button></div>`;
     $("again").onclick = start; $("again").focus();
-    if (window.SAprogress) SAprogress.record(C.sev ? "Seventh chords, step by step" : "Triads, step by step", C.ok);
+    if (window.SAprogress) SAprogress.record((MODE === "spell" ? "Spelling " : "") + (C.sev ? "seventh chords, step by step" : "triads, step by step").replace(/^./, c => MODE === "spell" ? c : c.toUpperCase()), C.ok);
     if (window.SFX) SFX.play(C.ok);
     play(C.notes.map(midi), 1.6);
   }
 
+
+  // ================= SPELL A CHORD: root + quality + position → notes =================
+  let MODE = "id";
+  const qName = () => C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad";
+  function stackOf(n) { const o0 = C.clef === "treble" ? 4 : (C.tones[0].l >= 4 ? 2 : 3), out = [{ ...C.tones[0], o: o0 }]; for (let i = 1; i < n; i++) { let x = { ...C.tones[i], o: out[i - 1].o }; while (pos(x) <= pos(out[i - 1])) x.o++; out.push(x); } return out; }
+  function drawSpell() {
+    const st = C.steps[C.k] || {}, n = Math.max(1, C.known || 1), stack = stackOf(n).map((x, i) => i < (C.known || 1) ? x : null).filter(Boolean);
+    const shown = stack.map((x, i) => i < (C.known || 0) ? x : { ...x, l: x.l, a: C.letterOnly && i === C.known - 1 ? 0 : x.a });
+    let h = `<figure>${staffSVG(C.known ? stack : [stack[0]], C.clef, { hl: st.stackHl || [], labels: (C.known ? stack : [stack[0]]).map((x, i) => `${MEM[i]}: ${nm(x)}`), aria: `Built so far, from the root: ${stack.map((x, i) => MEM[i] + " " + nm(x)).join(", ")}` })}<figcaption>Built from the root, in 3rds</figcaption></figure>`;
+    if (C.placed) h += `<figure>${staffSVG(C.notes, C.clef, { hl: [0], labels: C.notes.map(nm), aria: `In ${INV[C.inv]}, from the bottom: ${C.notes.map(nm).join(", ")}` })}<figcaption>In ${INV[C.inv]}, close position</figcaption></figure>`;
+    void shown; $("staves").innerHTML = h;
+  }
+  function buildSpell() {
+    const S = [], T = C.tones, n = T.length, R = T[0], up = t => { let x = { ...t, o: 4 }; while (pos(x) <= pos({ ...R, o: 4 })) x.o++; return x; };
+    C.known = 1; C.placed = false; C.read = -1;
+    const task = `Spell <b>${nm(R)} ${qName()}</b> in <b>${INV[C.inv]}</b>, close position.`; $("task").innerHTML = "Your task: " + task;
+    const IVQ = C.sev ? SEV[C.q][1] : TRI[C.q][1], need = [["3rd", IVQ[0], IVQ[0] === 4 ? "major 3rd" : "minor 3rd"], ["5th", IVQ[1], IVQ[1] === 7 ? "perfect 5th" : IVQ[1] === 6 ? "diminished 5th" : "augmented 5th"]];
+    if (C.sev) need.push(["7th", IVQ[2], IVQ[2] === 11 ? "major 7th" : IVQ[2] === 10 ? "minor 7th" : "diminished 7th"]);
+    const recipe = C.sev ? `A ${SEV[C.q][0]} chord is a ${TRI[SEV[C.q][2]][0]} triad plus a ${need[2][2]}: a ${need[0][2]}, a ${need[1][2]} and a ${need[2][2]} above the root.` : `A ${TRI[C.q][0]} triad has a ${need[0][2]} and a ${need[1][2]} above the root.`;
+    const ivWords = hs => hs.map((h, i) => [{ 3: "minor 3rd", 4: "major 3rd" }, { 6: "diminished 5th", 7: "perfect 5th", 8: "augmented 5th" }, { 9: "diminished 7th", 10: "minor 7th", 11: "major 7th" }][i][h]).join(" + ");
+    const mine = ivWords(IVQ), others = (C.sev ? Object.keys(SEV).map(k => SEV[k][1]) : Object.keys(TRI).map(k => TRI[k][1])).map(ivWords).filter(x => x !== mine);
+    S.push({ title: "The recipe", q: `${task}<br>First: which intervals above the root make a ${qName()}?`, kind: "opts", opts: shuffle([mine, ...shuffle(others).slice(0, 3)]), ans: mine, why: recipe });
+    need.forEach(([mem, h, ivn], j) => {
+      const t = T[j + 1], letter = { l: t.l, a: R.a === 0 ? 0 : 0 }, plain = up({ l: t.l, a: 0 }), hPlain = midi(plain) - midi({ ...R, o: 4 }), num = j === 0 ? 3 : j === 1 ? 5 : 7;
+      S.push({ title: `The ${mem}: which letter?`, q: `A ${mem} above ${nm(R)} is ${num} letters up, counting ${R.l === t.l ? "" : ""}${LET[R.l]} as 1. Which letter is it?`, kind: "opts", opts: "CDEFGAB".split(""), ans: LET[t.l], stackHl: [], why: `${LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ")}: the ${mem} is ${/[AEF]/.test(LET[t.l]) ? "an" : "a"} ${LET[t.l]} of some kind.` });
+      S.push({ title: `The ${mem}: count half steps`, q: `The chord needs a <b>${ivn}</b> (${h} half steps) above ${nm(R)}. How many half steps is it from ${nm(R)} up to plain ${LET[t.l]} (no sharp or flat)?`, kind: "opts", opts: [hPlain - 2, hPlain - 1, hPlain, hPlain + 1, hPlain + 2].filter(x => x > 0).map(String).slice(0, 5), ans: String(hPlain), kb: [{ ...R, o: 4 }, plain], why: `${hPlain} half steps from ${nm(R)} to ${LET[t.l]}.` });
+      const opts = [-1, 0, 1].map(a => nm({ l: t.l, a })).concat(Math.abs(t.a) > 1 ? [nm(t)] : []);
+      S.push({ title: `The ${mem}: sharp, flat or natural?`, q: `We need ${h}; plain ${LET[t.l]} gives ${hPlain}. So which ${LET[t.l]} is the ${mem}?`, kind: "opts", opts: [...new Set(opts)], ans: nm(t), why: h === hPlain ? `${LET[t.l]} already gives ${h} half steps: no accidental needed.` : `${h > hPlain ? "Raise" : "Lower"} ${LET[t.l]} by ${Math.abs(h - hPlain)} half step${Math.abs(h - hPlain) > 1 ? "s" : ""}: ${nm(t)}.`, after: () => { C.known = j + 2; } });
+    });
+    S.push({ title: "Which note goes in the bass?", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${MEM[C.inv]}</b> in the bass. Which note goes on the bottom?`, kind: "opts", opts: T.map(nm), ans: nm(T[C.inv]), why: `The ${MEM[C.inv]} is ${nm(T[C.inv])}.` });
+    const order = C.notes.map(nm).join(" – "), rots = T.map((_, k) => T.slice(k).concat(T.slice(0, k)).map(nm).join(" – "));
+    S.push({ title: "Close position, from the bottom up", q: `With ${nm(T[C.inv])} on the bottom, stack the other notes as close as possible above it, each the next chord member up. What's the order from the bottom up?`, kind: "opts", opts: shuffle([...new Set([order, ...rots, T.slice().reverse().map(nm).join(" – ")])]).slice(0, 4).concat([order]).filter((x, i, a) => a.indexOf(x) === i), ans: order, why: `${order}: keep going around the chord (root, 3rd, 5th${C.sev ? ", 7th" : ""}, root…) starting from the bass.`, after: () => { C.placed = true; } });
+    return S;
+  }
   // ---------- sound ----------
   let AC = null;
   function play(ms, dur = 1.4, gap = 0) {
@@ -271,7 +311,9 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   $("playC").onclick = () => play(C.notes.map(midi), 1.6);
   $("playA").onclick = () => play(C.notes.map(midi), .8, .7);
 
-  function start() { make(); C.steps = build(); C.k = 0; picked = { l: null, a: 0 }; tries = 0; $("done").innerHTML = ""; render(); }
+  function start() { make(); C.steps = MODE === "spell" ? buildSpell() : build(); C.k = 0; picked = { l: null, a: 0 }; tries = 0; $("done").innerHTML = ""; render(); }
+  document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { MODE = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    $("modeNote").textContent = MODE === "spell" ? "Spell: you're given a root, a quality and a position, and you build the chord note by note." : "Identify: you see a chord on the staff and work out what it is."; $("playC").parentNode.style.display = MODE === "spell" ? "none" : ""; $("task").hidden = MODE !== "spell"; start(); });
   $("new").onclick = start; ["kind", "acc", "inv", "clef"].forEach(id => $(id).onchange = start);
   start();
   window.__fs = { get C() { return C; } };   // used by automated tests
