@@ -38,6 +38,11 @@ rep("const rev=revealOf(q); const g=grade(q,ans,rev);\n    G.ctl.mark(rev,ans);"
 rep("if(mine!=null) S.mine[q.id]=g.ok;", "if(mine!=null){ S.mine[q.id]=g.ok; window.SFX&&SFX.play(g.ok); window.SAprogress&&SAprogress.record('Class game · '+q.fam,g.ok); }")
 rep("P.n++;const g=grade(q,ans,revealOf(q));if(g.ok)P.score++;", "P.n++;const g=grade(q,ans,revealOf(q));if(g.ok)P.score++; window.SFX&&SFX.play(g.ok); window.SAprogress&&SAprogress.record(q.fam,g.ok);")
 
+# ---- "thinking music": shaker loop while a question is open (solo practice, and the host's screen in a class game; not on student phones) ----
+rep("  return ctl;\n}\nfunction rowcardHTML", "  if(o.shaker&&window.Shaker){const el=box.firstElementChild;Shaker.watch(()=>!locked&&!!el&&el.isConnected)}\n  return ctl;\n}\nfunction rowcardHTML")
+rep('G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,onSubmit:', 'G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,shaker:true,onSubmit:')
+rep('const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true});', 'const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true,shaker:!r}); if(r) ctl.lock();')
+
 # ---- look ----
 s = re.sub(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/css2\?[^"]*">', "", s, count=1)
 s = force_light(s)
@@ -46,6 +51,6 @@ s = before_head_close(s, HEAD_ASSETS + '\n<link rel="stylesheet" href="assets/fo
 s = after_body_open(s, strip_html(full_screen=False, sound=True))
 rep(r'<p class="credit"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b></p>', "", True)
 s = before_body_close(s, PROGRESS_SCRIPTS + '<script>SAprogress.init({ id: "foreignterms", name: "Orchestration Foreign Terms", before: ".fi-credit" });</script>\n' + CREDIT)
-s = before_body_close(s, '<script src="assets/site.js"></script>')
+s = before_body_close(s, '<script src="assets/site.js"></script>\n<script src="assets/shaker.js"></script>')
 (SITE_DIR / "orchestration-foreign-terms.html").write_text(s, encoding="utf-8")
 print("built orchestration-foreign-terms.html", len(s))

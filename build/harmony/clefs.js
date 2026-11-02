@@ -1,13 +1,13 @@
 window.FAM = (() => {
   // one staff showing every clef in order (treble, the five C-clef positions, bass), each with middle C
   function clefLine() {
-    const sp = 10, y0 = 34, seg = 104, x0 = 6, L = [["treble", "Treble", "&#x1D11E;", 3, 2.95, -2], ["c", "Soprano", "&#x1D121;", 4, 3.1, 0], ["c", "Mezzo-soprano", "&#x1D121;", 3, 3.1, 2], ["c", "Alto", "&#x1D121;", 2, 3.1, 4], ["c", "Tenor", "&#x1D121;", 1, 3.1, 6], ["c", "Baritone", "&#x1D121;", 0, 3.1, 8], ["bass", "Bass", "&#x1D122;", 1, 3.0, 10]];
+    const sp = 10, y0 = 34, seg = 104, x0 = 6, L = [["treble", "Treble", "&#x1D11E;", 3, 2.95, -2], ["c", "Soprano", "&#x1D121;", 4, 3.1, 0], ["c", "Mezzo-soprano", "&#x1D121;", 3, 3.1, 2], ["c", "Alto", "&#x1D121;", 2, 3.1, 4], ["c", "Tenor", "&#x1D121;", 1, 3.1, 6], ["c", "Baritone", "&#x1D121;", 0, 3.1, 8], ["bass", "Bass", "&#x1D122;", 1, 3.3, 10]];
     const W = x0 + seg * L.length + 4, ly = i => y0 + i * sp, sy = st => y0 + 4 * sp - st * sp / 2;
     let g = ""; for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 4}" y1="${ly(i)}" y2="${ly(i)}" stroke="currentColor"/>`;
     L.forEach(([, name, gl, li, f, st], n) => {
       const x = x0 + n * seg, nx = x + 70, y = sy(st);
       g += `<line x1="${x + seg}" x2="${x + seg}" y1="${ly(0)}" y2="${ly(4)}" stroke="currentColor" stroke-width="${n === L.length - 1 ? 3 : 1}"/>`;
-      g += `<text x="${x + 8}" y="${ly(li) + (gl === "&#x1D121;" ? 2.2 : gl === "&#x1D122;" ? 2.65 : 1.1) * sp}" font-family="'Noto Music', serif" font-size="${sp * f * 1.4}" fill="currentColor">${gl}</text>`;
+      g += `<text x="${x + 8}" y="${ly(li) + (gl === "&#x1D121;" ? 2.2 : gl === "&#x1D122;" ? 3.08 : 1.1) * sp}" font-family="'Noto Music', serif" font-size="${sp * f * 1.4}" fill="currentColor">${gl}</text>`;
       if (st < 0 || st > 8) g += `<line x1="${nx - 12}" x2="${nx + 12}" y1="${y}" y2="${y}" stroke="currentColor" stroke-width="1.2"/>`;
       g += `<ellipse cx="${nx}" cy="${y}" rx="${sp * .72}" ry="${sp * .5}" transform="rotate(-20 ${nx} ${y})" fill="none" stroke="currentColor" stroke-width="${sp * .26}"/>`;
       g += `<text x="${x + seg / 2}" y="${y0 + 4 * sp + 40}" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${name}</text>`;
@@ -121,7 +121,7 @@ window.FAM = (() => {
   function mvInner(H) {
     const n = noteAt(H, MV.clef, MV.s), nn = H.N(n.l, MV.a, n.o);
     const svg = H.miniStaff({ clef: MV.clef, notes: [{ s: MV.s, acc: MV.a ? MV.a : null }], startX: 110, dx: 80, w: 260, label: `${MV.clef} clef, a note on the ${where(MV.s)}: ${nameO(H, nn)}` });
-    return `${svg}<p class="msinfo" aria-live="polite">${where(MV.s)[0].toUpperCase() + where(MV.s).slice(1)}: <b>${H.nm(nn)}</b> (${nameO(H, nn)})</p>`;
+    return `${svg}<p class="msinfo" aria-live="polite">${where(MV.s)[0].toUpperCase() + where(MV.s).slice(1)}: <b>${H.nm(nn)}</b> (${nameO(H, nn).replace(" (middle C)", ", middle C")})</p>`;
   }
   function mvToy(H) {
     HC = H;

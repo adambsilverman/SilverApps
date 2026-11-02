@@ -2704,6 +2704,7 @@ function renderQ(box,q,o={}){
       if(o.focus!==false) inp.focus({preventScroll:true});
     }
   }
+  if(o.shaker&&window.Shaker){const el=box.firstElementChild;Shaker.watch(()=>!locked&&!!el&&el.isConnected)}
   return ctl;
 }
 function rowcardHTML(row,f,t){
@@ -2798,7 +2799,7 @@ function newRound(rows){
 function soloAsk(){
   const q=G.qs[G.i]; const st=$("#stage");
   st.innerHTML=`<div class="progress"><span>Question ${G.i+1} of ${G.qs.length}</span><div class="bar"><i style="width:${G.i/G.qs.length*100}%"></i></div><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>`;
-  G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,onSubmit:ans=>{
+  G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,shaker:true,onSubmit:ans=>{
     const rev=revealOf(q); const g=grade(q,ans,rev); window.SFX&&SFX.play(g.ok); window.SAprogress&&SAprogress.record(q.fam,g.ok);
     G.ctl.mark(rev,ans);
     if(g.ok){G.score++;G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak)}else{G.streak=0;G.missed.push(q.ri)}
@@ -2985,7 +2986,7 @@ function hostNext(){
 function hostQuestion(r){
   const q=H.qs[H.idx]; hostTop();
   app.innerHTML=`<div class="hostgrid"><div class="card"><div class="progress"><span>Question ${H.idx+1}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div><div class="card" data-side></div></div>`;
-  const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true});
+  const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true,shaker:!r}); if(r) ctl.lock();
   const side=app.querySelector("[data-side]");
   if(!r){
     side.innerHTML=`${H.deadline?`<span class="label-sm">Time left</span><div class="timer" data-timer>${fmtT(H.deadline-Date.now())}</div><div class="tbar"><i data-tbar style="width:100%"></i></div>`:`<span class="label-sm">No time limit</span><p class="small muted" style="margin:0">Stop answering whenever the class is ready.</p>`}
@@ -3249,5 +3250,6 @@ if(JOIN_CODE) joinScreen(JOIN_CODE); else home();
 <script>SAprogress.init({ id: "foreignterms", name: "Orchestration Foreign Terms", before: ".fi-credit" });</script>
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/site.js?v=9425cedd"></script>
+<script src="assets/shaker.js?v=f9f30a69"></script>
 </body>
 </html>
