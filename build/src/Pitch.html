@@ -475,6 +475,16 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .tumeter { display: flex; align-items: center; gap: 8px; font: 700 13px var(--mono); text-transform: uppercase; max-width: 560px; width: 100%; margin: 0 auto; }
 .tubar { flex: 1; height: 14px; border-radius: 999px; background: rgba(0,0,0,.1); overflow: hidden; }
 .tubar i { display: block; height: 100%; width: 0; border-radius: 999px; transition: width .1s; }
+/* mini synthesizer */
+.sykb { position: relative; height: 150px; display: flex; max-width: 640px; width: 100%; margin: 0 auto; user-select: none; -webkit-user-select: none; touch-action: none; }
+.sykb .sykey { cursor: pointer; min-height: 0; min-width: 0; box-shadow: none; padding: 0; font: 600 11px var(--body); }
+.sykb .sykey.wht { flex: 1; background: #fff; border: 1.5px solid #333; border-radius: 0 0 6px 6px !important; margin-right: -1.5px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; color: #333; }
+.sykb .sykey.blk { position: absolute; top: 0; width: calc(100% / 15 * .6); height: 60%; background: #222; border: 1.5px solid #000; border-radius: 0 0 4px 4px !important; z-index: 2; }
+.sykb .sykey.on.wht { background: #F7C3B5; } .sykb .sykey.on.blk { background: #E8573F; }
+.sykb .sykey:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -3px; }
+.sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
+.sygrid .sl { display: grid; gap: 2px; font-weight: 600; font-size: 15px; }
+.sygrid output { font: 13px var(--mono); }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -779,6 +789,102 @@ window.FAM = (() => {
     setInterval(() => { if (CB.oscs && !document.getElementById("cbToy")) cbStop(); }, 300);
   }
 
+  // ---------- a mini synthesizer ----------
+  const SY = { wave: "sawtooth", det: 7, osc2: true, cut: 1800, q: 4, env: 40, a: .01, d: .3, s: .6, r: .4, lfoR: 5, lfoD: 0, vol: .7, oct: 0, voices: {}, out: null, an: null, raf: 0, last: null };
+  const SYP = {
+    "Pure sine": { wave: "sine", osc2: false, det: 0, cut: 8000, q: .7, env: 0, a: .02, d: .2, s: 1, r: .3, lfoD: 0 },
+    "Brass": { wave: "sawtooth", osc2: true, det: 6, cut: 700, q: 2, env: 70, a: .06, d: .25, s: .75, r: .25, lfoD: 8, lfoR: 5.5 },
+    "Pluck": { wave: "sawtooth", osc2: false, det: 0, cut: 400, q: 6, env: 90, a: .002, d: .35, s: 0, r: .3, lfoD: 0 },
+    "Soft pad": { wave: "triangle", osc2: true, det: 14, cut: 1200, q: 1, env: 15, a: .8, d: 1, s: .8, r: 1.5, lfoD: 4, lfoR: 4 },
+    "Hollow (clarinet-ish)": { wave: "square", osc2: false, det: 0, cut: 1600, q: 1, env: 20, a: .04, d: .2, s: .85, r: .2, lfoD: 6, lfoR: 5 },
+    "Wah bass": { wave: "sawtooth", osc2: true, det: 4, cut: 250, q: 14, env: 85, a: .005, d: .5, s: .3, r: .2, lfoD: 0 },
+  };
+  const SYK = [["sy", "Waveform"], ["det", "Oscillator 2 detune", 0, 50, 1, " cents"], ["cut", "Filter cutoff", 80, 8000, 1, " Hz"], ["q", "Filter resonance", .5, 20, .1, ""], ["env", "Envelope → filter", 0, 100, 1, "%"], ["a", "Attack", .002, 2, .001, " s"], ["d", "Decay", .02, 2, .01, " s"], ["s", "Sustain", 0, 1, .01, ""], ["r", "Release", .02, 3, .01, " s"], ["lfoD", "Vibrato depth", 0, 50, 1, " cents"], ["lfoR", "Vibrato speed", .5, 10, .1, " Hz"], ["vol", "Volume", 0, 1, .01, ""]];
+  const NN = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"], NS = ["C", "C sharp", "D", "D sharp", "E", "F", "F sharp", "G", "G sharp", "A", "A sharp", "B"];
+  const KEYMAP = "awsedftgyhujkolp;'";   // computer keys → semitones from the bottom C
+  const syHz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function syOut() {
+    if (SY.out) return SY.out;
+    const o = AC.createGain(), comp = AC.createDynamicsCompressor(); o.gain.value = SY.vol * .5; comp.threshold.value = -12; comp.ratio.value = 4;
+    SY.an = AC.createAnalyser(); SY.an.fftSize = 2048; o.connect(comp); comp.connect(SY.an); SY.an.connect(AC.destination); SY.out = o; return o;
+  }
+  function syOn(m) {
+    if (!ac() || SY.voices[m]) return; const t = AC.currentTime + .005, f = syHz(m), out = syOut();
+    const lp = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
+    lp.type = "lowpass"; lp.Q.value = SY.q;
+    const peak = Math.min(16000, SY.cut * Math.pow(2, SY.env / 100 * 5));
+    lp.frequency.setValueAtTime(SY.env ? peak : SY.cut, t); lp.frequency.setTargetAtTime(SY.cut, t + SY.a, Math.max(.01, SY.d / 3));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.35, t + SY.a); g.gain.setTargetAtTime(.35 * SY.s, t + SY.a, Math.max(.01, SY.d / 3));
+    lfo.frequency.value = SY.lfoR; lg.gain.value = SY.lfoD; lfo.connect(lg); lfo.start(t);
+    const oscs = (SY.osc2 ? [0, 1] : [0]).map(i => { const o = AC.createOscillator(); o.type = SY.wave; o.frequency.value = f; o.detune.value = i ? SY.det : 0; lg.connect(o.detune); o.connect(lp); o.start(t); return o; });
+    lp.connect(g); g.connect(out);
+    SY.voices[m] = { g, oscs, lfo, lp }; SY.last = m; syShow(m);
+    const k = document.querySelector(`[data-sykey="${m}"]`); if (k) k.classList.add("on");
+    if (!SY.raf) SY.raf = requestAnimationFrame(syScope);
+  }
+  function syOff(m) {
+    const v = SY.voices[m]; if (!v) return; delete SY.voices[m]; const t = AC.currentTime;
+    v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, Math.max(.005, SY.r / 4));
+    const end = t + SY.r * 1.5 + .05; v.oscs.forEach(o => o.stop(end)); v.lfo.stop(end);
+    const k = document.querySelector(`[data-sykey="${m}"]`); if (k) k.classList.remove("on");
+  }
+  const syAllOff = () => Object.keys(SY.voices).forEach(m => syOff(+m));
+  function syShow(m) { const el = document.getElementById("syNote"); if (el) el.innerHTML = `<b>${NN[m % 12]}${Math.floor(m / 12) - 1}</b> · MIDI ${m} · ${syHz(m).toFixed(1)} Hz`; }
+  function syScope() {
+    const cv = document.getElementById("syScope"); if (!cv || !SY.an) { SY.raf = 0; return; }
+    const c = cv.getContext("2d"), W = cv.width, Hh = cv.height, d = new Float32Array(SY.an.fftSize); SY.an.getFloatTimeDomainData(d);
+    let st = 0; for (let i = 1; i < d.length / 2; i++) if (d[i - 1] < 0 && d[i] >= 0) { st = i; break; }   // trigger on a rising zero crossing so the wave stands still
+    c.clearRect(0, 0, W, Hh); c.strokeStyle = "rgba(0,0,0,.15)"; c.beginPath(); c.moveTo(0, Hh / 2); c.lineTo(W, Hh / 2); c.stroke();
+    let pk = .05; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); SY.pk = Math.max(pk, (SY.pk || .05) * .97);   // auto-scale, easing back down slowly
+    c.strokeStyle = "#E8573F"; c.lineWidth = 2; c.beginPath(); const n = 900; for (let i = 0; i < n; i++) { const x = i / n * W, y = Hh / 2 - (d[st + i] || 0) / SY.pk * Hh * .42; i ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
+    SY.raf = requestAnimationFrame(syScope);
+  }
+  const syFmt = (k, v) => { const sp = SYK.find(x => x[0] === k); return (k === "cut" ? Math.round(v) : +(+v).toFixed(sp[4] < .01 ? 3 : sp[4] < 1 ? 2 : 0)) + sp[5]; };
+  function syKnobs() {
+    return SYK.map(([k, l, mn, mx, st]) => k === "sy" ? `<label class="sl">${l}<select id="syWave">${["sine", "triangle", "square", "sawtooth"].map(w => `<option value="${w}"${SY.wave === w ? " selected" : ""}>${w}</option>`).join("")}</select></label><label class="sl"><span><input type="checkbox" id="syOsc2"${SY.osc2 ? " checked" : ""}> Oscillator 2 (a second, detuned copy)</span></label>`
+      : `<label class="sl">${l}<input type="range" data-syk="${k}" min="${mn}" max="${mx}" step="${st}" value="${SY[k]}"><output data-syo="${k}">${syFmt(k, SY[k])}</output></label>`).join("");
+  }
+  function syKeys() {
+    const base = 48 + 12 * SY.oct; let w = "", b = "", wi = 0;
+    for (let i = 0; i <= 24; i++) { const m = base + i, pc = m % 12, blk = [1, 3, 6, 8, 10].includes(pc), kc = KEYMAP[i] ? ` (key ${KEYMAP[i].toUpperCase()})` : "";
+      const btn = `<button type="button" class="sykey ${blk ? "blk" : "wht"}" data-sykey="${m}" aria-label="${NS[pc]} ${Math.floor(m / 12) - 1}${kc}" ${blk ? `style="left:calc(${wi} * (100% / 15) - (100% / 15) * .3)"` : ""}>${!blk && pc === 0 ? `<span>C${Math.floor(m / 12) - 1}</span>` : ""}</button>`;
+      if (blk) b += btn; else { w += btn; wi++; } }
+    return `<div class="sykb" role="group" aria-label="Keyboard: press keys to play">${w}${b}</div>`;
+  }
+  function synthToy() {
+    return `<div class="toy" id="syToy">
+      <div class="toy-row" role="group" aria-label="Presets">${Object.keys(SYP).map(n => `<button class="play" data-sypre="${n}">${n}</button>`).join("")}</div>
+      <canvas id="syScope" width="560" height="110" aria-hidden="true" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;background:var(--fi-paper, #fbf6ec);border-radius:10px"></canvas>
+      <p class="msinfo" id="syNote" aria-live="polite" style="margin:0;text-align:center">Play a key: the note, its MIDI number and its frequency appear here.</p>
+      <div class="toy-row"><button class="play" data-syoct="-1" aria-label="Octave down">◀ octave</button><span id="syOctL" class="msinfo">C${3 + SY.oct}–C${5 + SY.oct}</span><button class="play" data-syoct="1" aria-label="Octave up">octave ▶</button></div>
+      <div id="syKb">${syKeys()}</div>
+      <p class="small" style="margin:0">Click or touch the keys (hold for a long note), or select a key and type on your computer keyboard: A W S E D F T G Y H U J K… play the white and black keys from C.</p>
+      <div class="sygrid" id="syKnobs">${syKnobs()}</div></div>`;
+  }
+  if (!window.__syWired) { window.__syWired = true;
+    const down = new Set();
+    document.addEventListener("pointerdown", e => { const k = e.target.closest("[data-sykey]"); if (!k) return; e.preventDefault(); k.setPointerCapture && k.releasePointerCapture && k.releasePointerCapture(e.pointerId); syOn(+k.dataset.sykey); down.add(+k.dataset.sykey); });
+    document.addEventListener("pointerover", e => { const k = e.target.closest("[data-sykey]"); if (k && e.buttons) { syOn(+k.dataset.sykey); down.add(+k.dataset.sykey); } });
+    document.addEventListener("pointerout", e => { const k = e.target.closest("[data-sykey]"); if (k && down.has(+k.dataset.sykey)) { syOff(+k.dataset.sykey); down.delete(+k.dataset.sykey); } });
+    const upAll = () => { down.forEach(m => syOff(m)); down.clear(); };
+    document.addEventListener("pointerup", upAll); document.addEventListener("pointercancel", upAll);
+    document.addEventListener("keydown", e => {
+      const toy = document.getElementById("syToy"); if (!toy || !toy.contains(document.activeElement) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.activeElement.matches("select")) return;
+      const kb = document.activeElement.closest("[data-sykey]");
+      if (kb && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); if (!e.repeat) { const m = +kb.dataset.sykey; syOn(m); setTimeout(() => syOff(m), 450); } return; }
+      const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i < 0) return;
+      e.preventDefault(); if (e.repeat) return; syOn(48 + 12 * SY.oct + i); });
+    document.addEventListener("keyup", e => { const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) syOff(48 + 12 * SY.oct + i); });
+    document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.syk; if (!k) return; SY[k] = +e.target.value; const o = document.querySelector(`[data-syo="${k}"]`); if (o) o.textContent = syFmt(k, SY[k]); if (k === "vol" && SY.out) SY.out.gain.setTargetAtTime(SY.vol * .5, AC.currentTime, .02);
+      if (k === "cut" || k === "q") Object.values(SY.voices).forEach(v => { if (k === "q") v.lp.Q.setTargetAtTime(SY.q, AC.currentTime, .02); else { v.lp.frequency.cancelScheduledValues(AC.currentTime); v.lp.frequency.setTargetAtTime(SY.cut, AC.currentTime, .02); } }); });
+    document.addEventListener("change", e => { if (e.target.id === "syWave") SY.wave = e.target.value; if (e.target.id === "syOsc2") SY.osc2 = e.target.checked; });
+    document.addEventListener("click", e => {
+      const pr = e.target.closest("[data-sypre]"); if (pr) { Object.assign(SY, SYP[pr.dataset.sypre]); document.getElementById("syKnobs").innerHTML = syKnobs(); const m = SY.last || 60; if (ac()) { syOn(m); setTimeout(() => syOff(m), 700); } return; }
+      const oc = e.target.closest("[data-syoct]"); if (oc) { syAllOff(); SY.oct = Math.max(-2, Math.min(2, SY.oct + +oc.dataset.syoct)); document.getElementById("syKb").innerHTML = syKeys(); document.getElementById("syOctL").textContent = `C${3 + SY.oct}–C${5 + SY.oct}`; } });
+    setInterval(() => { if (!document.getElementById("syToy") && Object.keys(SY.voices).length) syAllOff(); }, 400);
+  }
+
   // ---------- tuning game: remove the beats ----------
   const TI = { uni: ["Unison", 1, 1], oct: ["Octave", 2, 1], p5: ["Perfect 5th", 3, 2], m3: ["Major 3rd", 5, 4] };   // [name, p, q]: upper ≈ lower × p/q; partial q of the upper meets partial p of the lower
   const TU = { iv: "p5", f1: 220, v: 50, c0: 50, span: 70, on: false, oscs: null, g: null, done: false, raf: 0, ph: 0, last: 0 };
@@ -1005,7 +1111,11 @@ window.FAM = (() => {
       <ul><li><b>Sine:</b> a pure tone with no overtones. <b>Triangle</b> and <b>square:</b> odd-numbered harmonics only (weak in the triangle, strong in the square), a hollow, clarinet-like color. <b>Sawtooth:</b> all harmonics, bright and buzzy, like brass or bowed strings.</li>
       <li><b>Subtractive synthesis</b> starts with a rich wave and removes overtones with a <b>filter</b>; sweeping the filter is the classic synth "wah". ${btn("Filter sweep on a sawtooth", { px: "filter", f: 110 })}</li>
       <li><b>Additive synthesis</b> builds a tone from sine waves, as in the Overtones step. <b>FM synthesis</b> makes one oscillator wobble another's frequency very fast, giving bell-like and electric-piano sounds. <b>Sampling</b> plays back recordings, re-pitched for each note. <b>Wavetable</b> synthesis moves through a series of stored waveforms.</li>
-      <li>Digital instruments name pitches with <b>MIDI note numbers</b>: 60 = middle C, 69 = A4 = 440 Hz, one number per semitone. Frequency = 440 × 2<sup>(n − 69)/12</sup>.</li></ul>` },
+      <li>Digital instruments name pitches with <b>MIDI note numbers</b>: 60 = middle C, 69 = A4 = 440 Hz, one number per semitone. Frequency = 440 × 2<sup>(n − 69)/12</sup>.</li></ul>
+      <h3>Try it: a mini synthesizer</h3>
+      <p>Pick a preset or start from scratch. Try a sawtooth with the filter cutoff low, then raise it; add resonance for a "wah"; give it a slow attack for a pad or zero sustain for a pluck. The scope shows the waveform you're hearing.</p>
+      ${synthToy()}
+      <ul class="small"><li><b>Oscillators</b> make the raw wave; a second, slightly detuned oscillator beats against the first for a thicker, chorused sound.</li><li>The <b>filter</b> removes overtones above the cutoff; <b>resonance</b> boosts the overtones right at the cutoff. <b>Envelope → filter</b> opens the filter at the start of each note and lets it close as the note decays.</li><li>The <b>envelope</b> (attack, decay, sustain, release) shapes loudness over the life of a note. <b>Vibrato</b> is a slow wobble in pitch from a low-frequency oscillator (LFO).</li></ul>` },
     { title: "Quick check", kick: "Before the drills", render: (H) => [0, 1, 5, 9, 18, 29].map(i => H.check(FACTS[i][0], FACTS[i][1], FACTS[i][2], FACTS[i][3])).join("") },
   ] };
 
