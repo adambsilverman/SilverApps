@@ -435,7 +435,9 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .msinfo { text-align: center; font-weight: 600; min-height: 1.5em; }
 
 .mvstaff svg { max-width: 360px; touch-action: none; }
-.mvstaff svg:focus-visible, #azG:focus-visible { outline: 3px solid var(--accent, #1a5fb4); outline-offset: 2px; }
+.mvstaff svg:focus-visible { outline: 3px solid var(--accent, #1a5fb4); outline-offset: 2px; }
+#azG:focus { outline: none; }
+#azG:focus .azring { stroke: var(--accent, #1a5fb4); }
 .histsvg { width: 100%; max-width: 460px; height: auto; color: var(--ink, #222); display: block; margin: 0 auto; }
 
 .rgrow { line-height: 2.2; margin: 4px 0; }
@@ -445,6 +447,30 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 #rgQ { font: 16px var(--fi-serif, serif); padding: 6px 8px; min-height: 40px; border-radius: 8px; border: 1.5px solid var(--line, #ccc); }
 
 .histimg { width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto; border-radius: 6px; }
+/* Nashville number chart */
+.nchart { background: #fffdf6; color: #1b1b1b; border: 1.5px solid var(--fi-soft, var(--line)); border-radius: 10px; padding: 12px 16px 14px; display: grid; gap: 6px; max-width: 520px; width: 100%; justify-self: center; font: 700 1.5rem/1.3 var(--body); }
+.nch-head { display: flex; justify-content: space-between; font: 700 14px var(--mono); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1.5px solid #1b1b1b; padding-bottom: 4px; margin-bottom: 2px; }
+.nch-line { display: grid; align-items: center; }
+.nch-sec { font: 700 14px var(--mono); border: 1.5px solid #1b1b1b; border-radius: 50%; width: 1.7em; height: 1.7em; display: grid; place-items: center; }
+.nch-sec:empty { border: 0; }
+.nch-bar { text-align: center; white-space: nowrap; }
+.nch-bar.split { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; font-size: .85em; }
+.nch-dia { position: relative; display: inline-grid; place-items: center; width: 1.7em; height: 1.7em; }
+.nch-dia::before { content: ""; position: absolute; inset: .25em; border: 2px solid #1b1b1b; transform: rotate(45deg); }
+.nch-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.nch-pair .nchart { font-size: 1.25rem; }
+/* drill widget: drag a note to the same pitch in a new clef */
+.cdpair { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.cdpair figure { margin: 0; display: grid; justify-items: center; gap: 2px; }
+.cdpair figcaption { text-align: center; font: 700 14px var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+.cdpair svg { width: min(220px, 28vw); display: block; }
+.cdpair figure { flex: 0 0 auto; }
+.cdarrow { font-size: 1.6rem; }
+.cdbox { touch-action: none; cursor: ns-resize; }
+.cdbox .cdmove.fresh { opacity: .55; }
+.cdbox .cdmove.right { color: var(--fi-green-dk, #2d6a1f); }
+.cdbox .cdmove.wrong { color: var(--bad, #b3261e); }
+.cdbox .cdright { color: var(--fi-green-dk, #2d6a1f); opacity: .8; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -1204,7 +1230,7 @@ window.FAM = (() => {
           else if (c.bass === 1) v.cost += dbl === 1 ? (c.q === "d" ? 0 : 3) : 0;
           else v.cost += dbl === 2 ? 0 : 4;
           if (c.q === "d" && c.bass === 0) v.cost += 2;
-        } else if (!has(2)) v.cost += 1;
+        } else if (!has(2)) { if (opts.full) continue; v.cost += 1; }
         v.dcost = v.cost;
         v.cost += Math.abs(m[0] - 71) * .12 + Math.abs(m[1] - 64) * .06 + Math.abs(m[2] - 57) * .06;   // comfortable registers
         if (opts.sop != null && si !== opts.sop) continue;
@@ -1247,7 +1273,7 @@ window.FAM = (() => {
   const HARD = ["par5", "par8", "con5", "con8", "dir5", "dir8", "lt", "sev", "aug2", "leap"];
   // voice a progression in four parts: chords (with .deg set where known); opts.sop: soprano tone index for the last chord
   function satb(k, chords, opts = {}) {
-    const C = chords.map((c, i) => satbCands(k, c, { sop: i === chords.length - 1 ? opts.sop : (opts.sops || [])[i] }));
+    const C = chords.map((c, i) => satbCands(k, c, { sop: i === chords.length - 1 ? opts.sop : (opts.sops || [])[i], full: opts.full }));
     if (C.some(x => !x.length)) return null;
     let prev = C[0].map(v => ({ v, cost: v.cost + Math.random() * 3 + (opts.firstS != null ? Math.abs(v.m[0] - opts.firstS) * .3 : Math.abs(v.m[0] - 70) * .15), back: null }));
     const layers = [prev];
@@ -1361,15 +1387,16 @@ window.FAM = (() => {
   const ACCP = {
     "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
     "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
-    "-1": { w: .86, top: -1.9, bot: .55, d: "M0 -1.9h.14v2.45H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36z" },
+    "-1": { w: .86, top: -1.45, bot: .55, d: "M0 -1.45h.14v2H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36z" },
   };
   function miniStaff(o) {
     const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
     const lineY = i => y0 + i * sp, stepY = st => y0 + 4 * sp - st * sp / 2, ink = "currentColor";
     let g = "";
     for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 6}" y1="${lineY(i)}" y2="${lineY(i)}" stroke="${ink}" stroke-width="1"/>`;
-    const CL = { treble: ["&#x1D11E;", 3, 2.95], bass: ["&#x1D122;", 1, 3.0], alto: ["&#x1D121;", 2, 3.1], tenor: ["&#x1D121;", 1, 3.1] }[o.clef || "treble"];
-    g += `<text x="${x0 + 4}" y="${lineY(CL[1])}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
+    // [glyph, reference line (0 = top), size, baseline offset below that line in staff spaces (measured from Noto Music)]
+    const CL = { treble: ["&#x1D11E;", 3, 2.95, 1.1], bass: ["&#x1D122;", 1, 3.0, 2.65], alto: ["&#x1D121;", 2, 3.1, 2.2], tenor: ["&#x1D121;", 1, 3.1, 2.2] }[o.clef || "treble"];
+    g += `<text x="${x0 + 4}" y="${lineY(CL[1]) + CL[3] * sp}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
     const xs = [];
     o.notes.forEach((nt, i) => {
       const x = startX + i * dx + dx / 2, y = stepY(nt.s); xs.push([x, y]);
@@ -1442,7 +1469,9 @@ window.FAM = (() => {
     return `<button class="${cls}" data-v="${esc(value)}"${q.done ? " disabled" : ""}><span>${fmtVal(value, q.c.fmt)}</span>${mark}</button>`;
   }
   function renderWork() {
-    const q = Q[S.mode], c = q.c;
+    const q = Q[S.mode], c = q.c, W = c.widget && FAM.widgets && FAM.widgets[c.widget];
+    // custom answer widgets (e.g. drag a note): FAM.widgets[name] = { html(c, q, H), wire(root, c, q, H), value(root) }
+    if (W) { work.innerHTML = `<div class="widget">${W.html(c, q, H)}</div>${q.done ? "" : '<div class="choice-row"><button class="btn primary" data-wcheck disabled>Check</button></div>'}`; if (W.wire && !q.done) W.wire(work, c, q, H); return; }
     const short = c.fmt === "rn" || c.fmt === "sym" || c.choices.every(v => v.length <= 18);
     work.innerHTML = `<div class="choice-row ${c.fmt ? "fmt " + c.fmt : ""} ${short ? "" : "wide"}" role="group" aria-labelledby="qText">${c.choices.map(v => choiceBtn(v, q)).join("")}</div>`;
   }
@@ -1476,6 +1505,7 @@ window.FAM = (() => {
     renderControls(); nextBtn.focus();
   }
   function reveal() { const q = Q[S.mode]; if (q.done) return; q.tries = 1; choose(q.correctValue); }
+  work.addEventListener("click", e => { const w = e.target.closest("[data-wcheck]"); if (w && !w.disabled) { const q = Q[S.mode], W = FAM.widgets[q.c.widget], v = W && W.value(work); if (v != null) choose(v); return; } });
   work.addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b && !b.disabled) choose(b.dataset.v); });
   document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (b && Q[S.mode]) play(b.dataset.play === "a" ? Q[S.mode].c.play : Q[S.mode].c.playQ); });
 

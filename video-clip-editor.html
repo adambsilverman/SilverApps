@@ -100,6 +100,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       <label class="fld" for="preset">Mastering preset<select id="preset"></select></label>
       <button class="tbtn" id="bypass" type="button" aria-pressed="false">Bypass (hear the original)</button>
     </div>
+    <p class="note" id="presetNote" aria-live="polite"></p>
     <p class="note" id="normInfo"></p>
     <div class="grid3" id="knobs"></div>
     <div class="row" style="align-items:center"><span class="note" style="min-width:7em">Output level</span><div class="meter" style="flex:1;min-width:160px"><i id="lvl"></i></div><span class="note" id="grInfo" aria-live="off"></span></div>
@@ -160,9 +161,10 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   drop.addEventListener("drop", e => open(e.dataTransfer.files[0]).catch(() => {}));
 
   // ---------- audio: mastering chain (works on live and offline contexts) ----------
-  const P = { hp: 20, low: 0, mid: 0, midF: 2500, high: 0, compOn: true, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revMix: 0, revSize: 1.6, limOn: true, ceil: -1, out: 0 };
+  const P = { hp: 20, low: 0, mud: 0, mid: 0, midF: 2500, high: 0, ess: 0, compOn: true, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revMix: 0, revSize: 1.6, limOn: true, ceil: -1, out: 0 };
   const PRESETS = {
     clean: ["Clean (normalize only)", { hp: 20, low: 0, mid: 0, high: 0, compOn: false, revMix: 0, limOn: true, ceil: -1, out: 0 }],
+    podcast: ["Podcast voice (speech from a computer mic)", { hp: 90, low: 2.5, mud: -4, mid: 3, midF: 4000, high: 2, ess: -4, compOn: true, thr: -32, ratio: 4, atk: 4, rel: 140, makeup: 10, revMix: 0, limOn: true, ceil: -1.5, out: 0 }, "-16"],
     voice: ["Voice / talking to camera", { hp: 80, low: -2, mid: 2, midF: 3000, high: 2, compOn: true, thr: -24, ratio: 3, atk: 8, rel: 180, makeup: 5, revMix: 0, limOn: true, ceil: -1, out: 0 }],
     music: ["Music performance", { hp: 30, low: 1, mid: 0, high: 1.5, compOn: true, thr: -18, ratio: 2, atk: 20, rel: 250, makeup: 2, revMix: 8, revSize: 1.8, limOn: true, ceil: -1, out: 0 }],
     warm: ["Warm", { hp: 30, low: 3, mid: -1, midF: 2500, high: -2, compOn: true, thr: -20, ratio: 2.5, atk: 15, rel: 220, makeup: 3, revMix: 5, revSize: 1.4, limOn: true, ceil: -1, out: 0 }],
@@ -171,20 +173,20 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     hall: ["Concert hall", { hp: 30, low: 0, mid: 0, high: 0, compOn: true, thr: -20, ratio: 2, atk: 20, rel: 300, makeup: 2, revMix: 32, revSize: 3.2, limOn: true, ceil: -1, out: 0 }],
     room: ["Small room", { hp: 40, low: 0, mid: 0, high: 0, compOn: true, thr: -20, ratio: 2, atk: 15, rel: 200, makeup: 2, revMix: 14, revSize: .8, limOn: true, ceil: -1, out: 0 }],
   };
-  const KN = [["EQ", [["hp", "Low cut", 20, 300, 5, "Hz"], ["low", "Bass (120 Hz)", -12, 12, .5, "dB"], ["mid", "Middle", -12, 12, .5, "dB"], ["midF", "Middle freq.", 300, 6000, 50, "Hz"], ["high", "Treble (8 kHz)", -12, 12, .5, "dB"]]],
+  const KN = [["EQ", [["hp", "Low cut", 20, 300, 5, "Hz"], ["low", "Bass (120 Hz)", -12, 12, .5, "dB"], ["mud", "Boxiness (300 Hz)", -12, 6, .5, "dB"], ["mid", "Middle", -12, 12, .5, "dB"], ["midF", "Middle freq.", 300, 6000, 50, "Hz"], ["high", "Treble (8 kHz)", -12, 12, .5, "dB"], ["ess", "Sibilance, \"s\" sounds (7 kHz)", -12, 6, .5, "dB"]]],
     ["Compressor", [["thr", "Threshold", -50, 0, 1, "dB"], ["ratio", "Ratio", 1, 12, .5, ": 1"], ["atk", "Attack", 1, 100, 1, "ms"], ["rel", "Release", 30, 1000, 10, "ms"], ["makeup", "Makeup gain", 0, 18, .5, "dB"]]],
     ["Reverb, limiter, output", [["revMix", "Reverb amount", 0, 60, 1, "%"], ["revSize", "Room size", .3, 5, .1, "s"], ["ceil", "Limiter ceiling", -6, 0, .1, "dB"], ["out", "Output gain", -12, 12, .5, "dB"]]]];
   const db = x => Math.pow(10, x / 20);
   function chain(C) {
     const G = v => { const g = C.createGain(); g.gain.value = v; return g; }, BQ = (type, f, g, q) => { const b = C.createBiquadFilter(); b.type = type; b.frequency.value = f; if (g != null) b.gain.value = g; if (q) b.Q.value = q; return b; };
-    const input = G(1), norm = G(1), hp = BQ("highpass", 20, null, .7), lo = BQ("lowshelf", 120, 0), mid = BQ("peaking", 2500, 0, .9), hi = BQ("highshelf", 8000, 0), comp = C.createDynamicsCompressor(), mk = G(1), dry = G(1), wet = G(0), cv = C.createConvolver(), lim = C.createDynamicsCompressor(), out = G(1), byp = G(0), main = G(1), output = G(1);
-    input.connect(norm); norm.connect(hp); hp.connect(lo); lo.connect(mid); mid.connect(hi); hi.connect(comp); comp.connect(mk); mk.connect(dry); mk.connect(cv); cv.connect(wet); dry.connect(lim); wet.connect(lim); lim.connect(out); out.connect(main); main.connect(output);
+    const input = G(1), norm = G(1), hp = BQ("highpass", 20, null, .7), lo = BQ("lowshelf", 120, 0), mud = BQ("peaking", 300, 0, 1.2), mid = BQ("peaking", 2500, 0, .9), hi = BQ("highshelf", 8000, 0), ess = BQ("peaking", 7000, 0, 2.5), comp = C.createDynamicsCompressor(), mk = G(1), dry = G(1), wet = G(0), cv = C.createConvolver(), lim = C.createDynamicsCompressor(), out = G(1), byp = G(0), main = G(1), output = G(1);
+    input.connect(norm); norm.connect(hp); hp.connect(lo); lo.connect(mud); mud.connect(mid); mid.connect(hi); hi.connect(ess); ess.connect(comp); comp.connect(mk); mk.connect(dry); mk.connect(cv); cv.connect(wet); dry.connect(lim); wet.connect(lim); lim.connect(out); out.connect(main); main.connect(output);
     input.connect(byp); byp.connect(output);
     lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .08;
     let irSize = 0;
     function update(bypass) {
       const t = C.currentTime || 0, s = (prm, v) => prm.setTargetAtTime(v, t, .02);
-      s(norm.gain, S.normGain); s(hp.frequency, P.hp); s(lo.gain, P.low); s(mid.gain, P.mid); s(mid.frequency, P.midF); s(hi.gain, P.high);
+      s(norm.gain, S.normGain); s(hp.frequency, P.hp); s(lo.gain, P.low); s(mid.gain, P.mid); s(mid.frequency, P.midF); s(hi.gain, P.high); s(mud.gain, P.mud); s(ess.gain, P.ess);
       if (P.compOn) { s(comp.threshold, P.thr); s(comp.ratio, P.ratio); s(comp.attack, P.atk / 1000); s(comp.release, P.rel / 1000); s(mk.gain, db(P.makeup)); } else { s(comp.threshold, 0); s(comp.ratio, 1); s(mk.gain, 1); }
       if (irSize !== P.revSize) { const L = Math.floor(C.sampleRate * P.revSize), b = C.createBuffer(2, L, C.sampleRate); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3) * .5; } cv.buffer = b; irSize = P.revSize; }
       s(wet.gain, P.revMix / 100); s(dry.gain, 1 - P.revMix / 250);
@@ -212,7 +214,11 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   function drawKnobs() {
     $("knobs").innerHTML = KN.map(([g, list], gi) => `<fieldset><legend>${g}${gi === 1 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="compOn" ${P.compOn ? "checked" : ""}> on</label>` : gi === 2 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="limOn" ${P.limOn ? "checked" : ""}> limiter on</label>` : ""}</legend>${list.map(([k, l, mn, mx, st, u]) => `<label class="sl">${l}<input type="range" data-k="${k}" min="${mn}" max="${mx}" step="${st}" value="${P[k]}"><output data-o="${k}">${P[k]} ${u}</output></label>`).join("")}</fieldset>`).join("");
   }
-  function applyPreset(k) { Object.assign(P, { midF: 2500, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revSize: 1.6 }, PRESETS[k][1]); drawKnobs(); upd(); }
+  function applyPreset(k) {
+    Object.assign(P, { mud: 0, ess: 0, midF: 2500, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revSize: 1.6 }, PRESETS[k][1]); drawKnobs(); upd();
+    if (PRESETS[k][2]) { $("norm").value = PRESETS[k][2]; setNorm(); }
+    $("presetNote").textContent = k === "podcast" ? "Podcast voice: cuts rumble and boxiness, adds warmth and presence, tames harsh \"s\" sounds, and compresses firmly so every word sits at the same level, then normalizes to −16 LUFS, the podcast standard. Works best close to the mic (a hand's width or two away) in a quiet room: compression also raises background noise." : "";
+  }
   $("preset").onchange = e => { if (e.target.value !== "custom") applyPreset(e.target.value); };
   $("knobs").addEventListener("input", e => { const k = e.target.dataset.k; if (k) { P[k] = +e.target.value; const u = KN.flatMap(x => x[1]).find(x => x[0] === k)[5]; document.querySelector(`[data-o="${k}"]`).textContent = `${P[k]} ${u}`; $("preset").value = "custom"; upd(); } });
   $("knobs").addEventListener("change", e => { if (e.target.id === "compOn") { P.compOn = e.target.checked; $("preset").value = "custom"; upd(); } if (e.target.id === "limOn") { P.limOn = e.target.checked; $("preset").value = "custom"; upd(); } });

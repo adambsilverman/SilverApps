@@ -37,7 +37,7 @@ window.FAM = (() => {
     ["The Neapolitan chord is labeled…", "♭II (usually ♭II⁶, in first inversion)", ["N7", "ii°", "♯I"], "A major triad on the lowered 2nd degree: D♭ major in C."],
     ["V⁶₅ means…", "a dominant 7th chord with its 3rd in the bass", ["a V chord with an added 6th and 5th", "a dominant chord in 6/5 time", "a V chord with its 5th in the bass"], "Seventh-chord figures: 7 (root), ⁶₅ (3rd), ⁴₃ (5th), ⁴₂ (7th in the bass)."],
     ["Why might a minor-key analysis show both VII and vii°?", "they're built on different 7th degrees: the subtonic and the raised leading tone", ["it's a mistake", "one is a seventh chord", "one is in a different key"], "In A minor, VII = G major (natural 7th) and vii° = G♯ diminished (raised 7th)."],
-    ["In jazz and lead sheets, the ii–V–I in C (Dm7–G7–C△7) is often written…", "ii⁷–V⁷–I△⁷ (or IIm7–V7–I△7)", ["2–5–1 in figured bass", "i–v–i", "IV–V–I"], "Jazz often uses uppercase numerals with chord-symbol suffixes; classical analysis uses case for quality."],
+    ["In jazz and lead sheets, the ii–V–I in C (Dm7–G7–C△7) is often written…", "IIm7–V7–I△7", ["2–5–1 in figured bass", "i–v–i", "IV–V–I"], "Jazz often uses uppercase numerals with chord-symbol suffixes. Classical analysis would write ii⁷–V⁷–I⁷, using case for quality and no △."],
     ["In C major, the chord E–G♯–B–D is…", "V7/vi", ["V7/iii", "III7 borrowed", "vi7"], "It's the dominant 7th of A minor (vi)."],
   ];
 
@@ -85,6 +85,19 @@ window.FAM = (() => {
   }
 
   const sf = (H, U, k, toks, cap, o) => H.satbFig(U, k, toks, cap, o);
+  // a Nashville chord chart: lines of bars; "4 5⁷" = split bar (underlined), "◇4" = diamond (let ring)
+  function nchart(lines, head, f = x => x) {
+    const bar = b => { const parts = b.split(" "), split = parts.length > 1;
+      const one = x => x.startsWith("◇") ? `<span class="nch-dia">${f(x.slice(1))}</span><span class="sr"> (diamond: hit and let ring)</span>` : f(x);
+      return `<span class="nch-bar${split ? " split" : ""}">${parts.map(one).join(" ")}${split ? '<span class="sr"> (split bar)</span>' : ""}</span>`; };
+    return `<div class="nchart"><div class="nch-head">${head.map(h => `<span>${h}</span>`).join("")}</div>${lines.map(([sec, bars]) => `<div class="nch-line" style="grid-template-columns: 2em repeat(${bars.length}, 1fr)">${sec ? `<span class="nch-sec"><span class="sr">${sec === "V" ? "Verse" : "Chorus"}: </span><span aria-hidden="true">${sec}</span></span>` : '<span class="nch-sec" aria-hidden="true"></span>'}${bars.map(bar).join("")}</div>`).join("")}</div>`;
+  }
+  // like sf, but every seventh chord keeps all four tones (no omitted 5th)
+  const full = (x, H) => x.vs.every((v, j) => x.chords[j].tones.length < 4 || new Set([v.S, v.A, v.T, v.B].map(H.pc)).size === 4);
+  function sfFull(H, U, k, toks, cap, o = {}) {
+    for (let i = 0; i < 60; i++) { const x = H.voiceToks(k, toks, o); if (x && full(x, H)) return U.fig(H.satbSpec(x, o), cap, { small: o.small !== false, play: H.satbPlay(x.vs, o.gap || .9) }); }
+    return sf(H, U, k, toks, cap, Object.assign({}, o, { full: false }));
+  }
   const lesson = { defMode: "major", steps: [
     { title: "What Roman numerals show", kick: "Chords by scale degree", keyed: "both", render: (H, k, U) => {
       const ds = [1, 2, 3, 4, 5, 6, 7].map(d => k.mode === "minor" && d === 7 ? H.tok(k, "7") : H.tok(k, String(d)));
@@ -98,10 +111,9 @@ window.FAM = (() => {
       ${tbl("Three ways to write the same progression in C major", ["System", "Progression", "Used by"], [["Chord symbols", "{sym:C} – {sym:Am} – {sym:F} – {sym:G7}", "lead sheets, guitar charts"], ["Roman numerals", "{rn:I} – {rn:vi} – {rn:IV} – {rn:V7}", "analysis in every style"], ["Nashville numbers", "1 – 6- – 4 – 5⁷", "session players, especially in country music (see the next steps)"]])}
       <ul><li>Numerals make patterns visible: a cadence, a circle of fifths, or a loop looks the same in every key.</li><li>They help you hear: once you know the sound of {rn:IV}–{rn:V}–{rn:I}, you can recognize it anywhere.</li><li>They make transposing, improvising and arranging faster.</li></ul>
       <p>Roman numerals for chords became standard in the 19th century; Gottfried Weber's writing in the 1810s and 1820s spread the use of uppercase and lowercase numerals for chord quality.</p>` },
-    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>Small numbers after the numeral (borrowed from figured bass) show which chord tone is in the bass:</p>
-      ${tbl("Inversion figures", ["Bass note", "Triad", "Seventh chord"], [["root", "{rn:V} (no figure; ⁵₃)", "{rn:V7}"], ["3rd", "{rn:V6}", "{rn:V65}"], ["5th", "{rn:V64}", "{rn:V43}"], ["7th", "–", "{rn:V42}"]])}
-      <p>Seventh chords add signs for the 7th's quality: {rn:V7} (major triad, minor 7th: dominant 7th), {rn:ii7} (minor 7th), {rn:viiø7} (half-diminished), {rn:vii°7} (fully diminished), and I△7 or IV△7 (major 7th; some books write IM7).</p>
-      ${sf(H, U, k, ["1", "16", "265", "57", "1"], `I – I⁶ – ii⁶₅ – V⁷ – I in ${k.label}`, { small: false })}`
+    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>Inversions are shown with the same figures you learned in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>: write them after the numeral. {rn:V6} is V with its 3rd in the bass, {rn:ii65} is a ii⁷ chord with its 3rd in the bass, and so on. (Go back to that lesson if the figures need a refresher.)</p>
+      <p>Seventh chords add a sign for the chord's quality: {rn:V7} (major triad, minor 7th: dominant 7th), {rn:ii7} (minor 7th), {rn:viiø7} (half-diminished) and {rn:vii°7} (fully diminished). A major 7th chord, such as the one on I or IV, is simply {rn:I7} or {rn:IV7}: the key tells you its 7th is major.</p>
+      ${sfFull(H, U, k, ["1", "16", "265", "57", "1"], `I – I⁶ – ii⁶₅ – V⁷ – I in ${k.label}`, { small: false, full: true })}`
       + H.check("Which figure means a seventh chord with its 5th in the bass?", "⁴₃", ["⁶₅", "⁴₂", "⁶₄"], "⁷ root, ⁶₅ 3rd, ⁴₃ 5th, ⁴₂ 7th.") },
     { title: "Numerals in minor", kick: "Two systems", keyed: "minor", render: (H, k, U) => {
       const rows = MINT.map(([d, q, cl, mj, note]) => { const c = minChord(H, k, d, q); return [d, `{sym:${c.sym}}`, `{rn:${cl}}`, `{rn:${mj}}`, note]; });
@@ -147,8 +159,9 @@ window.FAM = (() => {
         ["{rn:V+}", "{sym:G+}", "augmented dominant: the raised 5th pushes up to the 3rd of I"]])
       + `<p>These are covered in depth in <a href="chromatic-chords-lesson.html">Chromatic Chords</a>. The idea is always the same: find the root, measure it from the tonic, and show the quality.</p>` },
     { title: "Pop and jazz conventions", kick: "Numerals on lead sheets", render: () => `<p>Outside classical analysis, Roman numerals often borrow chord-symbol suffixes:</p>
-      ${tbl("Common variants", ["Style", "ii–V–I in C", "Notes"], [["Classical analysis", "{rn:ii7} – {rn:V7} – I△7", "case shows quality; figures show inversions"], ["Jazz (all uppercase)", "IIm7 – V7 – I△7", "uppercase numerals with suffixes, as in many jazz texts"], ["Pop and rock", "ii – V – I, I/3, ♭VII, IVadd9", "slash numbers show the bass (I/3 = I with its 3rd in the bass)"], ["Nashville numbers", "2m – 5 – 1", "plain numbers; minor, 7ths and extensions as suffixes"]])}
-      <p>In pop and rock, "I7" usually means a dominant 7th on the tonic (as in the blues), while classical analysis would write it as {rn:V7/IV} when it leads to IV. Context tells you which convention a writer is using.</p>` },
+      ${tbl("Common variants", ["Style", "ii–V–I in C", "Notes"], [["Classical analysis", "{rn:ii7} – {rn:V7} – {rn:I7}", "case shows quality; a plain ⁷ means the 7th that occurs in the key, so I⁷ is a major 7th chord; figures show inversions"], ["Jazz (all uppercase)", "IIm7 – V7 – I△7", "uppercase numerals with chord-symbol suffixes; △7 (or maj7) marks a major 7th"], ["Nashville numbers", "2m – 5 – 1", "plain numbers; minor, 7ths and extensions as suffixes"]])}
+      <p>Classical analysis doesn't use "maj7" or the triangle (△): the key signature already decides the quality of each 7th. Those suffixes belong to chord symbols and jazz-style numerals.</p>
+      <p>Watch out for "I7": with chord-symbol suffixes it means a dominant 7th on the tonic (as in the blues), but in classical analysis {rn:I7} is a major 7th chord, and a dominant 7th on the tonic leading to IV is written {rn:V7/IV}. Context tells you which convention a writer is using.</p>` },
     { title: "Nashville numbers", kick: "Charts in any key", keyed: "major", render: (H, k, U) => {
       const N = { "1": H.tok(k, "1"), "2": H.tok(k, "2"), "4": H.tok(k, "4"), "5": H.tok(k, "5"), "6": H.tok(k, "6"), "57": H.tok(k, "57") };
       const sy = t => `{sym:${N[t].sym}}`, b3 = H.chord(H.deg(k, 3), "M"), bass3 = H.nm(H.deg(k, 3));
@@ -165,9 +178,12 @@ window.FAM = (() => {
         ["4 5 (underlined or boxed)", "a split bar: several chords share one bar", ""],
         ["◇ (diamond)", "hit the chord and let it ring", ""],
         ["^ or &gt; above a number", "a push: the chord anticipates the beat", ""]])}
-      <p>A sample chart (four lines of four bars) and what it means in ${k.label}:</p>
-      ${tbl("Nashville chart", ["Line", "Numbers", `In ${k.label}`], chart.map((l, i) => [i + 1, l.join(" | "), l.map(sym).join(" | ")]))}
-      ${sf(H, U, k, ["1", "4", "16", "5", "1"], `1 – 4 – 1/3 – 5 – 1 in ${k.label}`, { small: false, labs: ["1", "4", "1/3", "5", "1"] })}
+      <p>A Nashville chart is written like this: each number is one bar, a line usually holds four bars, and section letters sit at the left. Here is a short one, then how it sounds in four voices:</p>
+      ${nchart([["", ["1", "4", "1/3", "5", "1"]]], [`Key: ${k.label.replace(/ major$/, "")}`, "4/4"])}
+      ${sf(H, U, k, ["1", "4", "16", "5", "1"], `The chart above played in ${k.label}: 1 4 1/3 5 1`, { small: false, labels: false })}
+      <p>A longer chart (verse and chorus, four bars per line) and the same chart in chord symbols for ${k.label}:</p>
+      <div class="nch-pair">${nchart(chart.map((l, i) => [i === 0 ? "V" : i === 2 ? "C" : "", l]), [`Key: ${k.label.replace(/ major$/, "")}`, "4/4"])}
+      ${nchart(chart.map((l, i) => [i === 0 ? "V" : i === 2 ? "C" : "", l]), [`In ${k.label}`, "4/4"], sym)}</div>
       <ul><li>Unlike Roman numerals, the numbers don't show quality by case: minor needs a minus sign or "m".</li>
       <li>Songs in minor keys are often charted with the minor tonic as 6- (counting from the relative major), though some players write 1- instead. Agree on which before the session.</li>
       <li>Players add their own marks for stops, rests, key changes and section names (V for verse, C for chorus, B for bridge), so charts vary a little from studio to studio.</li></ul>`
