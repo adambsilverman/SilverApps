@@ -63,13 +63,6 @@
           "class": true
         },
         {
-          "name": "Triads and Seventh Chords: First Steps",
-          "topic": "Chord spelling",
-          "blurb": "A step-by-step walkthrough: read each note, measure the intervals, find the root, check the 3rd, 5th and 7th, and name the inversion.",
-          "open": "chord-first-steps.html",
-          "note": "Guided practice"
-        },
-        {
           "name": "Chord Figures and Symbols",
           "topic": "Triads & sevenths",
           "blurb": "Spell triads and seventh chords, figured bass and inversions.",
@@ -78,12 +71,11 @@
           "lesson": "chord-figures-and-symbols-lesson.html"
         },
         {
-          "name": "Cadences",
-          "topic": "Cadences",
-          "blurb": "Authentic, half, plagal and deceptive cadences, and how closed they sound.",
-          "lesson": "cadences-lesson.html",
-          "drills": "cadences.html",
-          "class": true
+          "name": "Triads and Seventh Chords: First Steps",
+          "topic": "Chord spelling",
+          "blurb": "A step-by-step walkthrough: read each note, measure the intervals, find the root, check the 3rd, 5th and 7th, and name the inversion.",
+          "open": "chord-first-steps.html",
+          "note": "Guided practice"
         },
         {
           "name": "Non-Chord Tones",
@@ -107,6 +99,14 @@
           "blurb": "Diatonic and chromatic Roman numerals, two ways to label minor, and why numerals survive transposition.",
           "lesson": "roman-numeral-analysis-lesson.html",
           "drills": "roman-numerals.html",
+          "class": true
+        },
+        {
+          "name": "Cadences",
+          "topic": "Cadences",
+          "blurb": "Authentic, half, plagal and deceptive cadences, and how closed they sound.",
+          "lesson": "cadences-lesson.html",
+          "drills": "cadences.html",
           "class": true
         }
       ]
