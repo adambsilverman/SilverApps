@@ -12,12 +12,11 @@ EXTRA = (B.parent / "transposition" / "extra.css").read_text(encoding="utf-8") +
 
 NOCLASS = set()   # drills pages without a class game (all current ones have one)
 APPS = [
-  dict(src="Reading Pitch.html", drills="reading-pitch.html", lesson="reading-pitch-lesson.html", lesson_title="Understanding Clefs and Pitch Reading", lesson_desc="A step-by-step lesson: the staff, treble and bass clefs, the grand staff, alto and tenor clefs, clef history, reading strategies, alignment, and accidentals (the bar-line rule, writing and stacking, enharmonics).", data="clefs.js", title="Reading Pitch",
-       desc="Name notes in treble, bass, alto and tenor clefs and on the grand staff, find lines and spaces, move a pitch between clefs, and review memory devices and alignment principles.",
+  dict(src="Reading Pitch.html", drills="reading-pitch.html", lesson="reading-pitch-lesson.html", lesson_title="Understanding Clefs and Pitch Reading", lesson_desc="A step-by-step lesson: the staff, treble and bass clefs, the grand staff, alto and tenor clefs, clef history, reading strategies, alignment, accidentals (the bar-line rule, writing and stacking, enharmonics), guitar tablature, and pitch in a DAW piano roll.", data="clefs.js", title="Reading Pitch",
+       desc="Name notes in treble, bass, alto and tenor clefs and on the grand staff, drag a pitch into another clef, and review memory devices and alignment principles.",
        modes=[("name", "Name the note", "letter name", "name a note on the staff"),
               ("octave", "Note + octave", "C4, G2…", "name a note with its octave number"),
-              ("where", "Line or space?", "find it", "find where a pitch is written"),
-              ("same", "New clef", "same pitch", "find the same pitch in another clef"),
+              ("same", "New clef", "drag it", "drag a note to the same pitch in another clef"),
               ("devices", "Devices", "patterns · alignment", "memory devices, clef facts and alignment principles")],
        how=["<b>Treble</b> lines E G B D F, spaces F A C E. <b>Bass</b> lines G B D F A, spaces A C E G.",
             "<b>Alto</b> lines F A C E G (middle C on the middle line). <b>Tenor</b> lines D F A C E (middle C on the 4th line).",

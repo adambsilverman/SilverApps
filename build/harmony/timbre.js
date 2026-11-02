@@ -76,6 +76,43 @@ window.FAM = (() => {
     });
     document.addEventListener("change", e => { const p = e.target.closest("#tmPre"); if (!p) return; const v = SPEC[p.value]; if (!v) return; TS.amps = Array.from({ length: 10 }, (_, i) => Math.abs(v[i] || 0)); const w = document.getElementById("tmBuild"); if (w) w.outerHTML = buildToy(); });
   }
+  // ---------- harmonic → inharmonic slider ----------
+  const BAR = [1, 2.756, 5.404, 8.933, 13.345, 18.638, 24.81, 31.87];   // free–free bar (glockenspiel-like) partial ratios
+  const INH = { x: 0, f: 196, oscs: null, g: null };
+  const inhRatio = (n, x) => Math.pow(n, 1 - x) * Math.pow(BAR[n - 1], x);
+  const inhAmp = n => .9 / Math.pow(n, .9);
+  function inhSVG() {
+    const W = 560, Hh = 170, L = 40, R = 16, top = 16, base = 136, maxR = 34, X = r => L + (Math.log2(r) / Math.log2(maxR)) * (W - L - R);
+    let g = "";
+    for (let n = 1; n <= 32; n *= 2) g += `<text x="${X(n)}" y="${base + 18}" text-anchor="middle" font-size="11" fill="currentColor">${Math.round(INH.f * n)} Hz</text>`;
+    for (let n = 1; n <= 8; n++) g += `<line x1="${X(n)}" x2="${X(n)}" y1="${top}" y2="${base}" stroke="currentColor" stroke-opacity=".45" stroke-dasharray="3 4"/>`;
+    for (let n = 1; n <= 8; n++) { const r = inhRatio(n, INH.x), h = (base - top - 10) * inhAmp(n) / inhAmp(1); g += `<rect x="${X(r) - 4}" y="${base - h}" width="8" height="${h}" rx="2" fill="var(--fi-red, #E8573F)"/>`; }
+    g += `<line x1="${L - 6}" x2="${W - R}" y1="${base}" y2="${base}" stroke="currentColor"/><text x="${L - 4}" y="${Hh - 4}" font-size="11" fill="currentColor">frequency (log scale) · dashed lines = harmonic series</text>`;
+    const desc = INH.x < .02 ? "all eight partials sit exactly on the harmonic series" : INH.x > .97 ? "the partials sit at a metal bar's ratios, far from the harmonic series" : `the partials have moved ${Math.round(INH.x * 100)}% of the way from the harmonic series toward a metal bar's ratios; the upper ones have drifted farthest`;
+    return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Spectrum: ${desc}" style="width:100%;max-width:${W}px">${g}</svg>`;
+  }
+  const inhWord = x => x < .03 ? "harmonic: one clear pitch" : x < .2 ? "slightly stretched, like a piano" : x < .55 ? "pitch becoming unclear" : x < .85 ? "clangy, bell-like" : "metallic: inharmonic";
+  function inhToy() {
+    return `<div class="toy" id="inhToy"><div id="inhSpec">${inhSVG()}</div>
+      <div class="toy-row"><label for="inhX" style="font-weight:700">Harmonic</label><input type="range" id="inhX" min="0" max="1" step=".01" value="${INH.x}" style="flex:1;min-width:140px" aria-valuetext="${Math.round(INH.x * 100)}%: ${inhWord(INH.x)}"><span aria-hidden="true" style="font-weight:700">Inharmonic</span></div>
+      <div class="toy-row"><button class="play" id="inhPlay" aria-pressed="false"><span aria-hidden="true">▶ </span>Play the tone</button><span class="msinfo" id="inhInfo" aria-live="polite">${inhWord(INH.x)[0].toUpperCase() + inhWord(INH.x).slice(1)}</span></div></div>`;
+  }
+  function inhStop() { if (!INH.oscs) return; const t = AC.currentTime; INH.g.gain.cancelScheduledValues(t); INH.g.gain.setTargetAtTime(0, t, .05); INH.oscs.forEach(o => o.stop(t + .4)); INH.oscs = null; const b = document.getElementById("inhPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.innerHTML = '<span aria-hidden="true">▶ </span>Play the tone'; } }
+  function inhStart() {
+    if (!ac()) return; fresh(); const t = AC.currentTime + .03, g = AC.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.2, t + .08); g.connect(bus);
+    INH.g = g; INH.oscs = [];
+    for (let n = 1; n <= 8; n++) { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.value = INH.f * inhRatio(n, INH.x); og.gain.value = inhAmp(n) / 3; o.connect(og); og.connect(g); o.start(t); INH.oscs.push(o); }
+    const b = document.getElementById("inhPlay"); b.setAttribute("aria-pressed", "true"); b.innerHTML = '<span aria-hidden="true">■ </span>Stop';
+  }
+  if (!window.__inhWired) { window.__inhWired = true;
+    document.addEventListener("input", e => { if (e.target.id !== "inhX") return; INH.x = +e.target.value; e.target.setAttribute("aria-valuetext", `${Math.round(INH.x * 100)}%: ${inhWord(INH.x)}`);
+      document.getElementById("inhSpec").innerHTML = inhSVG(); const w = inhWord(INH.x); document.getElementById("inhInfo").textContent = w[0].toUpperCase() + w.slice(1);
+      if (INH.oscs) INH.oscs.forEach((o, i) => o.frequency.setTargetAtTime(INH.f * inhRatio(i + 1, INH.x), AC.currentTime, .03)); });
+    document.addEventListener("click", e => { if (e.target.closest("#inhPlay")) { INH.oscs ? inhStop() : inhStart(); } else if (e.target.closest("[data-tm]")) inhStop(); });
+    // stop when the step changes (the toy leaves the page)
+    setInterval(() => { if (INH.oscs && !document.getElementById("inhToy")) inhStop(); }, 300);
+  }
   const btn = (label, attrs) => `<button class="play" ${Object.entries(attrs).map(([k, v]) => `data-${k}="${v}"`).join(" ")}><span aria-hidden="true">▶ </span>${label}</button>`;
   const row = (...b) => `<div class="lbtns">${b.join("")}</div>`;
   const stop = `<button class="play" data-tm="stop"><span aria-hidden="true">■ </span>Stop</button>`;
@@ -155,7 +192,10 @@ window.FAM = (() => {
     { title: "Noise and inharmonic sounds", kick: "Breath, bow and bells", render: H => `<p>Not every component of a sound is a neat harmonic:</p>
       <ul><li><b>Noise</b> is part of many timbres: the breath in a flute, the scrape of a bow, the thump of a piano hammer, the consonants of speech.</li>
       <li><b>Inharmonic</b> partials (not whole-number multiples of the fundamental) give bells, gongs, cymbals and many drums their metallic or ambiguous pitch. Piano strings are slightly inharmonic too: their upper partials run a little sharp.</li></ul>
-      ${row(btn("Harmonic tone", { tm: "harm", f: 262 }), btn("Inharmonic bell", { tm: "inharm", f: 262 }), btn("Breath noise", { tm: "breath" }))}` + H.check("Why does a bell's pitch sometimes seem unclear?", "its partials are inharmonic", ["it has no overtones", "it has only odd partials", "it's always out of tune"], "Partials that don't line up with the harmonic series weaken the sense of a single pitch.") },
+      ${row(btn("Harmonic tone", { tm: "harm", f: 262 }), btn("Inharmonic bell", { tm: "inharm", f: 262 }), btn("Breath noise", { tm: "breath" }))}
+      <h3>Try it: from harmonic to inharmonic</h3>
+      <p>Start the tone, then move the slider. At the left, the eight partials sit exactly on the harmonic series (the dashed lines): you hear one clear pitch. Moving right slides each partial toward the ratios of a struck metal bar, a bell-like sound. Partway, the tone starts to sound like a piano's slightly stretched partials. Then the pitch turns ambiguous, and finally it sounds metallic.</p>
+      ${inhToy()}` + H.check("Why does a bell's pitch sometimes seem unclear?", "its partials are inharmonic", ["it has no overtones", "it has only odd partials", "it's always out of tune"], "Partials that don't line up with the harmonic series weaken the sense of a single pitch.") },
     { title: "Timbre in performance", kick: "Register, dynamics, technique", render: H => `<p>Performers change timbre constantly. Each instrument has distinct colors in each <b>register</b> (the clarinet's dark chalumeau and bright clarion; a voice's chest and head registers), and techniques can change the color without changing the pitch:</p>
       ${tbl("Some timbre-changing techniques", ["Technique", "Effect"], [["Vibrato (more, less, none)", "warmth and shimmer; straight tone sounds purer"], ["Mutes (strings, brass)", "veiled or buzzy colors: straight, cup, harmon, practice mutes"], ["Sul ponticello / sul tasto", "bowing near the bridge (glassy, bright) or over the fingerboard (soft, flute-like)"], ["Pizzicato", "plucked instead of bowed: percussive envelope"], ["Harmonics", "light, pure, flute-like tones on strings and harp"], ["Flutter-tonguing, growls", "rough, noisy colors on winds and brass"], ["Breathy tone, subtone", "airy colors on voice and saxophone"], ["Piano pedal, una corda", "more resonance, or a softer, darker sound"], ["Guitar pick position", "near the bridge bright, near the neck warm"]])}
       <p>The orchestration apps (Strings, Winds & Brass, Percussion, Harp, Keyboard Instruments, Plucked Instruments) describe each instrument's registers and colors in detail.</p>` + H.check("Bowing over the fingerboard (sul tasto) makes a string sound…", "softer and flute-like", ["glassy and bright", "plucked", "an octave higher"], "Bowing farther from the bridge weakens the high partials.") },
