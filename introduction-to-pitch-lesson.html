@@ -471,6 +471,10 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .cdbox .cdmove.right { color: var(--fi-green-dk, #2d6a1f); }
 .cdbox .cdmove.wrong { color: var(--bad, #b3261e); }
 .cdbox .cdright { color: var(--fi-green-dk, #2d6a1f); opacity: .8; }
+/* beat-tuning game */
+.tumeter { display: flex; align-items: center; gap: 8px; font: 700 13px var(--mono); text-transform: uppercase; max-width: 560px; width: 100%; margin: 0 auto; }
+.tubar { flex: 1; height: 14px; border-radius: 999px; background: rgba(0,0,0,.1); overflow: hidden; }
+.tubar i { display: block; height: 100%; width: 0; border-radius: 999px; transition: width .1s; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
@@ -689,6 +693,154 @@ window.FAM = (() => {
     [[600, 604], [1200, 1208], [1800, 1812]].forEach(([p, q]) => { g += `<line x1="${xa + 44}" x2="${xb - 44}" y1="${Y(p)}" y2="${Y(q)}" stroke="var(--fi-red, #E8573F)" stroke-width="2.5"/><text x="${(xa + xb) / 2}" y="${Y(p) - 7}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fi-red-dk, #b33a26)">${q - p} beats/sec</text>`; });
     return `<figure class="lfig"><svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Partials of a 200 Hz tone (200, 400, 600 and up to 1800) beside partials of a 302 Hz tone (302, 604, 906, 1208, 1510, 1812). Three pairs nearly coincide and beat: 600 and 604 at 4 per second, 1200 and 1208 at 8, 1800 and 1812 at 12." style="width:100%;max-width:${W}px">${g}</svg><figcaption>A 5th tuned slightly wide (200 and 302 Hz instead of 300): the fundamentals are far apart, but the partials that should coincide are a few hertz apart and <b>beat</b>. Tune the upper note to exactly 300 Hz and all three pairs line up: the beats stop.</figcaption></figure>`;
   }
+  // ---------- overtones: waves → notes ----------
+  // [partial, written note, staff ("t"/"b"), staff step (0 = bottom line), accidental, label]
+  const OVT = [[1, "C2", "b", -4], [2, "C3", "b", 3], [3, "G3", "b", 7], [4, "C4", "t", -2], [5, "E4", "t", 0], [6, "G4", "t", 2], [7, "B4", "t", 4, -1], [8, "C5", "t", 5], [9, "D5", "t", 6], [10, "E5", "t", 7]];
+  function overtoneFig(H) {
+    const L = 78, cw = 62, W = L + cw * OVT.length + 8, sp = 10, tT = 168, bT = 248, f0 = 65.41, cx = i => L + i * cw + cw / 2;
+    const ty = st => tT + 4 * sp - st * sp / 2, by = st => bT + 4 * sp - st * sp / 2;
+    let g = `<text x="8" y="22" font-size="11" font-weight="700" fill="currentColor">partial</text><text x="8" y="66" font-size="11" fill="currentColor">wave</text><text x="8" y="112" font-size="11" fill="currentColor">frequency</text>`;
+    for (let i = 0; i < 5; i++) g += `<line x1="${L - 56}" x2="${W - 6}" y1="${tT + i * sp}" y2="${tT + i * sp}" stroke="currentColor"/><line x1="${L - 56}" x2="${W - 6}" y1="${bT + i * sp}" y2="${bT + i * sp}" stroke="currentColor"/>`;
+    g += `<line x1="${L - 56}" x2="${L - 56}" y1="${tT}" y2="${bT + 4 * sp}" stroke="currentColor" stroke-width="1.5"/><line x1="${W - 6}" x2="${W - 6}" y1="${tT}" y2="${bT + 4 * sp}" stroke="currentColor" stroke-width="2.5"/>`;
+    g += `<text x="${L - 52}" y="${tT + 3 * sp + 1.1 * sp}" font-family="'Noto Music', serif" font-size="${sp * 2.95 * 1.4}" fill="currentColor">&#x1D11E;</text><text x="${L - 52}" y="${bT + sp + 3.08 * sp}" font-family="'Noto Music', serif" font-size="${sp * 3.3 * 1.4}" fill="currentColor">&#x1D122;</text>`;
+    OVT.forEach(([n, nm, st, step, acc], i) => {
+      const x = cx(i), f = f0 * n, y = st === "t" ? ty(step) : by(step), top = st === "t" ? tT : bT, bot = top + 4 * sp;
+      // n cycles of a sine in the same time window: twice the frequency, twice the cycles
+      let d = ""; for (let k = 0; k <= 60; k++) { const u = k / 60; d += (k ? "L" : "M") + (x - 26 + 52 * u).toFixed(1) + " " + (62 - 16 * Math.sin(2 * Math.PI * n * u)).toFixed(1); }
+      g += `<g data-px="tone" data-f="${f.toFixed(2)}" data-d="1.4" data-a=".22" role="button" tabindex="0" aria-label="Play partial ${n}: ${nm[0]}${acc ? " flat" : ""} ${nm.slice(1)}, ${Math.round(f)} hertz" style="cursor:pointer"><rect x="${x - cw / 2 + 2}" y="6" width="${cw - 4}" height="${bot + 30}" rx="8" fill="transparent" class="ovhit"/>
+        <text x="${x}" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${n}</text>
+        <path d="${d}" fill="none" stroke="var(--fi-red, #E8573F)" stroke-width="1.6"/>
+        <text x="${x}" y="100" text-anchor="middle" font-size="10" fill="currentColor">×${n}</text><text x="${x}" y="113" text-anchor="middle" font-size="10" fill="currentColor">${Math.round(f)} Hz</text>
+        <line x1="${x}" x2="${x}" y1="120" y2="${Math.min(y, top) - 8}" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="2 3"/>`;
+      for (let l = -2; l >= step; l -= 2) g += `<line x1="${x - 12}" x2="${x + 12}" y1="${st === "t" ? ty(l) : by(l)}" y2="${st === "t" ? ty(l) : by(l)}" stroke="currentColor" stroke-width="1.2"/>`;
+      if (acc) { const P = H.ACCP[acc]; g += `<path d="${P.d}" transform="translate(${x - 9 - 6 - P.w * sp} ${y}) scale(${sp})" fill="currentColor"/>`; }
+      g += `<ellipse cx="${x}" cy="${y}" rx="${sp * .72}" ry="${sp * .5}" transform="rotate(-20 ${x} ${y})" fill="none" stroke="currentColor" stroke-width="${sp * .26}"/>`;
+      const ly = bT + 4 * sp + 44;
+      g += acc ? `<text x="${x - 2}" y="${ly}" text-anchor="end" font-size="11" font-weight="700" fill="currentColor">${nm[0]}</text><path d="${H.ACCP[acc].d}" transform="translate(${x - 1} ${ly - 4}) scale(5.5)" fill="currentColor"/><text x="${x + 5}" y="${ly}" font-size="11" font-weight="700" fill="currentColor">${nm.slice(1)}*</text></g>` : `<text x="${x}" y="${ly}" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">${nm}</text></g>`;
+    });
+    return `<figure class="lfig ovfig"><svg viewBox="0 0 ${W} ${bT + 4 * sp + 56}" role="group" aria-label="The harmonic series on C2, partials 1 to 10: for each, a wave with that many cycles, its frequency, and its note on the grand staff. Partial 1: C2, 65 Hz; 2: C3, 131 Hz; 3: G3, 196 Hz; 4: C4 (middle C), 262 Hz; 5: E4, 327 Hz; 6: G4, 392 Hz; 7: B flat 4, 458 Hz (flatter than a piano's B flat); 8: C5, 523 Hz; 9: D5, 589 Hz; 10: E5, 654 Hz. Select a partial to hear it." style="width:100%;max-width:${W}px">${g}</svg><figcaption>Each partial vibrates 2, 3, 4… times as fast as the fundamental: in the same moment of time, partial 2's wave fits 2 cycles, partial 3's fits 3, and so on. Each wave's frequency lands on a note: the gaps shrink from an octave to a 5th, a 4th, a 3rd… Select a column to hear that partial. *Partial 7 is about a third of a semitone flatter than a piano's B♭.</figcaption></figure>`;
+  }
+  if (!window.__ovKeys) { window.__ovKeys = true; document.addEventListener("keydown", e => { const g = e.target.closest && e.target.closest("g[data-px]"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); g.dispatchEvent(new MouseEvent("click", { bubbles: true })); } }); }
+
+  // ---------- critical bandwidth: find where two tones split ----------
+  const CBR = { low: ["Low (A2, 110 Hz)", 110], mid: ["Middle (A3, 220 Hz)", 220], up: ["Upper (A4, 440 Hz)", 440], high: ["High (A6, 1760 Hz)", 1760] };
+  const CB = { reg: "up", c: 0, oscs: null, g: null, marks: {}, raf: 0 };
+  const cbHz = f => 25 + 75 * Math.pow(1 + 1.4 * Math.pow(f / 1000, 2), .69);   // Zwicker's critical bandwidth
+  const bark = f => 13 * Math.atan(.00076 * f) + 3.5 * Math.atan(Math.pow(f / 7500, 2));
+  const cbF1 = () => CBR[CB.reg][1], cbF2 = () => cbF1() * Math.pow(2, CB.c / 1200);
+  const cbCents = f => 1200 * Math.log2((f + cbHz(f)) / f);
+  const IVN = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th", "octave"];
+  const art = w => (/^[aeiou]/.test(w) ? "an " : "a ") + w;
+  const ivName = c => { const k = Math.round(c / 100), off = c - k * 100; return Math.abs(off) < 12 ? art(IVN[k]) : `between ${art(IVN[Math.floor(c / 100)])} and ${art(IVN[Math.ceil(c / 100)])}`; };
+  function cbSVG() {
+    const W = 560, Hh = 170, f1 = cbF1(), z1 = bark(f1), z0 = z1 - 1.5, z9 = z1 + 4.5, X = z => 20 + (W - 40) * (z - z0) / (z9 - z0), base = 118, top = 26;
+    const bump = zc => z => Math.exp(-Math.pow((z - zc) / .42, 2) / 2), b1 = bump(z1), b2 = bump(bark(cbF2()));
+    let p1 = "", p2 = "", ov = ""; for (let k = 0; k <= 200; k++) { const z = z0 + (z9 - z0) * k / 200, x = X(z); p1 += (k ? "L" : "M") + x.toFixed(1) + " " + (base - (base - top) * b1(z)).toFixed(1); p2 += (k ? "L" : "M") + x.toFixed(1) + " " + (base - (base - top) * b2(z)).toFixed(1); ov += (k ? "L" : "M") + x.toFixed(1) + " " + (base - (base - top) * Math.min(b1(z), b2(z))).toFixed(1); }
+    let g = `<path d="${ov}L${X(z9)} ${base}L${X(z0)} ${base}Z" fill="var(--fi-red, #E8573F)" fill-opacity=".45"/><path d="${p1}" fill="none" stroke="currentColor" stroke-width="2"/><path d="${p2}" fill="none" stroke="var(--fi-red-dk, #b33a26)" stroke-width="2"/>
+      <line x1="20" x2="${W - 20}" y1="${base}" y2="${base}" stroke="currentColor"/><text x="20" y="${base + 46}" font-size="11" fill="currentColor">low ← where each tone excites the inner ear (spaced in critical bands) → high</text>
+      <text x="20" y="16" font-size="12" font-weight="700" fill="currentColor">Shaded = overlap: the two tones share part of the inner ear</text>`;
+    const m = CB.marks[CB.reg];
+    if (m != null) { const xc = X(bark(f1 + cbHz(f1))), xm = X(bark(f1 * Math.pow(2, m / 1200))); g += `<line x1="${xc}" x2="${xc}" y1="${top - 4}" y2="${base}" stroke="var(--fi-green-dk, #2d6a1f)" stroke-width="2" stroke-dasharray="5 3"/><text x="${xc + 4}" y="${top + 8}" font-size="11" font-weight="700" fill="var(--fi-green-dk, #2d6a1f)">1 critical band</text><path d="M${xm} ${base + 2} l-6 10 h12z" fill="#1a5fb4"/><text x="${xm}" y="${base + 26}" text-anchor="middle" font-size="11" font-weight="700" fill="#1a5fb4">your mark</text>`; }
+    return `<svg viewBox="0 0 ${W} ${Hh}" aria-hidden="true" style="width:100%;max-width:${W}px">${g}</svg>`;
+  }
+  function cbTable() {
+    const rows = Object.entries(CBR).map(([k, [n, f]]) => { const m = CB.marks[k], c = cbCents(f); return `<tr><td>${n}</td><td>${m == null ? "–" : `${Math.round(m)} cents (${ivName(m)}), ${Math.round(f * Math.pow(2, m / 1200) - f)} Hz apart`}</td><td>${Math.round(c)} cents (${ivName(c)}), ${Math.round(cbHz(f))} Hz</td></tr>`; }).join("");
+    return `<div class="ltable-wrap" tabindex="0" role="region" aria-label="Your marks"><table class="ltable"><caption>Your marks vs. the critical bandwidth</caption><thead><tr><th scope="col">Register (lower tone)</th><th scope="col">Where you heard them split</th><th scope="col">Critical bandwidth</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  const cbDesc = () => `upper tone ${Math.round(CB.c)} cents above the lower (${ivName(CB.c)}), ${Math.round(cbF2() - cbF1())} Hz apart`;
+  function cbToy() {
+    return `<div class="toy" id="cbToy">
+      <div class="toy-row" role="group" aria-label="Register">${Object.entries(CBR).map(([k, [n]]) => `<button class="play" data-cbreg="${k}" aria-pressed="${CB.reg === k}">${n}</button>`).join("")}</div>
+      <div id="cbVis">${cbSVG()}</div>
+      <label class="toy-row" for="cbX" style="font-weight:700;gap:10px">Distance<input type="range" id="cbX" min="0" max="1200" step="1" value="${CB.c}" style="flex:1;min-width:160px" aria-valuetext="${cbDesc()}"></label>
+      <p class="msinfo" id="cbNow" style="margin:0">${cbDesc()[0].toUpperCase() + cbDesc().slice(1)}</p>
+      <div class="toy-row"><button class="play" id="cbPlay" aria-pressed="false"><span aria-hidden="true">▶ </span>Play both tones</button><button class="play" data-cbnudge="-5">◀ closer</button><button class="play" data-cbnudge="5">farther ▶</button><button class="play primary" id="cbMark">They split here</button></div>
+      <p class="msinfo" id="cbInfo" aria-live="polite">Press Play and start with the slider at the left (one tone). Move it right slowly: beats, then roughness, then two clear tones. Mark the point where you first hear two separate, smooth pitches.</p>
+      <div id="cbTab">${cbTable()}</div></div>`;
+  }
+  function cbStop() { if (!CB.oscs) return; const t = AC.currentTime; CB.g.gain.cancelScheduledValues(t); CB.g.gain.setTargetAtTime(0, t, .05); CB.oscs.forEach(o => o.stop(t + .4)); CB.oscs = null; const b = document.getElementById("cbPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.innerHTML = '<span aria-hidden="true">▶ </span>Play both tones'; } }
+  function cbStart() {
+    if (!ac()) return; fresh(); const t = AC.currentTime + .03, g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(CB.reg === "high" ? .11 : .16, t + .1); g.connect(bus);
+    CB.g = g; CB.oscs = [cbF1(), cbF2()].map((f, i) => { const o = AC.createOscillator(); o.frequency.value = f; o._w = i; o.connect(g); o.start(t); return o; });
+    const b = document.getElementById("cbPlay"); b.setAttribute("aria-pressed", "true"); b.innerHTML = '<span aria-hidden="true">■ </span>Stop';
+  }
+  function cbUpdate() {
+    const x = document.getElementById("cbX"); if (x) { x.value = CB.c; x.setAttribute("aria-valuetext", cbDesc()); }
+    const n = document.getElementById("cbNow"); if (n) n.textContent = cbDesc()[0].toUpperCase() + cbDesc().slice(1);
+    const v = document.getElementById("cbVis"); if (v) v.innerHTML = cbSVG();
+    if (CB.oscs) CB.oscs.forEach(o => o.frequency.setTargetAtTime(o._w ? cbF2() : cbF1(), AC.currentTime, .02));
+  }
+  if (!window.__cbWired) { window.__cbWired = true;
+    document.addEventListener("input", e => { if (e.target.id === "cbX") { CB.c = +e.target.value; cbUpdate(); } });
+    document.addEventListener("click", e => {
+      if (e.target.closest("#cbPlay")) { CB.oscs ? cbStop() : cbStart(); return; }
+      const nd = e.target.closest("[data-cbnudge]"); if (nd) { CB.c = Math.max(0, Math.min(1200, CB.c + +nd.dataset.cbnudge)); cbUpdate(); return; }
+      const rg = e.target.closest("[data-cbreg]"); if (rg) { CB.reg = rg.dataset.cbreg; CB.c = 0; document.querySelectorAll("[data-cbreg]").forEach(b => b.setAttribute("aria-pressed", b === rg)); if (CB.oscs) { cbStop(); cbStart(); } cbUpdate(); document.getElementById("cbInfo").textContent = `${CBR[CB.reg][0]}: start at the left and move right until the tones split.`; return; }
+      if (e.target.closest("#cbMark")) { if (CB.c < 5) { document.getElementById("cbInfo").textContent = "Move the slider first: at the far left the two tones are the same pitch."; return; }
+        CB.marks[CB.reg] = CB.c; const f = cbF1(), c = cbCents(f), d = CB.c - c;
+        document.getElementById("cbInfo").innerHTML = `<b>Marked: ${Math.round(CB.c)} cents (${ivName(CB.c)}).</b> The critical bandwidth here is about ${Math.round(cbHz(f))} Hz, or ${Math.round(c)} cents (${ivName(c)}). ${Math.abs(d) < c * .25 ? "Very close: you split them right around one critical band." : d < 0 ? "You heard them split a little before one full critical band, which is common: roughness fades gradually." : "You marked a bit beyond one critical band: the last of the roughness can linger."} Now try another register and compare.`;
+        document.getElementById("cbTab").innerHTML = cbTable(); cbUpdate(); return; }
+      if (e.target.closest("[data-px]")) cbStop(); });
+    setInterval(() => { if (CB.oscs && !document.getElementById("cbToy")) cbStop(); }, 300);
+  }
+
+  // ---------- tuning game: remove the beats ----------
+  const TI = { uni: ["Unison", 1, 1], oct: ["Octave", 2, 1], p5: ["Perfect 5th", 3, 2], m3: ["Major 3rd", 5, 4] };   // [name, p, q]: upper ≈ lower × p/q; partial q of the upper meets partial p of the lower
+  const TU = { iv: "p5", f1: 220, v: 50, c0: 50, span: 70, on: false, oscs: null, g: null, done: false, raf: 0, ph: 0, last: 0 };
+  const tuF2 = () => { const [, p, q] = TI[TU.iv]; return TU.f1 * p / q * Math.pow(2, (TU.v - TU.c0) / 100 * TU.span / 1200); };
+  const tuCents = () => (TU.v - TU.c0) / 100 * TU.span;
+  const tuBeats = () => { const [, p, q] = TI[TU.iv]; return Math.abs(q * tuF2() - p * TU.f1); };
+  const tuWord = b => b < .25 ? "no beats you can hear: in tune!" : b < 1 ? "very slow beats: almost there" : b < 3 ? "slow beats: close" : b < 8 ? "beating clearly: getting closer" : "fast beats or roughness: far off";
+  function tuNew() { TU.c0 = 18 + Math.random() * 64; TU.v = Math.random() < .5 ? Math.max(0, TU.c0 - 25 - Math.random() * 15) : Math.min(100, TU.c0 + 25 + Math.random() * 15); if (Math.abs(TU.v - TU.c0) < 20) TU.v = TU.c0 > 50 ? 0 : 100; TU.done = false; }
+  tuNew();
+  function tuToy() {
+    return `<div class="toy" id="tuToy">
+      <div class="toy-row" role="group" aria-label="Interval to tune">${Object.entries(TI).map(([k, [n]]) => `<button class="play" data-tuiv="${k}" aria-pressed="${TU.iv === k}">${n}</button>`).join("")}</div>
+      <canvas id="tuCan" width="560" height="120" aria-hidden="true" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;background:var(--fi-paper, #fbf6ec);border-radius:10px"></canvas>
+      <div class="tumeter" aria-hidden="true"><span>far</span><div class="tubar"><i id="tuFill"></i></div><span>in tune</span></div>
+      <label class="toy-row" for="tuX" style="font-weight:700;gap:10px">Upper note<input type="range" id="tuX" min="0" max="100" step=".1" value="${TU.v}" style="flex:1;min-width:160px" aria-valuetext="${tuWord(tuBeats())}"></label>
+      <div class="toy-row"><button class="play" id="tuPlay" aria-pressed="false"><span aria-hidden="true">▶ </span>Play both notes</button><button class="play" data-tunudge="-1" aria-label="Lower the upper note a little">◀ lower</button><button class="play" data-tunudge="1" aria-label="Raise the upper note a little">higher ▶</button><button class="play" id="tuNew">New puzzle</button><span class="msinfo" id="tuInfo" aria-live="polite">Press Play, then move the slider until the beats disappear.</span></div>
+      <p class="small" style="margin:0">The lower note stays at 220 Hz. Each note has overtones, so even the 5th and 3rd beat when they're slightly off: listen for a wobble in the sound and make it slow down until it stops. The wave above shows the loudness swelling and fading at the beat rate; the bar fills as you get closer. For fine tuning, use the ◀ lower and higher ▶ buttons or the arrow keys.</p></div>`;
+  }
+  function tuDraw(now) {
+    const cv = document.getElementById("tuCan"); if (!cv) { cancelAnimationFrame(TU.raf); TU.raf = 0; return; }
+    const c = cv.getContext("2d"), W = cv.width, Hh = cv.height, b = tuBeats(), dt = TU.last ? (now - TU.last) / 1000 : 0; TU.last = now;
+    if (TU.on) TU.ph += dt * Math.min(b, 30);
+    const err = Math.abs(tuCents()), close = Math.max(0, 1 - err / 30), col = `hsl(${Math.round(8 + close * 112)} 70% ${40 - close * 8}%)`;
+    c.clearRect(0, 0, W, Hh); c.lineWidth = 2;
+    // envelope: |cos| at the beat rate over a 2-second window (fast beats drawn as a dense blur)
+    c.beginPath(); for (let x = 0; x <= W; x += 2) { const t = x / W * 2, a = !TU.on ? .5 : b < .25 ? .95 : Math.abs(Math.cos(Math.PI * (Math.min(b, 30) * t + TU.ph))); const y = Hh / 2 - a * (Hh / 2 - 10); x ? c.lineTo(x, y) : c.moveTo(x, y); }
+    for (let x = W; x >= 0; x -= 2) { const t = x / W * 2, a = !TU.on ? .5 : b < .25 ? .95 : Math.abs(Math.cos(Math.PI * (Math.min(b, 30) * t + TU.ph))); c.lineTo(x, Hh / 2 + a * (Hh / 2 - 10)); }
+    c.closePath(); c.fillStyle = col; c.globalAlpha = .35; c.fill(); c.globalAlpha = 1; c.strokeStyle = col; c.stroke();
+    const lbl = TU.on ? (b < .25 ? "steady: no beats" : `about ${b < 10 ? b.toFixed(1) : Math.round(b)} beats per second`) : "press Play to hear it"; c.font = "bold 14px sans-serif"; c.fillStyle = "rgba(251,246,236,.92)"; c.fillRect(4, 3, c.measureText(lbl).width + 14, 22); c.fillStyle = "#222"; c.fillText(TU.on ? (b < .25 ? "steady: no beats" : `about ${b < 10 ? b.toFixed(1) : Math.round(b)} beats per second`) : "press Play to hear it", 10, 18);
+    const fill = document.getElementById("tuFill"); if (fill) { fill.style.width = (close * 100).toFixed(1) + "%"; fill.style.background = col; }
+    TU.raf = requestAnimationFrame(tuDraw);
+  }
+  function tuStop() { if (!TU.oscs) return; const t = AC.currentTime; TU.g.gain.cancelScheduledValues(t); TU.g.gain.setTargetAtTime(0, t, .05); TU.oscs.forEach(o => o.stop(t + .4)); TU.oscs = null; TU.on = false; const b = document.getElementById("tuPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.innerHTML = '<span aria-hidden="true">▶ </span>Play both notes'; } }
+  function tuStart() {
+    if (!ac()) return; fresh(); const t = AC.currentTime + .03, g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .1); g.connect(bus);
+    TU.g = g; TU.oscs = [];
+    [0, 1].forEach(w => { for (let h = 1; h <= 6; h++) { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.value = (w ? tuF2() : TU.f1) * h; og.gain.value = .5 / h; o.connect(og); og.connect(g); o.start(t); o._w = w; o._h = h; TU.oscs.push(o); } });
+    TU.on = true; const b = document.getElementById("tuPlay"); b.setAttribute("aria-pressed", "true"); b.innerHTML = '<span aria-hidden="true">■ </span>Stop';
+  }
+  function tuUpdate() {
+    const x = document.getElementById("tuX"), b = tuBeats();
+    if (x) x.setAttribute("aria-valuetext", tuWord(b));
+    if (TU.oscs) TU.oscs.forEach(o => { if (o._w) o.frequency.setTargetAtTime(tuF2() * o._h, AC.currentTime, .02); });
+    const info = document.getElementById("tuInfo");
+    if (b < .25 && !TU.done) { TU.done = true; if (info) info.innerHTML = `<b>In tune!</b> The beats are gone: you were ${Math.abs(tuCents()) < .1 ? "exactly on" : "within " + Math.max(.1, Math.abs(tuCents())).toFixed(1) + " cents of"} a pure ${TI[TU.iv][0].toLowerCase()} (${TI[TU.iv][1]}:${TI[TU.iv][2]}). Try another interval or a new puzzle.`; if (window.SFX) setTimeout(() => SFX.play(true), 150); }
+    else if (b >= .25) { if (TU.done) TU.done = false; if (info) info.textContent = tuWord(b)[0].toUpperCase() + tuWord(b).slice(1) + "."; }
+  }
+  if (!window.__tuWired) { window.__tuWired = true;
+    document.addEventListener("input", e => { if (e.target.id === "tuX") { TU.v = +e.target.value; tuUpdate(); } });
+    document.addEventListener("click", e => {
+      const nd = e.target.closest("[data-tunudge]"); if (nd) { TU.v = Math.max(0, Math.min(100, TU.v + .3 * +nd.dataset.tunudge)); const x = document.getElementById("tuX"); x.value = TU.v; tuUpdate(); return; }
+      if (e.target.closest("#tuPlay")) { TU.oscs ? tuStop() : tuStart(); if (!TU.raf) TU.raf = requestAnimationFrame(tuDraw); return; }
+      const iv = e.target.closest("[data-tuiv]"), nw = e.target.closest("#tuNew");
+      if (iv || nw) { if (iv) { TU.iv = iv.dataset.tuiv; document.querySelectorAll("[data-tuiv]").forEach(x => x.setAttribute("aria-pressed", x === iv)); } tuNew(); const x = document.getElementById("tuX"); x.value = TU.v; if (TU.oscs) TU.oscs.forEach(o => o.frequency.setTargetAtTime((o._w ? tuF2() : TU.f1) * o._h, AC.currentTime, .02)); document.getElementById("tuInfo").textContent = `${TI[TU.iv][0]}: move the slider until the beats disappear.`; tuUpdate(); TU.done = false; return; }
+      if (e.target.closest("[data-px]")) tuStop(); });
+    setInterval(() => { if (!document.getElementById("tuToy")) { if (TU.oscs) tuStop(); } else if (!TU.raf) TU.raf = requestAnimationFrame(tuDraw); }, 300);
+  }
   const btn = (label, attrs) => `<button class="play" ${Object.entries(attrs).map(([k, v]) => `data-${k}="${v}"`).join(" ")}><span aria-hidden="true">▶ </span>${label}</button>`;
   const stopBtn = `<button class="play" data-px="stop"><span aria-hidden="true">■ </span>Stop</button>`;
   const row = (...b) => `<div class="lbtns">${b.join("")}</div>`;
@@ -801,6 +953,9 @@ window.FAM = (() => {
       <p>Musicians use beats to tune: slow beats mean nearly in tune, and the beats vanish when the pitches match. Beats also appear between <b>overtones</b>: in a slightly mistuned 5th (200 and 302 Hz), the 3rd partial of the lower note (600) and the 2nd partial of the upper (604) beat 4 times a second. That is why piano tuners and string players can tune 5ths, 4ths and octaves so precisely by ear, and why equal-tempered 3rds and 5ths beat slightly on a piano.</p>
       ${partialFig()}
       ${row(btn("Pure 5th: 200 + 300 Hz", { px: "hpair", hz: "200 300" }), btn("Mistuned 5th: 200 + 302 Hz (beats)", { px: "hpair", hz: "200 302" }))}
+      <h3>Try it: tune by ear</h3>
+      <p>Tuners and string players tune by making the beats go away. Pick an interval, press Play, and slide the upper note until the sound stops wobbling.</p>
+      ${tuToy()}
       <h3>The chorus effect</h3>
       <p>Slow, gentle beating between slightly different copies of the same sound is what makes a choir or a string section sound rich: no two singers or players are ever exactly in tune or in time. The audio <b>chorus effect</b> imitates this: it mixes a sound with copies passed through very short delays whose length slowly wobbles, so each copy is a tiny bit sharp, then flat, then late, then early. Instead of one steady beat you hear a shimmering, widened sound.</p>
       ${row(btn("Plain tone", { px: "chorus", f: 220, mode: "dry" }), btn("Two copies detuned slightly (steady beating)", { px: "chorus", f: 220, mode: "detune" }), btn("Chorus effect (wobbling copies)", { px: "chorus", f: 220, mode: "chorus" }))}` },
@@ -809,10 +964,13 @@ window.FAM = (() => {
       <li><b>Further apart</b> (beating faster than about 15–20 per second): the beats blur into <b>roughness</b>, a buzzy, grating quality.</li>
       <li><b>Further still</b>: two separate, smooth tones.</li></ol>
       <p>The boundary is the <b>critical bandwidth</b>: the range of frequencies that the inner ear's basilar membrane cannot fully separate. Two tones inside one critical band interact (beats, roughness); outside it, they are heard as separate pitches. In the middle of the musical range the critical band is roughly a minor 3rd wide (about 15–20% of the frequency); in the low register it is much wider (around 100 Hz). Roughness is strongest when tones are about a quarter of a critical band apart.</p>
+      <h3>Try it: where do they split?</h3>
+      <p>Two pure tones: the lower one stays put while you slide the upper one away. Find the exact point where they stop sounding like one rough tone and become two separate pitches, then mark it. Do it in each register and compare: the answer changes a lot.</p>
+      ${cbToy()}
       ${row(btn("Glide a second tone away from 440 Hz", { px: "sweep2", f: 440, r: 1.5, t: 14 }), btn("Same, starting low (110 Hz)", { px: "sweep2", f: 110, r: 1.5, t: 14 }), stopBtn)}
       <p>This is one reason chords sound muddy when they are packed closely in the bass: low tones a 3rd apart sit inside one critical band and clash, while the same 3rd high up sounds clear. Composers and arrangers space chords widely at the bottom and more closely at the top, following the harmonic series.</p>` },
     { title: "Overtones", kick: "The harmonic series", render: (H, k, U) => `<p>A string or air column doesn't vibrate at just one frequency. It vibrates as a whole, and also in halves, thirds, quarters and so on, all at once. The whole-length vibration gives the <b>fundamental</b>; the others give <b>overtones</b> (also called harmonics or upper partials) at 2, 3, 4, 5… times the fundamental's frequency. Together they form the <b>harmonic series</b>.</p>
-      ${U.fig(seriesSpec, "The harmonic series on C2, partials 1–10. Partial 7 is noticeably flatter than the equal-tempered note.", { play: false })}
+      ${overtoneFig(H)}
       ${row(btn("Play partials 1–10 one by one", { px: "series", f: 65.41, n: 10 }), btn("Add them up into one tone", { px: "build", f: 65.41, n: 10 }))}
       <p>We don't usually hear the overtones separately: they fuse into one pitch, the fundamental. But their balance decides the <b>tone color</b> (timbre). A flute's tone has weak upper partials; an oboe's or a trumpet's has strong ones; a clarinet's low notes are strong in the odd-numbered partials. The harmonic series also explains why octaves, 5ths and 4ths sound so stable: their notes share many overtones.</p>` },
     { title: "From rhythm to pitch", kick: "Speed up a pulse", render: () => `<p>Pitch and rhythm are the same thing at different speeds. A click repeated 4 times a second is a rhythm. Speed it up past about <b>20 per second</b> and the clicks fuse: you hear a buzzy tone whose pitch is the click rate.</p>

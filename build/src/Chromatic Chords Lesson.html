@@ -471,6 +471,10 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .cdbox .cdmove.right { color: var(--fi-green-dk, #2d6a1f); }
 .cdbox .cdmove.wrong { color: var(--bad, #b3261e); }
 .cdbox .cdright { color: var(--fi-green-dk, #2d6a1f); opacity: .8; }
+/* beat-tuning game */
+.tumeter { display: flex; align-items: center; gap: 8px; font: 700 13px var(--mono); text-transform: uppercase; max-width: 560px; width: 100%; margin: 0 auto; }
+.tubar { flex: 1; height: 14px; border-radius: 999px; background: rgba(0,0,0,.1); overflow: hidden; }
+.tubar i { display: block; height: 100%; width: 0; border-radius: 999px; transition: width .1s; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
