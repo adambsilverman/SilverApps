@@ -437,6 +437,13 @@
           "note": "Practice tool"
         },
         {
+          "name": "Video Clip Maker",
+          "topic": "Video editing",
+          "blurb": "Trim, crop and split a video, normalize and master its sound, make a vertical Instagram version, and save the files.",
+          "open": "video-clip-maker.html",
+          "note": "Creative tool"
+        },
+        {
           "name": "Multitrack Studio",
           "topic": "Recording and layering",
           "blurb": "Layer synth melodies and your own recordings over a backing track, mix them and export audio.",

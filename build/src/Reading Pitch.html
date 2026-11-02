@@ -444,6 +444,8 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .rgw:hover, .rgw:focus-visible { background: var(--hl, #F7E3A1); }
 #rgQ { font: 16px var(--fi-serif, serif); padding: 6px 8px; min-height: 40px; border-radius: 8px; border: 1.5px solid var(--line, #ccc); }
 
+.histimg { width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto; border-radius: 6px; }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
 </style>
@@ -702,10 +704,6 @@ window.FAM = (() => {
   }
 
   // ---------- clef history pictures ----------
-  const guidoSVG = `<svg class="histsvg" viewBox="0 0 420 120" role="img" aria-label="A four-line chant staff with letter clefs: the F line is red and the C line is yellow, with square notes on the lines and spaces">
-    ${[0, 1, 2, 3].map(i => `<line x1="40" x2="410" y1="${25 + i * 20}" y2="${25 + i * 20}" stroke="${i === 1 ? "#c0392b" : i === 3 ? "#d4a017" : "currentColor"}" stroke-width="${i === 1 || i === 3 ? 3 : 1.2}"/>`).join("")}
-    <text x="14" y="${45 + 6}" font-size="22" font-family="serif" font-weight="700" fill="#c0392b">F</text><text x="14" y="${85 + 6}" font-size="22" font-family="serif" font-weight="700" fill="#8a6a00">C</text>
-    ${[[70, 65], [100, 55], [130, 45], [160, 55], [190, 35], [220, 45], [250, 55], [280, 65], [310, 75], [340, 65], [370, 85]].map(([x, y]) => `<rect x="${x - 7}" y="${y - 7}" width="14" height="14" fill="currentColor"/>`).join("")}</svg>`;
   const lettersSVG = `<svg class="histsvg" viewBox="0 0 420 150" role="img" aria-label="Letters G, F and C gradually became the treble, bass and C clef signs">
     ${[["G", "&#x1D11E;", 40], ["F", "&#x1D122;", 92], ["C", "&#x1D121;", 140]].map(([L, gl, y]) => `<text x="30" y="${y}" font-size="34" font-family="'UnifrakturMaguntia', 'Old English Text MT', serif" font-style="italic" fill="currentColor">${L}</text><text x="80" y="${y - 8}" font-size="22" fill="currentColor">→ · · · →</text><text x="200" y="${y}" font-size="30" font-family="serif" font-style="italic" fill="currentColor">${L}</text><text x="250" y="${y - 8}" font-size="22" fill="currentColor">→</text><text x="300" y="${y + 6}" font-size="44" font-family="'Noto Music', serif" fill="currentColor">${gl}</text>`).join("")}</svg>`;
   const lesson = { steps: [
@@ -734,8 +732,8 @@ window.FAM = (() => {
       <div class="lfigs">${U.fig(one("alto", lineNotes(H, "alto", "lines")), "<b>Alto lines: F A C E G</b>: “Fat Alley Cats Eat Grapes”", { small: true })}${U.fig(one("alto", lineNotes(H, "alto", "spaces")), "<b>Alto spaces: G B D F</b>: “Good Birds Don't Fly”", { small: true })}${U.fig(one("tenor", lineNotes(H, "tenor", "lines")), "<b>Tenor lines: D F A C E</b>: “Don't Forget Any Cello Etudes”", { small: true })}${U.fig(one("tenor", lineNotes(H, "tenor", "spaces")), "<b>Tenor spaces: E G B D</b>: “Every Good Bassoon Delights”", { small: true })}</div>
       <p>On the great staff, the alto clef's five lines are the <i>middle</i> five (F3 A3 C4 E4 G4); the tenor clef's are the next five down (D3 F3 A3 C4 E4).</p>`
       + H.check("Alto clef, middle line:", "C", ["B", "D", "A"], "The C clef's center marks middle C.") },
-    { title: "A short history of clefs", kick: "Letters on lines", render: (H, k, U) => `<p>Early chant notation (neumes) showed the shape of a melody but not exact pitches. Around the year 1000, <b>Guido of Arezzo</b> is credited with the staff of lines a 3rd apart, marking key lines with letters (and colors: red for F, yellow for C) so singers could find exact pitches.</p>
-      <figure class="lfig">${guidoSVG}<figcaption>A chant staff of four lines in the style of Guido's time: a red F line and a yellow C line, each labeled with its letter, and square notes.</figcaption></figure>
+    { title: "A short history of clefs", kick: "Letters on lines", render: (H, k, U) => `<p>Early chant notation (neumes) showed the shape of a melody but not exact pitches. Around the year 1000, <b>Guido of Arezzo</b> is credited with the staff of lines a 3rd apart, marking key lines with letters (and colors: often red for F, and yellow or green for C) so singers could find exact pitches.</p>
+      <figure class="lfig"><img class="histimg" src="assets/img/schoyen-ms207-chant.jpg" width="1090" height="708" alt="A page of 12th-century chant: Latin words under rows of neumes written along staff lines drawn in red and green, with letter clefs at the start of each staff."><figcaption>Chant from the 12th century, written in neumes on staff lines drawn in color, with letter clefs at the left edge marking which line is which pitch. Schøyen Collection MS 207 (Wikimedia Commons, public domain).</figcaption></figure>
       <p>Those letters are our clefs. Over centuries the written <b>C</b>, <b>F</b> and <b>G</b> became today's stylized signs: the C clef's two curves frame its line, the F clef's two dots frame theirs, and the G clef's curl circles G.</p>
       <figure class="lfig">${lettersSVG}<figcaption>From letters to signs: scribes' G, F and C were gradually stylized into the treble, bass and C clefs.</figcaption></figure>
       <p>Clefs were <b>movable</b>. Rather than add ledger lines, scribes slid the clef up or down so each voice's range fit on the five lines. The C clef had a position for each voice: <b>soprano</b> (C on the 1st line), <b>mezzo-soprano</b> (2nd), <b>alto</b> (3rd), <b>tenor</b> (4th) and <b>baritone</b> (5th; the F clef on the 3rd line made the same staff). Renaissance and Baroque choral parts, and many older editions, use them.</p>

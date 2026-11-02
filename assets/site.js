@@ -50,15 +50,3 @@
     });
   });
 })();
-
-/* iPad / iPhone: let Web Audio play even with the ring/silent switch on, and wake audio on the first touch. */
-(function () {
-  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
-  var done = false;
-  function unlock() {
-    if (done) return; done = true;
-    try { var a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="); a.setAttribute("playsinline", ""); var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
-    window.removeEventListener("touchend", unlock, true); window.removeEventListener("pointerup", unlock, true);
-  }
-  if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && "ontouchend" in document) { window.addEventListener("touchend", unlock, true); window.addEventListener("pointerup", unlock, true); }
-})();

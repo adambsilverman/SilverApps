@@ -36,7 +36,7 @@ ANALYTICS = ((f'<script defer src="https://cloud.umami.is/script.js" data-websit
               if UMAMI_WEBSITE_ID else "") +
              (f'<script data-goatcounter="https://{GOATCOUNTER_CODE}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>'
               if GOATCOUNTER_CODE else ""))
-HEAD_ASSETS = '<link rel="stylesheet" href="assets/indie.css">' + ANALYTICS
+HEAD_ASSETS = '<link rel="stylesheet" href="assets/indie.css">\n<script src="assets/audio-unlock.js"></script>' + ANALYTICS
 
 def set_title(s, title):
     full = f"{title} · {SITE}"
