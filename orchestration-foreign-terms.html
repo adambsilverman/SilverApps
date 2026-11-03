@@ -2651,8 +2651,39 @@ function makeQ(ri,cfg){
 function deck(cfg){let pool=[];return ()=>{if(!pool.length)pool=weightedOrder(eligible(cfg),cfg).reverse();return pool.pop()}}
 const revealOf = q=>({correct:q.correct||null, accepted:D[q.ri][q.t], row:{en:D[q.ri].en,fr:D[q.ri].fr,de:D[q.ri].de,it:D[q.ri].it}});
 const publicQ = q=>({id:q.id,f:q.f,t:q.t,prompt:q.prompt,group:q.group,fam:q.fam,kind:q.kind,options:q.options});
+/* other common names that count as correct when typed (keys are entries in D) */
+const ALT = {
+  "strings":["string instruments","string section","string"],
+  "violin":["fiddle"],
+  "violoncello":["cello","cellos"],
+  "double bass":["bass","contrabass","upright bass","string bass"],
+  "string bass":["bass","contrabass","upright bass","double bass"],
+  "mute on":["with mute","with mutes","muted","mute","mutes on","con sordino"],
+  "wind instruments":["winds","wind","wind instrument"],
+  "woodwind instruments":["woodwinds","woodwind","woodwind instrument"],
+  "English horn":["cor anglais"],
+  "saxophone":["sax"],
+  "fluttertongue":["flutter tongue","flutter tonguing","fluttertonguing","flutter"],
+  "brass instruments":["brass","brass instrument"],
+  "horn":["French horn"],
+  "keyboard instrument":["keyboard instruments","keyboards","keyboard"],
+  "piano":["pianoforte"],
+  "organ":["pipe organ"],
+  "celesta":["celeste"],
+  "percussion instruments":["percussion","percussion instrument"],
+  "cymbals":["cymbal","crash cymbals","clash cymbals"],
+  "drum":["drums"],
+  "glockenspiel":["orchestra bells","bells"],
+  "snare drum":["snare","side drum"],
+  "timpani":["kettledrums","kettle drums","kettledrum","timpano"],
+  "tubular bells":["chimes"],
+  "bassoon":["bassoons"],
+  "violoncelle":["cello"],
+  "Violoncello":["Cello"],
+};
 function gradeTyped(list,v){
   v=(v||"").trim(); if(!v) return {ok:false};
+  list=list.flatMap(a=>[a,...(ALT[a]||[])]);
   const variants=list.flatMap(a=>{const m=a.match(/\((.*?)\)/);return m?[a,m[1]]:[a]});
   const hx=variants.find(a=>exact(a)===exact(v)), hl=variants.find(a=>fold(a)===fold(v));
   return {ok:!!(hx||hl), spelling: !hx&&hl ? strip(hl) : null};

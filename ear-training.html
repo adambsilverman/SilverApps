@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ear Training · SilverApps for Music Training</title>
+<title>Ear Training – Pitch and Harmony · SilverApps for Music Training</title>
 <meta name="description" content="Ear training practice: sing intervals above given notes, identify chord qualities, sing short melodic patterns, and take melodic dictation.">
 <link rel="stylesheet" href="assets/indie.css">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
@@ -104,8 +104,8 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
 
 <main class="lesson" id="main">
   <header class="lesson-head">
-    <h1>Ear <span>Training</span></h1>
-    <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. Use headphones so the microphone hears only you.</p>
+    <h1>Ear Training <span>Pitch and Harmony</span></h1>
+    <p>Sing intervals and melodic patterns (the app listens through your microphone), name chord qualities, and write down melodies you hear. (For rhythm, see <a href="rhythm-performance.html">Ear Training – Rhythm</a>.) Use headphones so the microphone hears only you.</p>
   </header>
   <nav class="tabs" aria-label="Exercise" id="tabs">
     <button type="button" data-t="sing" aria-pressed="true"><b>Sing intervals</b><small>above a given note</small></button>
@@ -142,7 +142,7 @@ select{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:v
   if (!Array.isArray(S.clefs) || !S.clefs.length) S.clefs = ["treble"];
   S.chords = { sevenths: "usual7", both: "triUsual" }[S.chords] || S.chords;
   const save = () => { try { localStorage.setItem("silverapps-ear", JSON.stringify(S)); } catch (e) {} };
-  if (window.SAprogress) SAprogress.init({ id: "eartraining", name: "Ear Training", before: ".fi-credit" });
+  if (window.SAprogress) SAprogress.init({ id: "eartraining", name: "Ear Training – Pitch and Harmony", before: ".fi-credit" });
   const record = (cat, ok) => { if (window.SFX) SFX.play(ok); if (window.SAprogress) SAprogress.record(cat, ok); };
 
   // ---------- sound ----------

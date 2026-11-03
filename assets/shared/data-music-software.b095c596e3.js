@@ -645,7 +645,7 @@ window.FAM = (() => {
         ["Bars and beats ruler, time signature", "meter", '<a href="meter-lesson.html">Understanding Meter and Beaming</a>'],
         ["Grid and quantize values (1/4, 1/8, 1/16, triplets)", "beat, division, subdivision; tuplets", '<a href="note-values-lesson.html#step=6">Note Values: Meter and the beat</a> · <a href="note-values-lesson.html#step=8">Triplets and tuplets</a>'],
         ["Swing / groove settings", "uneven divisions, feel", '<a href="rhythm-notation-lesson.html">Rhythm Notation</a>'],
-        ["Click track and count-in", "playing in time", '<a href="rhythm-performance.html">Rhythm Performance</a>'],
+        ["Click track and count-in", "playing in time", '<a href="rhythm-performance.html">Ear Training – Rhythm</a>'],
         ["Piano roll (pitch on a vertical grid)", "pitch and the staff", '<a href="reading-pitch-lesson.html">Clefs and Pitch Reading</a>'],
         ["Key and scale settings, transpose", "keys and scales", '<a href="keys-and-scale-degrees-lesson.html">Keys and Scale Degrees</a> · <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a>'],
         ["Chord tracks and chord detection", "chord symbols", '<a href="chord-figures-and-symbols.html">Chord Figures and Symbols</a>'],

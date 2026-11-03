@@ -43,6 +43,41 @@ rep("  return ctl;\n}\nfunction rowcardHTML", "  if(o.shaker&&window.Shaker){con
 rep('G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,onSubmit:', 'G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,shaker:true,onSubmit:')
 rep('const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true});', 'const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true,shaker:!r}); if(r) ctl.lock();')
 
+# ---- alternate acceptable answers (typed mode only; the answer key and prompts are unchanged) ----
+rep("function gradeTyped(list,v){\n  v=(v||\"\").trim(); if(!v) return {ok:false};", """/* other common names that count as correct when typed (keys are entries in D) */
+const ALT = {
+  "strings":["string instruments","string section","string"],
+  "violin":["fiddle"],
+  "violoncello":["cello","cellos"],
+  "double bass":["bass","contrabass","upright bass","string bass"],
+  "string bass":["bass","contrabass","upright bass","double bass"],
+  "mute on":["with mute","with mutes","muted","mute","mutes on","con sordino"],
+  "wind instruments":["winds","wind","wind instrument"],
+  "woodwind instruments":["woodwinds","woodwind","woodwind instrument"],
+  "English horn":["cor anglais"],
+  "saxophone":["sax"],
+  "fluttertongue":["flutter tongue","flutter tonguing","fluttertonguing","flutter"],
+  "brass instruments":["brass","brass instrument"],
+  "horn":["French horn"],
+  "keyboard instrument":["keyboard instruments","keyboards","keyboard"],
+  "piano":["pianoforte"],
+  "organ":["pipe organ"],
+  "celesta":["celeste"],
+  "percussion instruments":["percussion","percussion instrument"],
+  "cymbals":["cymbal","crash cymbals","clash cymbals"],
+  "drum":["drums"],
+  "glockenspiel":["orchestra bells","bells"],
+  "snare drum":["snare","side drum"],
+  "timpani":["kettledrums","kettle drums","kettledrum","timpano"],
+  "tubular bells":["chimes"],
+  "bassoon":["bassoons"],
+  "violoncelle":["cello"],
+  "Violoncello":["Cello"],
+};
+function gradeTyped(list,v){
+  v=(v||"").trim(); if(!v) return {ok:false};
+  list=list.flatMap(a=>[a,...(ALT[a]||[])]);""")
+
 # ---- look ----
 s = re.sub(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/css2\?[^"]*">', "", s, count=1)
 s = force_light(s)
