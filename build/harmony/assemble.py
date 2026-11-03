@@ -1,9 +1,9 @@
 import json
-"""Assemble the harmony / voice-leading apps into build/src/*.html (then build_trainers.py adds the site look + class game).
+"""Assemble the harmony / voice-leading apps into build/gen/*.html (then build_trainers.py adds the site look + class game).
 Each page = the Modes Trainer's CSS + transposition/extra.css + EXTRA below + a body with a Lesson view and a Drills view
 + VexFlow + <app>.js (content: lesson steps, question makers, reference) + engine.js (shared logic)."""
 import pathlib, html
-B = pathlib.Path(__file__).resolve().parent; SRC = B.parent / "src"
+B = pathlib.Path(__file__).resolve().parent; SRC = B.parent / "src"; GEN = B.parent / "gen"; GEN.mkdir(exist_ok=True)
 src = (SRC / "Modes Trainer.html").read_text(encoding="utf-8").split("\n")
 HEAD = "\n".join(src[:229]); VEX = "\n".join(src[351:360])
 assert HEAD.rstrip().endswith("</style>") and VEX.startswith("<script>")
@@ -410,4 +410,4 @@ for f, view in [(f, v) for f in APPS for v in (("lesson",) if f.get("lesson_only
     page = f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view == "lesson" else f["lesson"]}", otherName: {json.dumps(_oname)}, cls: {"true" if not f.get("lesson_only") or f["drills"] not in NOCLASS else "false"} }};</script>\n'
     out = head + "\n</head>\n" + body(f, view) + VEX + "\n" + page + "<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n"
     src = f["src"] if view == "drills" else (f["src"] if f.get("lesson_only") else f["src"].replace(".html", " Lesson.html"))
-    (SRC / src).write_text(out, encoding="utf-8"); print("assembled", src, len(out))
+    (GEN / src).write_text(out, encoding="utf-8"); print("assembled", src, len(out))

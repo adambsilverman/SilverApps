@@ -1,29 +1,29 @@
 """Build the four MTC 501 trainers for SilverApps.
 
-For each source trainer (build/src/*.html) this:
+For each source trainer (build/src/*.html, or build/gen/*.html for the assembled apps) this:
   * restyles it (assets/indie.css + assets/trainer-skin.css, light theme only)
   * adds the site strip, linked "Made by Adam Silverman" credit and page title
   * hooks score() and registers a LiveClass adapter so the trainer can be played
     as a live class game (assets/live.js, mqtt.min.js, qrcode.js)
 and writes site/<slug>.html.  Run:  python3 build/build_trainers.py
 """
-import re, sys, pathlib
+import re, sys, json, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from common import *
 
-SRC, OUT = ROOT / "build" / "src", SITE_DIR
+SRC, GEN, OUT = ROOT / "build" / "src", ROOT / "build" / "gen", SITE_DIR
 
 BRIDGE = r'''
   // ===== SilverApps bridge (added by build/build_trainers.py) =====
   function __saLabel(m) { const b = document.querySelector(%(labelsel_m)s); return b ? b.textContent.trim() : m; }
-  if (window.SAprogress) SAprogress.init({ id: "%(id)s", name: "%(name)s", before: ".wrap-aside",
+  if (window.SAprogress) SAprogress.init({ id: __SA_APP.id, name: __SA_APP.name, before: ".wrap-aside",
     onReset: () => { S.right = 0; S.total = 0; S.streak = 0; S.misses = []; save(); renderScore(); } });
   if (window.LiveClass) (function () {
     const clone = o => JSON.parse(JSON.stringify(o));
     const relabel = () => { const p = document.querySelector("#feedback .verdict .pill"); if (p) { p.className = "pill warn"; p.textContent = "Answer"; } };
     const tidy = () => document.querySelectorAll("#feedback .verdict span:last-child").forEach(n => { n.innerHTML = n.innerHTML.replace(/\s*(Study it, then try the next one\.\s*)?Th(is|ese) [\w-]+ will come back for review\./, "").trim() || "Here's the answer."; });
     LiveClass.register({
-      id: "%(id)s", name: "%(name)s",
+      id: __SA_APP.id, name: __SA_APP.name,
       mount: document.querySelector("nav.modes"),
       card: document.querySelector("main.card"),
       getConfig: () => ({ mode: S.mode, settings: clone(S.settings) }),
@@ -184,7 +184,7 @@ SCORE_HOOK = ("if (!(window.LiveClass && LiveClass.active)) { %(sfxcall)s"
 FONTS = ''   # Noto Music is self-hosted in assets/indie.css
 
 def build(a):
-    s = (SRC / a["src"]).read_text(encoding="utf-8")
+    s = ((GEN if (GEN / a["src"]).exists() else SRC) / a["src"]).read_text(encoding="utf-8")   # generated sources in build/gen, originals in build/src
     # 1. fonts: drop the old display/body faces (we use League Gothic + Schibsted Grotesk), keep Noto Music for 𝄫 𝄪
     s = re.sub(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/css2\?[^"]*">', FONTS, s, count=1)
     # 2. theme
@@ -206,7 +206,8 @@ def build(a):
     js = js[:end] + (BRIDGE % a) + js[end:]
     libs = (PROGRESS_SCRIPTS + '<script src="assets/mqtt.min.js"></script>\n<script src="assets/qrcode.js"></script>\n'
             '<script src="assets/live.js"></script>\n<script src="assets/site.js"></script>\n')
-    s = s[:app.start()] + libs + "<script>" + js + "</script>" + s[app.end():]
+    ident = '<script>var __SA_APP = %s;</script>\n' % json.dumps({"id": a["id"], "name": a["name"]}, ensure_ascii=False)   # per-page identity, so the shared app code is identical across pages
+    s = s[:app.start()] + libs + ident + "<script>" + js + "</script>" + s[app.end():]
     s = before_body_close(s, CREDIT)
     # cache-busting: ?v=<md5> on local scripts, so browsers fetch a changed live.js, sfx.js… (as build_pages.py does)
     import hashlib

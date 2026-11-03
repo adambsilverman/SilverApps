@@ -350,6 +350,7 @@ details.panel[open] summary::after { content: "−"; }
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
 <script src="assets/live.js?v=3b6de12e"></script>
 <script src="assets/site.js?v=9425cedd"></script>
+<script>var __SA_APP = {"id": "modulation", "name": "Key Modulation"};</script>
 <script>
 (() => {
   // ---------- Theory engine ----------
@@ -1466,14 +1467,14 @@ details.panel[open] summary::after { content: "−"; }
 
   // ===== SilverApps bridge (added by build/build_trainers.py) =====
   function __saLabel(m) { const b = document.querySelector(`.modes [data-mode="${m}"] b`); return b ? b.textContent.trim() : m; }
-  if (window.SAprogress) SAprogress.init({ id: "modulation", name: "Key Modulation", before: ".wrap-aside",
+  if (window.SAprogress) SAprogress.init({ id: __SA_APP.id, name: __SA_APP.name, before: ".wrap-aside",
     onReset: () => { S.right = 0; S.total = 0; S.streak = 0; S.misses = []; save(); renderScore(); } });
   if (window.LiveClass) (function () {
     const clone = o => JSON.parse(JSON.stringify(o));
     const relabel = () => { const p = document.querySelector("#feedback .verdict .pill"); if (p) { p.className = "pill warn"; p.textContent = "Answer"; } };
     const tidy = () => document.querySelectorAll("#feedback .verdict span:last-child").forEach(n => { n.innerHTML = n.innerHTML.replace(/\s*(Study it, then try the next one\.\s*)?Th(is|ese) [\w-]+ will come back for review\./, "").trim() || "Here's the answer."; });
     LiveClass.register({
-      id: "modulation", name: "Key Modulation",
+      id: __SA_APP.id, name: __SA_APP.name,
       mount: document.querySelector("nav.modes"),
       card: document.querySelector("main.card"),
       getConfig: () => ({ mode: S.mode, settings: clone(S.settings) }),

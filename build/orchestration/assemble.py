@@ -1,8 +1,8 @@
-"""Assemble the orchestration-family trainers into build/src/*.html (then run build_trainers.py).
+"""Assemble the orchestration-family trainers into build/gen/*.html (then run build_trainers.py).
 Each page = the Modes Trainer's CSS + transposition/extra.css + a body made from FAMILIES below
 + (VexFlow if the family draws staves) + <family>.js (content) + engine.js (shared logic)."""
 import pathlib, html
-B = pathlib.Path(__file__).resolve().parent; SRC = B.parent / "src"
+B = pathlib.Path(__file__).resolve().parent; SRC = B.parent / "src"; GEN = B.parent / "gen"; GEN.mkdir(exist_ok=True)
 src = (SRC / "Modes Trainer.html").read_text(encoding="utf-8").split("\n")
 HEAD = "\n".join(src[:229]); VEX = "\n".join(src[351:360])
 assert HEAD.rstrip().endswith("</style>") and VEX.startswith("<script>")
@@ -180,4 +180,4 @@ for f in FAMILIES:
     head = head[:head.rstrip().rindex("</style>")] + EXTRA + MODES_CSS + "\n</style>"
     data = (B / DATA[f["src"]]).read_text(encoding="utf-8")
     out = (head + "\n</head>\n" + body(f) + (VEX + "\n" if f["vex"] else "") + "<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n")
-    (SRC / f["src"]).write_text(out, encoding="utf-8"); print("assembled", f["src"], len(out))
+    (GEN / f["src"]).write_text(out, encoding="utf-8"); print("assembled", f["src"], len(out))
