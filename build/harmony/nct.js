@@ -87,8 +87,25 @@ window.FAM = (() => {
   function spec(H, x, o = {}) {
     const k = x.k;
     const mel = x.notes.map((n, a) => Object.assign({ k: [H.nmO(dn(H, k, n.i))], q: n.q, tie: n.tie }, o.hl && x.ncts.includes(a) ? { hl: true } : {}, o.num ? { n: a + 1 } : {}, o.tags && x.ncts.includes(a) ? { tag: x.lab[a] } : {}));
-    const LHV = H.lhSeq(x.prog.map(d => H.diat(k, d))), bass = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: LHV[i], q: 2, lab: o.rn === false ? null : rnD(H, k, d), sym: o.sym === false ? null : c.sym }; });
-    return { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ t: [mel], b: [bass] }) };
+    // accompaniment on a grand staff: the bass note in the left hand, the three chord tones in close position in the right hand
+    const acc = rhSeq(H, x.prog.map(d => H.diat(k, d)));
+    const rh = acc.map(v => ({ k: v.rh, q: 2 })), lh = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: [acc[i].bass], q: 2, lab: o.rn === false ? null : rnD(H, k, d), sym: o.sym === false ? null : c.sym }; });
+    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ m: [mel], t: [rh], b: [lh] }) };
+  }
+  // right hand: the triad's three tones in close position (lowest note G3–F4, top note at most D5), each chord moving as little as possible from the last; left hand: the root, F2–E3
+  function rhSeq(H, chords) {
+    let prev = null;
+    return chords.map(c => {
+      const b = c.tones[0]; let o = 2; while (H.midi(H.N(b.l, b.a, o)) < 41) o++; while (H.midi(H.N(b.l, b.a, o)) >= 53) o--;
+      const tones = c.tones.slice(0, 3), cands = [];
+      tones.forEach((_, r) => { const order = tones.slice(r).concat(tones.slice(0, r));
+        for (let oo = 3; oo <= 4; oo++) { const v = [H.N(order[0].l, order[0].a, oo)];
+          for (let i = 1; i < 3; i++) { let y = H.N(order[i].l, order[i].a, v[i - 1].o); while (H.midi(y) <= H.midi(v[i - 1])) y = H.N(y.l, y.a, y.o + 1); v.push(y); }
+          if (H.midi(v[0]) >= 55 && H.midi(v[0]) <= 65 && H.midi(v[2]) <= 74) cands.push(v); } });
+      const cost = v => prev ? v.reduce((t, n, i) => t + Math.abs(H.midi(n) - H.midi(prev[i])), 0) : Math.abs(H.midi(v[1]) - 64);
+      const best = cands.sort((p, q) => cost(p) - cost(q))[0]; prev = best;
+      return { bass: H.nmO(H.N(b.l, b.a, o)), rh: best.map(H.nmO) };
+    });
   }
 
   // ---------- suspensions with figures ----------

@@ -290,7 +290,7 @@
     const has = f => all.some(n => n[f]);
     const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") ? 22 : 0) + (has("bs") ? 26 : 0);
     const gap = clefs.length > 1 ? (has("ly") ? 120 : 96) : 0;
-    const rowH = above + 20 + gap + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
+    const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
     const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     r.resize(totalW, rows.length * rowH + 10);
@@ -311,7 +311,11 @@
           const head = Math.max(...staves.map(s => s.getNoteStartX())) - x - offS, tail = x + bw - Math.min(...staves.map(s => s.getNoteEndX())) - offE;
           bw = barW(bar) - (bar.time ? 26 : 0) + Math.max(0, head) + Math.max(0, tail); staves.forEach(s => s.setWidth(bw)); }
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
-        if (clefs.length > 1) { const types = j === 0 ? ["brace", "singleLeft"] : []; if (j === row.length - 1) types.push(bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight"); else types.push("singleRight"); types.forEach(t => { const c = new VF.StaveConnector(staves[0], staves[1]); c.setType(t); st(c); c.setContext(ctx).draw(); }); }
+        if (clefs.length > 1) {   // two staves: a braced grand staff. Three: a melody staff above a braced grand staff (system line on the left; bar lines join the grand staff only)
+          const gs = clefs.length > 2 ? 1 : 0, conn = (a, b, t) => { const c = new VF.StaveConnector(a, b); c.setType(t); st(c); c.setContext(ctx).draw(); };
+          if (j === 0) { conn(staves[0], staves[staves.length - 1], "singleLeft"); conn(staves[gs], staves[gs + 1], "brace"); }
+          conn(staves[gs], staves[gs + 1], j === row.length - 1 && bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight");
+        }
         const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
         const vlist = [], beams = [], tuplets = [];
         clefs.forEach((c, si) => {
@@ -408,7 +412,7 @@
     const sp = s => { const x = parse(s); return nmSpoken(x) + " " + x.o; };
     const nd = n => { const m = /^(w|h|q|8|16)(d*)$/.exec(n.d); const d = (m[2] ? "dotted " : "") + DURNAME[m[1]]; return (n.k.length ? (clefs[0] === "percussion" ? "" : n.k.map(sp).join(" ") + " ") + d : d.replace("note", "rest")) + (n.tie ? " tied" : "") + (n.tag ? ` (${n.tag})` : "") + (n.hl ? " (circled)" : "") + (n.ly ? ` “${n.ly}”` : "") + (n.lab ? `, ${rnSpoken(n.lab)}` : ""); };
     const kd = o.vf && o.vf !== "C" && clefs[0] !== "percussion" ? `key signature of ${speak(nm(parse(o.vf.replace(/m$/, "").replace("b", "♭").replace("#", "♯"))))}${o.vf.endsWith("m") ? " minor" : " major"}, ` : "";
-    return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
+    return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (o.names ? o.names[si] + " " : si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
   }
   // a metronome click on every beat of a score spec (pick-up bars start mid-bar), merged with the music
   function withClick(o, p) {
