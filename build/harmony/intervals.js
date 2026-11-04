@@ -14,7 +14,12 @@ window.FAM = (() => {
   function beep(m) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; if (!AC) AC = new C(); if (AC.state === "suspended") AC.resume();
     const t = AC.currentTime + .02, o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.25, t + .01); g.gain.setTargetAtTime(0, t + .3, .25); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 1.5); }
   if (!window.__ikbWired) { window.__ikbWired = true;
-    document.addEventListener("click", e => { const k = e.target.closest("[data-ikb]"); if (k) beep(+k.dataset.ikb); });
+    document.addEventListener("click", e => { const k = e.target.closest("[data-ikb]"); if (!k) return; const m = +k.dataset.ikb; beep(m);
+      // show the pitch name on the key while it sounds (black keys: both spellings)
+      const old = k.querySelector(".iknm"); if (old) old.remove(); clearTimeout(k._t);
+      const nmEl = document.createElement("i"); nmEl.className = "iknm"; nmEl.setAttribute("aria-hidden", "true"); nmEl.innerHTML = PCN[m % 12].split("/").join("<br>"); k.appendChild(nmEl); k.classList.add("on");
+      const live = document.getElementById("ikLive"); if (live) live.textContent = PCN[m % 12].replace("/", " or ");
+      k._t = setTimeout(() => { nmEl.remove(); k.classList.remove("on"); }, 1100); });
     new MutationObserver(() => document.querySelectorAll("details.ikbd:not([data-set])").forEach(d => { d.dataset.set = "1"; d.open = kbOpen(); })).observe(document.documentElement, { childList: true, subtree: true });
     document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ikbd")) try { localStorage.setItem("silverapps-intervals-kb", e.target.open ? "1" : "0"); } catch (x) {} }, true); }
   const kbOpen = () => { try { return localStorage.getItem("silverapps-intervals-kb") === "1"; } catch (e) { return false; } };
@@ -25,7 +30,7 @@ window.FAM = (() => {
     const w = 100 / whites.length; let h = "";
     whites.forEach((m, i) => { h += `<button class="ik w${marks[m] ? " mk" : ""}" data-ikb="${m}" style="left:${i * w}%;width:${w}%" aria-label="${PCN[m % 12]} ${Math.floor(m / 12) - 1}${marks[m] ? ", " + marks[m] : ""}">${marks[m] ? `<b>${marks[m]}</b>` : ""}${m % 12 === 0 ? `<span>C${Math.floor(m / 12) - 1}</span>` : ""}</button>`; });
     for (let m = lo; m <= hi; m++) if ([1, 3, 6, 8, 10].includes(m % 12)) { const i = whites.indexOf(m - 1); h += `<button class="ik b${marks[m] ? " mk" : ""}" data-ikb="${m}" style="left:${(i + 1) * w - w * .3}%;width:${w * .6}%" aria-label="${PCN[m % 12]} ${Math.floor(m / 12) - 1}${marks[m] ? ", " + marks[m] : ""}">${marks[m] ? `<b>${marks[m]}</b>` : ""}</button>`; }
-    return `<details class="ikbd"${kbOpen() ? " open" : ""}><summary>Show keyboard</summary><div class="ikbwrap"><div class="ikb" role="group" aria-label="Keyboard for counting half steps; click a key to hear it">${h}</div></div><p class="ikbnote">Count half steps from key to key (black keys included). Click keys to hear them.</p></details>`;
+    return `<details class="ikbd"${kbOpen() ? " open" : ""}><summary>Show keyboard</summary><div class="ikbwrap"><div class="ikb" role="group" aria-label="Keyboard for counting half steps; click a key to hear it">${h}</div></div><p class="ikbnote">Count half steps from key to key (black keys included). Click keys to hear them and see their names.</p><p class="sr" id="ikLive" aria-live="polite"></p></details>`;
   }
 
   // ---------- question building ----------
@@ -45,15 +50,17 @@ window.FAM = (() => {
   const why = (H, lo, hi, i, q) => `${H.nm(lo)} up to ${H.nm(hi)}: ${i + 1} letter names (${Array.from({ length: i + 1 }, (_, k) => "CDEFGAB"[(lo.l + k) % 7]).join(" ")}), so ${i === 0 ? "a unison" : i === 7 ? "an octave" : "a " + NUM[i]}; ${H.midi(hi) - H.midi(lo)} half steps, so ${nameOf(i, q)}.`;
 
   function make(mode, H) {
+    if (mode === "note" || mode === "above" || mode === "below") mode = mode === "note" ? (Math.random() < .5 ? "above" : "below") : mode;   // one "write the note" drill, above or below at random
     const clef = Math.random() < .7 ? "treble" : "bass";
     for (let g = 0; g < 80; g++) {
       const { i, q, topic } = pick(H), semis = BASE[i] + off(i, q);
       if (semis < 0 || (i === 0 && q === "d") || (i === 0 && topic === "pmm" && (mode !== "name" || Math.random() < .8)) || (i === 7 && topic === "pmm" && (mode === "above" || mode === "below"))) continue;
+      if (mode === "semis" && (semis < 1 || semis > 12)) continue;   // half-step counts 1–12
       if (mode === "name" || mode === "semis") {
         const lo = lowNote(H, clef), hi = H.up(lo, i, semis); if (!okSpell(hi) || Math.abs(hi.a) > 1 && Math.random() < .7) continue;
         const harm = Math.random() < .4, marks = { [H.midi(lo)]: "1" }; marks[H.midi(hi)] = H.midi(hi) === H.midi(lo) ? "1" : "2";
         if (mode === "semis") {
-          const ans = String(semis); return Object.assign(H.mc(`How many half steps are in this interval (${nameOf(i, q)})?`, ans, [semis - 1, semis + 1].filter(x => x >= 0).map(String), why(H, lo, hi, i, q), { kicker: "Count half steps", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks) }), { choices: Array.from({ length: 14 }, (_, n) => String(n)) });   // every count 0–13, in order
+          const ans = String(semis); return Object.assign(H.mc(`How many half steps are in this interval (${nameOf(i, q)})?`, ans, [semis - 1, semis + 1].filter(x => x >= 0).map(String), why(H, lo, hi, i, q), { kicker: "Count half steps", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks) }), { choices: Array.from({ length: 12 }, (_, n) => String(n + 1)) });   // every count 1–12, in order
         }
         const wrong = [...new Set(qualsFor(i, H.topicOn("ad")).filter(x => x !== q).map(x => nameOf(i, x)).concat([i > 0 ? nameOf(i - 1, PERF[i - 1] ? "P" : q === "M" ? "M" : "m") : null, i < 7 ? nameOf(i + 1, PERF[i + 1] ? "P" : q === "m" ? "m" : "M") : null].filter(Boolean)))];
         return H.mc(`Name this ${harm ? "harmonic" : "melodic"} interval: choose its quality and number.`, nameOf(i, q), wrong, why(H, lo, hi, i, q), { kicker: "Name the interval", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks), widget: "ivpick", ad: H.topicOn("ad") });
@@ -121,7 +128,7 @@ window.FAM = (() => {
   const lesson = { steps: [{ title: "Intervals", kick: "Lesson", render: () => `<p>The lesson for these drills is <a href="intervals-what-why-how.html">Intervals: What, Why and How</a>.</p>` }] };
   return {
     key: "silverapps-intervals-v1", lesson, make, reference, widgets,
-    modes: [{ id: "name", kicker: "Name the interval" }, { id: "above", kicker: "Write the note above" }, { id: "below", kicker: "Write the note below" }, { id: "semis", kicker: "Count half steps" }],
+    modes: [{ id: "name", kicker: "Name the interval" }, { id: "note", kicker: "Write the note" }, { id: "semis", kicker: "Count half steps" }],
     topics: [{ id: "pmm", name: "Perfect, major, minor", group: "q" }, { id: "ad", name: "Augmented, diminished", group: "q" }],
   };
 })();

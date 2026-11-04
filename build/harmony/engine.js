@@ -272,14 +272,30 @@
       const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
       w = nw; fmt.format(vs, w);
     }
+    return fitInside(VF, fmt, vs, avail, w);
+  }
+  // after justification: shrink until every note (with its dots and accidentals) ends inside the bar
+  function fitInside(VF, fmt, vs, avail, w) {
+    for (let it = 0; it < 6; it++) {
+      let right = 0;
+      vs.forEach(v => v.getTickables().forEach(n => { if (n instanceof VF.GhostNote || !n.getTickContext()) return; const m = n.getMetrics ? n.getMetrics() : null; right = Math.max(right, n.getTickContext().getX() + (m ? m.notePx + m.modRightPx : 12)); }));
+      if (right <= avail + 8) return w;
+      w = Math.max(10, w * (avail + 4) / right); fmt.format(vs, w);
+    }
     return w;
   }
   function drawScore(el, o) {
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.includes("d") ? 8 : 0) + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
-    const barW = bar => (bar.time ? 26 : 0) + Math.max(bar.minBar || o.minBar || 70, ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
+    const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
+    const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
+      const vs = ids.flatMap(id => bar[id] || []); if (!vs.length) return 0;
+      const rate = Math.max(0, ...vs.flat().filter(n => !n.ghost).map(n => wNote(n) / durN(n))), len = Math.max(...vs.map(v => v.reduce((t, n) => t + durN(n), 0)));
+      return Math.min(rate * len, 640) * .92;
+    };
+    const barW = bar => (bar.time ? 26 : 0) + Math.max(bar.minBar || o.minBar || 70, propW(bar), ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
     const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
     const MAXW = o.rowW || 680, rows = [];
     let cur = [], w = 0;
@@ -310,7 +326,7 @@
           const head = Math.max(...staves.map(s => s.getNoteStartX())) - x - offS, tail = x + bw - Math.min(...staves.map(s => s.getNoteEndX())) - offE;
           bw = barW(bar) - (bar.time ? 26 : 0) + Math.max(0, head) + Math.max(0, tail); staves.forEach(s => s.setWidth(bw)); }
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
-        if (clefs.length > 1) {   // two staves: a braced grand staff. Three: a melody staff above a braced grand staff (system line on the left; bar lines join the grand staff only)
+        if (clefs.length > 1 && o.brace !== false) {   // two staves: a braced grand staff. Three: a melody staff above a braced grand staff (system line on the left; bar lines join the grand staff only)
           const gs = clefs.length > 2 ? 1 : 0, conn = (a, b, t) => { const c = new VF.StaveConnector(a, b); c.setType(t); st(c); c.setContext(ctx).draw(); };
           if (j === 0) { conn(staves[0], staves[staves.length - 1], "singleLeft"); conn(staves[gs], staves[gs + 1], "brace"); }
           conn(staves[gs], staves[gs + 1], j === row.length - 1 && bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight");

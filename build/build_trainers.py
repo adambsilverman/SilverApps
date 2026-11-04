@@ -142,8 +142,8 @@ HARM = [
   ("Rhythm Notation Lesson.html", "rhythm-notation-lesson.html", "rhythmlesson", "Understanding Rhythm Notation"),
   ("Reading Pitch.html", "reading-pitch.html", "pitch", "Reading Pitch"),
   ("Reading Pitch Lesson.html", "reading-pitch-lesson.html", "pitch-lesson", "Understanding Clefs and Pitch Reading"),
-  ("Note Values.html", "note-values.html", "notevalues", "Note Values and Rhythm"),
-  ("Note Values Lesson.html", "note-values-lesson.html", "notevalues-lesson", "Understanding Note Values and Rhythm"),
+  ("Note Values.html", "note-values.html", "notevalues", "Units of Rhythm"),
+  ("Note Values Lesson.html", "note-values-lesson.html", "notevalues-lesson", "Understanding Units of Rhythm"),
   ("Meter.html", "meter.html", "meter", "Meter and Beaming"),
   ("Meter Lesson.html", "meter-lesson.html", "meter-lesson", "Understanding Meter and Beaming"),
   ("Pitch.html", "introduction-to-pitch.html", "pitchintro", "Pitch"),
@@ -190,7 +190,9 @@ def build(a):
     # 2. theme
     s = force_light(s)
     s = set_title(s, a["name"])
-    s, nh = re.subn(r"<h1>[^<]*</h1>", "<h1>" + a["name"] + "</h1>", s, count=1); assert nh == 1
+    pre = re.match(r"(Understanding|Introduction to|About) (.+)$", a["name"])   # lesson titles: the lead-in word in color, the subject's real name in ink
+    h1 = f'<span class="h1-pre">{pre.group(1)}</span> {pre.group(2)}' if pre else a["name"]
+    s, nh = re.subn(r"<h1>[^<]*</h1>", "<h1>" + h1 + "</h1>", s, count=1); assert nh == 1
     s = before_head_close(s, HEAD_ASSETS + '\n<link rel="stylesheet" href="assets/trainer-skin.css">')
     # 3. site strip + credit
     s = after_body_open(s, strip_html(sound=a["sfx"]))

@@ -102,14 +102,37 @@ window.FAM = (() => {
       <p class="legend">Dot = + half the value; second dot = + half of the first dot. Triplet = 3 in the time of 2; duplet (compound meter) = 2 in the time of 3.</p>`;
   }
 
+  // labeled diagram for "Parts of a note": notehead, stem, flag, beam, two flags, stem direction
+  function partsFig() {
+    const W = 660, sp = 12, top = 96, Y = st => top + 4 * sp - st * sp / 2, ink = "currentColor", red = "var(--fi-red-dk, #b33a26)";
+    let g = ""; for (let i = 0; i < 5; i++) g += `<line x1="16" x2="${W - 16}" y1="${top + i * sp}" y2="${top + i * sp}" stroke="${ink}" stroke-width="1.2"/>`;
+    const head = (x, st, open) => { const y = Y(st); return `<ellipse cx="${x}" cy="${y}" rx="${sp * .68}" ry="${sp * .48}" transform="rotate(-20 ${x} ${y})" fill="${open ? "none" : ink}" stroke="${ink}" stroke-width="${open ? sp * .22 : 1}"/>`; };
+    const stemUp = (x, st, len = 3.5) => { const y = Y(st), xs = x + sp * .62; return { x: xs, y1: y - 2, y2: y - len * sp, svg: `<line x1="${xs}" x2="${xs}" y1="${y - 2}" y2="${y - len * sp}" stroke="${ink}" stroke-width="1.6"/>` }; };
+    const flag = (x, y) => `<path d="M${x} ${y} c 1 11 15 15 13 33 c 5 -15 -4 -23 -13 -26 z" fill="${ink}"/>`;
+    const label = (tx, ty, x2, y2, t, anchor = "middle") => `<line x1="${tx}" y1="${ty + (ty < y2 ? 6 : -16)}" x2="${x2}" y2="${y2}" stroke="${red}" stroke-width="1.4"/><circle cx="${x2}" cy="${y2}" r="2.6" fill="${red}"/><text x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="15" font-weight="700" fill="${red}">${t}</text>`;
+    // 1 half note (open head), 2 quarter (filled head, stem), 3 eighth (flag), 4–5 beamed eighths, 6 sixteenth (two flags), 7 a high note: stem down on the left
+    const xs = [70, 160, 250, 335, 385, 475, 580];
+    g += head(xs[0], 1, true) + stemUp(xs[0], 1).svg;
+    const s2 = stemUp(xs[1], 2); g += head(xs[1], 2) + s2.svg;
+    const s3 = stemUp(xs[2], 1); g += head(xs[2], 1) + s3.svg + flag(s3.x, s3.y2);
+    const s4 = stemUp(xs[3], 2), s5 = stemUp(xs[4], 3, 3.25); g += head(xs[3], 2) + head(xs[4], 3) + s4.svg + `<line x1="${s5.x}" x2="${s5.x}" y1="${s5.y1}" y2="${s4.y2}" stroke="${ink}" stroke-width="1.6"/>` + `<rect x="${s4.x - .8}" y="${s4.y2}" width="${s5.x - s4.x + 1.6}" height="${sp * .5}" fill="${ink}"/>`;
+    const s6 = stemUp(xs[5], 1, 3.8); g += head(xs[5], 1) + s6.svg + flag(s6.x, s6.y2) + flag(s6.x, s6.y2 + 10);
+    const y7 = Y(7), xl = xs[6] - sp * .62; g += head(xs[6], 7) + `<line x1="${xl}" x2="${xl}" y1="${y7 + 2}" y2="${y7 + 3.5 * sp}" stroke="${ink}" stroke-width="1.6"/>`;
+    g += label(xs[0] - 6, 200, xs[0], Y(1) + 4, "open notehead") + label(xs[1] + 30, 40, s2.x, Y(2) - 2.2 * sp, "stem") + label(xs[1] + 30, 226, xs[1], Y(2) + 4, "filled notehead");
+    g += label(xs[2] + 30, 30, s3.x + 7, s3.y2 + 12, "flag") + label(360, 22, (s4.x + s5.x) / 2, s4.y2 + 3, "beam") + label(xs[5] + 20, 200, s6.x + 8, s6.y2 + 22, "two flags: a 16th");
+    g += label(W - 12, 30, xl, y7 + 2.6 * sp, "high note: stem down, on the left", "end");
+    const desc = "A staff with labeled note parts: a half note with an open notehead and a stem; a quarter note with a filled notehead and a stem; an eighth note with one flag; two eighth notes joined by a beam instead of flags; a sixteenth note with two flags; and a note above the middle line whose stem points down on the left side of the notehead.";
+    return `<figure class="lfig"><svg viewBox="0 0 ${W} 236" role="img" aria-label="${desc}" style="width:100%;max-width:${W}px">${g}</svg><figcaption>The parts of a note. Notes below the middle line have stems up, on the right; notes above it have stems down, on the left.</figcaption></figure>`;
+  }
+
   const lesson = { steps: [
     { title: "Note values", kick: "Halving and halving again", render: (H, k, U) => `<p>Each note value is half the one before it: one <b>whole note</b> = two <b>halves</b> = four <b>quarters</b> = eight <b>eighths</b> = sixteen <b>sixteenths</b>.</p>`
       + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
       + `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">American</th><th scope="col">British</th><th scope="col">In 4/4</th></tr></thead><tbody><tr><td>whole note</td><td>semibreve</td><td>4 beats</td></tr><tr><td>half note</td><td>minim</td><td>2</td></tr><tr><td>quarter note</td><td>crotchet</td><td>1</td></tr><tr><td>eighth note</td><td>quaver</td><td>½</td></tr><tr><td>sixteenth note</td><td>semiquaver</td><td>¼</td></tr></tbody></table></div>` },
-    { title: "Parts of a note", kick: "Heads, stems, flags, beams", render: () => `<ul><li><b>Notehead</b>: open (whole and half notes) or filled (quarter and shorter).</li><li><b>Stem</b>: every value shorter than a whole note has one. Notes above the middle line take stems <b>down</b> (on the left of the head); below it, <b>up</b> (on the right); on the middle line, usually down.</li><li><b>Flags</b>: one for an eighth, two for a sixteenth, and so on.</li><li><b>Beams</b> replace flags to group notes by beat, so the meter is easy to see.</li></ul>` },
+    { title: "Parts of a note", kick: "Heads, stems, flags, beams", render: () => partsFig() + `<ul><li><b>Notehead</b>: open (whole and half notes) or filled (quarter and shorter).</li><li><b>Stem</b>: every value shorter than a whole note has one. Notes above the middle line take stems <b>down</b> (on the left of the head); below it, <b>up</b> (on the right); on the middle line, usually down.</li><li><b>Flags</b>: one for an eighth, two for a sixteenth, and so on.</li><li><b>Beams</b> replace flags to group notes by beat, so the meter is easy to see.</li></ul>` },
     { title: "Rests", kick: "Measured silence", render: (H, k, U) => {
       const V = [["w", "whole"], ["h", "half"], ["q", "quarter"], ["8", "eighth"], ["16", "sixteenth"]];
-      const sp = { type: "score", clefs: ["percussion", "percussion"], ids: ["t", "b"], time: null, vf: "C", sig: {}, final: false, minBar: 96, bars: V.map(([d, n]) => ({ t: [[{ k: [P], d, ly: n + " note" }]], b: [[{ k: [], d, ly: n + " rest" }]] })) };
+      const sp = { type: "score", clefs: ["percussion", "percussion"], ids: ["t", "b"], brace: false, time: null, vf: "C", sig: {}, final: false, minBar: 108, rowW: 780, bars: V.map(([d, n]) => ({ t: [[{ k: [P], d, ly: n + " note", center: true }]], b: [[{ k: [], d, ly: n + " rest", center: true }]] })) };
       return U.fig(sp, "Each rest (below) lasts as long as the note value above it.", { small: false, play: false })
       + `<p>The half rest sits on the 3rd line (“a hat”); the whole rest hangs from the 4th line (“a hole”). The eighth and sixteenth rests have one and two flags, like their notes.</p>
       <p>The whole-rest symbol is also the <b>bar rest</b>: a whole bar of silence in any meter, centered in the bar (see the next step).</p>
@@ -133,7 +156,7 @@ window.FAM = (() => {
       <div class="lfigs">${fig(U, rh("3/4", ["8 8 8 8 8 8"]), "3/4: three beats, beamed in twos")}${fig(U, rh("6/8", ["8 8 8 8 8 8"]), "6/8: two beats, beamed in threes")}</div>
       <p>Three levels of pulse:</p>
       <ul><li><b>Beat</b>: the main pulse you tap your foot to (the quarter note in 2/4, 3/4, 4/4; the dotted quarter in 6/8, 9/8, 12/8).</li><li><b>Division</b>: the beat split into its first smaller level: two eighths in simple meter, three eighths in compound meter.</li><li><b>Subdivision</b>: the division split again: sixteenths in both (four per beat in simple meter, six in compound).</li></ul>
-      <div class="lfigs">${fig(U, rh("2/4", ["q q", "8 8 8 8", "16 16 16 16 16 16 16 16"]), "2/4: beat, division, subdivision")}${fig(U, rh("6/8", ["qd qd", "8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16"]), "6/8: beat, division, subdivision")}</div>`
+      ${fig(U, rh("2/4", ["q q", "8 8 8 8", "16 16 16 16 16 16 16 16"]), "2/4: beat, division, subdivision", { small: false })}${fig(U, rh("6/8", ["qd qd", "8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16"]), "6/8: beat, division, subdivision", { small: false })}`
       + H.check("In 6/8, how many beats are in a bar?", "2", ["6", "3", "8"], "Two dotted-quarter beats.")
       + H.check("In 3/4, the division of the beat is…", "two eighth notes", ["three eighth notes", "four sixteenth notes", "a half note"], "Simple meter: the beat divides in two; the subdivision is four sixteenths.") },
     { title: "Tempo", kick: "How fast the beat goes", render: (H) => `<p><b>Tempo</b> is the speed of the beat, measured in <b>beats per minute</b> (BPM). At 60 BPM each beat lasts one second; at 120 BPM, half a second. Tempo is separate from meter: a 3/4 waltz can be slow or fast, and the time signature doesn't say which.</p>

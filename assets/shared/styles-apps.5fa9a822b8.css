@@ -495,6 +495,10 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .pick-prev { margin: 4px 0 0; font-size: 1.15rem; }
 .pick-prev b { font-size: 1.4rem; }
 .pkfig { display: inline-grid; line-height: .95; font-size: .8em; vertical-align: middle; }
+.ik .iknm { position: absolute; left: 50%; transform: translateX(-50%); top: 22%; font: 700 12px/1.1 var(--body); font-style: normal; text-align: center; background: #fff; color: #1b1b1b; border: 1.5px solid var(--fi-red-dk, #B23A22); border-radius: 6px; padding: 1px 3px; white-space: nowrap; pointer-events: none; z-index: 4; }
+.ik.b .iknm { top: 8%; font-size: 11px; }
+.ik.on.w { background: #FFE9A8; } .ik.on.b { background: #444; }
+.ikb .ik.w { border-radius: 0 0 5px 5px !important; } .ikb .ik.b { border-radius: 0 0 4px 4px !important; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

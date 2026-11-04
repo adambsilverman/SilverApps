@@ -121,3 +121,4 @@ body.lc-fs .big{font-size:clamp(4rem,9vw,7rem)}
 .top .score-reset{display:none}   /* reset lives in the "Your progress" panel now */
 .wrap .deg{border-radius:0!important}
 .wrap .answer .legend,.wrap .answer .explain{margin:0}
+.brand h1 .h1-pre{color:var(--fi-red-dk)}
