@@ -245,3 +245,20 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
 .sygrid .sl { display: grid; gap: 2px; font-weight: 600; font-size: 15px; }
 .sygrid output { font: 13px var(--mono); }
+/* answer pickers (intervals: any interval / any pitch) */
+.pick { display: grid; gap: 10px; justify-items: center; }
+.pick-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.pick .pk { font: 600 17px var(--body); border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); padding: 8px 16px; min-height: 44px; min-width: 44px; cursor: pointer; color: var(--ink); }
+.pick .pk.lt, .pick .pk.acc { min-width: 52px; font-size: 20px; }
+.pick .pk[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.pick .pk:disabled { opacity: .4; cursor: default; }
+.pick .pk:focus-visible { outline: 3px solid var(--fi-red-dk, #b33); outline-offset: 2px; }
+.pick .pk[aria-pressed="true"]:disabled { opacity: 1; }
+#work .widget + .choice-row { justify-content: center !important; display: flex; }
+.pick .pk.acc { font-size: 28px; line-height: 1; }
+.pick-sec { display: grid; gap: 4px; justify-items: center; }
+.pick-lab { font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.pick .pk.rn { min-width: 52px; font-family: Literata, serif; }
+.pick-prev { margin: 4px 0 0; font-size: 1.15rem; }
+.pick-prev b { font-size: 1.4rem; }
+.pkfig { display: inline-grid; line-height: .95; font-size: .8em; vertical-align: middle; }

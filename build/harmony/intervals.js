@@ -53,10 +53,10 @@ window.FAM = (() => {
         const lo = lowNote(H, clef), hi = H.up(lo, i, semis); if (!okSpell(hi) || Math.abs(hi.a) > 1 && Math.random() < .7) continue;
         const harm = Math.random() < .4, marks = { [H.midi(lo)]: "1" }; marks[H.midi(hi)] = H.midi(hi) === H.midi(lo) ? "1" : "2";
         if (mode === "semis") {
-          const ans = String(semis); return H.mc(`How many half steps are in this interval (${nameOf(i, q)})?`, ans, [semis - 1, semis + 1, semis + 2, semis - 2].filter(x => x >= 0).map(String), why(H, lo, hi, i, q), { kicker: "Count half steps", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks) });
+          const ans = String(semis); return Object.assign(H.mc(`How many half steps are in this interval (${nameOf(i, q)})?`, ans, [semis - 1, semis + 1].filter(x => x >= 0).map(String), why(H, lo, hi, i, q), { kicker: "Count half steps", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks) }), { choices: Array.from({ length: 14 }, (_, n) => String(n)) });   // every count 0–13, in order
         }
         const wrong = [...new Set(qualsFor(i, H.topicOn("ad")).filter(x => x !== q).map(x => nameOf(i, x)).concat([i > 0 ? nameOf(i - 1, PERF[i - 1] ? "P" : q === "M" ? "M" : "m") : null, i < 7 ? nameOf(i + 1, PERF[i + 1] ? "P" : q === "m" ? "m" : "M") : null].filter(Boolean)))];
-        return H.mc(`Name this ${harm ? "harmonic" : "melodic"} interval.`, nameOf(i, q), wrong, why(H, lo, hi, i, q), { kicker: "Name the interval", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks) });
+        return H.mc(`Name this ${harm ? "harmonic" : "melodic"} interval: choose its quality and number.`, nameOf(i, q), wrong, why(H, lo, hi, i, q), { kicker: "Name the interval", topic, staff: staff(H, [lo, hi], clef, harm), playQ: play(H, lo, hi, harm), fig: keyboard(marks), widget: "ivpick", ad: H.topicOn("ad") });
       }
       // write a note above or below
       const given = lowNote(H, clef), above = mode === "above";
@@ -68,7 +68,7 @@ window.FAM = (() => {
       const enh = [-1, 1].map(st => H.up(other, st, 0)).filter(n => Math.abs(n.a) <= 1);
       const wrong = [...new Set(cands.concat(enh).map(H.nm))].filter(x => x !== H.nm(other));
       const ansStaff = staff(H, [lo, hi], clef, false);
-      return H.mc(`Which note is ${/^[aeiou]/.test(nameOf(i, q)) ? "an" : "a"} ${nameOf(i, q)} ${above ? "above" : "below"} ${H.nm(given)}?`, H.nm(other), wrong, why(H, lo, hi, i, q) + (enh.some(n => H.midi(n) === H.midi(other)) ? ` The spelling matters: ${i === 7 ? "an octave" : "a " + NUM[i]} must span ${i + 1} letter names, so the enharmonic note is a different interval.` : ""), { kicker: above ? "Write the note above" : "Write the note below", topic, staff: staff(H, [given], clef, false), staffAns: ansStaff, playQ: { chords: [[H.midi(given)]] }, play: play(H, lo, hi, false), fig: keyboard({ [H.midi(given)]: "★" }) });
+      return H.mc(`Which note is ${/^[aeiou]/.test(nameOf(i, q)) ? "an" : "a"} ${nameOf(i, q)} ${above ? "above" : "below"} ${H.nm(given)}? Choose its letter and accidental.`, H.nm(other), wrong, why(H, lo, hi, i, q) + (enh.some(n => H.midi(n) === H.midi(other)) ? ` The spelling matters: ${i === 7 ? "an octave" : "a " + NUM[i]} must span ${i + 1} letter names, so the enharmonic note is a different interval.` : ""), { widget: "pitchpick", kicker: above ? "Write the note above" : "Write the note below", topic, staff: staff(H, [given], clef, false), staffAns: ansStaff, playQ: { chords: [[H.midi(given)]] }, play: play(H, lo, hi, false), fig: keyboard({ [H.midi(given)]: "★" }) });
     }
     return make(mode, H);
   }
@@ -77,9 +77,50 @@ window.FAM = (() => {
     ${[["perfect unison", 0, "C"], ["minor 2nd", 1, "D♭"], ["major 2nd", 2, "D"], ["minor 3rd", 3, "E♭"], ["major 3rd", 4, "E"], ["perfect 4th", 5, "F"], ["augmented 4th", 6, "F♯"], ["diminished 5th", 6, "G♭"], ["perfect 5th", 7, "G"], ["minor 6th", 8, "A♭"], ["major 6th", 9, "A"], ["minor 7th", 10, "B♭"], ["major 7th", 11, "B"], ["perfect octave", 12, "C"]].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody></table>
     <p><b>Number</b>: count the letter names, including both notes. <b>Quality</b>: count half steps. Perfect intervals (unison, 4th, 5th, octave) become augmented (+1) or diminished (−1); major intervals become minor (−1), augmented (+1) or diminished (−2).</p>`;
 
+  // ---------- answer pickers (any interval, any pitch) ----------
+  const QORD = ["d", "m", "P", "M", "A"], QSHORT = { d: "diminished", m: "minor", P: "perfect", M: "major", A: "augmented" };
+  const validIv = (q, i) => q === "P" ? PERF[i] : q === "M" || q === "m" ? !PERF[i] : q === "d" ? i !== 0 : true;
+  const pressed = (on) => `aria-pressed="${on}"`;
+  const widgets = {
+    ivpick: {
+      html(c, q) {
+        const qs = QORD.filter(x => c.ad || !["d", "A"].includes(x)), dis = q.done ? " disabled" : "";
+        return `<div class="pick"><div class="pick-row" role="group" aria-label="Quality">${qs.map(x => `<button type="button" class="pk" data-pq="${x}" ${pressed(q.selQ === x)}${dis}>${QSHORT[x]}</button>`).join("")}</div>
+          <div class="pick-row" role="group" aria-label="Number">${NUM.map((n, i) => `<button type="button" class="pk" data-pn="${i}" ${pressed(q.selN === i)}${dis || (q.selQ && !validIv(q.selQ, i) ? " disabled" : "")}>${n}</button>`).join("")}</div></div>`;
+      },
+      wire(root, c, q) {
+        const box = root.querySelector(".pick"), btn = root.querySelector("[data-wcheck]");
+        const sync = () => { box.querySelectorAll("[data-pq]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.pq === q.selQ)));
+          box.querySelectorAll("[data-pn]").forEach(b => { const i = +b.dataset.pn; b.setAttribute("aria-pressed", String(i === q.selN)); b.disabled = !!q.selQ && !validIv(q.selQ, i); });
+          btn.disabled = !(q.selQ && q.selN != null && validIv(q.selQ, q.selN)); };
+        box.onclick = e => { const a = e.target.closest("[data-pq]"), b = e.target.closest("[data-pn]");
+          if (a) { q.selQ = a.dataset.pq; if (q.selN != null && !validIv(q.selQ, q.selN)) q.selN = null; }
+          if (b && !b.disabled) q.selN = +b.dataset.pn;
+          sync(); };
+        sync();
+      },
+      value(root) { const q = root.querySelector("[data-pq][aria-pressed=true]"), n = root.querySelector("[data-pn][aria-pressed=true]"); return q && n ? nameOf(+n.dataset.pn, q.dataset.pq) : null; },
+    },
+    pitchpick: {
+      html(c, q, H) {
+        const dis = q.done ? " disabled" : "", sa = q.selA == null ? 0 : q.selA;
+        return `<div class="pick"><div class="pick-row" role="group" aria-label="Letter">${"CDEFGAB".split("").map((L, i) => `<button type="button" class="pk lt" data-pl="${i}" ${pressed(q.selL === i)}${dis}>${L}</button>`).join("")}</div>
+          <div class="pick-row" role="group" aria-label="Accidental">${[[-2, "double flat"], [-1, "flat"], [0, "natural"], [1, "sharp"], [2, "double sharp"]].map(([a, w]) => `<button type="button" class="pk acc" data-pa="${a}" ${pressed(sa === a)} aria-label="${w}"${dis}><span aria-hidden="true">${a ? H.accHTML(H.ACC[a]) : "♮"}</span></button>`).join("")}</div></div>`;
+      },
+      wire(root, c, q, H) {
+        const box = root.querySelector(".pick"), btn = root.querySelector("[data-wcheck]");
+        const sync = () => { box.querySelectorAll("[data-pl]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.pl === q.selL)));
+          box.querySelectorAll("[data-pa]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.pa === (q.selA || 0)))); btn.disabled = q.selL == null; };
+        box.onclick = e => { const l = e.target.closest("[data-pl]"), a = e.target.closest("[data-pa]"); if (l) q.selL = +l.dataset.pl; if (a) q.selA = +a.dataset.pa; sync(); };
+        sync();
+      },
+      value(root) { const l = root.querySelector("[data-pl][aria-pressed=true]"), a = root.querySelector("[data-pa][aria-pressed=true]"); return l ? "CDEFGAB"[+l.dataset.pl] + ({ "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" })[a ? a.dataset.pa : "0"] : null; },
+    },
+  };
+
   const lesson = { steps: [{ title: "Intervals", kick: "Lesson", render: () => `<p>The lesson for these drills is <a href="intervals-what-why-how.html">Intervals: What, Why and How</a>.</p>` }] };
   return {
-    key: "silverapps-intervals-v1", lesson, make, reference,
+    key: "silverapps-intervals-v1", lesson, make, reference, widgets,
     modes: [{ id: "name", kicker: "Name the interval" }, { id: "above", kicker: "Write the note above" }, { id: "below", kicker: "Write the note below" }, { id: "semis", kicker: "Count half steps" }],
     topics: [{ id: "pmm", name: "Perfect, major, minor", group: "q" }, { id: "ad", name: "Augmented, diminished", group: "q" }],
   };
