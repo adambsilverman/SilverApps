@@ -31,19 +31,27 @@
           "class": true
         },
         {
-          "name": "Reading Pitch",
-          "topic": "Clefs & staff",
-          "blurb": "Treble, bass, alto, tenor and grand staff, with memory devices and clef history.",
-          "lesson": "reading-pitch-lesson.html",
-          "drills": "reading-pitch.html",
-          "class": true
-        },
-        {
           "name": "Meter and Beaming",
           "topic": "Rhythm & meter",
           "blurb": "Simple, compound, asymmetrical and mixed meter, beaming, pick-ups, syncopation and hemiola.",
           "lesson": "meter-lesson.html",
           "drills": "meter.html",
+          "class": true
+        },
+        {
+          "name": "Rhythm Notation",
+          "topic": "Rhythm & meter",
+          "blurb": "Showing the beat, beaming, ties, rhythm terms and lyrics.",
+          "lesson": "rhythm-notation-lesson.html",
+          "drills": "rhythm-notation-trainer.html",
+          "class": true
+        },
+        {
+          "name": "Reading Pitch",
+          "topic": "Clefs & staff",
+          "blurb": "Treble, bass, alto, tenor and grand staff, with memory devices and clef history.",
+          "lesson": "reading-pitch-lesson.html",
+          "drills": "reading-pitch.html",
           "class": true
         },
         {
@@ -60,14 +68,6 @@
           "blurb": "Major and minor scales, key signatures and why we use them, relative and parallel keys.",
           "lesson": "major-and-minor-scales-lesson.html",
           "drills": "major-and-minor-scales.html",
-          "class": true
-        },
-        {
-          "name": "Rhythm Notation",
-          "topic": "Rhythm & meter",
-          "blurb": "Showing the beat, beaming, ties, rhythm terms and lyrics.",
-          "lesson": "rhythm-notation-lesson.html",
-          "drills": "rhythm-notation-trainer.html",
           "class": true
         },
         {

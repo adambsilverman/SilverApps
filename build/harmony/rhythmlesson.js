@@ -6,7 +6,7 @@ window.FAM = (() => {
   const fig = (U, sp, cap) => U.fig(sp, cap, { small: true });
   const ev = (list, spb = .5, m = 72) => ({ ev: list.map(([t, d, mm, v]) => [mm || m, t * spb, d * spb * .9, v || .8]) });
   const lesson = { steps: [
-    { title: "Before you start", kick: "Prerequisites", render: (H) => `<p>This lesson assumes you know proportional rhythmic values, meter types (simple vs. compound, duple vs. triple), time signatures, dots, ties and tuplets. If any of these checks trip you up, review the rhythm basics in <i>Music Theory for the 21st-Century Classroom</i> first.</p>`
+    { title: "Before you start", kick: "Prerequisites", render: (H) => `<p>This lesson assumes you know proportional rhythmic values, meter types (simple vs. compound, duple vs. triple), time signatures, dots, ties and tuplets. If any of these checks trip you up, review them first in the <a href="note-values-lesson.html">Understanding Units of Rhythm</a> lesson.</p>`
       + H.check("How many beats are in a bar of 3/4?", "3 (quarter-note beats)", ["4", "6", "2"], "Three quarter-note beats.")
       + H.check("How many beats are in a bar of 6/8?", "2 (dotted-quarter beats)", ["6", "3", "8"], "In compound meter, the eighth is the division, not the beat.")
       + H.check("In 4/4, a double-dotted half note starts a bar. What completes it?", "an eighth note", ["a quarter note", "a sixteenth note", "a half note"], "Half (2 beats) + dot (1) + second dot (½) = 3½ beats.")

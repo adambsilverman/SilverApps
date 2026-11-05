@@ -445,6 +445,32 @@
     });
     return Object.assign({}, p, { ev });
   }
+  // spoken counting on every note of the top voice, plus the click: "1 e & a" (simple), "1 & a" (compound), "1 trip-let" (triplets).
+  // Syllables are short recorded clips in assets/count-voice/<syllable>.wav (1–12, e, and, a, trip, let, la, li), placed exactly on each note.
+  function countSyl(pos, beat, comp, tu) {
+    const bi = Math.floor(pos / beat + 1e-6), f = (pos - bi * beat) / beat, near = x => Math.abs(f - x) < 1e-3;
+    if (near(0)) return bi < 12 ? String(bi + 1) : null;
+    if (comp || tu) return near(1 / 3) ? (comp ? "and" : "trip") : near(2 / 3) ? (comp ? "a" : "let") : null;
+    return near(.5) ? "and" : near(.25) ? "e" : near(.75) ? "a" : null;
+  }
+  function withCount(o) {
+    const p = withClick(o), spb = 60 / (o.bpm || 100), ids = staffIds(o), ev = p.ev.slice();
+    const dq = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
+    const barLen = b => Math.max(...ids.map(id => Math.max(0, ...((b[id] || []).map(v => v.reduce((s2, n) => s2 + dq(n), 0))))));
+    let t = 0, T = o.time || "4/4", tied = false;
+    o.bars.forEach((b, i) => {
+      if (b.time) T = b.time;
+      const [num, den] = T.split("/").map(Number), full = num * 4 / den, comp = den === 8 && num % 3 === 0 && num > 3;
+      const beat = comp ? 1.5 : den === 8 ? .5 : 4 / den, len = barLen(b) || full, start = i === 0 && len < full - 1e-9 ? full - len : 0;
+      let pos = start;
+      ((b[ids[0]] || [])[0] || []).forEach(n => {
+        if (n.k.length && !tied) { const syl = countSyl(pos, beat, comp, !!n.tu); if (syl) ev.push([0, t + (pos - start) * spb, 0, /^\d/.test(syl) ? 1 : .8, "say", syl]); }
+        tied = !!(n.k.length && n.tie); pos += dq(n);
+      });
+      t += len * spb;
+    });
+    return Object.assign({}, p, { ev });
+  }
   // events [midi, start, length, velocity] for a score spec (ties joined)
   function scorePlay(o) {
     const spb = 60 / (o.bpm || 100), ev = [], ids = staffIds(o), perc = (o.clefs || [])[0] === "percussion";
@@ -507,9 +533,25 @@
     if (timbre === "voice" || timbre === "reed") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
     g.gain.setTargetAtTime(0, t0 + dur, .08);
   }
+  // recorded counting syllables (see withCount), fetched and decoded on first use
+  const VOICE = {}, VOICE_DIR = "assets/count-voice/";
+  const sayKeys = ev => [...new Set(ev.filter(e => e[4] === "say").map(e => e[5]))];
+  const loadVoice = keys => Promise.all(keys.filter(k => !(k in VOICE)).map(k => fetch(VOICE_DIR + k + ".wav").then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { VOICE[k] = buf; }).catch(() => { VOICE[k] = null; })));
   function play(p) {
-    if (!p || !audio()) return; const out = newBus(), t = AC.currentTime + .06;
-    if (p.ev) { p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan)); return; }
+    if (!p || !audio()) return;
+    if (p.ev) { const keys = sayKeys(p.ev); if (keys.some(k => !(k in VOICE))) { newBus(); const ticket = bus; loadVoice(keys).then(() => { if (bus === ticket) play(p); }); return; } }
+    const out = newBus(), t = AC.currentTime + .06;
+    if (p.ev) {
+      p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind === "say" ? 0 : kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan));
+      // each syllable is cut off (with a short fade) where the next one starts, so fast subdivisions stay in time
+      const says = p.ev.filter(e => e[4] === "say").sort((a, b) => a[1] - b[1]);
+      says.forEach((e, i) => { const buf = VOICE[e[5]]; if (!buf) return;
+        const src = AC.createBufferSource(), g = AC.createGain(), t0 = t + e[1], end = Math.min(t0 + buf.duration, i + 1 < says.length ? t + says[i + 1][1] : Infinity), lv = 1.1 * (e[3] || 1);
+        src.buffer = buf; g.gain.setValueAtTime(lv, t0); g.gain.setValueAtTime(lv, Math.max(t0, end - .02)); g.gain.linearRampToValueAtTime(0, end);
+        src.connect(g); g.connect(out); src.start(t0); src.stop(end + .01); });
+      return;
+    }
     const gap = p.gap || 1.05;
     (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
@@ -736,7 +778,7 @@
     const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
     return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
   }
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, withCount, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);
@@ -898,7 +940,8 @@
     const i = Math.min(LS.step, L.steps.length - 1), st = L.steps[i];
     const k = st.keyed ? lessonKey(st) : null;
     figs = {};
-    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : playOf(spec)) }; return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}</figure>`; };
+    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : playOf(spec)) }; if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
+      return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}${opts.count ? `<button class="play" data-lplay="${id}c">${PLAY_SVG}Play with counting</button>` : ""}</figure>`; };
     const sound = (p, label) => { const id = "s" + Object.keys(figs).length; figs[id] = { play: p }; return `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(label || "Play")}</button>`; };
     const body = richHTML(st.render(H, k, { fig, sound, rich, rn: rnHTML, sym: symHTML }));
     const keyRow = st.keyed ? `<div class="lkeys" role="group" aria-label="Choose a key">${st.keyed === "both" ? ["major", "minor"].map(m => `<button class="lk mode" data-lmode="${m}" aria-pressed="${LS.mode === m}">${m}</button>`).join("") + '<span class="lk-sep" aria-hidden="true"></span>' : ""}${KEYS[LS.mode].map(n => `<button class="lk" data-lkey="${esc(n)}" aria-pressed="${LS.key === n}"><span aria-hidden="true">${accHTML(n)}</span><span class="sr">${esc(speak(n))} ${LS.mode}</span></button>`).join("")}</div>` : "";

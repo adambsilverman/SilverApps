@@ -35,6 +35,7 @@ These are included unmodified (or minified) and remain under their authors' lice
 | lamejs (LAME MP3 encoder in JavaScript) | `assets/lame.min.js` (MP3 export) | LGPL (see `assets/lame-LICENSE.txt`) |
 | League Gothic, Schibsted Grotesk, Literata, Barlow Condensed | `assets/fonts/` | SIL Open Font License 1.1 |
 | Satisfy (site title font) | `assets/fonts/title.woff2` | Apache License 2.0 |
+| Spoken counting syllables, synthesized with Piper TTS (“Ryan” voice, trained on the RyanSpeech dataset by Rohola Zandie et al.) | `assets/count-voice/*.wav` (“Play with counting” in the Units of Rhythm lesson) | CC BY-NC-SA 4.0 (voice data); Piper is MIT |
 | Noto Music, © The Noto Project Authors | `assets/fonts/noto-music.woff2` and Google Fonts (music symbols) | SIL Open Font License 1.1 |
 
 ## Sources
