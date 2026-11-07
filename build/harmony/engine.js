@@ -517,14 +517,14 @@
     return Object.assign({}, p, { ev });
   }
   // sung playback: a recorded singer (Cantai) sings each note's letter name at pitch. Clips in "assets/pitch-voice-Cantai/Cantai pitch letters/"
-  // cover C2–C6: every natural, plus C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭ (file names use "s" for sharp: Cs4, Db4). Other spellings
-  // (E♯, C♭, double sharps/flats) or notes outside the range fall back to the piano tone.
+  // cover C2–C6: every natural, every sharp and every flat, including B♯, E♯, C♭, F♭ (file names use "s" for sharp: Cs4, Db4, Bs3, Cb4;
+  // B♯n sounds as C(n+1), C♭n as B(n−1)). Double sharps/flats or notes outside the range fall back to the piano tone.
   const SING_DIR = "assets/pitch-voice-Cantai/Cantai%20pitch%20letters/";   // (folder name has spaces: URL-encoded)
   function singFile(sp) {
     const m = /^([A-G])(𝄫|𝄪|♭|♯|b|#)?(-?\d)$/.exec(sp || ""); if (!m) return null;
     const acc = m[2] ? { "♯": "s", "#": "s", "♭": "b", b: "b" }[m[2]] : ""; if (acc == null) return null;
-    if (acc === "s" && !"CDFGA".includes(m[1]) || acc === "b" && !"DEGAB".includes(m[1])) return null;
-    const mi = midi(parse(sp)); return mi >= 36 && mi <= 84 ? m[1] + acc + m[3] : null;
+    const mi = midi(parse(sp)); if (mi < 36 || mi > 84 || sp === "B#1" || sp === "B♯1") return null;   // every letter has a sharp and a flat clip, C2–C6 (no B♯1)
+    return m[1] + acc + m[3];
   }
   // a score's playback with every lone note sung (chords stay on the piano), slowed if needed so each name has time to sound (≥ 0.85 s apart)
   function singOf(o, p) {
