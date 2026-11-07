@@ -517,10 +517,10 @@
     });
     return Object.assign({}, p, { ev });
   }
-  // sung playback: a recorded singer (Cantai) sings each note's letter name at pitch. Clips in assets/pitch-voice-Cantai/letters/
+  // sung playback: a recorded singer (Cantai) sings each note's letter name at pitch. Clips in "assets/pitch-voice-Cantai/Cantai pitch letters/"
   // cover C2–C6: every natural, plus C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭ (file names use "s" for sharp: Cs4, Db4). Other spellings
   // (E♯, C♭, double sharps/flats) or notes outside the range fall back to the piano tone.
-  const SING_DIR = "assets/pitch-voice-Cantai/letters/";
+  const SING_DIR = "assets/pitch-voice-Cantai/Cantai%20pitch%20letters/";   // (folder name has spaces: URL-encoded)
   function singFile(sp) {
     const m = /^([A-G])(𝄫|𝄪|♭|♯|b|#)?(-?\d)$/.exec(sp || ""); if (!m) return null;
     const acc = m[2] ? { "♯": "s", "#": "s", "♭": "b", b: "b" }[m[2]] : ""; if (acc == null) return null;
