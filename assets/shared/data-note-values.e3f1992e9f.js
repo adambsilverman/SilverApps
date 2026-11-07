@@ -331,8 +331,9 @@ window.FAM = (() => {
       <p>Rests follow the same rule as notes: show the beats. In 4/4, two quarter rests (not a half rest) fill beats 2–3, so the middle of the bar stays visible.</p>`;
     } },
     { title: "Bar lines and bar rests", kick: "Every bar is complete", render: (H, k, U) => {
-      const bars = rh("3/4", ["q q q", "wr", "h q"]); bars.bars[1].t[0][0].center = true;
-      const bars2 = rh("6/8", ["qd qd", "wr", "q 8 qd"]); bars2.bars[1].t[0][0].center = true;
+      // bar rests: drawn as whole rests, but they last exactly one bar (3 beats in 3/4, two dotted-quarter beats in 6/8)
+      const bars = rh("3/4", ["q q q", "hdr", "h q"]); Object.assign(bars.bars[1].t[0][0], { barRest: true, center: true });
+      const bars2 = rh("6/8", ["qd qd", "hdr", "q 8 qd"]); Object.assign(bars2.bars[1].t[0][0], { barRest: true, center: true });
       return `<ul><li><b>Every bar ends with a bar line</b>, including the last bar on each line (system) of music. The very end of a piece gets a <b>final bar line</b> (thin–thick); a <b>double bar line</b> (two thin lines) marks the end of a section.</li>
         <li>A bar must contain exactly the number of beats the time signature says (except a pick-up and the bar that balances it).</li>
         <li>A <b>bar rest</b> (the whole-rest symbol) means “rest for the whole bar” in <b>any</b> meter, even 3/4 or 6/8, where a whole note wouldn't fit. It's <b>centered</b> in the bar, not placed on beat 1.</li>

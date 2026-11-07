@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-07 (z82)** — Bar rests in other meters: note flag `barRest: true` draws a centered whole rest but times it as `n.d` (the bar's real length), so playback and spacing are right. Units of Rhythm *Bar lines and bar rests*: the 3/4 bar rest lasts three beats (`hdr` + `barRest`), the 6/8 one two dotted-quarter beats. Use this for any whole-bar rest outside 4/4.
 - **2026-11-07 (z81)** — Batch of lesson/drill changes.
   - *Introduction to Pitch*: "Octaves, ratios and cents" Hear-it buttons (`px: "pair"`) play the two tones at once as a dyad. "Absolute pitch and pitch memory" embeds a YouTube video (youtube-nocookie iframe `t3Cb1qwCUvI`, class `.lvideo`, 16:9). "Synthesizing pitch" mini synth takes an external **MIDI keyboard** (Web MIDI; "Use a MIDI keyboard" button; note on/off with velocity, sustain pedal CC 64, all-notes-off; Chrome/Edge/Firefox/Opera, Safari has no Web MIDI; plays only while the synth is on screen).
   - *Timbre*: slider grids (`.sygrid`/`.syk`, shared with every toy) no longer overlap or overflow (range inputs may shrink; columns ≥ 250 px). Build a timbre note says "only the levels of partials". Drills: Instruments and Vowels removed; Brightness + Envelopes merged into one mode `bright` ("Brightness and envelopes", each question picks one at random).
