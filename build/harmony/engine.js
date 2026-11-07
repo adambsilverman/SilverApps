@@ -372,6 +372,7 @@
               const L = last[si + ":" + vi];
               if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length, dir: L.n.tieDir });   // n.tieDir 1/-1 forces the tie's side (for "wrong side" examples)
               last[si + ":" + vi] = { sn, tie: n.tie, row: ri, n };
+              if (n.color) { const sty = { fillStyle: n.color, strokeStyle: n.color }; sn.setStyle(sty); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle(sty); sn.getModifiers().forEach(m => m.setStyle && m.setStyle(sty)); }   // n.color: tint one note (and its accidental)
               meta.push({ sn, n, si, ri, staves });
               return sn;
             });
@@ -425,7 +426,9 @@
       const x = sn.getAbsoluteX() + 6, top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
       const nY = rowTop[ri] - 12, tagY = nY - (hasN ? 18 : 0), symY = tagY - (hasTag ? 20 : 0) - (hasN || hasTag ? 4 : 12), brY = symY - (hasSym ? 24 : 0) - 2;
       if (n.hlc) mk("rect", { x: x - 20, y: top - 26, width: 42, height: bot - top + 52, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
-      if (n.hl) ys.forEach(y => mk("ellipse", { cx: x, cy: y, rx: 12, ry: 9, fill: "none", stroke: cssVar("--fi-red-dk") || "#b33", "stroke-width": 2.4 }, svg));
+      if (n.hl) {   // circle centered on the notehead itself, a little wider than the head (whole notes are wide)
+        let hx = x, hw = 12; try { const b0 = sn.getNoteHeadBeginX(), b1 = sn.getNoteHeadEndX(); if (b1 > b0) { hx = (b0 + b1) / 2; hw = (b1 - b0) / 2; } } catch (e) {}
+        ys.forEach(y => mk("ellipse", { cx: hx, cy: y, rx: hw + 8, ry: 11.5, fill: "none", stroke: cssVar("--fi-red-dk") || "#b33", "stroke-width": 2.2 }, svg)); }
       if (n.n != null) txt(x, si ? bot + 26 : nY, String(n.n), { "font-size": 13, "font-weight": 700 });
       if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
       if (n.sym) txt(x, symY, n.sym, { "font-size": 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
@@ -833,6 +836,8 @@
     "1": { w: 1, top: -1.55, bot: 1.55, d: "M.25 -1.45h.12v3h-.12zM.63 -1.55h.12v3h-.12zM0 -.3L1 -.62v.26L0 -.04zM0 .52L1 .2v.26L0 .78z" },
     "0": { w: .72, top: -1.5, bot: 1.5, d: "M0 -1.5h.12v1.95H0zM.58 -.45h.12V1.5h-.12zM0 -.28L.7 -.5v.24L0 -.04zM0 .3L.7 .08v.24L0 .54z" },
     "-1": { w: .86, top: -1.45, bot: .55, d: "M0 -1.45h.14v2H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36z" },
+    "-2": { w: 1.56, top: -1.45, bot: .55, d: "M0 -1.45h.14v2H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36zM.7 -1.45h.14v2H.7zM.84 .55C1.75 .05 1.7 -.6 .84 -.25V-.04C1.36 -.34 1.42 .1 .84 .36z" },
+    "2": { w: .8, top: -.52, bot: .52, d: "M0 -.4L.28 0L0 .4L.12 .52L.4 .24L.68 .52L.8 .4L.52 0L.8 -.4L.68 -.52L.4 -.24L.12 -.52Z" },
   };
   function miniStaff(o) {
     const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
@@ -881,7 +886,7 @@
     if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
     for (let i = 0; i < 60; i++) {
       let c = null; try { c = FAM.make(mode, H); } catch (e) { if (i > 50) throw e; }
-      if (c && c.choices.length >= 2 && topicOn(c.topic) && (!prev || prev.c.text !== c.text || plain(prev.c.answer) !== plain(c.answer) || i > 40)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
+      if (c && (c.widget || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || plain(prev.c.answer) !== plain(c.answer) || i > 40)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
     }
     const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
   }
@@ -1001,7 +1006,7 @@
     const modes = (FAM.modes || []).map(m => m.kicker).filter(Boolean);
     L.steps.push({ title: "Practice", kick: "On to the drills", render: () => `<p>You've finished the lesson. Now practice what you learned in the <b>${esc(SA_PAGE.otherName || "drills")}</b>${modes.length ? ":" : "."}</p>${modes.length ? `<ul>${modes.map(m => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
       <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. ${SA_PAGE.cls !== false ? "Teachers can also host the drills as a <b>class game</b>: students join on their own devices." : ""}</p>
-      <p><a class="btn primary" href="${esc(SA_PAGE.other)}">Start the drills →</a></p><p class="note">You can come back to any page of this lesson with the numbered buttons above.</p>` });
+      <p class="note">You can come back to any page of this lesson with the numbered buttons above.</p>` });
   }
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
@@ -1029,7 +1034,7 @@
     const keyRow = st.keyed ? `<div class="lkeys" role="group" aria-label="Choose a key">${st.keyed === "both" ? ["major", "minor"].map(m => `<button class="lk mode" data-lmode="${m}" aria-pressed="${LS.mode === m}">${m}</button>`).join("") + '<span class="lk-sep" aria-hidden="true"></span>' : ""}${KEYS[LS.mode].map(n => `<button class="lk" data-lkey="${esc(n)}" aria-pressed="${LS.key === n}"><span aria-hidden="true">${accHTML(n)}</span><span class="sr">${esc(speak(n))} ${LS.mode}</span></button>`).join("")}</div>` : "";
     lessonEl.innerHTML = `<ol class="lsteps" aria-label="Lesson steps">${L.steps.map((s, j) => `${s.part && (j === 0 || L.steps[j - 1].part !== s.part) ? `<li class="lpart" aria-hidden="true">${esc(s.part)}</li>` : ""}<li><button data-lstep="${j}" ${j === i ? 'aria-current="step"' : ""} class="${LS.seen.includes(j) ? "seen" : ""}"><span aria-hidden="true">${j + 1}</span><span class="sr">Step ${j + 1}: ${esc(s.title)}</span></button></li>`).join("")}</ol>
       <article class="lslide" aria-labelledby="lsTitle"><p class="lkick">${st.part ? esc(st.part) + " · " : ""}Step ${i + 1} of ${L.steps.length}${st.kick ? " · " + esc(st.kick) : ""}</p><h2 id="lsTitle" tabindex="-1">${rich(st.title)}</h2>${keyRow}${body}
-      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? `<a class="btn primary" href="${esc(SA_PAGE.other)}">Practice with the drills →</a>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
+      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? `<a class="btn primary" href="${esc(SA_PAGE.other)}">Start the drills →</a>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
     lessonEl.querySelectorAll("[data-lfig]").forEach(el => { drawStaff(el, figs[el.dataset.lfig].spec); if (figs[el.dataset.lfig].follow) wireFollow(el, figs[el.dataset.lfig]); });
     lessonEl.querySelectorAll(".lq").forEach(bindCheck);
     if (st.after) st.after(lessonEl, H, k, { play, drawStaff });

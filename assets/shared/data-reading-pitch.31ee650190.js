@@ -87,10 +87,6 @@ window.FAM = (() => {
       const why = `In ${CNAME[clef]} clef, the ${where(s)} is ${nameO(H, n)}.${s >= 0 && s <= 8 ? ` ${line ? `Lines: ${m.lines} (“${m.lw}”).` : `Spaces: ${m.spaces} (“${m.sw}”).`}` : " Count up or down by step from the nearest line you know."}`;
       return Object.assign(H.mc(`${grandStaff ? "On the grand staff" : `In ${CNAME[clef]} clef`}: what note is this?`, ans, wrong, why, { kicker: mode === "name" ? "Name the note" : "Note and octave", staff: spec, playQ: { chords: [[H.midi(n)]], dur: 1.2 }, playQLabel: "Play", topic: clef }), mode === "name" ? { choices: "ABCDEFG".split("") } : {});
     }
-    if (mode === "where") {
-      const s = pickStep(H), n = noteAt(H, clef, s), opts = [s - 2, s - 1, s + 1, s + 2, s + 7, s - 7].filter(x => x >= -4 && x <= 12);
-      return H.mc(`Where is ${nameO(H, n)} in ${CNAME[clef]} clef?`, where(s), opts.map(where), `${nameO(H, n)} is on the ${where(s)} of the ${CNAME[clef]} staff.`, { kicker: "Find the line or space", staffAns: one(clef, [{ k: [H.nmO(n)], hl: true }]), topic: clef });
-    }
     if (mode === "same") {
       const others = ["treble", "bass", "alto", "tenor"].filter(c => c !== clef && clefs.includes(c));
       const to = H.rnd(others.length ? others : ["treble", "bass", "alto", "tenor"].filter(c => c !== clef));

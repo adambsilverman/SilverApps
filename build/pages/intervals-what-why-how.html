@@ -136,9 +136,9 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 
   <section class="slide" data-title="Stretch and squeeze" hidden>
     <p class="kick">3 · How: qualities</p><h2>Stretching and squeezing an interval</h2>
-    <p>Change the top note by a half step and the <b>size stays the same</b> (the letters don't change) but the <b>quality</b> changes. There are two families:</p>
+    <p>Change one of the notes by a half step and the <b>size stays the same</b> (the letters don't change) but the <b>quality</b> changes. There are two families:</p>
     <ul class="fam"><li><b>Perfect family</b> (unisons, 4ths, 5ths, octaves): one half step smaller than perfect is <b>diminished</b>; one larger is <b>augmented</b>. There is no major or minor.</li>
-      <li><b>Major/minor family</b> (2nds, 3rds, 6ths, 7ths): major made a half step smaller is <b>minor</b>; minor made smaller is <b>diminished</b>; major made larger is <b>augmented</b>.</li></ul>
+      <li><b>Major/minor family</b> (2nds, 3rds, 6ths, 7ths): major made a half step smaller is <b>minor</b>; minor made smaller is <b>diminished</b>; major made larger is <b>augmented</b>. Here, minor becomes diminished by raising the <b>bottom</b> note (C♯–E♭), which reads more easily than lowering the top note again (C–E𝄫).</li></ul>
     <div class="row" role="group" aria-label="Interval size" id="ssSizes"></div>
     <div class="fig"><svg id="ssSvg" viewBox="0 0 640 230" role="img" aria-labelledby="ssDesc"><desc id="ssDesc"></desc></svg></div>
     <div class="row">
@@ -243,7 +243,6 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     <p class="kick">14 · Practice</p><h2>On to the drills</h2>
     <p>You've finished the lesson. Now practice what you learned in the <b>Interval drills</b>:</p><ul><li>Name intervals on the staff</li><li>Write the note an interval above</li><li>Write the note an interval below</li><li>Count half steps</li></ul>
     <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
-    <p><a class="lbtn primary" href="intervals.html">Start the drills →</a></p>
   </section>
   </div>
   <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
@@ -352,9 +351,11 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   }
   function bounce(g, gap = .42) {
     const { pts, ball, ms } = g; ball.setAttribute("opacity", .9);
+    // in sync: the ball lands on each note exactly as it sounds, then hops so that it lands on the next note as that one sounds
     seq(ms, gap, i => {
-      if (reduce || i === 0) { ball.setAttribute("cx", pts[i][0]); ball.setAttribute("cy", pts[i][1]); return; }
-      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], t0 = performance.now(), dur = gap * 1000 * .9;
+      ball.setAttribute("cx", pts[i][0]); ball.setAttribute("cy", pts[i][1]);
+      if (reduce || i === ms.length - 1) return;
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], t0 = performance.now(), dur = gap * 1000;
       const f = now => { const k = Math.min(1, (now - t0) / dur); ball.setAttribute("cx", x0 + (x1 - x0) * k); ball.setAttribute("cy", y0 + (y1 - y0) * k - Math.sin(Math.PI * k) * 34); if (k < 1) requestAnimationFrame(f); };
       requestAnimationFrame(f);
     });
@@ -421,7 +422,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     el("path", { d: "M30 170 C 200 140, 420 200, 610 150", fill: "none", stroke: "#C9B79C", "stroke-width": 28, "stroke-linecap": "round" }, svg);
     SC.forEach((m, i) => {
       const x = 50 + i * 78, yy = 168 - Math.sin(i / 7 * Math.PI) * 10 - (i === 7 ? 10 : 0);
-      if (i === 0 || i === 7) { el("path", { d: `M${x - 20} ${yy - 4} L${x} ${yy - 26} L${x + 20} ${yy - 4} L${x + 16} ${yy - 4} L${x + 16} ${yy + 14} L${x - 16} ${yy + 14} L${x - 16} ${yy - 4} Z`, fill: active === i ? css("--fi-red") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 2 }, svg); }
+      if (i === 0 || i === 7) { el("path", { d: `M${x - 20} ${yy - 4} L${x} ${yy - 26} L${x + 20} ${yy - 4} L${x + 16} ${yy - 4} L${x + 16} ${yy + 14} L${x - 16} ${yy + 14} L${x - 16} ${yy - 4} Z`, fill: active === i || (i === 0 && active >= 0) ? css("--fi-red") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 2 }, svg); }
       else el("circle", { cx: x, cy: yy, r: 15, fill: active === i ? css("--fi-red") : css("--fi-card"), stroke: css("--fi-ink"), "stroke-width": 2 }, svg);
       if ([2, 4, 6].includes(i)) { el("line", { x1: x, y1: yy - 16, x2: x, y2: yy - 80, stroke: css("--fi-ink"), "stroke-width": 2.5 }, svg); el("path", { d: `M${x} ${yy - 80} L${x + 34} ${yy - 70} L${x} ${yy - 60} Z`, fill: [null, null, "#F7C948", null, css("--fi-green"), null, "#9FB7E8"][i], stroke: css("--fi-ink") }, svg); el("text", { x: x + 38, y: yy - 66, "font-size": 13, "font-weight": 700, "font-family": "Barlow Condensed, sans-serif", fill: css("--fi-ink") }, svg).textContent = DEG[i].toUpperCase(); }
       el("text", { x, y: yy + 5 + (i === 0 || i === 7 ? 4 : 0), "text-anchor": "middle", "font-size": 15, "font-weight": 700, "font-family": "Barlow Condensed, sans-serif", fill: css("--fi-ink") }, svg).textContent = i === 7 ? "8" : String(i + 1);
@@ -561,37 +562,45 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   $("sqPlay").onclick = () => { const [lo, hi] = sqNotes(); seq([midiL(lo), midiL(hi), [midiL(lo), midiL(hi)]], .5); };
   SL("Size and quality").onshow = () => drawSQ(false);
 
-  // Stretch and squeeze: fixed bottom C, change the top note's accidental
-  const SS = { size: 3, a: 0 };
-  const ssTop = () => { const step = SS.size - 1; return { l: step % 7, a: SS.a, o: 4 + Math.floor(step / 7) }; };
-  const ssRange = () => { const fam = PERF.has(SS.size) ? QP : QM, lo = { l: 0, a: 0, o: 4 }, out = []; for (let a = -2; a <= 2; a++) { const t = { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }, r = analyze(lo, t); if (r.q && !/doubly/.test(r.q)) out.push(a); } return out; };
+  // Stretch and squeeze: each quality is one (bottom, top) spelling over C. Major/minor family: minor → diminished raises the BOTTOM
+  // note (C♯–E♭, not C–E𝄫); everything else moves the top note.
+  const SS = { size: 3, qi: 2 };
+  const SSQ = fam => fam ? [{ q: "diminished", b: 0, a: -1 }, { q: "perfect", b: 0, a: 0 }, { q: "augmented", b: 0, a: 1 }]
+                         : [{ q: "diminished", b: 1, a: -1 }, { q: "minor", b: 0, a: -1 }, { q: "major", b: 0, a: 0 }, { q: "augmented", b: 0, a: 1 }];
+  const ssList = () => SSQ(PERF.has(SS.size));
+  const ssPair = (e = ssList()[SS.qi]) => [{ l: 0, a: e.b, o: 4 }, { l: (SS.size - 1) % 7, a: e.a, o: 4 + Math.floor((SS.size - 1) / 7) }];
+  const ssMove = (from, to) => { const A = ssList()[from], B = ssList()[to]; if (!A || !B) return "";
+    return A.b !== B.b ? `bottom note ${B.b > A.b ? "up" : "down"}` : `top note ${B.a > A.a ? "up" : "down"}`; };
   $("ssSizes").innerHTML = [2, 3, 4, 5, 6, 7, 8].map(z => `<button type="button" class="lbtn" data-sz="${z}" aria-pressed="false">${SIZE[z]}</button>`).join("");
-  $("ssSizes").onclick = e => { const b = e.target.closest("[data-sz]"); if (!b) return; SS.size = +b.dataset.sz; SS.a = ssRange().find(a => analyze({ l: 0, a: 0, o: 4 }, { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }).semis === BASE[SS.size]) ?? 0; drawSS(true); };
+  $("ssSizes").onclick = e => { const b = e.target.closest("[data-sz]"); if (!b) return; SS.size = +b.dataset.sz; SS.qi = PERF.has(SS.size) ? 1 : 2; drawSS(true); };
   function drawSS(play) {
     document.querySelectorAll("[data-sz]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.sz === SS.size)));
-    const lo = { l: 0, a: 0, o: 4 }, svg = $("ssSvg"), rng = ssRange(); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
-    const fam = PERF.has(SS.size), boxes = rng.map(a => ({ a, r: analyze(lo, { l: (SS.size - 1) % 7, a, o: 4 + Math.floor((SS.size - 1) / 7) }) }));
+    const svg = $("ssSvg"), list = ssList(); svg.querySelectorAll(":scope > :not(desc)").forEach(x => x.remove());
+    const fam = PERF.has(SS.size), boxes = list.map((e, i) => { const [lo, hi] = ssPair(e); return { i, lo, hi, r: analyze(lo, hi) }; });
     const W = 560 / boxes.length;
     svgText(svg, 320, 26, fam ? "PERFECT FAMILY: diminished ← PERFECT → augmented" : "MAJOR/MINOR FAMILY: diminished ← minor ← MAJOR → augmented", { "font-family": "Barlow Condensed, sans-serif", "font-size": 16, "font-weight": 700, fill: css("--fi-muted") });
     boxes.forEach((b, i) => {
-      const x = 40 + i * W, cur = b.a === SS.a, mid = b.r.semis === BASE[SS.size];
+      const x = 40 + i * W, cur = b.i === SS.qi;
       el("rect", { x, y: 46, width: W - 14, height: 150, rx: 14, fill: cur ? (b.r.q === "major" || b.r.q === "perfect" ? "#FFE07A" : b.r.q === "minor" ? "#9FB7E8" : b.r.q === "augmented" ? "#F3B3A5" : "#C9B7D6") : css("--fi-card"), stroke: cur ? css("--fi-ink") : css("--fi-soft"), "stroke-width": cur ? 3 : 1.5 }, svg);
       svgText(svg, x + (W - 14) / 2, 84, b.r.q, { "font-family": "League Gothic, sans-serif", "font-size": 30 });
-      svgText(svg, x + (W - 14) / 2, 118, `C–${nmL({ l: (SS.size - 1) % 7, a: b.a })}`, { "font-size": 22, "font-weight": 700 });
+      svgText(svg, x + (W - 14) / 2, 118, `${nmL(b.lo)}–${nmL(b.hi)}`, { "font-size": 22, "font-weight": 700 });
       svgText(svg, x + (W - 14) / 2, 148, `${b.r.semis} half steps`, { "font-family": "Barlow Condensed, sans-serif", "font-size": 16 });
       svgText(svg, x + (W - 14) / 2, 178, b.r.ab, { "font-family": "Barlow Condensed, sans-serif", "font-size": 20, "font-weight": 700, fill: css("--fi-red-dk") });
       if (i < boxes.length - 1) svgText(svg, x + W - 7, 125, "↔", { "font-size": 18, fill: css("--fi-muted") });
     });
-    const t = ssTop(), r = analyze(lo, t);
-    $("ssRead").innerHTML = `C–${nmL(t)}: ${r.name}<small>Still a ${SIZE[SS.size]} (the letters C and ${LET[t.l]} don't change); ${r.semis} half steps.</small>`;
-    $("ssDesc").textContent = `${fam ? "Perfect" : "Major and minor"} family of ${SIZE[SS.size]}s above C: ${boxes.map(b => `C to ${nmS({ l: (SS.size - 1) % 7, a: b.a })} is ${b.r.name}, ${b.r.semis} half steps`).join("; ")}. Currently showing ${r.name}.`;
+    const [lo, t] = ssPair(), r = analyze(lo, t);
+    $("ssRead").innerHTML = `${nmL(lo)}–${nmL(t)}: ${r.name}<small>Still a ${SIZE[SS.size]} (the letters ${LET[lo.l]} and ${LET[t.l]} don't change); ${r.semis} half steps.</small>`;
+    $("ssDesc").textContent = `${fam ? "Perfect" : "Major and minor"} family of ${SIZE[SS.size]}s: ${boxes.map(b => `${nmS(b.lo)} to ${nmS(b.hi)} is ${b.r.name}, ${b.r.semis} half steps`).join("; ")}. Currently showing ${r.name}.`;
     trio("ssTrio", lo, t);
-    $("ssDown").disabled = SS.a <= rng[0]; $("ssUp").disabled = SS.a >= rng[rng.length - 1];
-    if (play) seq([60, midiL(t), [60, midiL(t)]], .5);
+    const dn = ssMove(SS.qi, SS.qi - 1), up = ssMove(SS.qi, SS.qi + 1);
+    $("ssDown").disabled = !dn; $("ssUp").disabled = !up;
+    $("ssDown").textContent = `${/bottom/.test(dn) ? "♯" : "♭"} Squeeze (${dn || "top note down"})`;
+    $("ssUp").textContent = `${/bottom/.test(up) ? "♮" : "♯"} Stretch (${up || "top note up"})`;
+    if (play) seq([midiL(lo), midiL(t), [midiL(lo), midiL(t)]], .5);
   }
-  $("ssDown").onclick = () => { const r = ssRange(); if (SS.a > r[0]) { SS.a--; drawSS(true); } };
-  $("ssUp").onclick = () => { const r = ssRange(); if (SS.a < r[r.length - 1]) { SS.a++; drawSS(true); } };
-  $("ssPlay").onclick = () => { const t = ssTop(); seq([60, midiL(t), [60, midiL(t)]], .5); };
+  $("ssDown").onclick = () => { if (SS.qi > 0) { SS.qi--; drawSS(true); } };
+  $("ssUp").onclick = () => { if (SS.qi < ssList().length - 1) { SS.qi++; drawSS(true); } };
+  $("ssPlay").onclick = () => { const [lo, t] = ssPair(); seq([midiL(lo), midiL(t), [midiL(lo), midiL(t)]], .5); };
   SL("Stretch and squeeze").onshow = () => drawSS(false);
 
   // Spelling counts: enharmonic intervals and enharmonic scale spellings
