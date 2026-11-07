@@ -35,6 +35,8 @@ These are included unmodified (or minified) and remain under their authors' lice
 | lamejs (LAME MP3 encoder in JavaScript) | `assets/lame.min.js` (MP3 export) | LGPL (see `assets/lame-LICENSE.txt`) |
 | League Gothic, Schibsted Grotesk, Literata, Barlow Condensed | `assets/fonts/` | SIL Open Font License 1.1 |
 | Satisfy (site title font) | `assets/fonts/title.woff2` | Apache License 2.0 |
+| *Fantasie Quartet* (2023), oboe part excerpt, © Adam Silverman | `assets/img/Fantasie Quartet.png` (Rhythm Notation lesson) | Used by permission; not covered by this repository's CC license |
+| “Baby Love” (Holland–Dozier–Holland), recorded by The Supremes (Motown, 1964): melody transcription and short audio excerpt | `assets/img/Supremes - Baby Love.png`, `assets/audio/Supremes - Baby Love.mp3` (Rhythm Notation lesson) | Fair use (17 U.S.C. § 107) for nonprofit teaching and commentary; not licensed for reuse |
 | Noto Music, © The Noto Project Authors | `assets/fonts/noto-music.woff2` and Google Fonts (music symbols) | SIL Open Font License 1.1 |
 
 ## Sources

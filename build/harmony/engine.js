@@ -318,14 +318,14 @@
     if (cur.length) rows.push(cur);
     const all = o.bars.flatMap(b => ids.flatMap(id => (b[id] || []).flat()));
     const has = f => all.some(n => n[f]);
-    const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") ? 22 : 0) + (has("bs") ? 26 : 0);
+    const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") || o.beatNums ? 22 : 0) + (has("bs") ? 26 : 0);
     const gap = clefs.length > 1 ? (has("ly") ? 120 : 96) : 0;
     const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
     const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     r.resize(totalW, rows.length * rowH + 10);
     const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
-    const meta = [], ties = [], last = {};   // last note per staff+voice (for ties)
+    const meta = [], ties = [], last = {}, beatMarks = [];   // last note per staff+voice (for ties); beat numbers (o.beatNums)
     const st = s => (s.setStyle && s.setStyle({ fillStyle: ink, strokeStyle: ink }), s);
     let curT = time;   // the meter in force (bars can change it with bar.time)
     rows.forEach((row, ri) => {
@@ -369,7 +369,7 @@
               for (let dd = (shown.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
               const L = last[si + ":" + vi];
-              if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length });
+              if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length, dir: L.n.tieDir });   // n.tieDir 1/-1 forces the tie's side (for "wrong side" examples)
               last[si + ":" + vi] = { sn, tie: n.tie, row: ri, n };
               meta.push({ sn, n, si, ri, staves });
               return sn;
@@ -387,6 +387,16 @@
         clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
         if (vlist.length) { const vs = vlist.map(x => x.v); justifyW(VF, fmt, vs, Math.max(20, staves[0].getNoteEndX() - startX - 12)); }
         vlist.forEach(x => x.v.draw(ctx, x.s));
+        if (o.beatNums && vlist.length) {   // o.beatNums: number every beat above the staff, even beats with no note (x interpolated in time between notes)
+          const Q = VF.RESOLUTION / 4, pts = [];
+          vlist.filter(x => x.si === 0).forEach(x => { let tk = 0; x.v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote)) pts.push([tk / Q, n.getAbsoluteX() + 6]); tk += n.getTicks().value(); }); });
+          pts.sort((a, b) => a[0] - b[0]);
+          const [num, den] = curT.split("/").map(Number), full = num * 4 / den, len = Math.max(0, ...vlist.map(x => x.v.getTicksUsed ? x.v.getTicksUsed().value() / Q : 0)) || full, start = bi === 0 && len < full - 1e-9 ? full - len : 0;
+          pts.push([len, staves[0].getNoteEndX()]);
+          beatPos(curT, bar.groups || o.groups).forEach((q, k) => { if (q < start - 1e-9) return; const t = q - start; let xx = pts[0][1];
+            for (let i = 0; i < pts.length; i++) { if (Math.abs(pts[i][0] - t) < 1e-6) { xx = pts[i][1]; break; } if (i && pts[i - 1][0] < t && pts[i][0] > t) { xx = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (t - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); break; } }
+            beatMarks.push({ x: xx, ri, label: String(k + 1) }); });
+        }
         beams.forEach(b => { st(b); b.setContext(ctx).draw(); });
         tuplets.forEach(t => { st(t); t.setContext(ctx).draw(); });
         rowStaves.push(staves);
@@ -395,7 +405,7 @@
     });
     ties.forEach(t => {
       const idx = [...Array(t.n).keys()];
-      const mkTie = (a, b) => { const tie = new VF.StaveTie({ first_note: a, last_note: b, first_indices: idx, last_indices: idx }); st(tie); tie.setContext(ctx).draw(); };
+      const mkTie = (a, b) => { const tie = new VF.StaveTie({ first_note: a, last_note: b, first_indices: idx, last_indices: idx }); if (t.dir) tie.setDirection(t.dir); st(tie); tie.setContext(ctx).draw(); };
       if (t.ra === t.rb) mkTie(t.a, t.b); else { mkTie(t.a, null); mkTie(null, t.b); }
     });
     const svg = el.querySelector("svg");
@@ -405,7 +415,8 @@
     const txt = (x, y, s, at) => { const t = mk("text", Object.assign({ x, y, "text-anchor": "middle", "font-size": 15, "font-family": "'Schibsted Grotesk', Arial, sans-serif", fill: ink }, at || {}), svg); t.textContent = s; return t; };
     const brOpen = {}, rowTop = {}, lyr = [];
     meta.forEach(({ sn, si, ri, staves }) => { if (si) return; const ys = sn.getYs ? sn.getYs() : []; rowTop[ri] = Math.min(rowTop[ri] ?? staves[0].getYForLine(0), staves[0].getYForLine(0), ...ys.map(y => y - (sn.getStemDirection && sn.getStemDirection() === 1 && sn.getDuration() !== "w" ? 34 : 6))); });
-    const hasN = has("n"), hasTag = all.some(n => n.tag), hasSym = has("sym");
+    const hasN = has("n") || !!o.beatNums, hasTag = all.some(n => n.tag), hasSym = has("sym");
+    beatMarks.forEach(b => txt(b.x, (rowTop[b.ri] ?? 40) - 12, b.label, { "font-size": 13, "font-weight": 700, "fill-opacity": .75 }));
     meta.forEach(({ sn, n, si, ri, staves }) => {
       const x = sn.getAbsoluteX() + 6, top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
       const nY = rowTop[ri] - 12, tagY = nY - (hasN ? 18 : 0), symY = tagY - (hasTag ? 20 : 0) - (hasN || hasTag ? 4 : 12), brY = symY - (hasSym ? 24 : 0) - 2;
@@ -431,7 +442,11 @@
       }
     });
     const slOpen = {};
-    lyr.forEach(L => { if (L.n.sls) slOpen[L.si] = L.sn; if (L.n.sle && slOpen[L.si]) { try { const c = new VF.Curve(slOpen[L.si], L.sn, { cps: [{ x: 0, y: 18 }, { x: 0, y: 18 }] }); st(c); c.setContext(ctx).draw(); } catch (e) {} delete slOpen[L.si]; } });
+    lyr.forEach(L => { if (L.n.sls) slOpen[L.si] = { sn: L.sn, n: L.n }; if (L.n.sle && slOpen[L.si]) { try { const S0 = slOpen[L.si];
+        // a slur goes on the notehead side when all stems agree, above when they're mixed; n.slStem on the first note puts it on the stem side (a "wrong" example)
+        const dirs = [S0.sn, L.sn].map(x => x.getStemDirection ? x.getStemDirection() : 1), above = S0.n.slStem ? dirs[0] === 1 : !(dirs[0] === 1 && dirs[1] === 1);
+        const pos = d => (above ? (d === 1 ? 2 : 1) : (d === 1 ? 1 : 2));   // 1 = at the notehead, 2 = at the stem tip
+        const c = new VF.Curve(S0.sn, L.sn, { cps: [{ x: 0, y: 16 }, { x: 0, y: 16 }], position: pos(dirs[0]), position_end: pos(dirs[1]), invert: dirs[0] !== dirs[1] ? dirs[0] === -1 : above !== (dirs[0] === -1) }); st(c); c.setContext(ctx).draw(); } catch (e) {} delete slOpen[L.si]; } });
     let vb = `0 0 ${totalW} ${rows.length * rowH}`;
     try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
     svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
