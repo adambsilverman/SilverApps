@@ -329,6 +329,7 @@
     const meta = [], ties = [], last = {}, beatMarks = [];   // last note per staff+voice (for ties); beat numbers (o.beatNums)
     const st = s => (s.setStyle && s.setStyle({ fillStyle: ink, strokeStyle: ink }), s);
     let curT = time;   // the meter in force (bars can change it with bar.time)
+    let barQ = 0;
     rows.forEach((row, ri) => {
       let x = 8; const y0 = ri * rowH + above + 10;
       // a passage that wraps: stretch every row to the same width, so lines end together (no row wider than the widest)
@@ -388,6 +389,9 @@
         clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
         if (vlist.length) { const vs = vlist.map(x => x.v); justifyW(VF, fmt, vs, Math.max(20, staves[0].getNoteEndX() - startX - 12)); }
         vlist.forEach(x => x.v.draw(ctx, x.s));
+        { const Q = VF.RESOLUTION / 4; let used = 0;   // each note's onset in quarter notes from the start (sn._q), for highlighting during playback
+          vlist.forEach(x => { let tk = 0; x.v.getTickables().forEach(n => { n._q = barQ + tk / Q; tk += n.getTicks().value(); }); used = Math.max(used, tk / Q); });
+          barQ += used; }
         if (o.beatNums && vlist.length) {   // o.beatNums: number every beat above the staff, even beats with no note (x interpolated in time between notes)
           const Q = VF.RESOLUTION / 4, pts = [];
           vlist.filter(x => x.si === 0).forEach(x => { let tk = 0; x.v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote)) pts.push([tk / Q, n.getAbsoluteX() + 6]); tk += n.getTicks().value(); }); });
@@ -454,6 +458,7 @@
     svg.style.width = "100%"; svg.style.height = "auto"; svg.style.maxWidth = Math.round(Math.min(totalW, MAXW + 20) * (o.scale || 1.25)) + "px"; svg.style.display = "block"; svg.style.margin = "0 auto";
     svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
     svg.setAttribute("aria-label", o.label || describeScore(o));
+    el._notes = meta.filter(m => m.n.k.length && !m.n.ghost).map(m => ({ g: m.sn.getSVGElement ? m.sn.getSVGElement() : null, q: m.sn._q || 0, n: m.n })).filter(x => x.g);
   }
   const DURNAME = { w: "whole note", h: "half note", q: "quarter note", "8": "eighth note", "16": "sixteenth note" };
   function describeScore(o) {
@@ -632,7 +637,7 @@
     const gap = p.gap || 1.05;
     (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
-  const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } };
+  const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } followClear(); };
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
   const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}">${PLAY_SVG}${esc(label)}</button></div>`;
 
@@ -853,7 +858,8 @@
       if (t) g += `<text x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle" font-size="12" fill="${ink}">${t}</text>`;
     });
     const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
-    return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
+    const vh = o.fitBottom ? Math.max(y0 + 4 * sp + 16, ...xs.map(([, y]) => y + 16)) + 14 : 4 * sp + 108;   // o.fitBottom: no empty room below the staff unless a low note needs it
+    return `<svg class="ministaff" viewBox="0 -14 ${W} ${vh}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
   }
   const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, withCount, singOf, singFile, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
@@ -1019,7 +1025,7 @@
     const i = Math.min(LS.step, L.steps.length - 1), st = L.steps[i];
     const k = st.keyed ? lessonKey(st) : null;
     figs = {};
-    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : FAM.sing && spec.type === "score" ? singOf(spec) : playOf(spec)) };   // FAM.sing: the lesson's examples are sung (letter names) if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
+    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, follow: !!opts.follow, play: opts.play || (opts.play === false ? null : FAM.sing && spec.type === "score" ? singOf(spec) : playOf(spec)) };   // FAM.sing: the lesson's examples are sung (letter names) if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
       return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}${opts.count ? `<button class="play" data-lplay="${id}c">${PLAY_SVG}Play with counting</button>` : ""}</figure>`; };
     const sound = (p, label) => { const id = "s" + Object.keys(figs).length; figs[id] = { play: p }; return `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(label || "Play")}</button>`; };
     const body = richHTML(st.render(H, k, { fig, sound, rich, rn: rnHTML, sym: symHTML }));
@@ -1027,10 +1033,32 @@
     lessonEl.innerHTML = `<ol class="lsteps" aria-label="Lesson steps">${L.steps.map((s, j) => `${s.part && (j === 0 || L.steps[j - 1].part !== s.part) ? `<li class="lpart" aria-hidden="true">${esc(s.part)}</li>` : ""}<li><button data-lstep="${j}" ${j === i ? 'aria-current="step"' : ""} class="${LS.seen.includes(j) ? "seen" : ""}"><span aria-hidden="true">${j + 1}</span><span class="sr">Step ${j + 1}: ${esc(s.title)}</span></button></li>`).join("")}</ol>
       <article class="lslide" aria-labelledby="lsTitle"><p class="lkick">${st.part ? esc(st.part) + " · " : ""}Step ${i + 1} of ${L.steps.length}${st.kick ? " · " + esc(st.kick) : ""}</p><h2 id="lsTitle" tabindex="-1">${rich(st.title)}</h2>${keyRow}${body}
       <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? `<a class="btn primary" href="${esc(SA_PAGE.other)}">Practice with the drills →</a>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
-    lessonEl.querySelectorAll("[data-lfig]").forEach(el => drawStaff(el, figs[el.dataset.lfig].spec));
+    lessonEl.querySelectorAll("[data-lfig]").forEach(el => { drawStaff(el, figs[el.dataset.lfig].spec); if (figs[el.dataset.lfig].follow) wireFollow(el, figs[el.dataset.lfig]); });
     lessonEl.querySelectorAll(".lq").forEach(bindCheck);
     if (st.after) st.after(lessonEl, H, k, { play, drawStaff });
     if (focus) { const h = $("lsTitle"); if (h) h.focus(); }
+  }
+  // following figures (fig option follow: true): each note lights up while it sounds; click (or Enter/Space on) a note to hear it
+  var followT = [];   // var + function declaration: stopSound() may run before this point
+  function followClear() { (followT || []).forEach(clearTimeout); followT = []; document.querySelectorAll(".staff .nhl").forEach(g => g.classList.remove("nhl")); }
+  function lightNote(g, ms) { g.classList.add("nhl"); followT.push(setTimeout(() => g.classList.remove("nhl"), ms)); }
+  function followPlay(el, F) {
+    followClear(); if (!el || !el._notes) return;
+    const spb = 60 / (F.spec.bpm || 100), lead = 60;   // play() starts 60 ms ahead
+    el._notes.forEach(x => { const d = durOf(x.n.d) * (x.n.tu ? (x.n.tuo || 2) / (x.n.tun || 3) : 1) * spb * 1000;
+      followT.push(setTimeout(() => lightNote(x.g, Math.max(120, d * .95)), lead + x.q * spb * 1000)); });
+  }
+  function wireFollow(el, F) {
+    const svg = el.querySelector("svg"); if (!svg || !el._notes) return;
+    svg.setAttribute("role", "group");   // the notes inside are buttons
+    el._notes.forEach(x => {
+      const g = x.g, ms = x.n.k.map(k => midi(parse(k)));
+      g.setAttribute("role", "button"); g.setAttribute("tabindex", "0"); g.classList.add("nclick");
+      g.setAttribute("aria-label", "Play " + x.n.k.map(k => { const p = parse(k); return nmSpoken(p) + " " + p.o; }).join(" and "));
+      const go = () => { followClear(); play({ chords: [ms], gap: 1.05 }); lightNote(g, 900); };
+      g.addEventListener("click", go);
+      g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    });
   }
   // quick-check questions inside lessons: <div class="lq" data-a="answer"> with .opt buttons
   function bindCheck(box) {
@@ -1046,7 +1074,7 @@
   if (lessonEl) lessonEl.addEventListener("click", e => {
     const s = e.target.closest("[data-lstep]"), g = e.target.closest("[data-lgo]"), p = e.target.closest("[data-lplay]"), kb = e.target.closest("[data-lkey]"), mb = e.target.closest("[data-lmode]");
     if (s || g) { stopSound(); LS.step = s ? +s.dataset.lstep : Math.max(0, Math.min(L.steps.length - 1, LS.step + +g.dataset.lgo)); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); saveL(); renderLesson(true); window.scrollTo({ top: Math.max(0, lessonEl.getBoundingClientRect().top + scrollY - 90), behavior: "smooth" }); return; }
-    if (p && figs[p.dataset.lplay]) { play(figs[p.dataset.lplay].play); return; }
+    if (p && figs[p.dataset.lplay]) { const F = figs[p.dataset.lplay]; play(F.play); if (F.follow) followPlay(lessonEl.querySelector(`[data-lfig="${p.dataset.lplay}"]`), F); return; }
     if (kb) { LS.key = kb.dataset.lkey; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lkey="${CSS.escape(LS.key)}"]`); if (again) again.focus(); return; }
     if (mb) { LS.mode = mb.dataset.lmode; LS.key = null; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lmode="${LS.mode}"]`); if (again) again.focus(); }
   });

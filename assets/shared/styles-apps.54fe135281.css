@@ -542,6 +542,11 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 /* citations and credits (sources of images, excerpts and recordings): italic; titles inside them switch back to roman */
 .lcite { font-style: italic; }
 .lcite i { font-style: normal; }
+/* lesson figures with follow: true: the sounding note lights up; notes are clickable */
+.staff g.nclick { cursor: pointer; }
+.staff g.nclick:focus { outline: none; }
+.staff g.nclick:focus-visible path, .staff g.nclick:hover path { fill: var(--fi-red, #E8573F) !important; stroke: var(--fi-red, #E8573F) !important; }
+.staff g.nhl path { fill: var(--fi-red-dk, #b33a26) !important; stroke: var(--fi-red-dk, #b33a26) !important; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

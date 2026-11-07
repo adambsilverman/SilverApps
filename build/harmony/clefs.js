@@ -120,7 +120,7 @@ window.FAM = (() => {
   let HC = null; const MV = { clef: "treble", s: 4, a: 0 };
   function mvInner(H) {
     const n = noteAt(H, MV.clef, MV.s), nn = H.N(n.l, MV.a, n.o);
-    const svg = H.miniStaff({ clef: MV.clef, notes: [{ s: MV.s, acc: MV.a ? MV.a : null }], startX: 110, dx: 80, w: 260, label: `${MV.clef} clef, a note on the ${where(MV.s)}: ${nameO(H, nn)}` });
+    const svg = H.miniStaff({ clef: MV.clef, fitBottom: true, notes: [{ s: MV.s, acc: MV.a ? MV.a : null }], startX: 110, dx: 80, w: 260, label: `${MV.clef} clef, a note on the ${where(MV.s)}: ${nameO(H, nn)}` });
     return `${svg}<p class="msinfo" aria-live="polite">${where(MV.s)[0].toUpperCase() + where(MV.s).slice(1)}: <b>${H.nm(nn)}</b> (${nameO(H, nn).replace(" (middle C)", ", middle C")})</p>`;
   }
   function mvToy(H) {
@@ -134,7 +134,7 @@ window.FAM = (() => {
     MV.s = Math.max(-6, Math.min(14, st)); const box = document.getElementById("mvStaff"); if (!box || !HC) return; box.innerHTML = mvInner(HC);
     const svg = box.querySelector("svg"); svg.setAttribute("tabindex", "0"); svg.setAttribute("role", "slider"); svg.setAttribute("aria-valuemin", "-6"); svg.setAttribute("aria-valuemax", "14"); svg.setAttribute("aria-valuenow", MV.s);
     const n = noteAt(HC, MV.clef, MV.s); svg.setAttribute("aria-valuetext", nameO(HC, HC.N(n.l, MV.a, n.o)));
-    if (sound) { const nn = HC.N(n.l, MV.a, n.o), fn = HC.singFile && HC.singFile(HC.nmO(nn)); HC.play(fn ? { ev: [[HC.midi(nn), 0, 1, .9, "sing", fn]] } : { chords: [[HC.midi(nn)]], gap: 1.05 }); }   // the singer names the note
+    if (sound) HC.play({ chords: [[HC.midi(HC.N(n.l, MV.a, n.o))]], gap: 1.05 });
   }
   if (!window.__mvWired) { window.__mvWired = true;
     document.addEventListener("click", e => {
@@ -244,7 +244,7 @@ window.FAM = (() => {
   const lesson = { steps: [
     { title: "The staff", kick: "Lines, spaces, letters", render: (H, k, U) => `<p>Pitch is written on a <b>staff</b> of five lines and four spaces, counted from the <b>bottom</b>. Moving from a line to the next space (or a space to the next line) is one <b>step</b>: the next letter. Line to line, or space to space, is a <b>skip</b> (a 3rd): every other letter.</p>
       <p>The musical alphabet is just seven letters, <b>A B C D E F G</b>, repeating. Octave numbers tell the repetitions apart: each octave starts on C, and <b>middle C</b> is <b>C4</b>.</p>`
-      + U.fig(one("treble", [0, 1, 2, 3, 4, 5, 6, 7, 8].map(s => { const n = noteAt(H, "treble", s); return { k: [H.nmO(n)], ly: H.nm(n) }; })), "Line, space, line, space…: each step is the next letter.")
+      + U.fig(one("treble", [0, 1, 2, 3, 4, 5, 6, 7, 8].map(s => { const n = noteAt(H, "treble", s); return { k: [H.nmO(n)], ly: H.nm(n) }; })), "Line, space, line, space…: each step is the next letter. Press Play to hear them in order, or click any note to hear it.", { follow: true })
       + `<p><b>Ledger lines</b> extend the staff above and below for notes outside it. A <b>clef</b> tells you which line is which pitch.</p>
       <h3>Try it: move the note</h3>${mvToy(H)}` },
     { title: "Treble clef", kick: "The G clef", render: (H, k, U) => `<p>The treble clef is a <b>G clef</b>: it began as a letter G, and its curl still circles the 2nd line, <b>G4</b> (the G above middle C).</p>
@@ -379,7 +379,7 @@ window.FAM = (() => {
   } };
 
   return {
-    key: "silverapps-clefs-v1", lesson, make, reference, widgets, sing: true,   // lesson examples are sung (letter names at pitch)
+    key: "silverapps-clefs-v1", lesson, make, reference, widgets,
     modes: [{ id: "name", kicker: "Name the note" }, { id: "octave", kicker: "Note and octave" }, { id: "same", kicker: "Same pitch, new clef" }, { id: "devices", kicker: "Devices and principles" }],
     topics: [{ id: "treble", name: "Treble clef", group: "c" }, { id: "bass", name: "Bass clef", group: "c" }, { id: "alto", name: "Alto clef", group: "c" }, { id: "tenor", name: "Tenor clef", group: "c", on: false },
       { id: "staff", name: "On the staff", group: "r" }, { id: "ledger", name: "Ledger lines", group: "r", on: false }],
