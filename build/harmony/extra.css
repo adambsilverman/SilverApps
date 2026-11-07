@@ -306,3 +306,6 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 /* Rhythm Notation: annotated score image */
 .fqkey { text-align: left; margin: 8px auto 4px; max-width: 640px; padding-left: 1.4em; }
 .fqfig figcaption p { margin: 4px auto; max-width: 640px; text-align: left; }
+/* citations and credits (sources of images, excerpts and recordings): italic; titles inside them switch back to roman */
+.lcite { font-style: italic; }
+.lcite i { font-style: normal; }

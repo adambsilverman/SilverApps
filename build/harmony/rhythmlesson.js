@@ -25,7 +25,7 @@ window.FAM = (() => {
       <image href="assets/img/Fantasie%20Quartet.png" x="0" y="0" width="${W}" height="${Hh}"/>${g}</svg>
       <figcaption><ol class="fqkey"><li>The time signature (cut time) appears once, at the start.</li><li>A <b>cautionary</b> 3/2 at the end of the first line warns that the meter changes on the next line…</li><li>…where the new 3/2 time signature appears.</li><li>A meter change in the middle of a line simply gets its time signature where it happens.</li></ol>
       <p>Shaded in blue: bar lines, including the one that ends every line.</p>
-      <p class="small">Oboe part from <i>Fantasie Quartet</i> by Adam Silverman (2023). Used by permission.</p></figcaption></figure>`;
+      <p class="small lcite">Oboe part from <i>Fantasie Quartet</i> by Adam Silverman (2023). Used by permission.</p></figcaption></figure>`;
   }
   const ev = (list, spb = .5, m = 72) => ({ ev: list.map(([t, d, mm, v]) => [mm || m, t * spb, d * spb * .9, v || .8]) });
   const lesson = { steps: [
@@ -88,7 +88,7 @@ window.FAM = (() => {
         + `<figure class="lfig"><img src="assets/img/Supremes%20-%20Baby%20Love.png" alt="Eight bars of a pop vocal melody in 4/4, on two lines, with the lyrics below the staff. Each syllable sits under its note; a hyphen splits a two-syllable word; extender lines follow held words; slurs join the notes of melismas." style="width:100%;max-width:900px;display:block;margin:0 auto;background:#fff;border-radius:8px">
           <figcaption>Lyrics in a pop melody: syllables line up under their notes, beams follow the beat (not the syllables), hyphens split words, and slurred melismas get extender lines to their last note.</figcaption>
           <audio controls preload="none" src="assets/audio/Supremes%20-%20Baby%20Love.mp3" style="width:100%;max-width:520px;display:block;margin:8px auto 0">Your browser can't play this audio clip.</audio>
-          <p class="small">The Supremes, “Baby Love” (words and music by Brian Holland, Lamont Dozier and Edward Holland Jr.; Motown, 1964). A short excerpt of the melody and recording is reproduced here for nonprofit teaching and commentary on its notation, under the fair-use provision of U.S. copyright law (17 U.S.C. § 107).</p></figure>`;
+          <p class="small lcite">The Supremes, “Baby Love” (words and music by Brian Holland, Lamont Dozier and Edward Holland Jr.; Motown, 1964). A short excerpt of the melody and recording is reproduced here for nonprofit teaching and commentary on its notation, under the fair-use provision of U.S. copyright law (17 U.S.C. § 107).</p></figure>`;
     } },
     { title: "Quick check", kick: "Then practice", render: (H) => H.check("In 4/4, why avoid a half note starting on beat 2?", "it hides beat 3", ["it's too long", "half notes can't follow quarters", "it changes the meter"], "Show the middle of the bar.") + H.check("Where do ties go when stems point up?", "below the noteheads", ["above the stems", "through the stems", "anywhere"], "Ties curve on the notehead side, away from the stems.") + H.check("Three notes against two, as in 3:2, is…", "a polyrhythm", ["a polymeter", "a hemiola only in 6/8", "a metric modulation"], "Different subdivisions at once.") + H.check("In vocal music, dynamics usually go…", "above the staff", ["below the lyrics", "between the syllables", "in the bass clef"], "Lyrics take the space below.") },
   ] };

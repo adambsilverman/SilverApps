@@ -517,6 +517,24 @@
     });
     return Object.assign({}, p, { ev });
   }
+  // sung playback: a recorded singer (Cantai) sings each note's letter name at pitch. Clips in assets/pitch-voice-Cantai/letters/
+  // cover C2–C6: every natural, plus C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭ (file names use "s" for sharp: Cs4, Db4). Other spellings
+  // (E♯, C♭, double sharps/flats) or notes outside the range fall back to the piano tone.
+  const SING_DIR = "assets/pitch-voice-Cantai/letters/";
+  function singFile(sp) {
+    const m = /^([A-G])(𝄫|𝄪|♭|♯|b|#)?(-?\d)$/.exec(sp || ""); if (!m) return null;
+    const acc = m[2] ? { "♯": "s", "#": "s", "♭": "b", b: "b" }[m[2]] : ""; if (acc == null) return null;
+    if (acc === "s" && !"CDFGA".includes(m[1]) || acc === "b" && !"DEGAB".includes(m[1])) return null;
+    const mi = midi(parse(sp)); return mi >= 36 && mi <= 84 ? m[1] + acc + m[3] : null;
+  }
+  // a score's playback with every lone note sung (chords stay on the piano), slowed if needed so each name has time to sound (≥ 0.85 s apart)
+  function singOf(o, p) {
+    p = p || scorePlay(o); const ev = p.ev.slice().sort((a, b) => a[1] - b[1]);
+    const starts = [...new Set(ev.map(e => Math.round(e[1] * 1e4)))]; let gap = Infinity; for (let i = 1; i < starts.length; i++) gap = Math.min(gap, (starts[i] - starts[i - 1]) / 1e4);
+    const f = gap < .85 ? .85 / gap : 1;
+    return Object.assign({}, p, { ev: ev.map(e => { const solo = !e[4] && ev.filter(x => Math.abs(x[1] - e[1]) < 1e-4).length === 1, fn = solo ? singFile(e[7]) : null;
+      return fn ? [e[0], e[1] * f, e[2] * f, e[3], "sing", fn] : [e[0], e[1] * f, e[2] * f, ...e.slice(3)]; }) });
+  }
   // events [midi, start, length, velocity] for a score spec (ties joined)
   function scorePlay(o) {
     const spb = 60 / (o.bpm || 100), ev = [], ids = staffIds(o), perc = (o.clefs || [])[0] === "percussion";
@@ -528,7 +546,7 @@
           const d = durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1) * spb;
           if (n.k.length) {
             if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
-            else { const evs = n.k.map(s => perc ? [76, t, d * .95, .9, "perc"] : [midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length)]); ev.push(...evs); held = { k: n.k.join(), evs }; }
+            else { const evs = n.k.map(s => perc ? [76, t, d * .95, .9, "perc"] : [midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length), undefined, undefined, undefined, s]); ev.push(...evs); held = { k: n.k.join(), evs }; }   // event [7] = the note's spelling (for sung playback)
             if (!n.tie) held = null;
           } else held = null;
           t += d;
@@ -585,8 +603,9 @@
   }
   // recorded counting syllables (see withCount), fetched and decoded on first use
   const VOICE = {}, VOICE_DIR = "assets/count-voice-Adam/";
-  const sayKeys = ev => [...new Set(ev.filter(e => e[4] === "say").map(e => e[5]))];
-  const loadVoice = keys => Promise.all(keys.filter(k => !(k in VOICE)).map(k => fetch(VOICE_DIR + k + ".wav").then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+  const clipURL = e => e[4] === "say" ? VOICE_DIR + e[5] + ".wav" : e[4] === "sing" ? SING_DIR + e[5] + ".mp3" : null;
+  const sayKeys = ev => [...new Set(ev.map(clipURL).filter(Boolean))];
+  const loadVoice = keys => Promise.all(keys.filter(k => !(k in VOICE)).map(k => fetch(k).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
     .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { buf._lv = voiceLevel(buf); VOICE[k] = buf; }).catch(() => { VOICE[k] = null; })));
   // even out the recordings' loudness: gain that brings each clip's sounding RMS to the same level (peaks kept below full scale)
   function voiceLevel(buf) { const d = buf.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } }
@@ -596,13 +615,18 @@
     if (p.ev) { const keys = sayKeys(p.ev); if (keys.some(k => !(k in VOICE))) { newBus(); const ticket = bus; loadVoice(keys).then(() => { if (bus === ticket) play(p); }); return; } }
     const out = newBus(), t = AC.currentTime + .06;
     if (p.ev) {
-      p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind === "say" ? 0 : kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan));
+      p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind === "say" || kind === "sing" ? 0 : kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan));
       // each syllable is cut off (with a short fade) where the next one starts, so fast subdivisions stay in time
       const says = p.ev.filter(e => e[4] === "say").sort((a, b) => a[1] - b[1]);
-      says.forEach((e, i) => { const buf = VOICE[e[5]]; if (!buf) return;
+      says.forEach((e, i) => { const buf = VOICE[clipURL(e)]; if (!buf) return;
         const src = AC.createBufferSource(), g = AC.createGain(), t0 = t + e[1], end = Math.min(t0 + buf.duration, i + 1 < says.length ? t + says[i + 1][1] : Infinity), lv = (buf._lv || 1) * (e[3] || 1);
         src.buffer = buf; g.gain.setValueAtTime(lv, t0); g.gain.setValueAtTime(lv, Math.max(t0, end - .02)); g.gain.linearRampToValueAtTime(0, end);
         src.connect(g); g.connect(out); src.start(t0); src.stop(end + .01); });
+      // sung notes (clips already normalized): each lasts its note value, but at least 0.9 s so the name is heard; a missing clip falls back to the tone
+      p.ev.filter(e => e[4] === "sing").forEach(e => { const buf = VOICE[clipURL(e)]; if (!buf) { tone(out, e[0], t + e[1], e[2], e[3] || .8, p.timbre); return; }
+        const src = AC.createBufferSource(), g = AC.createGain(), t0 = t + e[1], end = t0 + Math.min(buf.duration, Math.max(e[2], .9)), lv = 1.15 * Math.min(1, (e[3] || .8) / .9);
+        src.buffer = buf; g.gain.setValueAtTime(lv, t0); g.gain.setValueAtTime(lv, Math.max(t0, end - .06)); g.gain.linearRampToValueAtTime(0, end);
+        src.connect(g); g.connect(out); src.start(t0); src.stop(end + .02); });
       return;
     }
     const gap = p.gap || 1.05;
@@ -831,7 +855,7 @@
     const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
     return `<svg class="ministaff" viewBox="0 -14 ${W} ${4 * sp + 108}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
   }
-  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, withCount, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
+  const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, withCount, singOf, singFile, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);
@@ -995,7 +1019,7 @@
     const i = Math.min(LS.step, L.steps.length - 1), st = L.steps[i];
     const k = st.keyed ? lessonKey(st) : null;
     figs = {};
-    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : playOf(spec)) }; if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
+    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, play: opts.play || (opts.play === false ? null : FAM.sing && spec.type === "score" ? singOf(spec) : playOf(spec)) };   // FAM.sing: the lesson's examples are sung (letter names) if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
       return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}${opts.count ? `<button class="play" data-lplay="${id}c">${PLAY_SVG}Play with counting</button>` : ""}</figure>`; };
     const sound = (p, label) => { const id = "s" + Object.keys(figs).length; figs[id] = { play: p }; return `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(label || "Play")}</button>`; };
     const body = richHTML(st.render(H, k, { fig, sound, rich, rn: rnHTML, sym: symHTML }));
