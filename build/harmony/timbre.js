@@ -127,7 +127,7 @@ window.FAM = (() => {
   }
   const buildToy = () => `<div class="toy" id="tmBuild"><div class="toy-row"><label>Start from <select id="tmPre"><option value="">choose…</option>${Object.keys(SPEC).map(k => `<option>${k}</option>`).join("")}</select></label>${btn("Play (2.5 s)", { tm: "build" })}<button class="play" data-tmshare="1">Copy link to this timbre</button><span class="lnote" id="tmShareMsg" aria-live="polite"></span></div>
     <div class="sygrid">${TS.amps.map((a, i) => `<label class="syk">Partial ${i + 1}<input type="range" min="0" max="1" step=".01" value="${a}" data-tp="${i}"><output data-tpo="${i}">${a.toFixed(2)}</output></label>`).join("")}</div>
-    ${specSVG(TS.amps, "Your spectrum", "tmSpec")}<p class="lnote">Move sliders while it plays to hear the color change. The pitch never changes: only the recipe of partials.</p></div>`;
+    ${specSVG(TS.amps, "Your spectrum", "tmSpec")}<p class="lnote">Move sliders while it plays to hear the color change. The pitch never changes: only the levels of partials.</p></div>`;
   const adsrToy = () => `<div class="toy"><div class="sygrid">${[["Attack", 0, 0, 2, .005], ["Decay", 1, .01, 2, .01], ["Sustain level", 2, 0, 1, .01], ["Release", 3, .01, 3, .01]].map(([l, i, mn, mx, st]) => `<label class="syk">${l}<input type="range" min="${mn}" max="${mx}" step="${st}" value="${TS.env[i]}" data-te="${i}"><output data-teo="${i}">${TS.env[i]}${i === 2 ? "" : " s"}</output></label>`).join("")}</div>${row(btn("Play the same tone with this envelope", { tm: "adsr" }))}</div>`;
 
   // ---------- drills ----------
@@ -148,6 +148,7 @@ window.FAM = (() => {
     ["Bright, dark, warm, nasal, breathy and reedy are…", "words musicians use to describe timbre", ["dynamic markings", "tempo markings", "names of chords"], "There's no single scale for timbre, so we rely on descriptive words linked to spectrum and noise."],
   ];
   function make(mode, H) {
+    if (mode === "bright") mode = Math.random() < .5 ? "bright" : "env";   // one combined drill: brightness and envelopes
     if (mode === "wave") { const w = H.rnd(["sine", "triangle", "square", "sawtooth"]), f = H.rnd([147, 165, 196, 220, 262]);
       return H.mc("Listen. Which waveform is this?", w, ["sine", "triangle", "square", "sawtooth"], { sine: "A sine is pure: just the fundamental, smooth and flute-like.", triangle: "A triangle has weak odd harmonics: soft, a little hollow.", square: "A square has strong odd harmonics: hollow and buzzy, like a clarinet's low register.", sawtooth: "A sawtooth has every harmonic: bright and brassy or string-like." }[w], { kicker: "Listen: waveform", fig: row(btn("Play", { tm: "wave", w, f })) }); }
     if (mode === "env") { const e = H.rnd(Object.keys(ENVS)), f = H.rnd([196, 220, 262]);
@@ -210,7 +211,7 @@ window.FAM = (() => {
   ] };
   return {
     key: "silverapps-timbre-v1", lesson, make, reference,
-    modes: [{ id: "wave", kicker: "Listen: waveform" }, { id: "bright", kicker: "Listen: brightness" }, { id: "env", kicker: "Listen: envelope" }, { id: "vowel", kicker: "Listen: vowels" }, { id: "inst", kicker: "Listen: instruments" }, { id: "concepts", kicker: "Concepts" }],
+    modes: [{ id: "wave", kicker: "Listen: waveform" }, { id: "bright", kicker: "Listen: brightness and envelopes" }, { id: "concepts", kicker: "Concepts" }],
     topics: [],
   };
 })();

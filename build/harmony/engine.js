@@ -27,9 +27,23 @@
 
   const rnd = a => a[Math.floor(Math.random() * a.length)];
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // answers that are amounts ("3", "1½", "2 beats", "½ beat (an eighth note)") are listed smallest to largest instead of shuffled,
+  // when every choice is an amount of the same unit; extra.order: "keep" keeps the given order, "shuffle" always shuffles
+  const NUMW = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 }, FR = { "½": .5, "¼": .25, "¾": .75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": .125 };
+  const qty = v => { const t = String(v).replace(/<[^>]+>/g, "").trim().toLowerCase();
+    let m = /^(\d+(?:\.\d+)?)?\s*([½¼¾⅓⅔⅛])?(?:\s*\/\s*(\d+))?/.exec(t), q = null, rest = t;
+    if (m && (m[1] || m[2])) { q = (m[1] ? +m[1] : 0) + (m[2] ? FR[m[2]] : 0); if (m[3]) q /= +m[3]; rest = t.slice(m[0].length); }
+    else if ((m = /^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/.exec(t))) { q = NUMW[m[1]]; rest = t.slice(m[0].length); }
+    else if ((m = /^half an? /.exec(t))) { q = .5; rest = t.slice(m[0].length); }
+    if (q == null) return null;
+    const unit = (/^\s*([a-z-]+)/.exec(rest) || [, ""])[1].replace(/s$/, "");
+    return { q, unit }; };
+  const ordered = cs => { const qs = cs.map(qty); if (cs.some(c => /^(42|43|53|63|64|65)$/.test(c)) || qs.some(x => !x) || new Set(qs.map(x => x.unit)).size > 1 || new Set(qs.map(x => x.q)).size < cs.length) return null;
+    return cs.map((c, i) => [c, qs[i].q]).sort((a, b) => a[1] - b[1]).map(x => x[0]); };
   const mc = (text, answer, wrong, explain, extra) => {
     const w = shuffle([...new Set(wrong.map(String))].filter(v => v !== String(answer))).slice(0, (extra && extra.nWrong) || 3);
-    return Object.assign({ text, choices: shuffle([String(answer), ...w]), answer: String(answer), explain }, extra || {});
+    const cs = [String(answer), ...w], ord = extra && extra.order;
+    return Object.assign({ text, choices: ord === "keep" ? cs : (ord !== "shuffle" && ordered(cs)) || shuffle(cs), answer: String(answer), explain }, extra || {});
   };
 
   // ---------- keys ----------
@@ -264,23 +278,23 @@
     for (let it = 0; it < 5; it++) {
       let tot = 0; const pts = [];
       vs.forEach(v => { let t = 0; v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); tot = Math.max(tot, t); });   // the bar's own length: a pickup ends right after its last note
-      if (pts.length < 2) return w;
+      if (pts.length < 2) return fitInside(VF, fmt, vs, avail, w);
       pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
-      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      if (t1 <= t0 || t1 >= tot) return fitInside(VF, fmt, vs, avail, w);   // a single note, or a bar without a meter
       const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
-      if (Math.abs(need - end) <= 2) return w;
-      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      if (Math.abs(need - end) <= 2) break;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) break;
       w = nw; fmt.format(vs, w);
     }
     return fitInside(VF, fmt, vs, avail, w);
   }
-  // after justification: shrink until every note (with its dots and accidentals) ends inside the bar
+  // after justification: shrink until every note (with its dots, flags and accidentals) ends clear of the bar line
   function fitInside(VF, fmt, vs, avail, w) {
-    for (let it = 0; it < 6; it++) {
+    for (let it = 0; it < 8; it++) {
       let right = 0;
       vs.forEach(v => v.getTickables().forEach(n => { if (n instanceof VF.GhostNote || !n.getTickContext()) return; const m = n.getMetrics ? n.getMetrics() : null; right = Math.max(right, n.getTickContext().getX() + (m ? m.notePx + m.modRightPx : 12)); }));
-      if (right <= avail + 8) return w;
-      w = Math.max(10, w * (avail + 4) / right); fmt.format(vs, w);
+      if (right <= avail - 12) return w;
+      w = Math.max(10, w * (avail - 16) / right); fmt.format(vs, w);
     }
     return w;
   }
@@ -288,6 +302,7 @@
     const VF = Vex.Flow, ink = cssVar("--ink") || "#222", clefs = o.clefs || ["treble", "bass"], ids = staffIds(o);
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
+    const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
     const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
@@ -315,16 +330,18 @@
     let curT = time;   // the meter in force (bars can change it with bar.time)
     rows.forEach((row, ri) => {
       let x = 8; const y0 = ri * rowH + above + 10;
+      // a passage that wraps: stretch every row to the same width, so lines end together (no row wider than the widest)
+      const hw = headW(row[0] === 0), natural = row.reduce((t, bi) => t + barW(o.bars[bi]), 0), k = rows.length > 1 ? Math.max(1, (totalW - 14 - hw) / natural) : 1;
       const rowStaves = [];
       row.forEach((bi, j) => {
-        const bar = o.bars[bi]; let bw = barW(bar) + (j ? 0 : headW(bi === 0));
+        const bar = o.bars[bi]; let bw = barW(bar) * k + (j ? 0 : headW(bi === 0));
         if (bar.time) curT = bar.time;
         const nextT = j === row.length - 1 && o.bars[bi + 1] && o.bars[bi + 1].time;   // cautionary time signature at the end of the line
         const staves = clefs.map((c, si) => { const s = new VF.Stave(x, y0 + si * gap, bw); if (j === 0) { s.addClef(c); if (c !== "percussion" && o.vf && o.vf !== "C" && o.vf !== "Am") s.addKeySignature(o.vf); } if ((bi === 0 && o.time !== null) || (bi > 0 && bar.time)) s.addTimeSignature(curT); if (nextT && s.setEndTimeSignature) s.setEndTimeSignature(nextT); if (bar.dbl) s.setEndBarType(VF.Barline.type.DOUBLE); if (bi === o.bars.length - 1 && o.final !== false) s.setEndBarType(VF.Barline.type.END); return s; });
         { // size the bar from the space its clef, key and time signatures really take, so equal bars get equal room for notes
           const plain = new VF.Stave(x, 0, 100), offS = plain.getNoteStartX() - x, offE = x + 100 - plain.getNoteEndX();
           const head = Math.max(...staves.map(s => s.getNoteStartX())) - x - offS, tail = x + bw - Math.min(...staves.map(s => s.getNoteEndX())) - offE;
-          bw = barW(bar) - (bar.time ? 26 : 0) + Math.max(0, head) + Math.max(0, tail); staves.forEach(s => s.setWidth(bw)); }
+          bw = barW(bar) * k - (bar.time ? 26 : 0) + Math.max(0, head) + Math.max(0, tail); staves.forEach(s => s.setWidth(bw)); }
         staves.forEach(s => { st(s); s.setContext(ctx).draw(); });
         if (clefs.length > 1 && o.brace !== false) {   // two staves: a braced grand staff. Three: a melody staff above a braced grand staff (system line on the left; bar lines join the grand staff only)
           const gs = clefs.length > 2 ? 1 : 0, conn = (a, b, t) => { const c = new VF.StaveConnector(a, b); c.setType(t); st(c); c.setContext(ctx).draw(); };
@@ -340,8 +357,8 @@
             const notes = voice.map(n => {
               if (n.ghost) { const gn = new VF.GhostNote({ duration: n.d }); last[si + ":" + vi] = null; return gn; }   // invisible placeholder
               const isRest = !n.k.length;
-              const keys = isRest ? [rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
-              const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest, align_center: !!n.center });   // n.center: a whole-bar rest centered in the bar
+              const keys = isRest ? [/^w/.test(n.d) ? restW[c] : rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
+              const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: n.d + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest, align_center: !!n.center || (isRest && /^w/.test(n.d) && voice.length === 1) });   // n.center: a whole-bar rest centered in the bar
               if (!isRest && c !== "percussion") keys.forEach((y, ki) => {
                 const kk = y.p.l + "/" + y.p.o, cur = kk in acc ? acc[kk] : ((o.sig && o.sig[y.p.l]) || 0);
                 const tiedIn = last[si + ":" + vi] && last[si + ":" + vi].tie && last[si + ":" + vi].sn && last[si + ":" + vi].n.k.includes(n.k[0]);
@@ -430,6 +447,18 @@
     return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (o.names ? o.names[si] + " " : si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
   }
   // a metronome click on every beat of a score spec (pick-up bars start mid-bar), merged with the music
+  // beat positions (in quarter notes) within a bar: simple meters by their beat note, compound meters by the dotted quarter,
+  // and asymmetrical x/8 bars by their beam groups (5/8 as 3 + 2 → two clicks; 7/8 as 2 + 2 + 3 → three)
+  function beatPos(T, groups) {
+    const [num, den] = T.split("/").map(Number), full = num * 4 / den, comp = den === 8 && num % 3 === 0 && num > 3, out = [];
+    if (den === 8 && !comp && num > 3) {
+      const gs = (groups ? groups.map(g => { const [a, b] = g.split("/").map(Number); return a * 4 / b; }) : num === 5 ? [1.5, 1] : num === 7 ? [1, 1, 1.5] : num === 8 ? [1.5, 1.5, 1] : []).filter(g => g > 0);
+      if (gs.length) { let q = 0; for (let i = 0; q < full - 1e-9 && i < 64; i++) { out.push(q); q += gs[i % gs.length]; } return out; }
+    }
+    const beat = comp ? 1.5 : den === 8 ? .5 : 4 / den;
+    for (let q = 0; q < full - 1e-9; q += beat) out.push(q);
+    return out;
+  }
   function withClick(o, p) {
     p = p || scorePlay(o);
     const spb = 60 / (o.bpm || 100), ids = staffIds(o), ev = (p.ev || []).slice();
@@ -438,23 +467,23 @@
     o.bars.forEach((b, i) => {
       if (b.time) T = b.time;
       const [num, den] = T.split("/").map(Number), full = num * 4 / den;
-      const beat = den === 8 && num % 3 === 0 && num > 3 ? 1.5 : den === 8 ? .5 : 4 / den;
       const len = barLen(b) || full, start = i === 0 && len < full - 1e-9 ? full - len : 0;
-      for (let q = Math.ceil(start / beat - 1e-9) * beat; q < full - 1e-9; q += beat) ev.push([q < 1e-9 ? 96 : 89, t + (q - start) * spb, .05, q < 1e-9 ? .9 : .6, q < 1e-9 ? "clickHi" : "click"]);
+      beatPos(T, b.groups || o.groups).forEach(q => { if (q < start - 1e-9) return; ev.push([q < 1e-9 ? 96 : 89, t + (q - start) * spb, .05, q < 1e-9 ? .9 : .6, q < 1e-9 ? "clickHi" : "click"]); });
       t += len * spb;
     });
     return Object.assign({}, p, { ev });
   }
-  // spoken counting on every note of the top voice, plus the click: "1 e & a" (simple), "1 & a" (compound), "1 trip-let" (triplets).
-  // Syllables are short recorded clips in assets/count-voice/<syllable>.wav (1–12, e, and, a, trip, let, la, li), placed exactly on each note.
+  // spoken counting on every note of the top voice, with the metronome click only (no instrument): "1 e & a" (simple),
+  // "1 & a" (compound and triplets). Syllables are Adam's recorded clips, assets/count-voice-Adam/<syllable>.wav (1–9, e, and, a),
+  // placed exactly on each note.
   function countSyl(pos, beat, comp, tu) {
     const bi = Math.floor(pos / beat + 1e-6), f = (pos - bi * beat) / beat, near = x => Math.abs(f - x) < 1e-3;
-    if (near(0)) return bi < 12 ? String(bi + 1) : null;
-    if (comp || tu) return near(1 / 3) ? (comp ? "and" : "trip") : near(2 / 3) ? (comp ? "a" : "let") : null;
+    if (near(0)) return bi < 9 ? String(bi + 1) : null;
+    if (comp || tu) return near(1 / 3) ? "and" : near(2 / 3) ? "a" : null;
     return near(.5) ? "and" : near(.25) ? "e" : near(.75) ? "a" : null;
   }
   function withCount(o) {
-    const p = withClick(o), spb = 60 / (o.bpm || 100), ids = staffIds(o), ev = p.ev.slice();
+    const p = withClick(o, { ev: [] }), spb = 60 / (o.bpm || 100), ids = staffIds(o), ev = p.ev.slice();   // clicks only, then the voice
     const dq = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const barLen = b => Math.max(...ids.map(id => Math.max(0, ...((b[id] || []).map(v => v.reduce((s2, n) => s2 + dq(n), 0))))));
     let t = 0, T = o.time || "4/4", tied = false;
@@ -490,6 +519,10 @@
         barStart += Math.max(...ids.map(id2 => Math.max(0, ...((b[id2] || []).map(v => v.reduce((s, n) => s + durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1), 0)))))) * spb;
       });
     } });
+    // rhythms on a percussion staff play as a simple melody (an arch: up the C major scale and back to C), not a drum;
+    // o.drum keeps the drum sound
+    if (perc && !o.drum) { const pe = ev.filter(e => e[4] === "perc").sort((a, b) => a[1] - b[1]), N = pe.length, SC = [72, 74, 76, 77, 79, 81, 83, 84], A = Math.min(7, Math.max(1, Math.floor((N - 1) / 2)));
+      pe.forEach((e, i) => { e[0] = SC[Math.round(A * Math.sin(Math.PI * (N > 1 ? i / (N - 1) : 0)))]; e[3] = .8; e.length = 4; }); }
     return { ev, timbre: o.timbre };
   }
 
@@ -534,10 +567,13 @@
     g.gain.setTargetAtTime(0, t0 + dur, .08);
   }
   // recorded counting syllables (see withCount), fetched and decoded on first use
-  const VOICE = {}, VOICE_DIR = "assets/count-voice/";
+  const VOICE = {}, VOICE_DIR = "assets/count-voice-Adam/";
   const sayKeys = ev => [...new Set(ev.filter(e => e[4] === "say").map(e => e[5]))];
   const loadVoice = keys => Promise.all(keys.filter(k => !(k in VOICE)).map(k => fetch(VOICE_DIR + k + ".wav").then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
-    .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { VOICE[k] = buf; }).catch(() => { VOICE[k] = null; })));
+    .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { buf._lv = voiceLevel(buf); VOICE[k] = buf; }).catch(() => { VOICE[k] = null; })));
+  // even out the recordings' loudness: gain that brings each clip's sounding RMS to the same level (peaks kept below full scale)
+  function voiceLevel(buf) { const d = buf.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } }
+    const rms = n ? Math.sqrt(ss / n) : .1; return Math.min(.12 / Math.max(rms, 1e-4), .95 / Math.max(pk, 1e-4)); }
   function play(p) {
     if (!p || !audio()) return;
     if (p.ev) { const keys = sayKeys(p.ev); if (keys.some(k => !(k in VOICE))) { newBus(); const ticket = bus; loadVoice(keys).then(() => { if (bus === ticket) play(p); }); return; } }
@@ -547,7 +583,7 @@
       // each syllable is cut off (with a short fade) where the next one starts, so fast subdivisions stay in time
       const says = p.ev.filter(e => e[4] === "say").sort((a, b) => a[1] - b[1]);
       says.forEach((e, i) => { const buf = VOICE[e[5]]; if (!buf) return;
-        const src = AC.createBufferSource(), g = AC.createGain(), t0 = t + e[1], end = Math.min(t0 + buf.duration, i + 1 < says.length ? t + says[i + 1][1] : Infinity), lv = 1.1 * (e[3] || 1);
+        const src = AC.createBufferSource(), g = AC.createGain(), t0 = t + e[1], end = Math.min(t0 + buf.duration, i + 1 < says.length ? t + says[i + 1][1] : Infinity), lv = (buf._lv || 1) * (e[3] || 1);
         src.buffer = buf; g.gain.setValueAtTime(lv, t0); g.gain.setValueAtTime(lv, Math.max(t0, end - .02)); g.gain.linearRampToValueAtTime(0, end);
         src.connect(g); g.connect(out); src.start(t0); src.stop(end + .01); });
       return;

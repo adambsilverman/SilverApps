@@ -290,7 +290,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       return `bar ${k + 1}, ${pos}`; };
     setR(m, fromLists(m, lists), { hide: true, cueText: "Clap on: " + ticks.map(name).join(" · ") });
     $("info").hidden = false;
-    $("info").innerHTML = `<p><b>Clap on cue.</b> Listen to the one-bar count-in, keep counting through the rests (${m.compound ? "“1 la li 2 la li”, or count the eighths" : "“1 e & a 2 e & a…”"}), and clap only where the cue says. ${nb} bars of ${S.meter}.</p>`;
+    $("info").innerHTML = `<p><b>Clap on cue.</b> Listen to the one-bar count-in, keep counting through the rests (${m.compound ? "“1 & a 2 & a”, or count the eighths" : "“1 e & a 2 e & a…”"}), and clap only where the cue says. ${nb} bars of ${S.meter}.</p>`;
   }
 
   // ---------- phasing (Clapping Music) ----------

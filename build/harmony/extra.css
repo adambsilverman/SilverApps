@@ -121,7 +121,9 @@
 .sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .sygrid fieldset { border: 1px solid var(--line, #ccc); border-radius: 10px; margin: 0; padding: 6px 10px 10px; display: grid; gap: 6px; }
 .sygrid legend { font-weight: 700; padding: 0 4px; }
-.syk { display: grid !important; grid-template-columns: 6.5em 1fr 4.5em; align-items: center; }
+.syk { display: grid !important; grid-template-columns: minmax(5.5em, auto) minmax(0, 1fr) 4.2em; align-items: center; gap: 4px 10px !important; min-width: 0; }
+.syk input[type=range] { width: 100%; min-width: 0; margin: 0; }
+.sygrid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)) !important; gap: 10px 22px !important; }
 .syk output { font-size: .85rem; text-align: right; } .syk select { grid-column: 2 / 4; }
 .envsvg { width: 100%; height: auto; color: var(--ink, #222); }
 .dmgrid { overflow-x: auto; display: grid; gap: 4px; padding-bottom: 6px; }
@@ -266,3 +268,38 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .ik.b .iknm { top: 8%; font-size: 11px; }
 .ik.on.w { background: #FFE9A8; } .ik.on.b { background: #444; }
 .ikb .ik.w { border-radius: 0 0 5px 5px !important; } .ikb .ik.b { border-radius: 0 0 4px 4px !important; }
+/* embedded video in a lesson step (16:9, full width up to 720 px) */
+.lvideo { position: relative; width: 100%; max-width: 720px; aspect-ratio: 16 / 9; margin: 14px auto; border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+.lvideo iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+/* Units of Rhythm: practice metronome */
+.toy .mbtempo .mbbig { display: inline-flex; align-items: center; gap: 6px; font-size: 1.45rem; font-weight: 700; }
+#mbUnit { font-family: "Noto Music", "Literata", serif; font-size: 1.9rem; line-height: 1; }
+.mbtempo .mbbig input { width: 4.2em; font-size: 1.2rem; text-align: center; }
+.mblights { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.mblight { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; border: 2px solid var(--line, #bbb); background: var(--card, #fff); transition: background .05s; }
+.mblight.acc { border-color: var(--fi-red-dk, #b33a26); }
+.mblight.on { background: var(--fi-lime, #A9D27A); border-color: #4c7a1f; }
+.mblight.acc.on { background: #F2B8A8; border-color: var(--fi-red-dk, #b33a26); }
+.mbs input:disabled { opacity: .4; }
+/* Units of Rhythm drill "Value math": given note on the left, the student's notes in a row on the right */
+.nvpair { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.nvpair figure { margin: 0; display: grid; justify-items: center; gap: 4px; }
+.nvpair figcaption { font: 700 14px var(--mono, monospace); text-transform: uppercase; letter-spacing: .05em; }
+.nvpair .nvstaff { width: 170px; }
+.nvright { flex: 1 1 300px; max-width: 520px; }
+.nvzone { width: 100%; min-height: 120px; border: 2px dashed var(--line, #bbb); border-radius: 12px; display: grid; place-items: center; padding: 4px; }
+.nvzone.live { background: var(--field, rgba(0,0,0,.02)); }
+.nvzone.over { border-color: var(--fi-red, #E8573F); background: rgba(232,87,63,.08); }
+.nvzone .staff { width: 100%; }
+.nvempty { margin: 0; opacity: .75; font-style: italic; }
+.nvname { margin: 0; font-size: .95rem; text-align: center; }
+.nvpal { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+.nvv { display: grid; justify-items: center; gap: 0; min-width: 72px; padding: 6px 10px 8px; border-radius: 12px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; color: inherit; }
+.nvv:active { cursor: grabbing; }
+.nvg { font-family: "Noto Music", serif; font-size: 2rem; line-height: 1.1; }
+.nvt { font-size: .8rem; font-weight: 700; }
+.nvghost { position: fixed; z-index: 1000; pointer-events: none; transform: translate(-50%, -60%); font-family: "Noto Music", serif; font-size: 2.6rem; color: var(--fi-red-dk, #b33a26); }
+.nvedit { justify-content: center; display: flex; gap: 8px; margin-top: 8px; }
+.tplegend { margin: 0 0 4px; text-align: center; font-weight: 700; font-size: .95rem; }
+.tpk { display: inline-block; width: 1.1em; height: .8em; border-radius: 3px; margin: 0 4px 0 10px; vertical-align: -1px; border: 1.6px solid currentColor; background: rgba(0,0,0,.15); }
+.tpk.tup { border-color: var(--fi-red-dk, #b33a26); background: rgba(179,58,38,.2); }

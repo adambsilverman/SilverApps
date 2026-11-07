@@ -147,8 +147,8 @@ window.FAM = (() => {
       <p>The <b>time signature</b> sets the meter. Each beat can also divide: into two (simple meter) or three (compound meter).</p>` },
     { title: "Kinds of meter", kick: "Simple, compound, asymmetrical", render: () => `<p>Meters are named in two ways at once: by <b>how many beats</b> are in a bar (duple = 2, triple = 3, quadruple = 4), and by <b>how each beat divides</b>:</p>
       <ul><li><b>Simple</b>: every beat divides into <b>two</b> (1 & 2 &).</li>
-      <li><b>Compound</b>: every beat divides into <b>three</b> (1 la li 2 la li).</li>
-      <li><b>Asymmetrical</b> (additive): the beats are <b>unequal</b>, mixing groups of two and three (1 & 1 la li).</li></ul>
+      <li><b>Compound</b>: every beat divides into <b>three</b> (1 & a 2 & a).</li>
+      <li><b>Asymmetrical</b> (additive): the beats are <b>unequal</b>, mixing groups of two and three (1 & 2 & a).</li></ul>
       <p>Choose a meter and listen. The kick drum marks beat 1, the snare (and in quadruple meters a tom on the medium-strong beat 3) marks the other beats, and the hi-hat plays the divisions. Turn the layers on and off to hear the beat alone, then how it divides. The next steps show how each kind is written.</p>
       ${mpView()}` },
     { title: "Simple meter", kick: "Beats divide in two", render: (H, k, U) => `<p>In <b>simple meter</b> the beat is an undotted note and divides into two. The top number is the number of beats; the bottom number is the beat's note value (4 = quarter, 2 = half, 8 = eighth).</p>

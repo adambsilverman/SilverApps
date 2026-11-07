@@ -60,7 +60,7 @@ window.FAM = (() => {
     if (!ac()) return; fresh();
     const k = b.dataset.px, f = +b.dataset.f || 220;
     if (k === "tone") tone(f, +b.dataset.d || 1.6, b.dataset.w || "sine", +b.dataset.a || .2);
-    if (k === "pair") { const [x, y] = b.dataset.hz.split(" ").map(Number); tone(x, 1.2); tone(y, 1.2, "sine", .2, 1.3); tone(x, 2, "sine", .14, 2.7); tone(y, 2, "sine", .14, 2.7); }
+    if (k === "pair") { const [x, y] = b.dataset.hz.split(" ").map(Number); tone(x, 2.4, "sine", .15); tone(y, 2.4, "sine", .15); }   // both tones at once, as a dyad
     if (k === "series") { const n = +b.dataset.n; for (let h = 1; h <= n; h++) tone(f * h, 1.1, "sine", .22 / Math.sqrt(h), (h - 1) * .55); }
     if (k === "build") { const n = +b.dataset.n; for (let h = 1; h <= n; h++) tone(f * h, 5.2 - (h - 1) * .45, "sine", .2 / h, (h - 1) * .45); }
     if (k === "rate") pulses([[+b.dataset.r, +b.dataset.r]], 0, 2.2);
@@ -235,13 +235,13 @@ window.FAM = (() => {
     const o = AC.createGain(), comp = AC.createDynamicsCompressor(); o.gain.value = SY.vol * .5; comp.threshold.value = -12; comp.ratio.value = 4;
     SY.an = AC.createAnalyser(); SY.an.fftSize = 2048; o.connect(comp); comp.connect(SY.an); SY.an.connect(AC.destination); SY.out = o; return o;
   }
-  function syOn(m) {
-    if (!ac() || SY.voices[m]) return; const t = AC.currentTime + .005, f = syHz(m), out = syOut();
+  function syOn(m, vel = 1) {
+    if (!ac() || SY.voices[m]) return; const t = AC.currentTime + .005, f = syHz(m), out = syOut(), pk = .35 * vel;
     const lp = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
     lp.type = "lowpass"; lp.Q.value = SY.q;
     const peak = Math.min(16000, SY.cut * Math.pow(2, SY.env / 100 * 5));
     lp.frequency.setValueAtTime(SY.env ? peak : SY.cut, t); lp.frequency.setTargetAtTime(SY.cut, t + SY.a, Math.max(.01, SY.d / 3));
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.35, t + SY.a); g.gain.setTargetAtTime(.35 * SY.s, t + SY.a, Math.max(.01, SY.d / 3));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(pk, t + SY.a); g.gain.setTargetAtTime(pk * SY.s, t + SY.a, Math.max(.01, SY.d / 3));
     lfo.frequency.value = SY.lfoR; lg.gain.value = SY.lfoD; lfo.connect(lg); lfo.start(t);
     const oscs = (SY.osc2 ? [0, 1] : [0]).map(i => { const o = AC.createOscillator(); o.type = SY.wave; o.frequency.value = f; o.detune.value = i ? SY.det : 0; lg.connect(o.detune); o.connect(lp); o.start(t); return o; });
     lp.connect(g); g.connect(out);
@@ -286,6 +286,7 @@ window.FAM = (() => {
       <div class="toy-row"><button class="play" data-syoct="-1" aria-label="Octave down">◀ octave</button><span id="syOctL" class="msinfo">C${3 + SY.oct}–C${5 + SY.oct}</span><button class="play" data-syoct="1" aria-label="Octave up">octave ▶</button></div>
       <div id="syKb">${syKeys()}</div>
       <p class="small" style="margin:0">Click or touch the keys (hold for a long note), or select a key and type on your computer keyboard: A W S E D F T G Y H U J K… play the white and black keys from C.</p>
+      <div class="toy-row"><button class="play" id="syMidi" aria-pressed="false">Use a MIDI keyboard</button><span class="small" id="syMidiS" aria-live="polite" style="flex:1;min-width:200px">Plug in a USB or Bluetooth MIDI keyboard, then press this (Chrome, Edge, Firefox or Opera).</span></div>
       <div class="sygrid" id="syKnobs">${syKnobs()}</div></div>`;
   }
   if (!window.__syWired) { window.__syWired = true;
@@ -310,6 +311,25 @@ window.FAM = (() => {
       const pr = e.target.closest("[data-sypre]"); if (pr) { Object.assign(SY, SYP[pr.dataset.sypre]); document.getElementById("syKnobs").innerHTML = syKnobs(); const m = SY.last || 60; if (ac()) { syOn(m); setTimeout(() => syOff(m), 700); } return; }
       const oc = e.target.closest("[data-syoct]"); if (oc) { syAllOff(); SY.oct = Math.max(-2, Math.min(2, SY.oct + +oc.dataset.syoct)); document.getElementById("syKb").innerHTML = syKeys(); document.getElementById("syOctL").textContent = `C${3 + SY.oct}–C${5 + SY.oct}`; } });
     setInterval(() => { if (!document.getElementById("syToy") && Object.keys(SY.voices).length) syAllOff(); }, 400);
+    // external MIDI keyboard (Web MIDI): note on/off with velocity, sustain pedal (CC 64); plays only while the synth is on screen
+    const MI = { acc: null, held: new Set(), ped: false, pedHeld: new Set() };
+    const miStatus = () => { const s = document.getElementById("syMidiS"), b = document.getElementById("syMidi"); if (!s || !MI.acc) return; const ins = [...MI.acc.inputs.values()].filter(i => i.state !== "disconnected");
+      s.textContent = ins.length ? `Listening to ${ins.map(i => i.name || "MIDI input").join(", ")}. Play any key.` : "No MIDI keyboard found yet: plug one in (it's picked up automatically)."; if (b) b.setAttribute("aria-pressed", String(!!ins.length)); };
+    const miMsg = e => {
+      if (!document.getElementById("syToy")) return; const [st, d1, d2] = e.data, cmd = st & 0xf0;
+      if (cmd === 0x90 && d2 > 0) { MI.pedHeld.delete(d1); if (SY.voices[d1]) syOff(d1); syOn(d1, .25 + .75 * d2 / 127); MI.held.add(d1); }
+      else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) { MI.held.delete(d1); if (MI.ped) MI.pedHeld.add(d1); else syOff(d1); }
+      else if (cmd === 0xb0 && d1 === 64) { MI.ped = d2 >= 64; if (!MI.ped) { MI.pedHeld.forEach(m => { if (!MI.held.has(m)) syOff(m); }); MI.pedHeld.clear(); } }
+      else if (cmd === 0xb0 && (d1 === 123 || d1 === 120)) syAllOff();
+    };
+    const miWire = () => { MI.acc.inputs.forEach(i => { i.onmidimessage = miMsg; }); miStatus(); };
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#syMidi")) return; const s = document.getElementById("syMidiS");
+      if (!navigator.requestMIDIAccess) { s.textContent = "This browser can't use MIDI keyboards (Safari can't). Try Chrome, Edge, Firefox or Opera."; return; }
+      if (MI.acc) { miWire(); return; }
+      ac(); s.textContent = "Asking the browser for MIDI access…";
+      navigator.requestMIDIAccess().then(acc => { MI.acc = acc; acc.onstatechange = miWire; miWire(); }, () => { s.textContent = "MIDI access was blocked. Allow MIDI for this site in the browser's settings, then try again."; });
+    });
   }
 
   // ---------- tuning game: remove the beats ----------
@@ -522,6 +542,7 @@ window.FAM = (() => {
       <p>Most listeners hear some pairs rising and others falling, with a turning point somewhere around the circle of pitch classes. Compare your answers with a classmate's: you may find your turning points are in different places.</p>` },
     { title: "Absolute pitch and pitch memory", kick: "Naming notes from nowhere", render: () => `<p><b>Absolute pitch</b> (often called perfect pitch) is the ability to name a note, or sing a named note, with no reference tone. It's rare: a figure often quoted is about 1 person in 10,000 in Western countries. It's much more common among musicians who began training in early childhood, and some studies find it more often among speakers of tone languages such as Mandarin or Cantonese, where pitch distinguishes words.</p>
       <p>Absolute pitch is a <b>labeling</b> skill. People with it hear an A as "A" the way most people see red as "red". It doesn't mean singing perfectly in tune, and it can be a nuisance with transposing instruments or music tuned to A = 415 Hz.</p>
+      <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/t3Cb1qwCUvI" title="Video about absolute pitch (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
       <p>Most people have more <b>pitch memory</b> than they think. Studies have found that people without absolute pitch, asked to sing a favorite recording from memory, often start within a semitone or two of the original key, and can tell when a familiar recording has been shifted in pitch. They remember the pitch; they just don't have names for it.</p>
       <p><b>Try it:</b> hear this A4, then come back tomorrow and hum the A before you play it again.</p>
       ${row(btn("A4 (440 Hz)", { px: "tone", f: 440, d: 2.2 }))}` },

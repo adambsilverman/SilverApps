@@ -63,11 +63,17 @@ window.FAM = (() => {
       const all = ["4", "3½", "3", "2", "1¾", "1½", "1", "¾", "½", "¼"];
       return H.mc(`In 4/4, how many quarter-note beats does this ${rest ? "rest" : "note"} last?`, frac(v[1]), all, `A ${v[2].replace("note", rest ? "rest" : "note")} lasts ${frac(v[1])} beat${v[1] === 1 ? "" : "s"} when the quarter note gets the beat.${/d/.test(v[0]) ? " Each dot adds half of the value before it." : ""}`, { kicker: "Note values", staff: sp, topic: "values" });
     }
-    if (mode === "math") {
-      const pairs = [];
-      VAL.forEach(a => VAL.forEach(b => { const r = a[1] / b[1]; if (a !== b && r > 1 && Number.isInteger(r) && r <= 16 && !/d/.test(b[0])) pairs.push([a, b, r]); }));
-      const [a, b, r] = H.rnd(pairs);
-      return H.mc(`How many ${b[2]}s equal one ${a[2]}?`, String(r), ["1", "2", "3", "4", "6", "7", "8", "12", "14", "16"].filter(x => x !== String(r)), `${a[2]} = ${frac(a[1])} quarter-note beats; ${b[2]} = ${frac(b[1])}. ${frac(a[1])} ÷ ${frac(b[1])} = ${r}.`, { kicker: "Value math", topic: "values" });
+    if (mode === "math") {   // drag (or tap) note values into a row on the right until it lasts as long as the given note on the left
+      if (Math.random() < .55) {
+        const pairs = [];
+        VAL.forEach(a => VAL.forEach(b => { const r = a[1] / b[1]; if (a !== b && r > 1 && Number.isInteger(r) && r <= 12 && !/d/.test(b[0])) pairs.push([a, b, r]); }));
+        const [a, b, r] = H.rnd(pairs);
+        return { text: `Fill the right side with ${b[2]}s until it lasts exactly as long as one ${a[2]}.`, answer: `${r} ${b[2]}s`, choices: [], widget: "valfill", nvA: a[0], nvT: a[1], nvPal: [b[0]],
+          explain: `${a[2]} = ${frac(a[1])} quarter-note beats; ${b[2]} = ${frac(b[1])}. ${frac(a[1])} ÷ ${frac(b[1])} = ${r}, so ${r} ${b[2]}s.`, kicker: "Value math", topic: "values" };
+      }
+      const a = H.rnd(VAL.filter(v => v[1] >= 1.5));
+      return { text: `Fill the right side with any note values that add up to exactly one ${a[2]}.`, answer: `notes adding up to ${frac(a[1])} beats`, choices: [], widget: "valfill", nvA: a[0], nvT: a[1], nvPal: ["w", "hd", "h", "qd", "q", "8d", "8", "16"],
+        explain: `A ${a[2]} lasts ${frac(a[1])} quarter-note beats, so any combination adding up to ${frac(a[1])} is right (for example ${{ 4: "two half notes", 3: "a half note and a quarter", 3.5: "a dotted half and an eighth", 2: "two quarter notes", 1.75: "a quarter, an eighth and a sixteenth", 1.5: "a quarter and an eighth" }[a[1]] || "several shorter values"}).`, kicker: "Value math", topic: "values" };
     }
     if (mode === "complete") {
       const x = incomplete(H);
@@ -101,6 +107,50 @@ window.FAM = (() => {
       <p class="legend">Dot = + half the value; second dot = + half of the first dot. Triplet = 3 in the time of 2; duplet (compound meter) = 2 in the time of 3.</p>`;
   }
 
+  // ---------- "Value math" widget: the given note on the left; the student's notes line up in a row on the right ----------
+  const GLYPH = { w: "𝅝", hd: "𝅗𝅥.", h: "𝅗𝅥", qd: "♩.", q: "♩", "8d": "♪.", "8": "♪", "16": "𝅘𝅥𝅯" };
+  const fillSpec = toks => { const sp = rh("4/4", [toks.join(" ")], { final: false }); sp.time = null; sp.minBar = 90; return sp; };
+  const fillSum = q => (q.nvAdd || []).reduce((t, x) => t + V[x][1], 0);
+  function fillDraw(root, c, q, H) {
+    const L = root.querySelector("#nvL"), Z = root.querySelector("#nvZone"); if (!L || !Z) return;
+    const sp = fillSpec([c.nvA]); sp.minBar = 110; H.drawStaff(L, sp);
+    const add = q.nvAdd || [];
+    if (add.length) H.drawStaff(Z, fillSpec(add)); else Z.innerHTML = `<p class="nvempty">${q.done ? "(nothing)" : "Drag note values here, or tap them"}</p>`;
+    const lab = root.querySelector("#nvSum"); if (lab) lab.textContent = add.length ? `${add.length} note${add.length > 1 ? "s" : ""}: ${add.map(x => V[x][2]).join(", ")}` : "No notes yet";
+  }
+  const widgets = { valfill: {
+    html(c, q, H) {
+      if (!q.nvAdd) q.nvAdd = [];
+      setTimeout(() => { const w = document.querySelector("#work .widget"); if (w) fillDraw(w, c, q, H); }, 0);
+      return `<div class="nvpair"><figure><figcaption>Given</figcaption><div class="staff nvstaff" id="nvL" role="img" aria-label="one ${V[c.nvA][2]}"></div><p class="nvname">one ${V[c.nvA][2]}</p></figure>
+        <span class="cdarrow" aria-hidden="true">=</span>
+        <figure class="nvright"><figcaption>Your notes</figcaption><div class="nvzone${q.done ? "" : " live"}" id="nvZone"></div><p class="nvname" id="nvSum" aria-live="polite"></p></figure></div>
+        ${q.done ? "" : `<div class="nvpal" role="group" aria-label="Note values to add">${c.nvPal.map(x => `<button class="nvv" data-nv="${x}" aria-label="Add a ${V[x][2]}"><span class="nvg" aria-hidden="true">${GLYPH[x]}</span><span class="nvt">${V[x][2].replace(" note", "")}</span></button>`).join("")}</div>
+        <div class="choice-row nvedit"><button class="btn" data-nvundo>Undo last</button><button class="btn" data-nvclear>Clear</button></div>`}`;
+    },
+    wire(root, c, q, H) {
+      const btn = root.querySelector("[data-wcheck]"), zone = root.querySelector("#nvZone"); root._nv = { c, q };
+      const upd = () => { fillDraw(root, c, q, H); btn.disabled = !q.nvAdd.length; };
+      const add = x => { if (q.nvAdd.length >= 16) return; q.nvAdd.push(x); upd(); };
+      upd();
+      root.querySelector("[data-nvundo]").onclick = () => { q.nvAdd.pop(); upd(); };
+      root.querySelector("[data-nvclear]").onclick = () => { q.nvAdd = []; upd(); };
+      // tap, keyboard or drag a value onto the right side
+      let drag = null;
+      root.querySelectorAll("[data-nv]").forEach(b => {
+        b.onclick = e => { if (e.detail === 0 || !b._dragged) add(b.dataset.nv); b._dragged = false; };
+        b.onpointerdown = e => { if (e.button) return; drag = { b, x: e.clientX, y: e.clientY, ghost: null }; b._dragged = false; };
+      });
+      const move = e => { if (!drag) return; if (!drag.ghost && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) { drag.b._dragged = true; drag.ghost = Object.assign(document.createElement("div"), { className: "nvghost", textContent: GLYPH[drag.b.dataset.nv] }); document.body.appendChild(drag.ghost); }
+        if (drag.ghost) { e.preventDefault(); drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px"; const r = zone.getBoundingClientRect(); zone.classList.toggle("over", e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom); } };
+      const up = e => { if (!drag) return; const d = drag; drag = null; if (d.ghost) { d.ghost.remove(); zone.classList.remove("over"); const r = zone.getBoundingClientRect(); if (e.clientX >= r.left - 20 && e.clientX <= r.right + 20 && e.clientY >= r.top - 20 && e.clientY <= r.bottom + 20) add(d.b.dataset.nv); } };
+      document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+      const off = setInterval(() => { if (!document.body.contains(zone) || q.done) { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); clearInterval(off); } }, 500);
+    },
+    value(root) { const x = root._nv; if (!x || !x.q.nvAdd.length) return null; const { c, q } = x, tot = fillSum(q);
+      return Math.abs(tot - c.nvT) < 1e-9 ? c.answer : c.nvPal.length === 1 ? `${q.nvAdd.length} ${V[c.nvPal[0]][2]}${q.nvAdd.length > 1 ? "s" : ""}` : `notes adding up to ${frac(tot)} beat${tot === 1 ? "" : "s"}`; },
+  } };
+
   // labeled diagram for "Parts of a note": notehead, stem, flag, beam, two flags, stem direction
   function partsFig() {
     const W = 660, sp = 12, top = 96, Y = st => top + 4 * sp - st * sp / 2, ink = "currentColor", red = "var(--fi-red-dk, #b33a26)";
@@ -108,7 +158,10 @@ window.FAM = (() => {
     const head = (x, st, open) => { const y = Y(st); return `<ellipse cx="${x}" cy="${y}" rx="${sp * .68}" ry="${sp * .48}" transform="rotate(-20 ${x} ${y})" fill="${open ? "none" : ink}" stroke="${ink}" stroke-width="${open ? sp * .22 : 1}"/>`; };
     const stemUp = (x, st, len = 3.5) => { const y = Y(st), xs = x + sp * .62; return { x: xs, y1: y - 2, y2: y - len * sp, svg: `<line x1="${xs}" x2="${xs}" y1="${y - 2}" y2="${y - len * sp}" stroke="${ink}" stroke-width="1.6"/>` }; };
     const flag = (x, y) => `<path d="M${x} ${y} c 1 11 15 15 13 33 c 5 -15 -4 -23 -13 -26 z" fill="${ink}"/>`;
-    const label = (tx, ty, x2, y2, t, anchor = "middle") => `<line x1="${tx}" y1="${ty + (ty < y2 ? 6 : -16)}" x2="${x2}" y2="${y2}" stroke="${red}" stroke-width="1.4"/><circle cx="${x2}" cy="${y2}" r="2.6" fill="${red}"/><text x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="15" font-weight="700" fill="${red}">${t}</text>`;
+    // a leader line from the label toward the part; it stops short (with a small arrowhead) so the note itself stays clear
+    const label = (tx, ty, x2, y2, t, anchor = "middle") => { const x1 = tx, y1 = ty + (ty < y2 ? 6 : -16), dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, gapPx = 9;
+      const ex = x2 - ux * gapPx, ey = y2 - uy * gapPx, ah = 7, aw = 3.6, bx = ex - ux * ah, by = ey - uy * ah;
+      return `<line x1="${x1}" y1="${y1}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}" stroke="${red}" stroke-width="1.4"/><path d="M${ex.toFixed(1)} ${ey.toFixed(1)} L${(bx - uy * aw).toFixed(1)} ${(by + ux * aw).toFixed(1)} L${(bx + uy * aw).toFixed(1)} ${(by - ux * aw).toFixed(1)} Z" fill="${red}"/><text x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="15" font-weight="700" fill="${red}">${t}</text>`; };
     // 1 half note (open head), 2 quarter (filled head, stem), 3 eighth (flag), 4–5 beamed eighths, 6 sixteenth (two flags), 7 a high note: stem down on the left
     const xs = [70, 160, 250, 335, 385, 475, 580];
     g += head(xs[0], 1, true) + stemUp(xs[0], 1).svg;
@@ -122,6 +175,145 @@ window.FAM = (() => {
     g += label(W - 12, 30, xl, y7 + 2.6 * sp, "high note: stem down, on the left", "end");
     const desc = "A staff with labeled note parts: a half note with an open notehead and a stem; a quarter note with a filled notehead and a stem; an eighth note with one flag; two eighth notes joined by a beam instead of flags; a sixteenth note with two flags; and a note above the middle line whose stem points down on the left side of the notehead.";
     return `<figure class="lfig"><svg viewBox="0 0 ${W} 236" role="img" aria-label="${desc}" style="width:100%;max-width:${W}px">${g}</svg><figcaption>The parts of a note. Notes below the middle line have stems up, on the right; notes above it have stems down, on the left.</figcaption></figure>`;
+  }
+
+  // ---------- lesson tools: a Dr. Beat-style metronome (Tempo) and a tuplet explorer (Triplets and tuplets) ----------
+  let AC = null, NZ = null;
+  const ac = () => { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); } if (AC.state === "suspended") AC.resume(); return AC; };
+  // a woody click (beat), lighter and higher ticks for the divisions, and a bell-like DING for the accent
+  function snd(t, kind, vol) {
+    if (!(vol > 0)) return;
+    const out = AC.createGain(); out.gain.value = vol; out.connect(AC.destination);
+    if (kind === "ding") {
+      [[1760, 1, .9], [3520, .32, .45], [5280, .12, .25], [880, .25, .6]].forEach(([f, a, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.42 * a, t + .002); g.gain.exponentialRampToValueAtTime(.0005, t + d); o.connect(g); g.connect(out); o.start(t); o.stop(t + d + .05); });
+      return;
+    }
+    if (!NZ) { NZ = AC.createBuffer(1, AC.sampleRate * .2, AC.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const [f, a, len] = { click: [1250, .9, .04], div: [1850, .55, .03], trip: [2250, .5, .03], sub: [2700, .4, .025], lo: [700, .8, .05], hi: [1500, .7, .04] }[kind];
+    const o = AC.createOscillator(), og = AC.createGain(), n = AC.createBufferSource(), bp = AC.createBiquadFilter(), ng = AC.createGain();
+    o.type = "sine"; o.frequency.value = f; og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(.55 * a, t + .001); og.gain.exponentialRampToValueAtTime(.001, t + len);
+    n.buffer = NZ; bp.type = "bandpass"; bp.frequency.value = f * 1.6; bp.Q.value = 2.5; ng.gain.setValueAtTime(.6 * a, t); ng.gain.exponentialRampToValueAtTime(.001, t + .015);
+    o.connect(og); og.connect(out); n.connect(bp); bp.connect(ng); ng.connect(out); o.start(t); o.stop(t + len + .02); n.start(t); n.stop(t + .03);
+  }
+
+  // Dr. Beat-style metronome: tempo, meter, and a mixer of levels for accent (DING on beat 1), beat (click), division, triplet division and subdivision
+  const MB = { bpm: 96, beats: 4, comp: false, acc: 80, beat: 80, div: 0, trip: 0, sub: 0, on: false, next: 0, n: 0, timer: 0, raf: 0, queue: [], taps: [] };
+  const MB_METERS = [["2/4", 2, false], ["3/4", 3, false], ["4/4", 4, false], ["5/4", 5, false], ["6/4", 6, false], ["7/4", 7, false], ["1/4 (no accent pattern)", 1, false], ["6/8", 2, true], ["9/8", 3, true], ["12/8", 4, true]];
+  const mbSliders = () => [["acc", "Accent (DING on beat 1)"], ["beat", "Beat"], ["div", MB.comp ? "Division (three eighths)" : "Division (eighths)"], ["trip", "Triplet division"], ["sub", MB.comp ? "Subdivision (six sixteenths)" : "Subdivision (sixteenths)"]]
+    .map(([k, l]) => { const off = k === "trip" && MB.comp; return `<label class="syk mbs">${l}<input type="range" min="0" max="100" step="1" value="${off ? 0 : MB[k]}" data-mb="${k}" ${off ? "disabled" : ""} aria-valuetext="${off ? "not used in compound meter" : MB[k] + " percent"}"><output data-mbo="${k}">${off ? "—" : MB[k] + "%"}</output></label>`; }).join("");
+  const mbLights = () => Array.from({ length: MB.beats }, (_, i) => `<span class="mblight${i ? "" : " acc"}" data-mbl="${i}">${i + 1}</span>`).join("");
+  function metroToy() {
+    return `<div class="toy mbtoy" id="mbToy">
+      <div class="toy-row"><button class="play" id="mbGo" aria-pressed="${MB.on}">${MB.on ? "■ Stop" : "▶ Start"}</button>
+        <label for="mbMeter">Meter <select id="mbMeter">${MB_METERS.map(([n, b, c], i) => `<option value="${i}" ${b === MB.beats && c === MB.comp ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+        <button class="play" id="mbTap">Tap tempo</button></div>
+      <div class="toy-row mbtempo"><button class="play" data-mbstep="-1" aria-label="Slower by 1 BPM">−</button>
+        <label for="mbBpm" class="mbbig"><span id="mbUnit">${MB.comp ? "♩." : "♩"}</span> =&nbsp;<input type="number" id="mbBpmN" min="30" max="250" value="${MB.bpm}" aria-label="Beats per minute"></label>
+        <button class="play" data-mbstep="1" aria-label="Faster by 1 BPM">+</button>
+        <input type="range" id="mbBpm" min="30" max="250" step="1" value="${MB.bpm}" aria-label="Tempo in beats per minute" style="flex:1;min-width:160px"><span class="small" id="mbTerm"></span></div>
+      <div class="mblights" id="mbLights" aria-hidden="true">${mbLights()}</div>
+      <div class="sygrid" id="mbMix">${mbSliders()}</div>
+      <p class="small" style="margin:0">Like a practice metronome with a mixer: raise <b>Division</b> to hear the “&amp;”s, <b>Subdivision</b> for “e &amp; a”, or <b>Triplet division</b> to practice triplets against the beat. Turn the <b>Beat</b> down to zero and keep only the accent to test your inner pulse.</p></div>`;
+  }
+  const TERMS = [[60, "Largo"], [66, "Larghetto"], [76, "Adagio"], [108, "Andante"], [120, "Moderato"], [156, "Allegro"], [176, "Vivace"], [200, "Presto"], [999, "Prestissimo"]];
+  const mbTerm = () => { const e = document.getElementById("mbTerm"); if (e) e.textContent = "about " + TERMS.find(([b]) => MB.bpm < b)[1]; };
+  function mbSchedule() {
+    const look = AC.currentTime + .12;
+    while (MB.next < look) {
+      const t = MB.next, spb = 60 / MB.bpm, b = MB.n % MB.beats, v = k => MB[k] / 100;
+      if (b === 0 && MB.beats > 1) snd(t, "ding", v("acc"));
+      snd(t, "click", v("beat") * (b === 0 && MB.beats > 1 ? .9 : 1));
+      if (MB.comp) { [1, 2].forEach(i => snd(t + spb * i / 3, "div", v("div"))); [1, 2, 3, 4, 5].forEach(i => snd(t + spb * i / 6, "sub", v("sub") * (i % 2 ? 1 : .7))); }
+      else { snd(t + spb / 2, "div", v("div")); [1, 2].forEach(i => snd(t + spb * i / 3, "trip", v("trip"))); [1, 2, 3].forEach(i => snd(t + spb * i / 4, "sub", v("sub") * (i === 2 ? .7 : 1))); }
+      MB.queue.push([t, b]); MB.next += spb; MB.n++;
+    }
+  }
+  function mbDraw() {
+    if (!document.getElementById("mbToy") || !MB.on) { MB.raf = 0; return; }
+    while (MB.queue.length && MB.queue[0][0] <= AC.currentTime) { const [, b] = MB.queue.shift(); document.querySelectorAll("[data-mbl]").forEach(e => e.classList.toggle("on", +e.dataset.mbl === b)); }
+    MB.raf = requestAnimationFrame(mbDraw);
+  }
+  function mbStart() { if (!ac()) return; MB.on = true; MB.n = 0; MB.queue = []; MB.next = AC.currentTime + .08; mbSchedule(); MB.timer = setInterval(mbSchedule, 25); if (!MB.raf) MB.raf = requestAnimationFrame(mbDraw); mbBtn(); }
+  function mbStop() { MB.on = false; clearInterval(MB.timer); MB.timer = 0; document.querySelectorAll("[data-mbl]").forEach(e => e.classList.remove("on")); mbBtn(); }
+  const mbBtn = () => { const b = document.getElementById("mbGo"); if (b) { b.setAttribute("aria-pressed", String(MB.on)); b.textContent = MB.on ? "■ Stop" : "▶ Start"; } };
+  function mbSetBpm(x, from) { MB.bpm = Math.max(30, Math.min(250, Math.round(x) || MB.bpm)); const r = document.getElementById("mbBpm"), n = document.getElementById("mbBpmN"); if (r && from !== r) r.value = MB.bpm; if (n && from !== n) n.value = MB.bpm; mbTerm(); }
+
+  // tuplet explorer: n notes in the time of m, drawn on a shared timeline over the common grid, played together or separately
+  const TP = { n: 3, m: 2, rate: 60, hearM: true, hearN: true, on: false, t0: 0, timer: 0, raf: 0, next: 0, cyc: 0 };
+  const TP_PRE = [[3, 2, "Triplet: 3 in the time of 2"], [2, 3, "Duplet: 2 in the time of 3"], [4, 3, "4 in the time of 3"], [5, 4, "Quintuplet: 5 in the time of 4"], [6, 4, "Sextuplet: 6 in the time of 4"], [7, 4, "Septuplet: 7 in the time of 4"]];
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  function tpSVG() {
+    const W = 620, x0 = 14, L = W - x0 - 14, lcm = TP.n * TP.m / gcd(TP.n, TP.m), red = "var(--fi-red-dk, #b33a26)", ink = "currentColor";
+    let g = "";
+    for (let i = 0; i <= lcm; i++) { const x = x0 + L * i / lcm; g += `<line x1="${x}" x2="${x}" y1="18" y2="140" stroke="${ink}" stroke-opacity="${i % (lcm / TP.m) === 0 && i % (lcm / TP.n) === 0 ? .55 : .14}" stroke-width="1" ${i % (lcm / TP.m) === 0 && i % (lcm / TP.n) === 0 ? "" : 'stroke-dasharray="3 3"'}/>`; }
+    const row = (k, y, col) => { let s = "";
+      for (let i = 0; i < k; i++) { const xa = x0 + L * i / k, w = L / k; s += `<rect class="tpb" data-tpr="${k === TP.m ? "m" : "n"}${i}" x="${xa + 2}" y="${y}" width="${w - 4}" height="32" rx="7" fill="${col}" fill-opacity=".18" stroke="${col}" stroke-width="1.6"/><circle cx="${xa + 9}" cy="${y + 16}" r="4.5" fill="${col}"/>`; }
+      return s; };
+    g += row(TP.m, 26, ink) + row(TP.n, 92, red);
+    g += `<line id="tpHead" x1="${x0}" x2="${x0}" y1="14" y2="144" stroke="${red}" stroke-width="2.5" opacity="0"/>`;
+    const lbl = `Timeline: ${TP.m} regular notes on top and ${TP.n} tuplet notes below, taking the same total time; they start together, and a grid of ${lcm} equal steps shows where each note falls.`;
+    return `<p class="tplegend"><span class="tpk reg"></span>${TP.m} regular note${TP.m > 1 ? "s" : ""} (top) <span class="tpk tup"></span>${TP.n} tuplet notes (bottom)</p><svg viewBox="0 0 ${W} 156" role="img" aria-label="${lbl}" style="width:100%;max-width:${W}px;display:block;margin:0 auto">${g}</svg>`;
+  }
+  const tpInfo = () => { const f = TP.m / TP.n, lcm = TP.n * TP.m / gcd(TP.n, TP.m), fr = (a, b) => { const d = gcd(a, b); return `${a / d}/${b / d}`; };
+    return `<b>${TP.n} in the time of ${TP.m}.</b> Each tuplet note lasts ${fr(TP.m, TP.n)} of a regular note (${f > 1 ? "longer" : "shorter"}). Counted on a grid of ${lcm}, the regular notes fall every ${lcm / TP.m} steps and the tuplet notes every ${lcm / TP.n}${gcd(TP.n, TP.m) > 1 ? "" : "; they only line up at the start"}.`; };
+  function tupletToy() {
+    const opt = (id, v, lo, hi) => `<select id="${id}">${Array.from({ length: hi - lo + 1 }, (_, i) => i + lo).map(x => `<option ${x === v ? "selected" : ""}>${x}</option>`).join("")}</select>`;
+    return `<div class="toy" id="tpToy">
+      <div class="toy-row" role="group" aria-label="Presets">${TP_PRE.map(([n, m, l]) => `<button class="play" data-tpp="${n},${m}" aria-pressed="${n === TP.n && m === TP.m}">${l.split(":")[0]}</button>`).join("")}</div>
+      <div class="toy-row"><label>Play ${opt("tpN", TP.n, 2, 9)} notes</label><label>in the time of ${opt("tpM", TP.m, 1, 8)} regular notes</label></div>
+      <div id="tpFig">${tpSVG()}</div>
+      <p class="lnote" id="tpInfo" aria-live="polite" style="margin:0">${tpInfo()}</p>
+      <div class="toy-row"><button class="play" id="tpGo" aria-pressed="false">▶ Play (loops)</button>
+        <label><input type="checkbox" id="tpHM" ${TP.hearM ? "checked" : ""}> Hear regular notes (low)</label><label><input type="checkbox" id="tpHN" ${TP.hearN ? "checked" : ""}> Hear tuplet (high)</label></div>
+      <label class="syk" style="max-width:420px">Speed<input type="range" id="tpRate" min="30" max="120" step="1" value="${TP.rate}"><output id="tpRateO">${TP.rate}</output></label>
+      <p class="small" style="margin:0">Speed is in regular notes per minute. Listen to each layer alone, then together: the tuplet keeps its own even pulse while the regular notes keep theirs, and both start together at the top of each cycle.</p></div>`;
+  }
+  function tpSchedule() {
+    const look = AC.currentTime + .12, cyc = 60 / TP.rate * TP.m;
+    while (TP.next < look) {
+      const t = TP.next;
+      if (TP.hearM) for (let i = 0; i < TP.m; i++) snd(t + cyc * i / TP.m, "lo", i ? .7 : 1);
+      if (TP.hearN) for (let i = 0; i < TP.n; i++) snd(t + cyc * i / TP.n, "hi", i ? .6 : .85);
+      TP.next += cyc;
+    }
+  }
+  function tpDraw() {
+    const head = document.getElementById("tpHead"); if (!head || !TP.on) { TP.raf = 0; if (head) head.setAttribute("opacity", "0"); document.querySelectorAll(".tpb").forEach(r => r.setAttribute("fill-opacity", ".18")); return; }
+    const cyc = 60 / TP.rate * TP.m, ph = (((AC.currentTime - TP.t0) % cyc) + cyc) % cyc / cyc, x0 = 14, L = 620 - x0 - 14;
+    head.setAttribute("x1", x0 + L * ph); head.setAttribute("x2", x0 + L * ph); head.setAttribute("opacity", AC.currentTime >= TP.t0 ? "1" : "0");
+    document.querySelectorAll(".tpb").forEach(r => { const k = r.dataset.tpr[0] === "m" ? TP.m : TP.n, i = +r.dataset.tpr.slice(1); r.setAttribute("fill-opacity", Math.floor(ph * k) === i ? ".55" : ".18"); });
+    TP.raf = requestAnimationFrame(tpDraw);
+  }
+  function tpStart() { if (!ac()) return; TP.on = true; TP.t0 = TP.next = AC.currentTime + .08; tpSchedule(); TP.timer = setInterval(tpSchedule, 25); if (!TP.raf) TP.raf = requestAnimationFrame(tpDraw); tpBtn(); }
+  function tpStop() { TP.on = false; clearInterval(TP.timer); TP.timer = 0; tpBtn(); }
+  const tpBtn = () => { const b = document.getElementById("tpGo"); if (b) { b.setAttribute("aria-pressed", String(TP.on)); b.textContent = TP.on ? "■ Stop" : "▶ Play (loops)"; } };
+  function tpRefresh() { const f = document.getElementById("tpFig"), i = document.getElementById("tpInfo"); if (f) f.innerHTML = tpSVG(); if (i) i.innerHTML = tpInfo();
+    document.querySelectorAll("[data-tpp]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tpp === TP.n + "," + TP.m)));
+    const n = document.getElementById("tpN"), m = document.getElementById("tpM"); if (n) n.value = TP.n; if (m) m.value = TP.m;
+    if (TP.on) { TP.t0 = TP.next = AC.currentTime + .08; } }
+
+  if (!window.__nvWired) { window.__nvWired = true;
+    document.addEventListener("click", e => {
+      if (e.target.closest("#mbGo")) { MB.on ? mbStop() : mbStart(); return; }
+      const st = e.target.closest("[data-mbstep]"); if (st) { mbSetBpm(MB.bpm + +st.dataset.mbstep); return; }
+      if (e.target.closest("#mbTap")) { const now = performance.now(); MB.taps = MB.taps.filter(x => now - x < 2500).concat(now); if (MB.taps.length > 1) { const d = (MB.taps[MB.taps.length - 1] - MB.taps[0]) / (MB.taps.length - 1); mbSetBpm(60000 / d); } return; }
+      if (e.target.closest("#tpGo")) { TP.on ? tpStop() : tpStart(); return; }
+      const pp = e.target.closest("[data-tpp]"); if (pp) { [TP.n, TP.m] = pp.dataset.tpp.split(",").map(Number); tpRefresh(); }
+    });
+    document.addEventListener("input", e => {
+      const k = e.target.dataset && e.target.dataset.mb; if (k) { MB[k] = +e.target.value; const o = document.querySelector(`[data-mbo="${k}"]`); if (o) o.textContent = MB[k] + "%"; e.target.setAttribute("aria-valuetext", MB[k] + " percent"); return; }
+      if (e.target.id === "mbBpm") { mbSetBpm(+e.target.value, e.target); return; }
+      if (e.target.id === "tpRate") { const old = 60 / TP.rate * TP.m, ph = TP.on ? ((AC.currentTime - TP.t0) % old) / old : 0; TP.rate = +e.target.value; document.getElementById("tpRateO").textContent = TP.rate;
+        if (TP.on) { TP.t0 = AC.currentTime - ph * 60 / TP.rate * TP.m; TP.next = TP.t0 + 60 / TP.rate * TP.m; } }
+    });
+    document.addEventListener("change", e => {
+      if (e.target.id === "mbBpmN") { mbSetBpm(+e.target.value, e.target); return; }
+      if (e.target.id === "mbMeter") { const [, b, c] = MB_METERS[+e.target.value]; MB.beats = b; MB.comp = c; document.getElementById("mbLights").innerHTML = mbLights(); document.getElementById("mbMix").innerHTML = mbSliders(); document.getElementById("mbUnit").textContent = c ? "♩." : "♩"; return; }
+      if (e.target.id === "tpN" || e.target.id === "tpM") { TP[e.target.id === "tpN" ? "n" : "m"] = +e.target.value; tpRefresh(); return; }
+      if (e.target.id === "tpHM") TP.hearM = e.target.checked; if (e.target.id === "tpHN") TP.hearN = e.target.checked;
+    });
+    setInterval(() => { if (MB.on && !document.getElementById("mbToy")) mbStop(); if (TP.on && !document.getElementById("tpToy")) tpStop(); }, 300);
   }
 
   const lesson = { steps: [
@@ -162,6 +354,7 @@ window.FAM = (() => {
       <ul><li>A <b>metronome mark</b> such as ♩ = 96 gives the beat unit and its speed. In compound meters the beat is the dotted quarter: ♩. = 60 in 6/8 means one beat per second, with three eighth notes in each.</li>
       <li>The mechanical metronome was patented by Johann Maelzel in 1815; "M.M." in old scores stands for Maelzel's Metronome. The <a href="metronome.html">Metronome</a> app on this site keeps time for practice.</li>
       <li>DAWs, drum machines and sequencers set the tempo in BPM, and their bars-and-beats ruler follows it.</li></ul>
+      <h3>Try it: a practice metronome</h3>${metroToy()}
       <div class="ltable-wrap" tabindex="0" role="region" aria-label="Tempo terms"><table class="ltable"><caption>Common tempo terms (approximate; sources and styles differ)</caption><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th><th scope="col">About</th></tr></thead><tbody>
       ${[["Grave, Largo", "very slow, broad", "40–60"], ["Adagio", "slow, at ease", "66–76"], ["Andante", "at a walking pace", "76–108"], ["Moderato", "moderate", "108–120"], ["Allegro", "fast, lively", "120–156"], ["Vivace", "lively and fast", "156–176"], ["Presto", "very fast", "168–200"], ["Prestissimo", "as fast as possible", "200+"]].map(r => `<tr><td><i>${r[0]}</i></td><td>${r[1]}</td><td>${r[2]} BPM</td></tr>`).join("")}</tbody></table></div>
       <p><b>Changing tempo:</b> <i>accelerando</i> (accel.) speeds up; <i>ritardando</i> (rit.) and <i>rallentando</i> (rall.) slow down; <i>a tempo</i> returns to the previous tempo; <i>rubato</i> means flexible, expressive timing; a <b>fermata</b> (𝄐) holds a note or rest longer than written.</p>`
@@ -173,10 +366,11 @@ window.FAM = (() => {
       return `<p>A <b>tuplet</b> fits a different number of notes into a beat (or group of beats) than the meter normally allows. The number over the bracket tells how many.</p>
       <ul><li><b>Triplet</b>: three in the time of two. Eighth-note triplets fill one quarter beat; quarter-note triplets fill two beats.</li><li><b>Duplet</b>: two in the time of three, in compound meter (two eighths in one dotted-quarter beat).</li><li>Other tuplets work the same way: a <b>quintuplet</b> puts five sixteenths in the time of four.</li></ul>
       <div class="lfigs">${fig(U, rh("4/4", ["8t1 8t1 8t1 8t2 8t2 8t2 q q"]), "Eighth-note triplets: three per beat")}${fig(U, rh("4/4", ["qt1 qt1 qt1 h"]), "Quarter-note triplet: three in two beats")}${fig(U, dup, "Duplet in 6/8: two in one beat")}${fig(U, q5, "Quintuplet: five sixteenths in one beat")}</div>`
+        + `<h3>Try it: tuplets on a timeline</h3>${tupletToy()}`
         + H.check("In 4/4, a quarter-note triplet lasts…", "2 beats", ["1 beat", "3 beats", "1½ beats"], "Three triplet quarters in the time of two quarters.");
     } },
-    { title: "Counting", kick: "Saying the rhythm", render: (H, k, U) => `<ul><li><b>Simple meter:</b> beats “1 2 3 4”; eighths “1 &amp; 2 &amp;”; sixteenths “1 e &amp; a”.</li><li><b>Compound meter:</b> beats “1 2” in 6/8, each dividing “1 &amp; a” (some teachers use “1 la li”).</li><li><b>Triplets:</b> “1 trip-let 2 trip-let”.</li></ul>`
-      + `<div class="lfigs">${fig(U, rh("4/4", ["16 16 16 16 8 8 q q"], { bpm: 72 }), "1 e &amp; a, 2 &amp;, 3, 4", { count: true })}${fig(U, rh("6/8", ["8 8 8 qd"]), "1 &amp; a, 2", { count: true })}${fig(U, rh("4/4", ["8t1 8t1 8t1 8t2 8t2 8t2 q q"], { bpm: 72 }), "1 trip-let, 2 trip-let, 3, 4", { count: true })}</div>` },
+    { title: "Counting", kick: "Saying the rhythm", render: (H, k, U) => `<ul><li><b>Simple meter:</b> beats “1 2 3 4”; eighths “1 &amp; 2 &amp;”; sixteenths “1 e &amp; a”.</li><li><b>Compound meter:</b> beats “1 2” in 6/8, each dividing “1 &amp; a”.</li><li><b>Triplets:</b> “1 &amp; a 2 &amp; a”, like a beat of compound meter.</li></ul><p>Press <b>Play with counting</b> to hear each rhythm counted aloud over the click.</p>`
+      + `<div class="lfigs">${fig(U, rh("4/4", ["16 16 16 16 8 8 q q"], { bpm: 72 }), "1 e &amp; a, 2 &amp;, 3, 4", { count: true })}${fig(U, rh("6/8", ["8 8 8 qd"]), "1 &amp; a, 2", { count: true })}${fig(U, rh("4/4", ["8t1 8t1 8t1 8t2 8t2 8t2 q q"], { bpm: 72 }), "1 &amp; a, 2 &amp; a, 3, 4", { count: true })}</div>` },
     { title: "Lining up rhythm", kick: "Vertical alignment", render: (H, k, U) => {
       const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 84, minBar: 320, bars: [{ t: [[{ k: ["E5"], d: "q" }, { k: ["D5"], d: "8" }, { k: ["C5"], d: "8" }, { k: ["B4"], d: "h" }]], b: [[{ k: ["C3"], d: "h" }, { k: ["G2"], d: "8" }, { k: ["A2"], d: "8" }, { k: ["B2"], d: "8" }, { k: ["G2"], d: "8" }]] }] };
       return `<ul><li>Notes and rests that happen at the same moment line up <b>vertically</b>, across every staff of a system.</li><li>Horizontal space follows time: longer values get more room (though not strictly in proportion), so the beat is easy to see.</li><li>Beam by beat, and don't hide the middle of a 4/4 bar (see the Rhythm Notation lesson for more).</li></ul>`
@@ -186,7 +380,7 @@ window.FAM = (() => {
   ] };
 
   return {
-    key: "silverapps-notevalues-v1", lesson, make, reference,
+    key: "silverapps-notevalues-v1", lesson, make, reference, widgets,
     modes: [{ id: "value", kicker: "Note values" }, { id: "math", kicker: "Value math" }, { id: "complete", kicker: "Complete the bar" }, { id: "tuplet", kicker: "Tuplets" }, { id: "meter", kicker: "Meter" }, { id: "terms", kicker: "Terms and principles" }],
     topics: [],
   };

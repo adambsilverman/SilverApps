@@ -827,7 +827,7 @@ details.panel[open] summary::after { content: "−"; }
         if (j === 0) { conn(C.BRACE); conn(C.SINGLE_LEFT); }
         conn(last ? C.BOLD_DOUBLE_RIGHT : c.end ? C.THIN_DOUBLE : C.SINGLE_RIGHT);
         const mk = (arr, clef) => {
-          if (!arr || !arr.length) return { sn: new VF.StaveNote({ clef, keys: [clef === "bass" ? "d/3" : "b/4"], duration: "wr" }), sorted: [] };
+          if (!arr || !arr.length) return { sn: new VF.StaveNote({ clef, keys: [clef === "bass" ? "f/3" : "d/5"], duration: "wr", align_center: true }), sorted: [] };
           const sorted = arr.slice().sort((a, b) => (octOf(a.n, a.m) * 7 + a.n.l) - (octOf(b.n, b.m) * 7 + b.n.l));
           const sn = new VF.StaveNote({ clef, keys: sorted.map(x => LET[x.n.l].toLowerCase() + "/" + octOf(x.n, x.m)), duration: "w" });
           sn.setStyle({ fillStyle: ink, strokeStyle: ink });
