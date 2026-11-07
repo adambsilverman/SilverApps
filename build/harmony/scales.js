@@ -272,15 +272,18 @@ window.FAM = (() => {
       label: `Your scale: ${ns.map(n => H.speak(H.nm(n))).join(", ")}` });
     const xs = ns.map((n, i) => 64 + i * 56 + 28), semi = ns.map(n => H.midi(n) - H.midi(ns[0]));
     let add = "";
-    ns.forEach((n, i) => { add += `<text x="${xs[i]}" y="-22" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${i ? ivName(i, semi[i]) : "tonic"}</text>`; });
+    const ny = n => 80 - ssStep(n) * 5, top = ns.map(n => Math.min(40, ny(n) - 6) - 9);   // each label sits just above its note (or the staff, if the note is on it)
+    ns.forEach((n, i) => { add += `<text x="${xs[i]}" y="${top[i]}" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${i ? ivName(i, semi[i]) : "tonic"}</text>`; });
+    const stepY = Math.max(80, ...ns.map(n => ny(n) + 6)) + 20;   // one even row just below the staff (or the lowest note)
     for (let i = 1; i < 8; i++) { const d = H.midi(ns[i]) - H.midi(ns[i - 1]), bad = !(d === 1 || d === 2 || (d === 3 && c.ssType === "harmonic" && i === 7));
-      add += `<text x="${(xs[i] + xs[i - 1]) / 2}" y="126" text-anchor="middle" font-size="17" font-weight="700" fill="${bad ? "#C2381F" : "currentColor"}">${stepSym(d)}</text>`; }
-    return svg.replace(/viewBox="0 -14 (\S+) (\S+)"/, (m, w, h) => `viewBox="0 -44 ${w} ${+h + 40}"`).replace("</svg>", add + "</svg>");
+      add += `<text x="${(xs[i] + xs[i - 1]) / 2}" y="${stepY}" text-anchor="middle" font-size="17" font-weight="700" fill="${bad ? "#C2381F" : "currentColor"}">${stepSym(d)}</text>`; }
+    const vTop = Math.min(-14, Math.min(...top) - 18);   // only as much room above as the labels need
+    return svg.replace(/viewBox="0 -14 (\S+) (\S+)"/, (m, w, h) => `viewBox="0 ${vTop} ${w} ${+h - 14 - vTop}"`).replace("</svg>", add + "</svg>");
   }
   function ssCtl(H, c, q) {
     const ns = ssNotes(H, c, q);
     return ns.map((n, i) => { const fixed = i === 0 || i === 7, nm = H.nm(n);
-      return `<div class="sscol"><span class="ssdeg">${i + 1}</span><b class="ssname">${nm}</b>${fixed ? `<span class="small">${i ? "octave" : "tonic"}</span>` : q.done ? "" :
+      return `<div class="sscol${fixed ? " fixed" : ""}" role="group" aria-label="Degree ${i + 1}: ${H.speak(nm)}"><span class="ssdeg">${i + 1}</span><b class="ssname">${nm}</b>${fixed ? `<span class="small">${i ? "octave" : "tonic"}</span>` : q.done ? "" :
         `<span class="ssbtns"><button class="btn ssb" data-ssi="${i}" data-ssd="-1" aria-label="Lower degree ${i + 1}, now ${H.speak(nm)}" ${n.a <= -2 ? "disabled" : ""}>♭</button><button class="btn ssb" data-ssi="${i}" data-ssd="1" aria-label="Raise degree ${i + 1}, now ${H.speak(nm)}" ${n.a >= 2 ? "disabled" : ""}>♯</button></span>`}</div>`; }).join("");
   }
   const ssSteps = (H, ns) => ns.slice(1).map((n, i) => stepSay(H.midi(n) - H.midi(ns[i]))).join(", ");

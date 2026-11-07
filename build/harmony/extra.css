@@ -322,7 +322,9 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 /* Major and Minor Scales drill "Spell the scale" */
 .ssstaff svg { width: 100%; max-width: 620px; display: block; margin: 0 auto; }
 .ssctl { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; max-width: 620px; margin: 6px auto 0; padding: 0 3.76% 0 12.03%; box-sizing: border-box; }   /* columns line up with the notes (staff: clef 64 + 8 × 56 + 20 of 532) */
-.sscol { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.sscol { display: grid; justify-items: center; align-content: start; gap: 3px; text-align: center; margin: 0 3px; padding: 4px 2px 6px; border: 1.5px solid var(--line, #cbbfae); border-radius: 12px; background: var(--card, #fff); position: relative; }
+.sscol::before { content: ""; position: absolute; left: 50%; top: -9px; height: 8px; border-left: 1.5px solid var(--line, #cbbfae); }   /* a short tick up toward the note */
+.sscol.fixed { border-style: dashed; background: transparent; }
 .ssdeg { font-size: .75rem; font-weight: 700; opacity: .7; }
 .ssname { font-size: 1.05rem; }
 .ssbtns { display: flex; gap: 2px; }
