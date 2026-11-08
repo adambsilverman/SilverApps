@@ -304,7 +304,7 @@
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0);
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + (o.tagSide && n.tag ? String(n.tag).length * 9 + 8 : 0);
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
       const vs = ids.flatMap(id => bar[id] || []); if (!vs.length) return 0;
@@ -421,7 +421,7 @@
     const txt = (x, y, s, at) => { const t = mk("text", Object.assign({ x, y, "text-anchor": "middle", "font-size": 15, "font-family": "'Schibsted Grotesk', Arial, sans-serif", fill: ink }, at || {}), svg); t.textContent = s; return t; };
     const brOpen = {}, rowTop = {}, lyr = [];
     meta.forEach(({ sn, si, ri, staves }) => { if (si) return; const ys = sn.getYs ? sn.getYs() : []; rowTop[ri] = Math.min(rowTop[ri] ?? staves[0].getYForLine(0), staves[0].getYForLine(0), ...ys.map(y => y - (sn.getStemDirection && sn.getStemDirection() === 1 && sn.getDuration() !== "w" ? 34 : 6))); });
-    const hasN = has("n") || !!o.beatNums, hasTag = all.some(n => n.tag), hasSym = has("sym");
+    const hasN = has("n") || !!o.beatNums, hasTag = !o.tagSide && all.some(n => n.tag), hasSym = has("sym");
     beatMarks.forEach(b => txt(b.x, (rowTop[b.ri] ?? 40) - 12, b.label, { "font-size": 13, "font-weight": 700, "fill-opacity": .75 }));
     meta.forEach(({ sn, n, si, ri, staves }) => {
       const x = sn.getAbsoluteX() + 6, top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
@@ -431,7 +431,10 @@
         let hx = x, hw = 12; try { const b0 = sn.getNoteHeadBeginX(), b1 = sn.getNoteHeadEndX(); if (b1 > b0) { hx = (b0 + b1) / 2; hw = (b1 - b0) / 2; } } catch (e) {}
         ys.forEach(y => mk("ellipse", { cx: hx, cy: y, rx: hw + 8, ry: 11.5, fill: "none", stroke: cssVar("--fi-red-dk") || "#b33", "stroke-width": 2.2 }, svg)); }
       if (n.n != null) txt(x, si ? bot + 26 : nY, String(n.n), { "font-size": 13, "font-weight": 700 });
-      if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
+      if (n.tag && o.tagSide) {   // the name beside the notehead (right of its circle), so labels above the staff stay low
+        let hx = x + 12; try { hx = sn.getNoteHeadEndX(); } catch (e) {}
+        txt(hx + (n.hl ? 11 : 5), Math.min(...ys) + 5, n.tag, { "text-anchor": "start", "font-size": 13, "font-weight": 700, "font-family": "'Barlow Condensed', 'Schibsted Grotesk', sans-serif" });
+      } else if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
       if (n.sym) txt(x, symY, n.sym, { "font-size": 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
       if (n.lab) rnSVG(mk, svg, x, bot + 44, n.lab, ink);
       lyr.push({ si, ri, x, y: staves[si].getYForLine(4) + 34, n, sn, el: n.ly != null ? txt(x, staves[si].getYForLine(4) + 34, n.ly, { "font-size": 15, "font-family": "Literata, serif" }) : null });
@@ -840,14 +843,19 @@
     "-2": { w: 1.56, top: -1.45, bot: .55, d: "M0 -1.45h.14v2H0zM.14 .55C1.05 .05 1 -.6 .14 -.25V-.04C.66 -.34 .72 .1 .14 .36zM.7 -1.45h.14v2H.7zM.84 .55C1.75 .05 1.7 -.6 .84 -.25V-.04C1.36 -.34 1.42 .1 .84 .36z" },
     "2": { w: .8, top: -.52, bot: .52, d: "M0 -.4L.28 0L0 .4L.12 .52L.4 .24L.68 .52L.8 .4L.52 0L.8 -.4L.68 -.52L.4 -.24L.12 -.52Z" },
   };
+  // o.ks = { n, sh }: a key signature of n sharps (sh) or flats after the clef (treble or bass); notes then pass acc only where they differ from it.
+  // o.extra(xs, stepY, y0, W) returns extra SVG drawn on top (e.g. labels under the notes); o.bottom adds room below.
+  const KS_SH = [8, 5, 9, 6, 3, 7, 4], KS_FL = [4, 7, 3, 6, 2, 5, 1];   // treble-clef staff steps (E4 = 0); bass clef is two steps lower
   function miniStaff(o) {
-    const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, startX = o.startX || 64, W = o.w || Math.max(240, startX + n * dx + 20);
+    const sp = o.sp || 10, y0 = 40, x0 = 10, n = o.notes.length, dx = o.dx || 50, ksW = o.ks && o.ks.n ? o.ks.n * sp * 1.05 + 8 : 0, startX = (o.startX || 64) + ksW, W = o.w ? o.w + ksW : Math.max(240, startX + n * dx + 20);
     const lineY = i => y0 + i * sp, stepY = st => y0 + 4 * sp - st * sp / 2, ink = "currentColor";
     let g = "";
     for (let i = 0; i < 5; i++) g += `<line x1="${x0}" x2="${W - 6}" y1="${lineY(i)}" y2="${lineY(i)}" stroke="${ink}" stroke-width="1"/>`;
     // [glyph, reference line (0 = top), size, baseline offset below that line in staff spaces (measured from Noto Music)]
     const CL = { treble: ["&#x1D11E;", 3, 2.95, 1.1], bass: ["&#x1D122;", 1, 3.3, 3.08], alto: ["&#x1D121;", 2, 3.1, 2.2], tenor: ["&#x1D121;", 1, 3.1, 2.2] }[o.clef || "treble"];
     g += `<text x="${x0 + 4}" y="${lineY(CL[1]) + CL[3] * sp}" font-family="'Noto Music', serif" font-size="${sp * CL[2] * 1.4}" fill="${ink}" aria-hidden="true">${CL[0]}</text>`;
+    if (o.ks && o.ks.n) { const shift = (o.clef || "treble") === "bass" ? -2 : 0, A = ACCP[o.ks.sh ? "1" : "-1"];
+      (o.ks.sh ? KS_SH : KS_FL).slice(0, o.ks.n).forEach((st, j) => { g += `<path d="${A.d}" transform="translate(${(o.startX || 64) - 6 + j * sp * 1.05} ${stepY(st + shift)}) scale(${sp})" fill="${ink}"/>`; }); }
     const xs = [];
     o.notes.forEach((nt, i) => {
       const x = startX + i * dx + dx / 2, y = stepY(nt.s); xs.push([x, y]);
@@ -863,7 +871,8 @@
       if (t) g += `<text x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle" font-size="12" fill="${ink}">${t}</text>`;
     });
     const defs = `<defs><marker id="ms-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${ink}"/></marker></defs>`;
-    const vh = o.fitBottom ? Math.max(y0 + 4 * sp + 16, ...xs.map(([, y]) => y + 16)) + 14 : 4 * sp + 108;   // o.fitBottom: no empty room below the staff unless a low note needs it
+    if (o.extra) g += o.extra(xs, stepY, y0, W);
+    const vh = (o.fitBottom ? Math.max(y0 + 4 * sp + 16, ...xs.map(([, y]) => y + 16)) + 14 : 4 * sp + 108) + (o.bottom || 0);   // o.fitBottom: no empty room below the staff unless a low note needs it
     return `<svg class="ministaff" viewBox="0 -14 ${W} ${vh}" role="${o.role || "img"}" ${o.label ? `aria-label="${esc(o.label)}"` : ""}>${defs}${g}</svg>`;
   }
   const H = { N, up, down, nm, nmO, nmSpoken, parse, midi, pc, samePC, mod, rnd, shuffle, mc, KEYS, key, deg, randKey, inKey, chord, diat, symOf, isChromatic, fig, rnOf, ROMAN, QUAL, QSYM, QNAME, grand, playOf, rnHTML, rnSpoken, symHTML, accHTML, esc, rich, plain, speak, LET, ACC, satb, satbCands, satbCols, satbPlay, pwIssues, perfectOf, ivl, letterStep, durOf, scorePlay, ltPC, toBars, lh, lhSeq, tok, withClick, withCount, singOf, singFile, voiceToks, satbSpec, satbFig, miniStaff, ACCP, play, dc: (k, d, sev, bass) => Object.assign(diat(k, d, sev, bass), { deg: d }) };
@@ -881,12 +890,14 @@
   H.topicOn = topicOn;
   H.topicsOn = () => (FAM.topics || []).filter(t => S.settings.topics[t.id] !== false).map(t => t.id);
 
+  const hasDouble = c => /𝄪|𝄫/.test([c.text, c.answer, c.explain, ...(c.choices || [])].join(" "));
   function newQuestion(mode) {
     const prev = Q[mode];
     const review = S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
     if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
     for (let i = 0; i < 60; i++) {
       let c = null; try { c = FAM.make(mode, H); } catch (e) { if (i > 50) throw e; }
+      if (c && !FAM.allowDouble && i < 55 && hasDouble(c)) continue;   // never ask about double sharps or flats (FAM.allowDouble: a drill that teaches them)
       if (c && (c.widget || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || plain(prev.c.answer) !== plain(c.answer) || i > 40)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
     }
     const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
@@ -902,7 +913,8 @@
   function renderPrompt() {
     const q = Q[S.mode], c = q.c;
     const tag = q.review ? ' <span class="pill warn">review</span>' : "";
-    let h = `<h2 class="kicker" id="qHead" tabindex="-1">${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
+    const appName = (window.__SA_APP && __SA_APP.name) || FAM.title || "";   // the drill app's name tops every question (handy in full screen and class games)
+    let h = `<h2 class="kicker" id="qHead" tabindex="-1">${appName ? `<span class="kapp">${esc(appName)}</span><span class="ksep" aria-hidden="true"> · </span>` : ""}${esc(c.kicker || modeInfo(S.mode).kicker)}${tag}</h2>`;
     if (c.big) h += `<div class="ins">${c.bigFmt ? fmtVal(c.big, c.bigFmt) : rich(c.big)}</div>`;
     h += `<p class="q-text" id="qText">${rich(c.text)}</p>`;
     if (c.fig) h += `<div class="fig-box">${c.fig}</div>`;   // trusted HTML from the content file (e.g. pulse buttons)
@@ -1108,6 +1120,9 @@
   try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
 
   // ===== SilverApps bridge (added by build/build_trainers.py) =====
+  // the app's name tops every question heading (pages built on the harmony engine add it themselves)
+  (function () { const tag = () => { const h = document.getElementById("qHead"); if (h && !h.querySelector(".kapp") && __SA_APP && __SA_APP.name) h.insertAdjacentHTML("afterbegin", '<span class="kapp">' + __SA_APP.name.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])) + '</span><span class="ksep" aria-hidden="true"> · </span>'); };
+    const w = document.getElementById("work") || document.body; tag(); new MutationObserver(tag).observe(w, { childList: true, subtree: true }); })();
   function __saLabel(m) { const b = document.querySelector(`.modes [data-mode="${m}"] b`); return b ? b.textContent.trim() : m; }
   if (window.SAprogress) SAprogress.init({ id: __SA_APP.id, name: __SA_APP.name, before: ".wrap-aside",
     onReset: () => { S.right = 0; S.total = 0; S.streak = 0; S.misses = []; save(); renderScore(); } });

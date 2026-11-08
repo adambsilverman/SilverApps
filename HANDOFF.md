@@ -166,7 +166,7 @@ No logins, so no names or emails: the statistics are anonymous visits with appro
 
 ## Wording conventions
 
-- Site name: **SilverApps for Music Training**. The link back to the front page is labelled **All SilverApps** (not “All trainers”).
+- Site name: **SilverApps Interactive Music Training** (renamed 2026-11-07 from “SilverApps for Music Training”; the OneDrive folder keeps its old name). The link back to the front page is labelled **All SilverApps** (not “All trainers”).
 - Describe the apps as for **review, practice and skill building** (theory, ear training, performance) — not just "review apps".
 - **No course codes (MTC 112 etc.) on any page.** Front-page tiles show a topic label instead (`topic` in `build/apps.json`). The course mapping lives only in this file.
 - Say "student devices" (not "phones") for where students answer, e.g. "Run it live with a whole class on student devices".
@@ -184,6 +184,17 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-07 (z89)** — Batch of lesson/drill changes.
+  - *Site name* is now **SilverApps Interactive Music Training** (`common.py` SITE, strip subtitle, index hero, apps.json, verify/chordlab builders, README, LICENSE, progress report header).
+  - *All drills* show the app name at the start of each question kicker: engine `#qHead` gets `<span class="kapp">` (from `__SA_APP.name`); the original trainers get it from a MutationObserver in the `build_trainers.py` BRIDGE; Chord Figures (`.qapp` in the question head) and Orchestration Foreign Terms (`.qapp` in `.progress`) are done by hand.
+  - *Engine*: drills skip any generated question whose text, answer, choices or explanation contains 𝄪/𝄫 (`hasDouble`; a family can opt out with `allowDouble: true`, as Clefs does). `miniStaff` takes a key signature (`o.ks = {n, sh}`), `o.extra(xs, stepY, y0, W)` for custom SVG and `o.bottom`. Scores take `tagSide: true`: tags go beside the notehead (right of its circle) instead of above the staff, so chord symbols stay low; note width grows to fit.
+  - *Scales drills*: keys with at most 6 sharps/flats only (`DMAJ`/`DMIN` pools in `scales.js`); key-signature counts up to 6.
+  - *Keys lesson*: *Scale-degree names* is a staff (key signature, number with a drawn caret, syllable and name under each note; in minor, the subtonic and leading tone are boxed together as alternatives); the table is gone. *Stable and tendency tones* uses the key signature.
+  - *Chord Figures lesson* (`figlesson.js`): `gsSVG` grand-staff diagrams with intervals above the bass; *Figures* has a Find-the-figure / Build-the-inverted-chord activity (RH three notes; triads double a tone); *Chord symbols and slash chords* has a complete-the-slash-bass activity; Roman numerals removed throughout (incl. *Identifying chords fast*).
+  - *Chord Figures drill* (`chordlab/src.html`): *Figure & chord symbol* answers are built (figure grid + root + quality + bass pads), so any chord is possible; smaller figure buttons; no Roman numerals anywhere (`ROMAN`/`romanOf` removed).
+  - *Non-Chord Tones*: every lesson example is melody staff + grand staff (RH three close-position chord tones via `rhSeq`, LH root; pedal example via `o.ped`), chord symbols only (no Roman numerals in labels or explanations, drills included), NCT names beside the notes (`tagSide`). *Suspension figures* play at 132 bpm.
+  - *Texture*: examples follow counterpoint rules. `cpCost` scores two voices (consonant beats 1 and 3, no parallel/consecutive 5ths or 8ves, no crossing, hidden 5ths/8ves with a leap); `gen()` keeps the best of many tunes (2000 tries for a canon at the octave a bar later); `counterOf` writes the free countermelody (best of 120); `chordalOf` voices chordal homophony in four parts by dynamic programming (complete triads, no doubled leading tone, no parallels). All progressions end on I. Drill modes *Describe* and *Concepts* merged into **Describe and define** (old `concepts` id still works).
+  - *Roman Numerals lesson*: *Inversions and seventh chords* no longer teaches figures; it links to the Chord Figures lesson. *Numerals in minor and chromatic numerals* (merged steps) has a toggle between III/VI/VII and ♭III/♭VI/♭VII (`data-rsys`/`data-rsysbtn`, wired in `after`); borrowed chords are shown in the parallel major.
 - **2026-11-07 (z88)** — Batch of lesson/drill changes.
   - *Reading Pitch drills*: the answer circle (`hl`) is centered on the notehead (`getNoteHeadBeginX/EndX`) and sized to clear it (rx = half the head + 8, ry 11.5). The unused multiple-choice "where" mode was removed from `clefs.js`; *New clef* is drag-only.
   - *Intervals: What, Why and How* (`build/pages/`): *Stretching and squeezing* now models each quality as a (bottom, top) spelling over C: in the major/minor family minor → diminished raises the **bottom** note (C♯–E♭) and diminished → minor lowers it; button labels say which note moves. The bouncing ball lands on each note exactly as it sounds and hops to arrive at the next on time (melody, transposition, inversion, tension slides). *How far from home?* lights the home house along with the chosen degree.

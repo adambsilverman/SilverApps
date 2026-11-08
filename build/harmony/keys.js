@@ -89,12 +89,30 @@ window.FAM = (() => {
   // clickable scale on a staff
   let HH = null;
   const stepOf = n => n.o * 7 + n.l - 30;   // treble staff: 0 = bottom line (E4)
+  // key signature of k for miniStaff, and the accidental a note needs against it (null = none)
+  const ksOf = k => ({ n: k.scale.filter(n => n.a).length, sh: k.scale.some(n => n.a > 0) });
+  const accVs = (k, n) => { const sa = (k.scale.find(x => x.l === n.l) || {}).a || 0; return n.a !== sa ? n.a : null; };
+  // the scale on a staff with each degree's number, syllable and name underneath; in minor, 7̂ appears twice
+  // (subtonic and leading tone) inside one box, as alternatives
   function sdStaff(H, k) {
-    HH = H; const idx = k.mode === "minor" ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
-    const notes = idx.map(i => { const n = noteOf(H, k, i); return { n, i }; });
+    HH = H; const minor = k.mode === "minor", idx = minor ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
+    const notes = idx.map(i => ({ n: noteOf(H, k, i), i }));
     notes.push({ n: H.N(notes[0].n.l, notes[0].n.a, notes[0].n.o + 1), i: 0, top: true });
-    const spec = notes.map(({ n, i, top }) => ({ s: stepOf(n), acc: n.a ? n.a : null, attrs: `role="button" tabindex="0" data-sdg="${i}" data-sdn="${H.nmO(n)}" data-sdk="${k.mode}" aria-label="${H.nmO(n).replace("♯", " sharp").replace("♭", " flat")}: show its scale degree"` }));
-    return H.miniStaff({ notes: spec, role: "group", label: `${k.label} scale: select a note to see its scale degree` }) + `<p class="msinfo" id="sdInfo" aria-live="polite">Select a note to see its scale-degree number and name.</p>`;
+    const dx = 84, esc2 = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const spec = notes.map(({ n, i, top }) => ({ s: stepOf(n), acc: accVs(k, n), attrs: `role="button" tabindex="0" data-sdg="${i}" data-sdn="${H.nmO(n)}" data-sdk="${k.mode}" aria-label="${H.nmO(n).replace("♯", " sharp").replace("♭", " flat")}: ${top ? "tonic, an octave up" : (i === 7 ? "raised 7, leading tone" : (i + 1) + ", " + nameOf(k, i))}. Play it"` }));
+    const extra = (xs, stepY, y0) => {
+      const yb = Math.max(y0 + 40, ...xs.map(([, y]) => y + 8)) + 22, T = (x, y, t, at) => `<text x="${x}" y="${y}" text-anchor="middle" fill="currentColor" ${at || ""}>${esc2(t)}</text>`;
+      let g = "";
+      notes.forEach(({ i, top }, j) => { const x = xs[j][0];
+        // the scale-degree caret is drawn as a small line (the lesson text formatter would turn "1̂" into HTML)
+        g += T(x, yb, top ? "1" : i === 7 ? "7" : String(i + 1), 'font-size="16" font-weight="700"') + `<path d="M${x - 4} ${yb - 14} L${x} ${yb - 18} L${x + 4} ${yb - 14}" fill="none" stroke="currentColor" stroke-width="1.5"/>` + T(x, yb + 18, top ? SOL[k.mode][0] : i === 7 ? "ti" : SOL[k.mode][i], 'font-size="13" font-style="italic"')
+          + T(x, yb + 35, top ? "tonic" : nameOf(k, i), 'font-size="12"'); });
+      if (minor) { const xa = xs[6][0] - dx / 2 + 3, xb = xs[7][0] + dx / 2 - 3;
+        g += `<rect x="${xa}" y="${y0 - 30}" width="${xb - xa}" height="${yb + 44 - (y0 - 30)}" rx="12" fill="#FFE07A" fill-opacity=".25" stroke="#B07A12" stroke-width="1.6" stroke-dasharray="6 4" pointer-events="none"/>`
+          + T((xa + xb) / 2, y0 - 36, "7th degree: one or the other", 'font-size="12" font-weight="700"') + T((xs[6][0] + xs[7][0]) / 2, yb + 18, "or", 'font-size="12" opacity=".75"'); }
+      return g; };
+    return H.miniStaff({ notes: spec, ks: ksOf(k), dx, extra, bottom: 34, role: "group", label: `${k.label} scale with each degree's number and name: select a note to hear it` })
+      + `<p class="msinfo" id="sdInfo" aria-live="polite">${minor ? "In minor, the 7th degree comes in two versions: as in the key signature it's the subtonic (te); raised a half step it's the leading tone (ti). A melody uses one or the other. " : ""}Select a note to hear it.</p>`;
   }
   if (!window.__sdWired) { window.__sdWired = true;
     const go = el => { const i = +el.dataset.sdg, mode = el.dataset.sdk, info = document.getElementById("sdInfo"); document.querySelectorAll("[data-sdg]").forEach(x => x.setAttribute("aria-pressed", String(x === el)));
@@ -108,16 +126,15 @@ window.FAM = (() => {
     const deg = i => { const n = k.scale[((i % 7) + 7) % 7]; return H.N(n.l, n.a, n.o + Math.floor(i / 7)); };
     const pairs = [[6, 7, "ti → do"], [3, 2, "fa → mi"], [5, 4, "la → sol"], [1, 0, "re → do"]];
     const notes = [], arrows = [];
-    pairs.forEach(([a, b, t]) => { const i = notes.length; [a, b].forEach(d => { const n = deg(d); notes.push({ s: stepOf(n), acc: n.a ? n.a : null, label: SOL.major[d % 7] }); }); arrows.push([i, i + 1, ""]); });
-    return H.miniStaff({ notes, arrows, dx: 46, label: `Tendency tones in ${k.label} with arrows to their resolutions: ti to do, fa to mi, la to sol, re to do` })
+    pairs.forEach(([a, b, t]) => { const i = notes.length; [a, b].forEach(d => { const n = deg(d); notes.push({ s: stepOf(n), acc: accVs(k, n), label: SOL.major[d % 7] }); }); arrows.push([i, i + 1, ""]); });
+    return H.miniStaff({ notes, arrows, dx: 46, ks: ksOf(k), label: `Tendency tones in ${k.label} with arrows to their resolutions: ti to do, fa to mi, la to sol, re to do` })
       + `<div class="lbtns">${pairs.map(([a, b, t]) => `<button class="play" data-tdp="${H.midi(deg(a))},${H.midi(deg(b))}"><span aria-hidden="true">▶ </span>${t}</button>`).join("")}</div>`;
   }
   if (!window.__tdWired) { window.__tdWired = true; document.addEventListener("click", e => { const b = e.target.closest("[data-tdp]"); if (b && HH) HH.play({ chords: b.dataset.tdp.split(",").map(m => [+m]), gap: 1.05 }); }); }
   const lesson = { defMode: "major", steps: [
     { title: "Keys and scale degrees", kick: "Prerequisites", render: () => `<p>This lesson assumes you know how major and minor keys organize the diatonic notes, how key signatures show them, and how <b>parallel</b> keys (same tonic) and <b>relative</b> keys (same signature) relate. If not, review them first in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson, especially its key-signature steps (“Why key signatures?” and “Reading key signatures”).</p>
       <p>Scale degrees are named by number or by name. A caret over the number marks a scale degree: 1̂, 2̂, 3̂… Some websites can't show the caret, so you may also see ^1, ^2. Altered degrees take a ♯ or ♭ (♯4̂, ♭7̂) whatever accidental the actual note uses: in E major, the lowered supertonic is ♭2̂ even though it's F♮.</p>` },
-    { title: "Scale-degree names", kick: "Tonic to leading tone", keyed: "both", render: (H, k) => `${sdStaff(H, k)}<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Degree</th><th scope="col">Name</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
-      ${[0, 1, 2, 3, 4, 5, 6].map(i => `<tr><td>${i + 1}̂ (${SOL[k.mode][i]})</td><td>${nameOf(k, i)}</td><td>${H.nm(k.scale[i])}</td></tr>`).join("")}${k.mode === "minor" ? `<tr><td>raised 7̂ (ti)</td><td>leading tone</td><td>${H.nm(noteOf(H, k, 7))}</td></tr>` : ""}</tbody></table></div>
+    { title: "Scale-degree names", kick: "Tonic to leading tone", keyed: "both", render: (H, k) => `${sdStaff(H, k)}
       ${k.mode === "minor" ? "<p>In minor, the 7th degree has two names: as in the key signature it's the <b>subtonic</b>; raised a half step (as in harmonic minor) it's the <b>leading tone</b>. The 6th degree also has two usual versions (lowered as in the signature, or raised in ascending melodic minor), but its name doesn't change.</p>" : "<p>Choose a minor key to see the subtonic and leading tone.</p>"}`
       + H.check(`What pitch is the subdominant in ${k.label}?`, H.nm(k.scale[3]), [H.nm(k.scale[4]), H.nm(k.scale[2]), H.nm(k.scale[5])], "The subdominant is 4̂.") },
     { title: "Stable and tendency tones", kick: "Anchors and pulls", keyed: "major", render: (H, k) => `<p><b>Stable tones</b> (“anchor tones”) give a sense of rest: <b>1̂, 3̂ and 5̂</b>, in major or minor. They end phrases that have harmonic closure. All other degrees are unstable and tend to move in a particular direction; satisfying that tendency is <b>resolution</b>.</p>

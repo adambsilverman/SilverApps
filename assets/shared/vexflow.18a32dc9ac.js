@@ -259,6 +259,9 @@
   renderSettings(); renderScore(); renderPrompt(); renderControls();
 
   // ===== SilverApps bridge (added by build/build_trainers.py) =====
+  // the app's name tops every question heading (pages built on the harmony engine add it themselves)
+  (function () { const tag = () => { const h = document.getElementById("qHead"); if (h && !h.querySelector(".kapp") && __SA_APP && __SA_APP.name) h.insertAdjacentHTML("afterbegin", '<span class="kapp">' + __SA_APP.name.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])) + '</span><span class="ksep" aria-hidden="true"> · </span>'); };
+    const w = document.getElementById("work") || document.body; tag(); new MutationObserver(tag).observe(w, { childList: true, subtree: true }); })();
   function __saLabel(m) { const b = document.querySelector(`.modes [data-mode="${m}"] b`); return b ? b.textContent.trim() : m; }
   if (window.SAprogress) SAprogress.init({ id: __SA_APP.id, name: __SA_APP.name, before: ".wrap-aside",
     onReset: () => { S.right = 0; S.total = 0; S.streak = 0; S.misses = []; save(); renderScore(); } });

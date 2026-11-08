@@ -24,7 +24,7 @@ label{{display:block;font:900 12px var(--fi-body);letter-spacing:.1em;text-trans
 <h1>Check a completion report</h1>
 <p>Paste the whole report a student sent you — from the first line to the verification code. This checks that the numbers weren't changed after the report was made. It's a deterrent, not cryptographic proof.</p>
 <label for="rep">Report text</label>
-<textarea id="rep" spellcheck="false" placeholder="SilverApps for Music Training — Completion report&#10;App: …"></textarea>
+<textarea id="rep" spellcheck="false" placeholder="SilverApps Interactive Music Training — Completion report&#10;App: …"></textarea>
 <p><button type="button" class="pr-btn primary" id="go">Check report</button></p>
 <div id="out" role="status" aria-live="polite"></div>
 </main>

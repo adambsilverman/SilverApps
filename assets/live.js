@@ -1,5 +1,5 @@
 /* =====================================================================
-   SilverApps for Music Training — live class game layer
+   SilverApps Interactive Music Training — live class game layer
    ---------------------------------------------------------------------
    Adds "Host a class game" / "Join a game" to a trainer page.
    The host broadcasts {question type, settings, random seed}; every phone

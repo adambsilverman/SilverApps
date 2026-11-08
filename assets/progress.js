@@ -55,7 +55,7 @@
   /* ---------------- report ---------------- */
   function reportText(name, course) {
     const lines = [
-      "SilverApps for Music Training — Completion report",
+      "SilverApps Interactive Music Training — Completion report",
       `App: ${APP.name}`,
       `Student: ${name}`,
       course ? `Course or section: ${course}` : null,

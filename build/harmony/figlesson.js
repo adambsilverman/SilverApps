@@ -5,6 +5,124 @@ window.FAM = (() => {
   const gfig = (H, U, cols, cap) => U.fig({ type: "grand", vf: "C", sig: {}, cols }, cap, { play: { chords: cols.map(c => (c.t || []).concat(c.b || []).map(s => H.midi(H.parse(s)))), gap: 1.3, dur: .9 } });
   const tfig = (H, U, list, cap) => U.fig({ type: "score", clefs: ["treble"], time: null, vf: "C", sig: {}, bpm: 50, final: false, bars: list.map(([keys, sym]) => ({ t: [[{ k: keys, d: "w", sym }]] })) }, cap, { play: { chords: list.map(([k]) => k.map(s => H.midi(H.parse(s)))), gap: 1.4, dur: .9 } });
   const C = s => `{sym:${s}}`, R = s => `{rn:${s}}`, F = (...n) => `<span class="fstk">${n.map(x => `<span>${x}</span>`).join("")}</span>`;
+  // ---------- a small grand staff for this lesson's diagrams and activities ----------
+  // notes: "C4"-style names (C major only, no accidentals). dn = diatonic number (C0 = 0); treble step 0 = E4, bass step 0 = G2.
+  const LET = "CDEFGAB", dnOf = s => +s.slice(-1) * 7 + LET.indexOf(s[0]), nameOfDn = d => LET[((d % 7) + 7) % 7] + Math.floor(d / 7);
+  const TY = d => 70 - (d - 30) * 5, BY = d => 150 - (d - 18) * 5;   // y of a note on the treble / bass staff
+  const ivAbove = (bass, up) => { const d = ((dnOf(up) - dnOf(bass)) % 7 + 7) % 7; return d === 0 ? 8 : d + 1; };   // generic interval above the bass, octaves removed (unison/octave = 8)
+  function gsSVG(cols, o = {}) {
+    const dx = o.dx || 110, x0 = 64, W = x0 + cols.length * dx + 14, ink = "currentColor", RED = "#C2381F";
+    let g = "";
+    [30, 110].forEach(t => { for (let i = 0; i < 5; i++) g += `<line x1="8" x2="${W - 6}" y1="${t + i * 10}" y2="${t + i * 10}" stroke="${ink}"/>`; });
+    g += `<line x1="8" x2="8" y1="30" y2="150" stroke="${ink}" stroke-width="1.5"/><line x1="${W - 6}" x2="${W - 6}" y1="30" y2="150" stroke="${ink}"/>`;
+    g += `<text x="12" y="70" font-family="'Noto Music', serif" font-size="41" fill="${ink}" aria-hidden="true">&#x1D11E;</text><text x="12" y="140.8" font-family="'Noto Music', serif" font-size="46" fill="${ink}" aria-hidden="true">&#x1D122;</text>`;
+    const head = (x, y, col, attrs = "") => `<ellipse cx="${x}" cy="${y}" rx="7.2" ry="5" transform="rotate(-20 ${x} ${y})" fill="none" stroke="${col}" stroke-width="2.6" ${attrs}/>`;
+    const ledgers = (x, d, staff) => { let s = ""; if (staff === "t") { for (let L = 28; L >= d; L -= 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${TY(L)}" y2="${TY(L)}" stroke="${ink}"/>`; for (let L = 40; L <= d; L += 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${TY(L)}" y2="${TY(L)}" stroke="${ink}"/>`; }
+      else { for (let L = 16; L >= d; L -= 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${BY(L)}" y2="${BY(L)}" stroke="${ink}"/>`; for (let L = 28; L <= d; L += 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${BY(L)}" y2="${BY(L)}" stroke="${ink}"/>`; } return s; };
+    cols.forEach((c, ci) => {
+      const x = x0 + ci * dx + dx / 2;
+      if (c.zone) g += `<rect class="gszone" data-gsz="${ci}" x="${x - dx / 2 + 4}" y="12" width="${dx - 8}" height="${(c.zoneH || 80)}" rx="10" fill="transparent"/>`;
+      // seconds: the upper note of a step sits to the right of the stem line, as in engraving; interval labels go in a column to the right, spread apart
+      const ord = (c.t || []).map((n, j) => ({ n, j, d: dnOf(n) })).sort((a, b2) => a.d - b2.d); let prevD = null, prevShift = false;
+      ord.forEach(o2 => { o2.shift = prevD !== null && o2.d - prevD === 1 && !prevShift; prevShift = o2.shift; prevD = o2.d; });
+      const anyShift = ord.some(o2 => o2.shift), labX = x + (anyShift ? 28 : 15);
+      let lastLY = 999; [...ord].reverse().forEach(o2 => { o2.ly = Math.max(TY(o2.d) + 4, 0); }); ord.forEach(o2 => { o2.ly = Math.min(o2.ly, lastLY - 12); lastLY = o2.ly; });
+      ord.forEach(({ n, j, d, shift, ly }) => { const y = TY(d), hx = x + (shift ? 14 : 0), sel = c.sel === j;
+        g += ledgers(x + (shift ? 7 : 0), d, "t") + `<g ${c.click ? `class="gsn" role="button" tabindex="0" data-gsn="${ci}:${j}" aria-label="${c.aria ? c.aria(n, j) : n}"` : ""}>${c.click ? `<rect x="${hx - 12}" y="${y - 7}" width="24" height="14" rx="6" class="gshit"/>` : ""}${head(hx, y, c.col && c.col[j] ? c.col[j] : sel ? RED : ink)}</g>`;
+        if (c.ivs) { const iv = ivAbove(c.b[0], n); g += `<text x="${labX}" y="${ly}" font-size="12" font-weight="700" fill="${RED}">${iv}</text>`; } });
+      (c.b || []).forEach(n => { const d = dnOf(n), y = BY(d); g += ledgers(x, d, "b") + head(x, y, ink); if (c.ivs) g += `<text x="${x + 15}" y="${y + 4}" font-size="11" fill="${RED}">bass</text>`; });
+      if (c.fig) g += `<text x="${x}" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="${ink}">${c.fig.map((f, k) => `<tspan x="${x}" dy="${k ? 14 : 0}">${f}</tspan>`).join("")}</text>`;
+      if (c.sym) g += `<text x="${x}" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="${ink}">${c.sym}</text>`;
+    });
+    const h = 190 + (o.extraH || 0);
+    return `<svg class="gs" viewBox="0 0 ${W} ${h}" role="${o.role || "img"}" aria-label="${o.label || ""}" style="width:100%;max-width:${Math.min(W * 1.25, 620)}px;display:block;margin:0 auto">${g}${o.extra || ""}</svg>`;
+  }
+
+  // chords in C major: root degree 0–6, triad or 7th, inversion → bass (octave 3) and three right-hand notes in close position (octave 4)
+  const SYM3 = ["C", "Dm", "Em", "F", "G", "Am", "B°"], SYM7 = ["C△7", "Dm7", "Em7", "F△7", "G7", "Am7", "Bø7"];
+  const FIGS = { "3,0": ["", ""], "3,1": ["6", ""], "3,2": ["6", "4"], "4,0": ["7", ""], "4,1": ["6", "5"], "4,2": ["4", "3"], "4,3": ["4", "2"] };
+  const NEED = { "3,0": [5, 3], "3,1": [6, 3], "3,2": [6, 4], "4,0": [7, 5, 3], "4,1": [6, 5, 3], "4,2": [6, 4, 3], "4,3": [6, 4, 2] };
+  const FULL = { "3,0": "5 and 3", "3,1": "6 and 3", "3,2": "6 and 4", "4,0": "7, 5 and 3", "4,1": "6, 5 and 3", "4,2": "6, 4 and 3", "4,3": "6, 4 and 2" };
+  function makeChord(sz, inv) {
+    const r = Math.floor(Math.random() * 7), tones = Array.from({ length: sz }, (_, i) => r + 2 * i), bassDn = 3 * 7 + tones[inv] % 7;   // bass in octave 3
+    const lettersUp = tones.map(t => t % 7);
+    // right hand: three notes in close position starting from the lowest chord tone at or above E4 (sevenths: the three non-bass tones; triads: all three)
+    const pool = sz === 4 ? lettersUp.filter((_, i) => i !== inv) : lettersUp;
+    let d = 30; const rh = []; while (rh.length < 3) { if (pool.includes(((d % 7) + 7) % 7) && !rh.some(x => x % 7 === d % 7)) rh.push(d); d++; }
+    return { r, sz, inv, bass: nameOfDn(bassDn), rh: rh.map(nameOfDn), sym: (sz === 4 ? SYM7 : SYM3)[r], key: sz + "," + inv };
+  }
+  const randFig = () => { const sz = Math.random() < .5 ? 3 : 4, inv = Math.floor(Math.random() * sz); return makeChord(sz, inv); };
+  const playC = (tools, notes) => tools.play({ chords: [notes.map(n => tools.H.midi(tools.H.parse(n)))], gap: 1.2, dur: .9 });
+
+  // activity 1 (Figures): find the note that makes a given interval above the bass; activity 2: build the chord from bass + figure
+  const FA = { mode: "find", c: null, ask: 0, rh: [], done: false };
+  function faNew() { FA.c = randFig(); FA.done = false; FA.rh = []; const need = NEED[FA.c.key]; FA.ask = need[Math.floor(Math.random() * need.length)]; }
+  function faDraw(root, tools) {
+    const c = FA.c, H = tools.H, fig = FIGS[c.key].filter(Boolean), out = root.querySelector("#faOut"), box = root.querySelector("#faStaff");
+    root.querySelectorAll("[data-fam]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.fam === FA.mode)));
+    if (FA.mode === "find") {
+      root.querySelector("#faAsk").innerHTML = `Bass ${c.bass[0]} with the figure <b>${fig.length ? fig.join("/") : "(none: 5/3)"}</b>. Click the note that makes the <b>${FA.ask === 8 ? "octave" : FA.ask}</b> above the bass.`;
+      box.innerHTML = gsSVG([{ t: c.rh, b: [c.bass], fig: fig.length ? fig : ["5", "3"], click: !FA.done, ivs: FA.done, col: FA.done ? c.rh.map(n => ivAbove(c.bass, n) === FA.ask ? "#2f7d32" : null) : null, aria: n => `${n[0]}, ${n.slice(1)}` }], { label: `Bass ${c.bass}, right hand ${c.rh.join(" ")}` , role: FA.done ? "img" : "group" });
+      root.querySelector("#faBtns").innerHTML = "";
+    } else {
+      root.querySelector("#faAsk").innerHTML = `Bass ${c.bass[0]} with the figure <b>${fig.length ? fig.join("/") : "(none: 5/3)"}</b>: add three notes on the upper staff (in any octave) so the chord has a ${FULL[c.key]} above the bass${c.sz === 3 ? ", doubling one of its notes" : ""}. Click the staff to add or remove a note, or use the letter buttons.`;
+      box.innerHTML = gsSVG([{ t: FA.rh.map(nameOfDn), b: [c.bass], fig: fig.length ? fig : ["5", "3"], ivs: FA.done, zone: !FA.done, zoneH: 92 }], { label: `Bass ${c.bass}; your notes: ${FA.rh.map(nameOfDn).join(", ") || "none"}`, role: "group" });
+      root.querySelector("#faBtns").innerHTML = FA.done ? "" : `${[..."CDEFGAB"].map(L => `<button class="play" data-fal="${L}">+ ${L}</button>`).join("")}<button class="play" data-faclr>Clear</button><button class="play primary" data-fachk ${FA.rh.length === 3 ? "" : "disabled"}>Check</button>`;
+    }
+  }
+  function faCheckBuild() { const c = FA.c, ivs = FA.rh.map(d => ivAbove(c.bass, nameOfDn(d))), need = NEED[c.key];
+    const missing = need.filter(v => !ivs.includes(v)), extra = ivs.filter(v => !need.includes(v) && !(c.sz === 3 && v === 8));
+    return { ok: !missing.length && !extra.length, ivs, missing, extra }; }
+  function faWire(root, tools) {
+    if (!FA.c) faNew();
+    const out = root.querySelector("#faOut"), H = tools.H, say = t => { out.innerHTML = t; };
+    root.querySelector("#faBox").addEventListener("click", e => {
+      const m = e.target.closest("[data-fam]"); if (m) { FA.mode = m.dataset.fam; faNew(); say(""); faDraw(root, tools); return; }
+      if (e.target.closest("[data-fanext]")) { faNew(); say(""); faDraw(root, tools); return; }
+      if (FA.done) return;
+      const n = e.target.closest("[data-gsn]"); if (n) { const j = +n.dataset.gsn.split(":")[1], note = FA.c.rh[j], iv = ivAbove(FA.c.bass, note);
+        playC(tools, [FA.c.bass, note]);
+        if (iv === FA.ask) { FA.done = true; say(`<b>Yes!</b> ${note[0]} is a ${iv} above ${FA.c.bass[0]} (count letters up from the bass: ${FA.c.bass[0]} = 1). The red numbers show every interval above the bass. <button class="play" data-fanext>Next chord →</button>`); }
+        else say(`Not quite: ${note[0]} is a <b>${iv === 8 ? "octave (8)" : iv}</b> above ${FA.c.bass[0]}. Count letter names up from the bass, starting with 1.`);
+        faDraw(root, tools); return; }
+      const z = e.target.closest("[data-gsz]"); if (z) { const svg = z.ownerSVGElement, pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const d = Math.round((70 - p.y) / 5) + 30; if (d < 26 || d > 43) return; const i = FA.rh.indexOf(d); if (i >= 0) FA.rh.splice(i, 1); else if (FA.rh.length < 3) { FA.rh.push(d); playC(tools, [FA.c.bass, nameOfDn(d)]); }
+        say(""); faDraw(root, tools); return; }
+      const L = e.target.closest("[data-fal]"); if (L && FA.rh.length < 3) { const li = LET.indexOf(L.dataset.fal); let d = 4 * 7 + li; while (FA.rh.includes(d)) d += 7; if (d > 43) return; FA.rh.push(d); playC(tools, [FA.c.bass, nameOfDn(d)]); say(""); faDraw(root, tools); return; }
+      if (e.target.closest("[data-faclr]")) { FA.rh = []; say(""); faDraw(root, tools); return; }
+      if (e.target.closest("[data-fachk]")) { const r = faCheckBuild(); playC(tools, [FA.c.bass, ...FA.rh.map(nameOfDn)]);
+        if (r.ok) { FA.done = true; say(`<b>Yes!</b> That's ${FA.c.sym}${FA.c.inv ? "/" + FA.c.bass[0] : ""}: ${FULL[FA.c.key]} above the bass${FA.c.sz === 3 ? ", with one note doubled" : ""}. <button class="play" data-fanext>Next chord →</button>`); }
+        else say(`Not yet: your notes make ${r.ivs.map(v => v === 8 ? "8 (octave)" : v).join(", ")} above the bass. ${r.missing.length ? `Still missing: ${r.missing.join(", ")}. ` : ""}${r.extra.length ? `Not in this chord: ${r.extra.join(", ")}.` : ""}`);
+        faDraw(root, tools); }
+    });
+    root.querySelector("#faBox").addEventListener("keydown", e => { const n = e.target.closest && e.target.closest("[data-gsn]"); if (n && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); n.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+    faDraw(root, tools);
+  }
+  const faHTML = () => `<div class="toy" id="faBox"><div class="toy-row" role="group" aria-label="Activity"><button class="play" data-fam="find" aria-pressed="true">Find the interval</button><button class="play" data-fam="build" aria-pressed="false">Build the chord</button></div>
+    <p id="faAsk" style="margin:0"></p><div id="faStaff"></div><div class="toy-row" id="faBtns"></div><p class="lnote" id="faOut" aria-live="polite" style="margin:0"></p></div>`;
+
+  // activity 3 (slash chords): complete the symbol with its bass note
+  const SL = { c: null, done: false };
+  function slNew() { SL.c = randFig(); SL.done = false; }
+  function slDraw(root, tools) {
+    const c = SL.c;
+    root.querySelector("#slStaff").innerHTML = gsSVG([{ t: c.rh, b: [c.bass], sym: SL.done ? `${c.sym}${c.inv ? "/" + c.bass[0] : ""}` : `${c.sym}/?` }], { label: `Right hand ${c.rh.join(" ")}, bass ${c.bass}` });
+    root.querySelector("#slBtns").innerHTML = SL.done ? `<button class="play" data-slnext>Next chord →</button>` : [..."CDEFGAB"].map(L => `<button class="play" data-sll="${L}">${L}</button>`).join("") + `<button class="play" data-sll="-">(no slash: root position)</button>`;
+  }
+  function slWire(root, tools) {
+    if (!SL.c) slNew();
+    const out = root.querySelector("#slOut");
+    root.querySelector("#slBox").addEventListener("click", e => {
+      if (e.target.closest("[data-slnext]")) { slNew(); out.innerHTML = ""; slDraw(root, tools); return; }
+      const b = e.target.closest("[data-sll]"); if (!b || SL.done) return; const c = SL.c, right = c.inv ? c.bass[0] : "-", ans = b.dataset.sll;
+      playC(tools, [c.bass, ...c.rh]);
+      if (ans === right) { SL.done = true; out.innerHTML = `<b>Yes!</b> ${c.inv ? `${c.bass[0]} is the lowest note, so the symbol is ${c.sym}/${c.bass[0]}.` : `The root, ${c.sym[0]}, is already the lowest note, so no slash is needed: just ${c.sym}.`}`; }
+      else out.innerHTML = `Not quite. Look only at the <b>lowest</b> note (bass staff)${ans === "-" ? ": it isn't the root" : `: it isn't ${ans}`}.`;
+      slDraw(root, tools);
+    });
+    slDraw(root, tools);
+  }
+  const slHTML = () => `<div class="toy" id="slBox"><p style="margin:0">Complete the chord symbol: which letter goes after the slash?</p><div id="slStaff"></div><div class="toy-row" id="slBtns"></div><p class="lnote" id="slOut" aria-live="polite" style="margin:0"></p></div>`;
   const lesson = { steps: [
     { title: "Triads", kick: "Stacking 3rds", render: (H, k, U) => `<p>A <b>triad</b> is three notes stacked in 3rds: the <b>root</b>, the <b>3rd</b> (a 3rd above the root) and the <b>5th</b> (a 5th above the root). On the staff, a root-position triad looks like a snowman: line–line–line or space–space–space.</p>
       ${tfig(H, U, [[["C4", "E4", "G4"], "C"], [["C4", "E♭4", "G4"], "Cm"], [["C4", "E♭4", "G♭4"], "C°"], [["C4", "E4", "G♯4"], "C+"]], "Four triad qualities on C: major, minor, diminished, augmented.")}
@@ -13,34 +131,40 @@ window.FAM = (() => {
     { title: "Seventh chords", kick: "Adding a 7th", render: (H, k, U) => `<p>A <b>seventh chord</b> adds another 3rd on top of a triad: the <b>7th</b>. Five kinds are common, named by the triad and the 7th:</p>
       ${tfig(H, U, [[["C4", "E4", "G4", "B4"], "C△7"], [["C4", "E4", "G4", "B♭4"], "C7"], [["C4", "E♭4", "G4", "B♭4"], "Cm7"], [["C4", "E♭4", "G♭4", "B♭4"], "Cø7"], [["C4", "E♭4", "G♭4", "B𝄫4"], "C°7"]], "Five seventh chords on C.")}
       ${tbl("Common seventh chords", ["Name", "Triad + 7th", "On C", "Symbol"], [["major seventh (MM7)", "major triad + major 7th", "C–E–G–B", `${C("C△7")}, ${C("Cmaj7")}`], ["dominant seventh (Mm7)", "major triad + minor 7th", "C–E–G–B♭", C("C7")], ["minor seventh (mm7)", "minor triad + minor 7th", "C–E♭–G–B♭", `${C("Cm7")}, ${C("C–7")}`], ["half-diminished seventh", "diminished triad + minor 7th", "C–E♭–G♭–B♭", `${C("Cø7")}, ${C("Cm7(♭5)")}`], ["fully diminished seventh", "diminished triad + diminished 7th", "C–E♭–G♭–B𝄫", `${C("C°7")}, ${C("Cdim7")}`]])}
-      <p>In any major key, V⁷ is always a dominant seventh, and vii⁷ is half-diminished; in minor, vii°⁷ (with the raised leading tone) is fully diminished.</p>`
-      + H.check("A major triad with a minor 7th is a…", "dominant seventh", ["major seventh", "minor seventh", "half-diminished seventh"], "Mm7: the chord of V⁷.") },
+      <p>In any major key, the seventh chord built on the 5th degree is always a dominant seventh, and the one on the 7th degree is half-diminished; in minor, the seventh chord on the raised 7th degree (the leading tone) is fully diminished.</p>`
+      + H.check("A major triad with a minor 7th is a…", "dominant seventh", ["major seventh", "minor seventh", "half-diminished seventh"], "Mm7: the seventh chord on the 5th degree of a major key.") },
     { title: "Inversions", kick: "Which note is in the bass?", render: (H, k, U) => `<p>A chord is named by its root wherever its notes are placed. Its <b>inversion</b> depends only on which chord member is in the <b>bass</b> (the lowest note):</p>
-      ${gfig(H, U, [{ t: ["E4", "G4", "C5"], b: ["C3"], lab: "I" }, { t: ["E4", "G4", "C5"], b: ["E3"], lab: "I6" }, { t: ["E4", "G4", "C5"], b: ["G3"], lab: "I64" }], "C major in root position, first inversion and second inversion. The right hand stays the same; only the bass note changes, and that alone sets the inversion.")}
+      ${gfig(H, U, [{ t: ["E4", "G4", "C5"], b: ["C3"] }, { t: ["E4", "G4", "C5"], b: ["E3"] }, { t: ["E4", "G4", "C5"], b: ["G3"] }], "C major in root position, first inversion and second inversion. The right hand stays the same; only the bass note changes, and that alone sets the inversion.")}
       ${tbl("Inversions", ["Bass note", "Triad", "Seventh chord"], [["root", "root position", "root position"], ["3rd", "first inversion", "first inversion"], ["5th", "second inversion", "second inversion"], ["7th", "—", "third inversion"]])}
       <p>The upper notes don't affect the inversion: C in the bass with E–G–C, G–C–E or E–C–G above is always root position. To find the root of an inverted chord, rearrange the notes into stacked 3rds; the bottom of the stack is the root.</p>`
       + H.check("E in the bass, with G and C above it. What is the chord and its position?", "C major, first inversion", ["E minor, root position", "C major, root position", "C major, second inversion"], "Stacked in 3rds it's C–E–G; the 3rd (E) is in the bass.") },
-    { title: "Figures", kick: "Intervals above the bass", render: (H, k, U) => `<p><b>Figures</b> (from <b>figured bass</b>) are small numbers showing the intervals above the bass note. Baroque keyboard and lute players read a bass line with figures and improvised the chords from them; today we use the same figures after Roman numerals to show inversions.</p>
-      ${tbl("Figures and their abbreviations", ["Position", "Full figures", "Written as", "Example in C"], [["triad, root position", F(5, 3), "(nothing)", R("I")], ["triad, 1st inversion", F(6, 3), F(6), R("I6")], ["triad, 2nd inversion", F(6, 4), F(6, 4), R("I64")], ["7th chord, root position", F(7, 5, 3), F(7), R("V7")], ["7th chord, 1st inversion", F(6, 5, 3), F(6, 5), R("V65")], ["7th chord, 2nd inversion", F(6, 4, 3), F(4, 3), R("V43")], ["7th chord, 3rd inversion", F(6, 4, 2), `${F(4, 2)} (or ${F(2)})`, R("V42")]])}
-      ${gfig(H, U, [{ t: ["D4", "F4", "B4"], b: ["G2"], lab: "V7" }, { t: ["D4", "G4", "F5"], b: ["B2"], lab: "V65" }, { t: ["B3", "F4", "G4"], b: ["D3"], lab: "V43" }, { t: ["B3", "D4", "G4"], b: ["F3"], lab: "V42" }], "G7 (V⁷ in C) in all four positions.")}
-      <p><b>Memory aid</b>: for seventh chords the figures count down from 7: 7, 6-5, 4-3, 4-2. For triads: nothing, 6, 6-4.</p>`
-      + H.check("Which label shows a seventh chord in third inversion (7th in the bass)?", "V42", ["V65", "V43", "I64"], "The 7th is in the bass, so the root is a 2nd above it: four-two.", "rn") },
+    { title: "Figures", kick: "Intervals above the bass", render: (H, k, U) => `<p><b>Figures</b> (from <b>figured bass</b>) are small numbers showing the <b>intervals above the bass note</b>. Baroque keyboard and lute players read a bass line with figures and improvised the chords from them; today figures are also attached to chord labels to show inversions.</p>
+      <p>To read them, count letter names up from the bass, calling the bass 1. Octaves don't matter: a 10th counts as a 3rd, a 13th as a 6th, and a note an octave (or two) above the bass is an 8.</p>
+      ${gsSVG([{ t: ["D4", "F4", "B4"], b: ["G2"], ivs: true, fig: ["7"], sym: "G7" }, { t: ["D4", "F4", "G4"], b: ["B2"], ivs: true, fig: ["6", "5"], sym: "G7/B" }, { t: ["B3", "F4", "G4"], b: ["D3"], ivs: true, fig: ["4", "3"], sym: "G7/D" }, { t: ["B3", "D4", "G4"], b: ["F3"], ivs: true, fig: ["4", "2"], sym: "G7/F" }], { label: "G7 in four positions; each right-hand note is labeled with its interval above the bass, and the figures are written under the bass" })}
+      <p class="lcap" style="text-align:center">G7 in all four positions. Red numbers: each upper note's interval above the bass. Under the bass: the figures, the essential intervals only.</p>
+      ${tbl("Figures and their abbreviations", ["Position", "Full figures", "Written as", "Example in C"], [["triad, root position", F(5, 3), "(nothing)", C("C")], ["triad, 1st inversion", F(6, 3), F(6), `${C("C/E")}: E with ${F(6)}`], ["triad, 2nd inversion", F(6, 4), F(6, 4), `${C("C/G")}: G with ${F(6, 4)}`], ["7th chord, root position", F(7, 5, 3), F(7), `${C("G7")}: G with ${F(7)}`], ["7th chord, 1st inversion", F(6, 5, 3), F(6, 5), `${C("G7/B")}: B with ${F(6, 5)}`], ["7th chord, 2nd inversion", F(6, 4, 3), F(4, 3), `${C("G7/D")}: D with ${F(4, 3)}`], ["7th chord, 3rd inversion", F(6, 4, 2), `${F(4, 2)} (or ${F(2)})`, `${C("G7/F")}: F with ${F(4, 2)}`]])}
+      <p><b>Memory aid</b>: for seventh chords the figures count down from 7: 7, 6-5, 4-3, 4-2. For triads: nothing, 6, 6-4.</p>
+      <h3>Try it</h3>${faHTML()}`
+      + H.check("Which figure shows a seventh chord in third inversion (7th in the bass)?", "4/2", ["6/5", "4/3", "6/4"], "The 7th is in the bass, so the root is a 2nd above it: four-two.") ,
+      after: (root, H, k, tools) => faWire(root, Object.assign({ H }, tools)) },
     { title: "Accidentals in figures", kick: "Reading a figured bass", render: (H, k, U) => `<p>In a figured bass, accidentals change notes above the bass:</p>
       <ul><li>An accidental <b>alone</b> (♯, ♭ or ♮) applies to the <b>3rd above the bass</b>. In A minor, a ♯ under E means E–G♯–B: the major dominant with the raised leading tone.</li>
       <li>An accidental <b>next to a number</b> applies to that interval: ♯6 raises the 6th above the bass; ♭7 lowers the 7th.</li>
       <li>A <b>slash</b> through a number (or a + beside it) means that interval is raised a half step.</li>
       <li>Everything else follows the key signature.</li></ul>
-      ${gfig(H, U, [{ t: ["C4", "E4", "A4"], b: ["A2"], lab: "i" }, { t: ["B3", "E4", "G♯4"], b: ["E3"], lab: "♯" }, { t: ["C4", "E4", "A4"], b: ["A2"], lab: "i" }], "A minor: the ♯ under E raises the 3rd above the bass (G → G♯).")}
+      ${gfig(H, U, [{ t: ["C4", "E4", "A4"], b: ["A2"] }, { t: ["B3", "E4", "G♯4"], b: ["E3"], lab: "♯" }, { t: ["C4", "E4", "A4"], b: ["A2"] }], "A minor: the ♯ under E raises the 3rd above the bass (G → G♯).")}
       <p>Figured-bass players also used figures to show suspensions and passing tones (4–3, 7–6, 9–8), so a figured bass is a compact record of the whole texture.</p>`
       + H.check("In a figured bass, a ♯ alone under a bass note means…", "raise the 3rd above the bass", ["raise the bass note", "raise the 6th", "play a major 7th"], "A lone accidental applies to the 3rd.") },
     { title: "Chord symbols and slash chords", kick: "Lead-sheet style", render: (H, k, U) => `<p>Lead sheets name chords with <b>chord symbols</b>: the root's letter, then the quality. Inversions are shown with a <b>slash</b>: the letter after the slash is the bass note.</p>
-      ${tbl("Figures and symbols side by side (C major)", ["Roman numeral and figure", "Chord symbol", "Bass note"], [[R("I"), C("C"), "C"], [R("I6"), C("C/E"), "E"], [R("I64"), C("C/G"), "G"], [R("V7"), C("G7"), "G"], [R("V65"), C("G7/B"), "B"], [R("V43"), C("G7/D"), "D"], [R("V42"), C("G7/F"), "F"], [R("ii65"), C("Dm7/F"), "F"]])}
-      <p>A slash chord can also put a note that isn't in the chord in the bass, like ${C("D/C")} (a D major triad over a C bass) or a pedal point under changing chords. Figures and Roman numerals show function in a key; chord symbols just say what to play. The <a href="extended-and-altered-chords-lesson.html">Extended and Altered Chords</a> lesson covers 9ths, 11ths, 13ths and alterations.</p>`
-      + H.check("What does G7/B mean?", "a G dominant 7th chord with B in the bass (first inversion)", ["a G7 chord followed by B", "G7 with an added B", "a B chord over G"], "The letter after the slash is the bass note.") },
+      ${tbl("Figures and symbols side by side (C major)", ["Chord and position", "Figure over the bass", "Chord symbol", "Bass note"], [["C, root position", "(none)", C("C"), "C"], ["C, 1st inversion", F(6), C("C/E"), "E"], ["C, 2nd inversion", F(6, 4), C("C/G"), "G"], ["G7, root position", F(7), C("G7"), "G"], ["G7, 1st inversion", F(6, 5), C("G7/B"), "B"], ["G7, 2nd inversion", F(4, 3), C("G7/D"), "D"], ["G7, 3rd inversion", F(4, 2), C("G7/F"), "F"], ["Dm7, 1st inversion", F(6, 5), C("Dm7/F"), "F"]])}
+      <p>A slash chord can also put a note that isn't in the chord in the bass, like ${C("D/C")} (a D major triad over a C bass) or a pedal point under changing chords. Figures describe intervals above a bass; chord symbols just say what to play. The <a href="extended-and-altered-chords-lesson.html">Extended and Altered Chords</a> lesson covers 9ths, 11ths, 13ths and alterations.</p>`
+      + `<h3>Try it</h3>${slHTML()}`
+      + H.check("What does G7/B mean?", "a G dominant 7th chord with B in the bass (first inversion)", ["a G7 chord followed by B", "G7 with an added B", "a B chord over G"], "The letter after the slash is the bass note."),
+      after: (root, H, k, tools) => slWire(root, Object.assign({ H }, tools)) },
     { title: "Suspended chords (sus4)", kick: "A 4th instead of a 3rd", render: (H, k, U) => `<p>A <b>sus4</b> chord replaces the 3rd with a <b>perfect 4th</b> above the root: root, 4th, 5th. ${C("Csus4")} is C–F–G; ${C("Gsus4")} is G–C–D. With no 3rd it is neither major nor minor, so it sounds open and unsettled, as if it wants to move.</p>
       ${tfig(H, U, [[["C4", "E4", "G4"], "C"], [["C4", "F4", "G4"], "Csus4"], [["C4", "E4", "G4"], "C"]], "C, Csus4, C: the 3rd (E) moves up to the 4th (F) and back down. Only one note changes.")}
-      <p>The name comes from the <b>suspension</b>. In classical music a 4th above the bass is held over from the previous chord and then resolves down by step to the 3rd: the <b>4–3 suspension</b>. Figured bass writes it as 4 then 3 under the bass note, and analysis often labels it ${R("V")}<sup>4–3</sup>. The dominant is the most common place for it, right before a cadence:</p>
-      ${gfig(H, U, [{ t: ["F4", "A4", "C5"], b: ["F2"], lab: "IV" }, { t: ["D4", "G4", "C5"], b: ["G2"], lab: "V4" }, { t: ["D4", "G4", "B4"], b: ["G2"], lab: "V" }, { t: ["E4", "G4", "C5"], b: ["C3"], lab: "I" }], "A 4–3 suspension: over the bass G, the top voice holds C (a 4th above G) over from the IV chord, then falls to B (the 3rd) before the cadence.")}
+      <p>The name comes from the <b>suspension</b>. In classical music a 4th above the bass is held over from the previous chord and then resolves down by step to the 3rd: the <b>4–3 suspension</b>. Figured bass writes it as 4 then 3 under the bass note, often on the chord built on the 5th degree. That chord (the dominant) is the most common place for it, right before a cadence:</p>
+      ${gfig(H, U, [{ t: ["F4", "A4", "C5"], b: ["F2"] }, { t: ["D4", "G4", "C5"], b: ["G2"], lab: "4" }, { t: ["D4", "G4", "B4"], b: ["G2"], lab: "3" }, { t: ["E4", "G4", "C5"], b: ["C3"] }], "A 4–3 suspension: over the bass G, the top voice holds C (a 4th above G) over from the F chord, then falls to B (the 3rd) before the cadence.")}
       <p>In pop, rock and jazz, sus4 chords often <b>don't resolve</b>: the chord is used for its own open color. Add the 7th for a <b>7sus4</b>: ${C("G7sus4")} is G–C–D–F, which jazz players use as a softer dominant. The slash chord ${C("F/G")} (an F triad over a G bass) is a close relative, with a 9th added.</p>
       ${tbl("Suspended chord symbols", ["Symbol", "Notes in C", "Built from the root"], [[C("Csus4") + " (or Csus)", "C–F–G", "root, perfect 4th, perfect 5th"], [C("C7sus4"), "C–F–G–B♭", "root, 4th, 5th, minor 7th"], [C("Csus2"), "C–D–G", "root, major 2nd, perfect 5th"]])}
       <p>Watch for the overlap: ${C("Csus4")} (C–F–G) has the same notes as ${C("Fsus2")} (F–G–C). Neither stacks in 3rds, so context (the bass note, and where the chord goes next) tells you which name fits. A plain "sus" means sus4.</p>`
@@ -49,10 +173,9 @@ window.FAM = (() => {
     { title: "Identifying chords fast", kick: "A routine", render: (H, k, U) => `<ol><li><b>Stack the notes in 3rds</b> (ignore octaves and doublings). If they don't stack, look for a suspended or added tone (a sus4 has a 4th where the 3rd should be).</li>
       <li>The bottom of the stack is the <b>root</b>. Shortcut: in an inverted triad, the root is the upper note of the 4th.</li>
       <li>Measure the 3rd, 5th (and 7th) above the root to find the <b>quality</b>.</li>
-      <li>Look at the <b>bass</b> to find the <b>inversion</b> and its figure.</li>
-      <li>In a key, find the root's scale degree for the <b>Roman numeral</b>.</li></ol>
+      <li>Look at the <b>bass</b> to find the <b>inversion</b> and its figure (and the slash in the chord symbol).</li></ol>
       ${gfig(H, U, [{ t: ["D4", "F4", "A4"], b: ["B2"], lab: "?" }], "Try it: B in the bass, D–F–A above.")}
-      <p>Answer: stacked, the notes are B–D–F–A, a half-diminished seventh chord on B (${C("Bø7")}); B is in the bass, so it's root position: ${R("viiø7")} in C major.</p>`
+      <p>Answer: stacked, the notes are B–D–F–A, a half-diminished seventh chord on B (${C("Bø7")}); B is in the bass, so it's root position (figure ${F(7)}).</p>`
       + H.check("F in the bass, with A, C and D above. What is it?", "D minor 7th, first inversion (Dm7/F)", ["F major 6th, root position", "D minor triad, root position", "A minor 7th, third inversion"], "Stacked: D–F–A–C, so Dm7 with its 3rd (F) in the bass: six-five. (Some lead sheets would call it F6.)") },
     { title: "Practice", kick: "On to the drills", render: () => `<p>The <a href="chord-figures-and-symbols.html"><b>Chord Figures and Symbols</b></a> drills give you chords to spell, name and figure, in solo practice or as a class game.</p>` },
   ] };

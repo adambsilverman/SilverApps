@@ -103,7 +103,7 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 <body>
 {strip_html(full_screen=False)}
 <main id="main">
-  <section class="hero"><h1>SilverApps <span>for Music Training</span></h1>
+  <section class="hero"><h1>SilverApps <span>Interactive Music Training</span></h1>
     <p>Apps for review, practice and skill building in music theory, ear training and performance. Each topic has an interactive lesson, drills with instant feedback, or both. Every drill can also run live as a class game on student devices.</p>
   </section>
   <nav class="tools" aria-label="Topics">

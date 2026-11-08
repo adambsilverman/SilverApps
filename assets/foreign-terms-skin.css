@@ -113,3 +113,4 @@ button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{o
 .feedback.ok .verdict,.feedback.no .verdict{text-transform:none}
 .eyebrow,.label-sm,.tally span,.qlabel small,.rowcard b{color:var(--fi-muted)}
 .tag{background:var(--fi-navy)}
+.progress .qapp { color: var(--fi-red-dk, #b33a26); text-transform: uppercase; letter-spacing: .06em; }

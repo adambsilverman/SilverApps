@@ -15,7 +15,6 @@ window.FAM = (() => {
   // scale index i (0 = tonic in octave 4) → note
   const dn = (H, k, i) => { const s = k.scale[H.mod(i, 7)]; return H.N(s.l, s.a, s.o + Math.floor(i / 7)); };
   const isCT = (d, i) => [0, 2, 4].includes(((i - (d - 1)) % 7 + 7) % 7);
-  const rnD = (H, k, d) => H.rnOf(k, d);
 
   // label every melody note: notes [{ i, t, q }], chordAt(t) → degree
   function classify(notes, chordAt) {
@@ -90,8 +89,8 @@ window.FAM = (() => {
     const mel = x.notes.map((n, a) => Object.assign({ k: [H.nmO(dn(H, k, n.i))], q: n.q, tie: n.tie }, o.hl && x.ncts.includes(a) ? { hl: true } : {}, o.num ? { n: a + 1 } : {}, o.tags && x.ncts.includes(a) ? { tag: x.lab[a] } : {}));
     // accompaniment on a grand staff: the bass note in the left hand, the three chord tones in close position in the right hand
     const acc = rhSeq(H, x.prog.map(d => H.diat(k, d)));
-    const rh = acc.map(v => ({ k: v.rh, q: 2 })), lh = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: [acc[i].bass], q: 2, lab: o.rn === false ? null : rnD(H, k, d), sym: o.sym === false ? null : c.sym }; });
-    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ m: [mel], t: [rh], b: [lh] }) };
+    const rh = acc.map(v => ({ k: v.rh, q: 2 })), lh = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: [acc[i].bass], q: 2, sym: o.sym === false ? null : c.sym }; });
+    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ m: [mel], t: [rh], b: [lh] }) };
   }
   // right hand: the triad's three tones in close position (lowest note G3–F4, top note at most D5), each chord moving as little as possible from the last; left hand: the root, F2–E3
   function rhSeq(H, chords) {
@@ -170,7 +169,7 @@ window.FAM = (() => {
       const want = H.rnd(pool.length ? pool : ["PT"]), x = gen(H, want);
       if (!x) return null;
       const a = x.ncts[0], n = x.notes[a], d = x.prog[Math.min(3, Math.floor(n.t / 2))], c = H.diat(x.k, d);
-      const nn = H.nm(dn(H, x.k, n.i)), why = `In ${x.k.label}, the chord there is ${c.sym} ({rn:${rnD(H, x.k, d)}}: ${c.tones.map(H.nm).join("–")}), so ${nn} is not a chord tone. It's approached by ${HOW[want][0]} and left by ${HOW[want][1]}: ${NAME[want].toLowerCase()} (${want}).`;
+      const nn = H.nm(dn(H, x.k, n.i)), why = `In ${x.k.label}, the chord there is ${c.sym} (${c.tones.map(H.nm).join("–")}), so ${nn} is not a chord tone. It's approached by ${HOW[want][0]} and left by ${HOW[want][1]}: ${NAME[want].toLowerCase()} (${want}).`;
       const play = spec(H, x).bars && H.scorePlay(spec(H, x));
       if (mode === "name")
         return H.mc(`In ${x.k.label}: what kind of non-chord tone is circled?`, NAME[want], Object.values(NAME).filter(v => v !== NAME.PED), why, { kicker: "Name it", staff: spec(H, x, { hl: true }), staffAns: spec(H, x, { tags: true, hl: true }), playQ: play, playQLabel: "Play", topic: TOPIC[want] });
@@ -200,23 +199,25 @@ window.FAM = (() => {
   }
 
   // ---------- lesson examples (scale indexes over chords; each chord = 2 beats) ----------
+  // every lesson example: melody staff (with the non-chord tones) over a grand staff (three close-position chord tones in the right hand, the root in the left)
   const ex = (H, k, prog, mel, o = {}) => {
     const notes = mel.map(([i, q, tag, tie]) => ({ k: [H.nmO(dn(H, k, i))], q, tag: tag || undefined, hl: !!tag, tie: !!tie }));
-    const LHV = H.lhSeq(prog.map(([d]) => H.diat(k, d))), bass = prog.map(([d, q], i) => { const c = H.diat(k, d); return { k: LHV[i], q: q || 2, lab: H.rnOf(k, d), sym: o.sym === false ? null : c.sym }; });
-    return { type: "score", vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ t: [notes], b: [bass] }) };
+    const acc = rhSeq(H, prog.map(([d]) => H.diat(k, d)));
+    const rh = prog.map(([d, q], i) => ({ k: acc[i].rh, q: q || 2 })), lh = prog.map(([d, q], i) => ({ k: o.ped ? [o.ped] : [acc[i].bass], q: q || 2, tie: !!o.ped && i < prog.length - 1, tag: o.ped && i === prog.length - 1 ? "PED" : undefined, sym: o.sym === false ? null : H.diat(k, d).sym }));
+    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ m: [notes], t: [rh], b: [lh] }) };
   };
   const lesson = { defMode: "major", steps: [
     { title: "Chord tones and non-chord tones", kick: "Consonance and dissonance", keyed: "major", render: (H, k, U) => {
       const sp = ex(H, k, [[1, 4], [5, 4], [1, 4]], [[2, 1], [3, 1, "PT"], [4, 1], [5, 1, "NT"], [4, 1], [5, 1, "PT"], [6, 2], [7, 4]]);
       return `<p>Most harmony is built from triads (or seventh chords), but not every note in the music belongs to the chord that's sounding. A <b>non-chord tone</b> is a pitch outside the three (or four) tones of the current chord. Another name for it is a <b>dissonance</b> or <b>dissonant tone</b>; a chord tone may be called a <b>consonance</b>.</p>`
-        + U.fig(sp, "Circled notes don't belong to the chord below them. Chord symbols above, Roman numerals below.")
+        + U.fig(sp, "Melody on top, chords below (right hand: three chord tones; left hand: the root). Circled notes don't belong to the chord.")
         + `<p>Non-chord tones can be in the accompaniment too (usually when it has melodic activity of its own), but mostly they're a matter of melody.</p>`;
     } },
     { title: "How to find them", kick: "Spell each chord", keyed: "major", render: (H, k, U) => {
       return `<ol><li><b>Find the chords.</b> In a lead sheet they're given. In fully notated music, first find the <b>harmonic rhythm</b> (the rate at which chords change), then decide which chord best represents each span.</li>
         <li><b>Spell each chord</b> and compare its tones with the melody notes above it.</li>
         <li>Any melody note that isn't in the chord is a non-chord tone. <b>Label it</b> by how it is approached and left.</li></ol>
-        <div class="callout"><b>Let style guide you</b>Is something an incomplete iii or a V? In most cases, V. In classical and folk music, chord 7ths are usually dissonances except on the dominant chord; in jazz, 7ths (and extensions) are usually chord tones.</div>`
+        <div class="callout"><b>Let style guide you</b>When two chords could explain the same notes, choose the one that fits the style. In classical and folk music, a chord's 7th is usually treated as a dissonance, except on the chord built on the 5th scale degree (G7 in C major); in jazz, 7ths (and extensions such as 9ths) are usually chord tones.</div>`
         + H.check(`In ${k.label}, the chord is ${H.diat(k, 5).sym} and the melody note is ${H.nm(dn(H, k, 0))}. Is it a chord tone?`, "No", ["Yes"], `${H.diat(k, 5).sym} is ${H.diat(k, 5).tones.map(H.nm).join("–")}, so ${H.nm(dn(H, k, 0))} is a non-chord tone.`);
     } },
     { title: "Step, leap or hold", kick: "Approach and resolution", render: (H) => {
@@ -239,7 +240,7 @@ window.FAM = (() => {
         <div class="lfigs">${U.fig(sus, "<b>Suspension</b>: tied into the new chord, then down a step.", { small: true })}${U.fig(ret, "<b>Retardation (RET)</b>: the same, but it resolves <i>up</i> by step.", { small: true })}</div>`;
     } },
     { title: "Suspension figures", kick: "4-3, 9-8, 7-6, 2-3", keyed: "major", render: (H, k, U) => {
-      const two = (top, bot) => ({ type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 70, bars: H.toBars({ t: [top.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))], b: [bot.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))] }) });
+      const two = (top, bot) => ({ type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 132, bars: H.toBars({ t: [top.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))], b: [bot.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))] }) });
       const f43 = two([[7, 4, true], [7, 2, false, "4"], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]);
       const f98 = two([[8, 4, true], [8, 2, false, "9"], [7, 2, false, "8"]], [[-10, 4], [-7, 4]]);
       const f76 = two([[8, 4, true], [8, 2, false, "7"], [7, 2, false, "6"]], [[-10, 4], [-5, 4]]);
@@ -253,16 +254,16 @@ window.FAM = (() => {
       return `<div class="lfigs">${U.fig(ant, "<b>Anticipation (ANT)</b>: a note of the next chord arrives early, then repeats (or holds) when the chord changes. Often a side effect of syncopation.", { small: true })}${U.fig(ha, "<b>Harmonic anticipation (HA)</b>: anticipates a note of the next chord, but not the next melody note: it leaps to a different chord tone.", { small: true })}</div>`;
     } },
     { title: "Double neighbors and pedal tones", kick: "Around and under", keyed: "major", render: (H, k, U) => {
-      const dnx = { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 80, bars: H.toBars({ t: [[[4, 1], [5, .5, "DN"], [3, .5, "DN"], [4, 2]].map(([i, q, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tag, hl: !!tag }))], b: [[{ k: H.lh(H.diat(k, 1)), q: 4, lab: "I", sym: H.diat(k, 1).sym }]] }) };
-      const t0 = dn(H, k, -14), ped = { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 80, bars: H.toBars({ t: [[1, 4, 5, 1].map(d => ({ k: H.lh(H.diat(k, d), 60), q: 2, sym: H.diat(k, d).sym }))], b: [[{ k: [H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2))], q: 4, tie: true }, { k: [H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2))], q: 4, tag: "PED" }]] }) };
+      const dnx = ex(H, k, [[1, 4]], [[4, 1], [5, .5, "DN"], [3, .5, "DN"], [4, 2]]);
+      const t0 = dn(H, k, -14), ped = ex(H, k, [[1], [4], [5], [1]], [[7, 2], [5, 2], [6, 2], [7, 2]], { ped: H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2)) });
       return `<div class="lfigs">${U.fig(dnx, "<b>Double neighbor (DN)</b>, or <b>changing tones</b>: two non-chord tones surround the note they resolve to, one on each side.", { small: true })}${U.fig(ped, "<b>Pedal tone (PED)</b>: a held or repeated note (usually in the bass) that persists while the chords change; it's dissonant whenever it isn't in the chord above.", { small: true })}</div>
         <p>Imagine a phrase in E minor whose lowest voice holds E throughout. It works as a chord tone under every chord except the B7, where it becomes a pedal-tone dissonance.</p>`;
     } },
     { title: "Locate and label", kick: "Put it together", keyed: "major", render: (H, k, U) => {
       const sp = ex(H, k, [[1], [6], [4], [5], [1, 4]], [[7, 1], [6, 1, "PT"], [5, 1], [6, 1, "NT"], [5, 1], [5, 1, null, true], [5, 1, "SUS"], [4, 1], [7, 4]]);
       return `<p>A full example: chord by chord, compare the melody with each chord's tones. Then name each non-chord tone by its approach and resolution.</p>`
-        + U.fig(sp, "A passing tone, a neighbor tone and a 9-8 suspension: the note tied into the V chord is a 9th above its bass and resolves down by step.")
-        + H.check("The note tied into the V chord resolves down by step. What is it?", "Suspension", ["Retardation", "Anticipation", "Pedal tone"], "Prepared, held into the new chord, resolved down by step.")
+        + U.fig(sp, `A passing tone, a neighbor tone and a 9-8 suspension: the note tied into the ${H.diat(k, 5).sym} chord is a 9th above its bass and resolves down by step.`)
+        + H.check(`The note tied into the ${H.diat(k, 5).sym} chord resolves down by step. What is it?`, "Suspension", ["Retardation", "Anticipation", "Pedal tone"], "Prepared, held into the new chord, resolved down by step.")
         + H.check("Approached by step, left by leap:", "Escape tone", ["Appoggiatura", "Passing tone", "Double neighbor"], "Step in, leap out.")
         + H.check("Held over and resolved UP by step:", "Retardation", ["Suspension", "Anticipation", "Neighbor tone"], "A suspension resolves down; a retardation resolves up.");
     } },

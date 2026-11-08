@@ -376,7 +376,7 @@ window.FAM = (() => {
   } };
 
   return {
-    key: "silverapps-clefs-v1", lesson, make, reference, widgets,
+    key: "silverapps-clefs-v1", lesson, make, reference, widgets, allowDouble: true,   // its notation facts ask what a double sharp/flat does
     modes: [{ id: "name", kicker: "Name the note" }, { id: "octave", kicker: "Note and octave" }, { id: "same", kicker: "Same pitch, new clef" }, { id: "devices", kicker: "Devices and principles" }],
     topics: [{ id: "treble", name: "Treble clef", group: "c" }, { id: "bass", name: "Bass clef", group: "c" }, { id: "alto", name: "Alto clef", group: "c" }, { id: "tenor", name: "Tenor clef", group: "c", on: false },
       { id: "staff", name: "On the staff", group: "r" }, { id: "ledger", name: "Ledger lines", group: "r", on: false }],

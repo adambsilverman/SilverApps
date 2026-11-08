@@ -250,13 +250,14 @@ body.fs .host .qchip{font-size:clamp(20px,1.9vw,30px)} body.fs .host .bh{font-si
 body.fs .host .slashopts .opt{min-height:clamp(56px,6vh,80px);font-size:clamp(22px,2vw,32px)}
 @media (max-width:520px){.slashopts .opt{font-size:18px;padding:8px 4px}.noslash{font-size:13px}}
 /* figure grid */
+.qhead .qapp{font-family:var(--mono, monospace);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b33a26;margin-right:8px}
 .figgrid{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr));gap:8px;align-items:stretch;margin-top:8px}
 .figgrid .fh{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:center;align-self:end;line-height:1.2}
 .figgrid .fr{font-size:13px;font-weight:700;color:var(--ink);align-self:center;padding-right:4px;line-height:1.2;max-width:74px}
-.figgrid .opt{min-height:72px;font-size:22px}
+.figgrid .opt{min-height:46px;font-size:16px;padding:4px 6px;line-height:1.05}
 .figgrid .fx{border:2px dashed #eee8f6;border-radius:14px}
-@media (max-width:520px){.figgrid{gap:6px}.figgrid .fh{font-size:10px;letter-spacing:0}.figgrid .fr{font-size:11.5px;max-width:52px}.figgrid .opt{min-height:64px;font-size:20px;padding:8px 4px}}
-body.fs .host .figgrid .opt{min-height:clamp(78px,9vh,110px);font-size:clamp(24px,2.3vw,36px)}
+@media (max-width:520px){.figgrid{gap:6px}.figgrid .fh{font-size:10px;letter-spacing:0}.figgrid .fr{font-size:11.5px;max-width:52px}.figgrid .opt{min-height:42px;font-size:15px;padding:4px 3px}}
+body.fs .host .figgrid .opt{min-height:clamp(52px,6vh,72px);font-size:clamp(18px,1.7vw,26px)}
 body.fs .host .figgrid .fh{font-size:clamp(12px,1vw,16px)} body.fs .host .figgrid .fr{font-size:clamp(14px,1.2vw,19px);max-width:none}
 /* how-it-works */
 .howto h2{margin:2px 0 12px}
@@ -548,17 +549,7 @@ function diatonic(k, deg, seventh){
   const tones = idx.map(i => ({...sc[(deg+i)%7], o:4}));
   return {deg, tones, root:tones[0], type:classify(tones), harm};
 }
-const ROMAN = ['I','II','III','IV','V','VI','VII'];
 const INV_FIG = {3:['','6','6/4'], 7:['7','6/5','4/3','4/2']};
-function romanOf(ch, inv){
-  const t = ch.type, lower = ['min','dim','min7','hdim7','dim7','mmaj7'].includes(t);
-  let r = ROMAN[ch.deg]; if (lower) r = r.toLowerCase();
-  const q = {dim:'°',aug:'+',hdim7:'ø',dim7:'°',aug7:'+',maj7:'M',mmaj7:'M',augmaj7:'+M'}[t] || '';
-  const fam = TYPES[t].fam;
-  let f = INV_FIG[fam][inv];
-  if (fam===7 && (t==='maj7'||t==='mmaj7'||t==='augmaj7') && inv===0) f = '7';
-  return r + q + f;
-}
 
 /* ---- figured bass ---- */
 const FIGS = {'53':[5,3],'6':[6],'64':[6,4],'7':[7],'65':[6,5],'43':[4,3],'42':[4,2]};
@@ -716,7 +707,7 @@ function genDrill3(opt){
       staff:{kind:'bass', key:k.vf, bass:[placeLow(bass)], figure:fr.rows},
       prompt:'Write the chord symbol', sub:`Key: ${keyName(k)}. Build the symbol: root, then quality, then bass.`,
       answer:{root:nm(ch.root), qual:ch.type, slash: inv ? '/' + nm(bass) : ''}, answerText:ans,
-      explain:`Bass ${nm(bass)} with ${figWords}: above the bass are ${above.join(', ')}.${altNote} Stacked in 3rds that's ${ch.tones.map(nm).join('–')} = ${symOf(ch.root,ch.type)}${inv?` with the ${['root','3rd','5th','7th'][inv]} in the bass, so the symbol shows the bass note: ${ans}`:` in root position, so no slash is needed: ${ans}`} (${romanOf(ch,inv)} in ${keyName(k)}).` };
+      explain:`Bass ${nm(bass)} with ${figWords}: above the bass are ${above.join(', ')}.${altNote} Stacked in 3rds that's ${ch.tones.map(nm).join('–')} = ${symOf(ch.root,ch.type)}${inv?` with the ${['root','3rd','5th','7th'][inv]} in the bass, so the symbol shows the bass note: ${ans}`:` in root position, so no slash is needed: ${ans}`}.` };
   }
   return genDrill3(opt);
 }
@@ -752,9 +743,9 @@ function genDrill4(opt){
     const full = s + slash;
     return { id:mkId(), drill:4, kind:'fig', keyLabel:keyName(k),
       staff:{kind:'grand', key:k.vf, treble, bass:[bassN], boxes:true},
-      prompt:'Figure & chord symbol', sub:`Key: ${keyName(k)}. Choose the figure (below the bass) and build the chord symbol (above the staff).`,
-      figOptions:FIG_ORDER, symOptions, slashOptions, answer:{fig:fid, sym:s, slash}, answerText:`${full}, figure ${fid==='53'?'5/3':FIGS[fid].join('/')}`,
-      explain:`Stack the notes in 3rds: ${ch.tones.map(nm).join('–')} → ${s} (${TYPES[ch.type].name}). The bass is ${nm(ch.tones[inv])}, the ${['root','3rd','5th','7th'][inv]}, so the figure is ${fid==='53'?'5/3 (root position)':FIGS[fid].join('/')} and ${inv ? `the symbol shows that bass note: ${full}` : `the symbol needs no slash: ${full}`} — ${romanOf(ch,inv)} in ${keyName(k)}.` };
+      prompt:'Figure & chord symbol', sub:`Key: ${keyName(k)}. Choose the figure (below the bass), then build the chord symbol: root, quality, bass.`,
+      figOptions:FIG_ORDER, symOptions, slashOptions, answer:{fig:fid, sym:s, slash, root:nm(ch.root), qual:ch.type}, answerText:`${full}, figure ${fid==='53'?'5/3':FIGS[fid].join('/')}`,
+      explain:`Stack the notes in 3rds: ${ch.tones.map(nm).join('–')} → ${s} (${TYPES[ch.type].name}). The bass is ${nm(ch.tones[inv])}, the ${['root','3rd','5th','7th'][inv]}, so the figure is ${fid==='53'?'5/3 (root position)':FIGS[fid].join('/')} and ${inv ? `the symbol shows that bass note: ${full}` : `the symbol needs no slash: ${full}`}.` };
   }
   return genDrill4(opt);
 }
@@ -832,7 +823,7 @@ function grade(q, ans){
     return {ok: A === B && (!q.bassFirst || ans[0] === q.answer[0])};
   }
   if (q.kind === 'fig'){
-    const f = ans.fig === q.answer.fig, base = ans.sym === q.answer.sym, sl = (ans.slash || '') === (q.answer.slash || '');
+    const f = ans.fig === q.answer.fig, base = ans.root != null ? (ans.root === q.answer.root && ans.qual === q.answer.qual) : ans.sym === q.answer.sym, sl = (ans.slash || '') === (q.answer.slash || '');
     return {ok: f && base && sl, fig:f, sym: base && sl, base, slash:sl, parts:{'Figure':f, 'Chord':base, 'Slash bass':sl}};
   }
   if (q.kind === 'build'){
@@ -963,7 +954,7 @@ const $ = (s, r=document) => r.querySelector(s);
 const app = $('#app');
 function setTop(html){ $('#topmeta').innerHTML = html || ''; const hb = $('#homebtn'); if (hb) hb.hidden = !html; }
 function qHeader(q, n, total){
-  return `<div class="qhead"><span class="tag d${q.drill}">Drill ${q.drill} · ${esc(DRILLS[q.drill].short)}</span>${n?`<span class="muted small">Question ${n}${total?` of ${total}`:''}</span>`:''}</div>
+  return `<div class="qhead"><span class="qapp">Chord Figures and Symbols</span><span class="tag d${q.drill}">Drill ${q.drill} · ${esc(DRILLS[q.drill].short)}</span>${n?`<span class="muted small">Question ${n}${total?` of ${total}`:''}</span>`:''}</div>
   ${total?`<div class="progress"><i style="width:${(n-1)/total*100}%"></i></div>`:''}
   <div class="prompt">${q.prompt}</div><p class="sub">${esc(q.sub)}</p>
   ${q.staff ? '<div class="staffwrap" data-staff></div>' : ''}`;
@@ -1056,35 +1047,36 @@ function answerWidget(host, q, onSubmit, opts={}){
       preset(v){ v.forEach((x,i) => { const l = L.indexOf(x[0]); const a = {'':0,'♯':1,'♭':-1,'♭♭':-2,'x':2}[x.slice(1)]; notes[i] = {l, a, o:4}; }); lock(); } };
   }
   if (q.kind === 'fig'){
-    let fig = null, sym = null, slash = null;
-    const slashBtn = (v,i) => `<button class="opt slashopt" data-sl="${i}">${v ? esc(v) : '<span class="noslash">No slash</span>'}</button>`;
+    // choose a figure, then build any chord symbol (root, quality, bass): no multiple-choice chord list
+    let fig = null, qual = null;
     host.innerHTML = `<div class="label" style="margin-top:6px">Figure (inversion)</div>
       ${figGrid(f => `<button class="opt" data-f="${f}" aria-label="figure ${f==='53'?'5 3':f.split('').join(' ')}">${figHTML(figRowsPlain(f))}</button>`)}
-      <div class="label" style="margin-top:14px">Chord symbol</div>
-      <div class="opts">${q.symOptions.map((s,i) => `<button class="opt" data-y="${i}" aria-label="${escRaw(sayChord(s))}">${esc(s)}</button>`).join('')}</div>
-      <div class="label" style="margin-top:12px">Slash bass</div>
-      <div class="opts slashopts">${q.slashOptions.map(slashBtn).join('')}</div>
+      <div class="bstep" style="margin-top:12px"><div class="label"><span class="sn">1</span> Root</div>${pitchPad('root', false)}</div>
+      <div class="bstep"><div class="label"><span class="sn">2</span> Quality</div>
+        <div class="qgrid">${QUAL_ROWS.map(([lab, ts]) => `<span class="fr">${lab}</span><div class="qrow">${ts.map(t => `<button class="opt" data-q="${t}" aria-label="${QUAL_SAY[TYPES[t].sym]}">${qualLabel(t)}</button>`).join('')}</div>`).join('')}</div></div>
+      <div class="bstep"><div class="label"><span class="sn">3</span> Bass</div>${pitchPad('slash', true)}</div>
       <div class="built" data-built><span class="muted">Your symbol:</span> <b data-bsym aria-live="polite">—</b></div>
       <div class="row" style="margin-top:12px"><button class="btn primary big" data-go disabled style="flex:1">Lock in answer</button></div>`;
     const upd = () => {
-      host.querySelector('[data-go]').disabled = !(fig && sym && slash != null);
-      host.querySelector('[data-bsym]').innerHTML = sym || slash ? esc((sym || '?') + (slash || '')) : '—';
+      const r = rootP.value, sl = slashP.value;
+      host.querySelector('[data-bsym]').innerHTML = (r || qual || sl) ? esc((r || '?') + (qual ? TYPES[qual].sym : '') + (sl ? '/' + sl : '')) : '—';
+      host.querySelector('[data-go]').disabled = !(fig && r && qual && sl != null);
     };
+    const rootP = bindPitch(host.querySelector('[data-pp="root"]'), upd);
+    const slashP = bindPitch(host.querySelector('[data-pp="slash"]'), upd);
     host.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fig = b.dataset.f; host.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
-    host.querySelectorAll('[data-y]').forEach(b => b.onclick = () => { sym = q.symOptions[+b.dataset.y]; host.querySelectorAll('[data-y]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
-    host.querySelectorAll('[data-sl]').forEach(b => b.onclick = () => { slash = q.slashOptions[+b.dataset.sl]; host.querySelectorAll('[data-sl]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
-    host.querySelector('[data-go]').onclick = () => { if (!(fig && sym && slash != null)) return; lock(); onSubmit({fig, sym, slash}); };
+    host.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { qual = b.dataset.q; host.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
+    const value = () => ({fig, root: rootP.value, qual, sym: (rootP.value || '') + (qual ? TYPES[qual].sym : ''), slash: slashP.value ? '/' + slashP.value : ''});
+    host.querySelector('[data-go]').onclick = () => { if (host.querySelector('[data-go]').disabled) return; lock(); onSubmit(value()); };
     const lock = () => { host.querySelectorAll('button').forEach(b => b.disabled = true); host.querySelector('[data-go]').textContent = 'Answer locked in ✓'; };
-    return { lock, mark(correct){
-        const mk = (sel, val, ok) => host.querySelectorAll(sel).forEach(b => { if (ok(b)) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); });
-        mk('[data-f]', null, b => b.dataset.f === correct.fig);
-        mk('[data-y]', null, b => q.symOptions[+b.dataset.y] === correct.sym);
-        mk('[data-sl]', null, b => q.slashOptions[+b.dataset.sl] === (correct.slash || '')); },
-      preset(v){ fig=v.fig; sym=v.sym; slash = v.slash != null ? v.slash : '';
-        host.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('sel', b.dataset.f===fig));
-        host.querySelectorAll('[data-y]').forEach(b => b.classList.toggle('sel', q.symOptions[+b.dataset.y]===sym));
-        host.querySelectorAll('[data-sl]').forEach(b => b.classList.toggle('sel', q.slashOptions[+b.dataset.sl]===slash));
-        upd(); lock(); } };
+    upd();
+    return { lock,
+      mark(c){
+        host.querySelectorAll('[data-f]').forEach(b => { if (b.dataset.f === c.fig) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); });
+        if (c.root) rootP.mark(c.root); slashP.mark(c.slash ? c.slash.slice(1) : '');
+        host.querySelectorAll('[data-q]').forEach(b => { if (b.dataset.q === c.qual) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); }); },
+      preset(v){ fig = v.fig; host.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('sel', b.dataset.f===fig));
+        if (v.root) rootP.set(v.root); slashP.set(v.slash ? v.slash.slice(1) : ''); qual = v.qual || null; host.querySelectorAll('[data-q]').forEach(b => b.classList.toggle('sel', b.dataset.q === qual)); upd(); lock(); } };
   }
 }
 
@@ -1142,8 +1134,10 @@ function buildWidget(host, q, onSubmit){
 function hostOptions(q, reveal){
   if (q.kind === 'mc') return `<div class="opts">${q.options.map((o,i) => `<div class="opt ${reveal && o===reveal.answer?'right':''}"><span class="k">${'ABCD'[i]}</span>${esc(o)}</div>`).join('')}</div>`;
   if (q.kind === 'fig') return `<div class="label" style="margin-top:6px">Figure (inversion)</div>${figGrid(f => `<div class="opt ${reveal && f===reveal.answer.fig?'right':''}">${figHTML(figRowsPlain(f))}</div>`)}
-    <div class="label" style="margin-top:12px">Chord symbol</div><div class="opts">${q.symOptions.map(s => `<div class="opt ${reveal && s===reveal.answer.sym?'right':''}">${esc(s)}</div>`).join('')}</div>
-    <div class="label" style="margin-top:12px">Slash bass</div><div class="opts slashopts">${q.slashOptions.map(v => `<div class="opt slashopt ${reveal && v===(reveal.answer.slash||'')?'right':''}">${v ? esc(v) : '<span class="noslash">No slash</span>'}</div>`).join('')}</div>`;
+    <div class="buildhost" style="margin-top:12px">
+      <div><div class="label"><span class="sn">1</span> Root</div><div class="bh">C D E F G A B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div>
+      <div><div class="label"><span class="sn">2</span> Quality</div><div class="qchips">${[...QUAL_ROWS[0][1], ...QUAL_ROWS[1][1]].map(t => `<span class="qchip ${reveal && reveal.answer.qual===t?'right':''}">${qualLabel(t)}</span>`).join('')}</div></div>
+      <div><div class="label"><span class="sn">3</span> Bass</div><div class="bh">No slash &nbsp;or&nbsp; /C /D /E /F /G /A /B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div></div>`;
   if (q.kind === 'build') return `<div class="buildhost">
       <div><div class="label"><span class="sn">1</span> Root</div><div class="bh">C D E F G A B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div>
       <div><div class="label"><span class="sn">2</span> Quality</div><div class="qchips">${[...QUAL_ROWS[0][1], ...QUAL_ROWS[1][1]].map(t => `<span class="qchip ${reveal && reveal.answer.qual===t?'right':''}">${qualLabel(t)}</span>`).join('')}</div></div>

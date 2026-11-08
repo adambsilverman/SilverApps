@@ -330,3 +330,11 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .ssbtns { display: flex; gap: 2px; }
 .ssb { min-width: 0; padding: 2px 8px; font-size: 1rem; line-height: 1.4; }
 @media (max-width: 560px) { .ssbtns { flex-direction: column; } .ssb { padding: 0 6px; } .ssname { font-size: .85rem; } .sscol .small { font-size: .62rem; } }
+.kicker .kapp { color: var(--fi-red-dk, #b33a26); }
+/* Chord Figures lesson: grand-staff activities */
+.gs .gsn { cursor: pointer; }
+.gs .gshit, .gs .gszone { fill: transparent; }
+.gs .gsn:hover .gshit, .gs .gsn:focus-visible .gshit { fill: rgba(232,87,63,.15); }
+.gs .gszone { cursor: crosshair; }
+.gs .gsn:focus { outline: none; }
+.lcap { font-size: .95rem; }

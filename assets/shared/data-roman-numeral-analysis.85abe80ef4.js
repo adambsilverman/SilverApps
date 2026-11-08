@@ -112,21 +112,32 @@ window.FAM = (() => {
       ${tbl("Three ways to write the same progression in C major", ["System", "Progression", "Used by"], [["Chord symbols", "{sym:C} – {sym:Am} – {sym:F} – {sym:G7}", "lead sheets, guitar charts"], ["Roman numerals", "{rn:I} – {rn:vi} – {rn:IV} – {rn:V7}", "analysis in every style"], ["Nashville numbers", "1 – 6- – 4 – 5⁷", "session players, especially in country music (see the next steps)"]])}
       <ul><li>Numerals make patterns visible: a cadence, a circle of fifths, or a loop looks the same in every key.</li><li>They help you hear: once you know the sound of {rn:IV}–{rn:V}–{rn:I}, you can recognize it anywhere.</li><li>They make transposing, improvising and arranging faster.</li></ul>
       <p>Roman numerals for chords became standard in the 19th century; Gottfried Weber's writing in the 1810s and 1820s spread the use of uppercase and lowercase numerals for chord quality.</p>` },
-    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>Inversions are shown with the same figures you learned in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>: write them after the numeral. {rn:V6} is V with its 3rd in the bass, {rn:ii65} is a ii⁷ chord with its 3rd in the bass, and so on. (Go back to that lesson if the figures need a refresher.)</p>
+    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>A Roman numeral names a chord's root and quality, not which note is in the bass. To show an inversion, <b>figures</b> are often attached to the numeral: {rn:V6} is a V chord in first inversion, {rn:ii65} a ii⁷ chord in first inversion. The figures themselves (what ⁶, ⁶₄, ⁶₅, ⁴₃ and ⁴₂ mean, and how to find them) are covered in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>.</p>
       <p>Seventh chords add a sign for the chord's quality: {rn:V7} (major triad, minor 7th: dominant 7th), {rn:ii7} (minor 7th), {rn:viiø7} (half-diminished) and {rn:vii°7} (fully diminished). A major 7th chord, such as the one on I or IV, is simply {rn:I7} or {rn:IV7}: the key tells you its 7th is major.</p>
       ${sfFull(H, U, k, ["1", "16", "265", "57", "1"], `I – I⁶ – ii⁶₅ – V⁷ – I in ${k.label}`, { small: false, full: true })}`
-      + H.check("Which figure means a seventh chord with its 5th in the bass?", "⁴₃", ["⁶₅", "⁴₂", "⁶₄"], "⁷ root, ⁶₅ 3rd, ⁴₃ 5th, ⁴₂ 7th.") },
-    { title: "Numerals in minor", kick: "Two systems", keyed: "minor", render: (H, k, U) => {
-      const rows = MINT.map(([d, q, cl, mj, note]) => { const c = minChord(H, k, d, q); return [d, `{sym:${c.sym}}`, `{rn:${cl}}`, `{rn:${mj}}`, note]; });
-      return `<p>In minor, the 3rd, 6th and 7th degrees are a half step lower than in major. There are two common ways to label the chords built on them:</p>
-      <ol><li><b>Relative to the minor scale</b> (common in classical theory books): count degrees of the minor key itself. Chords on the 3rd, 6th and 7th degrees are simply <b>III, VI, VII</b>; an accidental is written only when a chord's root is altered from the minor scale (like ♭II, the Neapolitan).</li>
-      <li><b>Relative to the major scale</b> (common in pop, rock and jazz, and in some textbooks): every key and mode is measured against the major scale on the same tonic, so those chords are <b>♭III, ♭VI, ♭VII</b>.</li></ol>
-      ${tbl(`Chords in ${k.label}`, ["Degree", "Chord", "Relative to minor", "Relative to major", "Note"], rows)}
-      <ul><li>The first system keeps numerals short and matches the key signature. Watch out for the 7th degree: {rn:VII} (subtonic, natural 7th) and {rn:vii°} (leading tone, raised 7th) have roots a half step apart.</li>
-      <li>The second system means one numeral always means one chord relative to the tonic: {rn:♭VI} is the same chord in C major and C minor, which makes borrowing between modes easy to see.</li>
-      <li>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Chord Progression Lab lets you switch between them.</li></ul>
-      ${sf(H, U, k, ["1", "6", "4", "5", "1"], `i – VI (♭VI) – iv – V – i in ${k.label}`, { small: false })}`
-      + H.check(`In ${k.label}, using numerals relative to the major scale, how is the chord on the 7th degree of natural minor labeled?`, "♭VII", ["VII", "vii°", "♯VII"], "It's a major triad a whole step below the tonic: ♭VII.", "rn"); } },
+      + H.check("Figures attached to a Roman numeral show…", "which chord tone is in the bass (the inversion)", ["the chord's root", "the key", "how long the chord lasts"], "The numeral gives the root and quality; the figures give the inversion.") },
+    { title: "Numerals in minor and chromatic numerals", kick: "III or ♭III? Accidentals before the numeral", keyed: "minor", render: (H, k, U) => {
+      const sys = (cl, mj) => cl === mj ? `{rn:${cl}}` : `<span data-rsys="cl">{rn:${cl}}</span><span data-rsys="mj" hidden>{rn:${mj}}</span>`;
+      const rows = MINT.map(([d, q, cl, mj, note]) => { const c = minChord(H, k, d, q); return [d, `{sym:${c.sym}}`, sys(cl, mj), note]; });
+      const kM = majOf(H, k), set = chromSet(H, kM), b = set.slice(0, 6);
+      return `<p>In minor, the 3rd, 6th and 7th degrees are a half step lower than in major. There are two common ways to label the chords built on them. Switch between them:</p>
+      <div class="lbtns rsys" role="group" aria-label="Numeral system"><button class="lk" data-rsysbtn="cl" aria-pressed="true">Relative to minor: III, VI, VII</button><button class="lk" data-rsysbtn="mj" aria-pressed="false">Relative to major: ♭III, ♭VI, ♭VII</button></div>
+      <div data-rsys="cl"><p><b>Relative to the minor scale</b> (common in classical theory books): count degrees of the minor key itself. Chords on the 3rd, 6th and 7th degrees are simply <b>III, VI, VII</b>; an accidental is written only when a chord's root is altered from the minor scale (like ♭II, the Neapolitan). This keeps numerals short and matches the key signature. Watch out for the 7th degree: {rn:VII} (subtonic, natural 7th) and {rn:vii°} (leading tone, raised 7th) have roots a half step apart.</p></div>
+      <div data-rsys="mj" hidden><p><b>Relative to the major scale</b> (common in pop, rock and jazz, and in some textbooks): every key and mode is measured against the major scale on the same tonic, so those chords are <b>♭III, ♭VI, ♭VII</b>. One numeral then always means one chord relative to the tonic: {rn:♭VI} is the same chord in ${kM.label} and ${k.label}, which makes borrowing between modes easy to see.</p></div>
+      ${tbl(`Chords in ${k.label}`, ["Degree", "Chord", "Numeral", "Note"], rows)}
+      <div data-rsys="cl">${sf(H, U, k, ["1", "6", "4", "5", "1"], `i – VI – iv – V – i in ${k.label}`, { small: false })}</div>
+      <div data-rsys="mj" hidden>${sf(H, U, k, ["1", cc(H, k, -1, 6, "M", "♭VI"), "4", "5", "1"], `i – ♭VI – iv – V – i in ${k.label}`, { small: false })}</div>
+      <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Chord Progression Lab lets you switch between them.</p>
+      <h3>Chromatic numerals</h3>
+      <p>Chords with notes outside the key get numerals too. An <b>accidental before the numeral</b> shows that the root is lowered (♭) or raised (♯) from the scale it's measured against; case and quality signs work as usual. (♭ means "lowered", even in sharp keys where the actual note may carry a natural.)</p>
+      <p><b>Borrowed chords</b> (mode mixture) bring chords of the minor key into its parallel major. In ${kM.label}, measured against the major scale, both systems label them the same way:</p>
+      ${tbl(`Borrowed chords in ${kM.label}`, ["Numeral", "Chord", "Notes"], b.map(c => [`{rn:${c.rn}}`, `{sym:${c.sym}}`, c.tones.map(H.nm).join("–")]))}
+      ${sf(H, U, kM, ["1", cc(H, kM, -1, 6, "M", "♭VI"), cc(H, kM, -1, 7, "M", "♭VII"), "1"], `I – ♭VI – ♭VII – I in ${kM.label}`, { small: false })}
+      ${sf(H, U, kM, ["1", "4", cc(H, kM, 0, 4, "m", "iv"), "1"], `I – IV – iv – I in ${kM.label}`, { small: false })}`
+      + H.check(`In ${k.label}, using numerals relative to the major scale, how is the chord on the 7th degree of natural minor labeled?`, "♭VII", ["VII", "vii°", "♯VII"], "It's a major triad a whole step below the tonic: ♭VII.", "rn")
+      + H.check(`In ${kM.label}, how is {sym:${b[3].sym}} labeled?`, "♭VII", ["vii°", "VII", "♭vii"], "A major triad on the lowered 7th degree.", "rn"); },
+      after: root => { const set = v => { root.querySelectorAll("[data-rsysbtn]").forEach(b => b.setAttribute("aria-pressed", b.dataset.rsysbtn === v)); root.querySelectorAll("[data-rsys]").forEach(e => e.hidden = e.dataset.rsys !== v); };
+        root.querySelectorAll("[data-rsysbtn]").forEach(b => b.addEventListener("click", () => set(b.dataset.rsysbtn))); } },
     { title: "Transposition", kick: "The numerals don't change", keyed: "both", render: (H, k, U) => {
       const p = k.mode === "major" ? ["1", "6", "4", "5", "1"] : ["1", "4", "5", "1"], keys = H.KEYS[k.mode].slice(0, 6);
       const rns = p.map(t => H.tok(k, t).rn);
@@ -135,14 +146,6 @@ window.FAM = (() => {
       ${sf(H, U, k, p, `${rns.join(" – ")} in ${k.label}: choose another key above and listen`, { small: false })}
       <p>This is why numerals are so useful: learn a progression once, and you can play it, recognize it, or write it in any key. A singer who needs a song lower can ask for it "down a whole step", and a band that thinks in numbers just plays the same numbers from a new tonic.</p>`
       + H.check(`I–IV–V–I in G major is G–C–D–G. What is it in E♭ major?`, "E♭–A♭–B♭–E♭", ["E♭–A–B♭–E♭", "E♭–A♭–B–E♭", "E♭–F–G–E♭"], "Same numerals from the new tonic: I = E♭, IV = A♭, V = B♭."); } },
-    { title: "Chromatic numerals", kick: "Accidentals before the numeral", keyed: "major", render: (H, k, U) => {
-      const set = chromSet(H, k), b = set.slice(0, 6);
-      return `<p>Chords with notes outside the key get numerals too. An <b>accidental before the numeral</b> shows that the root is lowered (♭) or raised (♯) from the major scale; case and quality signs work as usual. (♭ means "lowered", even in sharp keys where the actual note may carry a natural.)</p>
-      <p><b>Borrowed chords</b> (mode mixture) come from the parallel minor:</p>
-      ${tbl(`Borrowed chords in ${k.label}`, ["Numeral", "Chord", "Notes"], b.map(c => [`{rn:${c.rn}}`, `{sym:${c.sym}}`, c.tones.map(H.nm).join("–")]))}
-      ${sf(H, U, k, ["1", cc(H, k, -1, 6, "M", "♭VI"), cc(H, k, -1, 7, "M", "♭VII"), "1"], `I – ♭VI – ♭VII – I in ${k.label}`, { small: false })}
-      ${sf(H, U, k, ["1", "4", cc(H, k, 0, 4, "m", "iv"), "1"], `I – IV – iv – I`, { small: false })}`
-      + H.check(`In ${k.label}, how is {sym:${b[3].sym}} labeled?`, "♭VII", ["vii°", "VII", "♭vii"], "A major triad on the lowered 7th degree.", "rn"); } },
     { title: "Applied chords", kick: "V of V and friends", keyed: "major", render: (H, k, U) => {
       const rows = [[2, "7", "V7/ii"], [3, "7", "V7/iii"], [4, "7", "V7/IV"], [5, "7", "V7/V"], [6, "7", "V7/vi"], [5, "lt", "vii°7/V"], [6, "lt", "vii°7/vi"]].map(([d, kind, rn]) => { const c = app(H, k, d, kind, rn); return [`{rn:${rn}}`, `{sym:${c.sym}}`, `${MAJRN[d - 1]} = {sym:${H.tok(k, String(d)).sym}}`]; });
       return `<p>An <b>applied</b> (or <b>secondary</b>) chord acts as the dominant or leading-tone chord of a chord other than the tonic. The slash reads "of": {rn:V7/V} is "five-seven of five", the dominant 7th of the dominant.</p>

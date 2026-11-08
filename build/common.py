@@ -1,7 +1,7 @@
 """Shared bits for the SilverApps build scripts (site strip, credit, head tags)."""
 import re
 
-SITE = "SilverApps for Music Training"
+SITE = "SilverApps Interactive Music Training"
 
 import pathlib as _pl
 ROOT = _pl.Path(__file__).resolve().parent.parent          # the "Music Apps" folder
@@ -15,8 +15,8 @@ def strip_html(full_screen=True, sound=False):
     snd = ('<button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on">'
            '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'
            '<span class="lbl">Sound on</span></button>') if sound else ""
-    return ('<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps for Music Training — all SilverApps">'
-            '<img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">for Music Training</span></a>'
+    return ('<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps">'
+            '<img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a>'
             '<span class="spacer"></span><a class="site-btn" href="index.html" aria-label="All SilverApps"><span aria-hidden="true">▦</span><span class="lbl">All SilverApps</span></a>'
             + snd + fs + '</header>')
 

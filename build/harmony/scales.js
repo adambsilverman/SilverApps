@@ -2,6 +2,8 @@ window.FAM = (() => {
   // ===== Major and Minor Scales, with key signatures. Engine: build/harmony/engine.js =====
   const MAJ = ["C", "G", "D", "A", "E", "B", "F♯", "C♯", "F", "B♭", "E♭", "A♭", "D♭", "G♭", "C♭"];
   const MIN = ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "A♯", "D", "G", "C", "F", "B♭", "E♭", "A♭"];
+  // drills use only keys with at most six sharps or flats (no C♯/A♯ minor, C♭/A♭ minor); the engine also skips anything with double sharps/flats
+  const DI = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13], DMAJ = DI.map(i => MAJ[i]), DMIN = DI.map(i => MIN[i]);
   const SHARPS = "F C G D A E B".split(" "), FLATS = "B E A D G C F".split(" ");
   const TYPES = { major: "Major", natural: "Natural minor", harmonic: "Harmonic minor", melodic: "Melodic minor (ascending)" };
   const PATTERN = { major: "W W H W W W H", natural: "W H W W H W W", harmonic: "W H W W H W+H H", melodic: "W H W W W W H" };
@@ -87,18 +89,18 @@ window.FAM = (() => {
 
   function make(mode, H) {
     if (mode === "spell") {   // widget: the scale's letters on the staff; the student adds accidentals (see widgets.scalespell)
-      const type = H.rnd(["major", "major", "natural", "harmonic", "melodic"]), tonic = H.rnd(type === "major" ? MAJ.slice(0, 13) : MIN.slice(0, 13));
+      const type = H.rnd(["major", "major", "natural", "harmonic", "melodic"]), tonic = H.rnd(type === "major" ? DMAJ : DMIN);
       const { notes } = scale(H, tonic, type), right = spell(H, notes);
       return { text: `Spell ${H.esc(tonic)} ${TYPES[type].toLowerCase()}: raise or lower notes so the scale follows its pattern${type === "melodic" ? " (going up)" : ""}.`, answer: right, choices: [], widget: "scalespell", ssT: notes[0], ssType: type,
         explain: `${TYPES[type]}: ${PATTERN[type]}. Every letter appears once: ${right}.`, kicker: "Spell the scale", staffAns: staffOf(H, notes), play: { chords: notes.map(n => [H.midi(n)]), gap: .35, dur: .9 } };
     }
     if (mode === "type") {
-      const type = H.rnd(Object.keys(TYPES)), tonic = H.rnd(type === "major" ? MAJ.slice(0, 12) : MIN.slice(0, 12)), { notes } = scale(H, tonic, type);
+      const type = H.rnd(Object.keys(TYPES)), tonic = H.rnd(type === "major" ? DMAJ : DMIN), { notes } = scale(H, tonic, type);
       const sp = staffOf(H, notes);
       return H.mc("What kind of scale is this?", TYPES[type], Object.values(TYPES), `Its steps: ${steps(H, notes).join(" ")}: ${TYPES[type].toLowerCase()} on ${H.nm(notes[0])}.`, { kicker: "Name the scale", staff: sp, playQ: { chords: notes.map(n => [H.midi(n)]), gap: .35, dur: .9 }, playQLabel: "Play", topic: type === "major" ? "major" : "minor" });
     }
     if (mode === "keysig") {
-      const minor = Math.random() < .4 && H.topicOn("minor"), list = minor ? MIN : MAJ, i = Math.floor(Math.random() * list.length), name = list[i], k = H.key(name, minor ? "minor" : "major");
+      const minor = Math.random() < .4 && H.topicOn("minor"), list = minor ? DMIN : DMAJ, i = Math.floor(Math.random() * list.length), name = list[i], k = H.key(name, minor ? "minor" : "major");
       const c = sigCount(k);
       if (Math.random() < .5) {
         const sp = sigStaff(k, Math.random() < .3 ? "bass" : "treble");
@@ -107,15 +109,15 @@ window.FAM = (() => {
         const tip = c.n === 0 ? "No sharps or flats." : c.sh ? `The last sharp is ${last}; a half step up is ${minor ? `the relative major, ${rel}, and the relative minor is a minor 3rd below that` : "the tonic"}.` : c.n === 1 ? (minor ? "One flat: F major, whose relative minor is D minor." : "One flat: F major.") : `The next-to-last flat is ${nl}: ${minor ? `the relative major is ${rel}, and the relative minor is a minor 3rd below that` : "that's the tonic"}.`;
         return H.mc(`Which ${minor ? "minor" : "major"} key has this key signature?`, `${name} ${minor ? "minor" : "major"}`, same.map(n => `${n} ${minor ? "minor" : "major"}`), `${c.txt.charAt(0).toUpperCase() + c.txt.slice(1)}: ${sigNames(k).join(" ") || "—"}. ${tip}`, { kicker: "Key signatures", staff: sp, topic: minor ? "minor" : "major" });
       }
-      const all = ["no sharps or flats"].concat([1, 2, 3, 4, 5, 6, 7].flatMap(n => [`${n} sharp${n > 1 ? "s" : ""}`, `${n} flat${n > 1 ? "s" : ""}`]));
+      const all = ["no sharps or flats"].concat([1, 2, 3, 4, 5, 6].flatMap(n => [`${n} sharp${n > 1 ? "s" : ""}`, `${n} flat${n > 1 ? "s" : ""}`]));
       return H.mc(`How many sharps or flats are in the key signature of ${name} ${minor ? "minor" : "major"}?`, c.txt, all.filter(x => x !== c.txt && (x.startsWith("no") ? c.n <= 2 : Math.abs(parseInt(x) - c.n) <= 2)), `${name} ${minor ? "minor" : "major"}: ${c.txt}${c.n ? ` (${sigNames(k).join(" ")})` : ""}.`, { kicker: "Key signatures", staffAns: sigStaff(k), topic: minor ? "minor" : "major" });
     }
     if (mode === "relpar") {
       const r = Math.random();
       if (r < .5) {
-        const toMin = Math.random() < .5, i = Math.floor(Math.random() * 13), M = MAJ[i], m = MIN[i];
-        return toMin ? H.mc(`What is the relative minor of ${M} major?`, `${m} minor`, MIN.slice(0, 13).map(x => `${x} minor`).filter(x => !x.startsWith(m + " ")).concat([`${M} minor`]), `Same key signature; its tonic is the 6th degree of ${M} major (a minor 3rd below ${M}): ${m} minor.`, { kicker: "Relative and parallel", topic: "minor" })
-          : H.mc(`What is the relative major of ${m} minor?`, `${M} major`, MAJ.slice(0, 13).map(x => `${x} major`).concat([`${m} major`]), `Same key signature; its tonic is the 3rd degree of ${m} minor (a minor 3rd above ${m}): ${M} major.`, { kicker: "Relative and parallel", topic: "minor" });
+        const toMin = Math.random() < .5, i = H.rnd(DI), M = MAJ[i], m = MIN[i];
+        return toMin ? H.mc(`What is the relative minor of ${M} major?`, `${m} minor`, DMIN.map(x => `${x} minor`).filter(x => !x.startsWith(m + " ")).concat([`${M} minor`]), `Same key signature; its tonic is the 6th degree of ${M} major (a minor 3rd below ${M}): ${m} minor.`, { kicker: "Relative and parallel", topic: "minor" })
+          : H.mc(`What is the relative major of ${m} minor?`, `${M} major`, DMAJ.map(x => `${x} major`).concat([`${m} major`]), `Same key signature; its tonic is the 3rd degree of ${m} minor (a minor 3rd above ${m}): ${M} major.`, { kicker: "Relative and parallel", topic: "minor" });
       }
       const i = Math.floor(Math.random() * 8), M = MAJ[i], k1 = H.key(M, "major"), k2 = H.key(M, "minor"), c1 = sigCount(k1), c2 = sigCount(k2);
       return H.mc(`${M} major has ${c1.txt}. How many does its parallel minor, ${M} minor, have?`, c2.txt, ["no sharps or flats", "1 sharp", "2 sharps", "3 sharps", "4 sharps", "1 flat", "2 flats", "3 flats", "4 flats", "5 flats", "6 flats", "7 flats", "5 sharps"], `Parallel keys share a tonic. ${M} minor is the relative minor of ${H.nm(k2.scale[2])} major: ${c2.txt}. (A parallel minor always has three more flats, or three fewer sharps.)`, { kicker: "Relative and parallel", topic: "minor" });
@@ -123,7 +125,7 @@ window.FAM = (() => {
     if (mode === "steps") {
       const type = H.rnd(Object.keys(PATTERN)), q = Math.random() < .5;
       if (q) return H.mc(`What is the step pattern of the ${TYPES[type].toLowerCase()} scale?`, PATTERN[type], Object.values(PATTERN), `${TYPES[type]}: ${PATTERN[type]} (W = whole step, H = half step, W+H = augmented 2nd).`, { kicker: "Steps", topic: type === "major" ? "major" : "minor" });
-      const tonic = H.rnd(type === "major" ? MAJ.slice(0, 8) : MIN.slice(0, 8)), { notes } = scale(H, tonic, type), st = steps(H, notes), i = Math.floor(Math.random() * 7);
+      const tonic = H.rnd(type === "major" ? DMAJ.slice(0, 8) : DMIN.slice(0, 8)), { notes } = scale(H, tonic, type), st = steps(H, notes), i = Math.floor(Math.random() * 7);
       const W = { H: "a half step", W: "a whole step", "W+H": "an augmented 2nd (a whole step plus a half step)" };
       return H.mc(`In ${tonic} ${TYPES[type].toLowerCase()}, what is the distance from ${H.nm(notes[i])} to ${H.nm(notes[i + 1])} (${i + 1}̂ to ${i + 2 === 8 ? 1 : i + 2}̂)?`, W[st[i]], Object.values(W), `${PATTERN[type]}: step ${i + 1} is ${W[st[i]]}.`, { kicker: "Steps", play: { chords: [[H.midi(notes[i])], [H.midi(notes[i + 1])]], gap: .6 }, playLabel: "Hear it", topic: type === "major" ? "major" : "minor" });
     }

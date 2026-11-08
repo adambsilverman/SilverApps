@@ -19,10 +19,10 @@ window.FAM = (() => {
   // ---------- generating short examples (4 bars of 4/4 in a major key) ----------
   const SC = [0, 2, 4, 5, 7, 9, 11];
   const dm = (tonic, d) => tonic + 12 * Math.floor(d / 7) + SC[((d % 7) + 7) % 7];   // scale degree (0-based, any octave) → MIDI
-  const PROGS = [[0, 3, 4, 0], [0, 5, 3, 4], [0, 3, 1, 4], [0, 4, 5, 3]];
+  const PROGS = [[0, 3, 4, 0], [0, 5, 4, 0], [0, 1, 4, 0], [0, 5, 3, 0]];   // every tune ends on the tonic chord
   const RHY = [[1, 1, 1, 1], [1, .5, .5, 1, 1], [2, 1, 1], [1.5, .5, 1, 1], [1, 1, 2], [.5, .5, 1, 1, 1]];
   const rnd = a => a[Math.floor(Math.random() * a.length)];
-  function gen(tonic = 60 + rnd([0, 2, -3, 5, -5])) {
+  function gen0(tonic) {
     const prog = rnd(PROGS); let d = rnd([2, 4, 7]); const mel = [];
     prog.forEach((ch, bar) => {
       const r = bar === 3 ? [2, 2] : rnd(RHY); let t = bar * 4;
@@ -34,6 +34,83 @@ window.FAM = (() => {
     });
     return { tonic, prog, mel };
   }
+  // ---------- counterpoint checks: generate many candidates and keep the one that breaks the fewest rules ----------
+  const PERF = i => i === 0 || i === 7;
+  const sounding = (v, t) => v.find(n => n.t <= t && t < n.t + n.d);
+  // two voices (arrays of {t, d, m}, v1 above v2): strong-beat dissonance, parallel 5ths/8ves, crossing, big leaps
+  function cpCost(v1, v2, o = {}) {
+    const ts = [...new Set([...v1, ...v2].map(n => n.t))].sort((a, b) => a - b); let c = 0, prev = null;
+    ts.forEach(t => { const a = sounding(v1, t), b = sounding(v2, t); if (!a || !b) { prev = null; return; }
+      const iv = a.m - b.m, pc = ((iv % 12) + 12) % 12, strong = t % 1 === 0;
+      if (iv < 0) c += 12;
+      const dis = [1, 2, 6, 10, 11].includes(pc) || (pc === 5 && !o.fourthOK);
+      if (dis) c += t % 2 === 0 ? 10 : strong ? 3 : 1;   // downbeats and beat 3 must be consonant; beats 2 and 4 may carry passing dissonance
+      if (strong && iv === 0) c += 3;
+      if (prev && PERF(pc) && prev.pc === pc && a.m !== prev.a && b.m !== prev.b) c += 20;   // parallel (or consecutive) 5ths / octaves
+      if (prev && PERF(pc) && !PERF(prev.pc) && Math.sign(a.m - prev.a) === Math.sign(b.m - prev.b) && a.m !== prev.a && Math.abs(a.m - prev.a) > 2) c += 4;   // hidden 5th/8ve with a leap on top
+      prev = { pc, a: a.m, b: b.m }; });
+    return c;
+  }
+  const leaps = v => v.slice(1).reduce((c, n, i) => { const L = Math.abs(n.m - v[i].m); return c + (L > 7 ? 6 : L > 5 ? 1 : 0) + (L === 6 ? 5 : 0); }, 0);
+  const melV = g => g.mel.map(n => ({ t: n.t, d: n.d, m: dm(g.tonic, n.deg) }));
+  const bassV = g => g.prog.map((ch, bar) => ({ t: bar * 4, d: 4, m: dm(g.tonic, ch) - 24 }));
+  const comesV = g => melV(g).filter(n => n.t < 12).map(n => ({ t: n.t + 4, d: n.d, m: n.m - 12 }));
+  // a countermelody below the tune: long notes where the tune is busy, motion where it rests; stepwise, consonant, contrary where it can be
+  function counterOf(g) {
+    const mv = melV(g), bv = bassV(g); let best = null;
+    for (let tr = 0; tr < 120; tr++) {
+      const v = []; let prevD = null;
+      g.prog.forEach((ch, bar) => {
+        const fast = g.mel.filter(n => n.t >= bar * 4 && n.t < bar * 4 + 4).length >= 4, pts = bar === 3 ? [0] : fast ? [0, 2] : rnd([[0, 1, 1.5, 2, 3], [0, 1, 2, 3], [0, 2, 3]]);
+        pts.forEach((p, i) => { const t = bar * 4 + p, d = (pts[i + 1] ?? 4) - p, top = sounding(mv, t), tones = [ch, ch + 2, ch + 4];
+          const cands = []; for (let x = -9; x <= 4; x++) { const m = dm(g.tonic, x), ct = tones.some(y => ((y - x) % 7 + 7) % 7 === 0);
+            if (top && m >= top.m - 2) continue; let c = (ct ? 0 : t % 1 === 0 ? 8 : 1) + Math.random() * 1.5;
+            if (prevD != null) { const L = Math.abs(x - prevD); c += L === 0 ? 2 : L === 1 ? 0 : L === 2 ? .5 : L <= 4 ? 2 : 9; }
+            if (top) { const pc = ((top.m - m) % 12 + 12) % 12; if ([3, 4, 8, 9].includes(pc)) c -= 1.5; }
+            if (bar === 3) c += ct && x % 7 === 0 ? 0 : 6;
+            cands.push({ x, m, c }); }
+          const pick = cands.sort((a, b) => a.c - b.c)[0]; prevD = pick.x; v.push({ t, d, m: pick.m }); });
+      });
+      const cost = cpCost(mv, v) + cpCost(v, bv, { fourthOK: true }) * .5 + leaps(v);
+      if (!best || cost < best.cost) best = { v, cost };
+    }
+    return best.v;
+  }
+  // chordal homophony: four voices, a chord on every melody note, smooth inner voices, complete triads, no parallel 5ths or octaves
+  function chordalOf(g) {
+    const CHS = [0, 3, 4, 5, 1], pcOf = m => ((m - g.tonic) % 12 + 12) % 12;
+    const cands = g.mel.map((n, ni) => {   // every acceptable voicing for this melody note, with its own cost
+      const S = dm(g.tonic, n.deg), last = ni === g.mel.length - 1, list = [];
+      CHS.forEach(ch => { const pcs = [ch, ch + 2, ch + 4].map(x => ((x % 7) + 7) % 7); if (!pcs.includes(((n.deg % 7) + 7) % 7) || (last && ch !== 0)) return;
+        const chC = ch === n.ch ? 0 : ch === 0 || ch === 3 || ch === 4 ? 4 : 7, pm = pcs.map(x => SC[x]);
+        const inR = (lo, hi) => { const r = []; for (let m = lo; m <= hi; m++) if (pm.includes(pcOf(m))) r.push(m); return r; };
+        inR(g.tonic - 22, g.tonic - 8).forEach(B => { const inv = pcOf(B) === pm[0] ? 0 : pcOf(B) === pm[1] && !last ? 3 : 99; if (inv > 50) return;
+          inR(Math.max(B + 3, g.tonic - 17), S - 3).forEach(T => inR(Math.max(T + 1, g.tonic - 10), S - 1).forEach(A => {
+            if (S - A > 12 || A - T > 12) return; const V = [S, A, T, B];
+            let c = chC + inv + (new Set(V.map(pcOf)).size < 3 ? 25 : 0);
+            if (V.filter(m => pcOf(m) === pm[1]).length > 1) c += 6; if (V.filter(m => pcOf(m) === 11).length > 1) c += 40;
+            list.push({ V, c }); })); }); });
+      return list.length ? list : [{ V: [S, ...chordTones(g.tonic, n.ch, -1).slice(0, 2), dm(g.tonic, n.ch) - 24], c: 50 }];
+    });
+    const trans = (P, V) => { let c = Math.abs(V[1] - P[1]) + Math.abs(V[2] - P[2]) + Math.abs(V[3] - P[3]) * .3;
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) { const p1 = ((P[i] - P[j]) % 12 + 12) % 12, p2 = ((V[i] - V[j]) % 12 + 12) % 12; if (PERF(p2) && p1 === p2 && V[i] !== P[i] && V[j] !== P[j]) c += 200; }
+      return c; };
+    // best path through the voicings (dynamic programming), so a cadence can be prepared a chord ahead
+    let row = cands[0].map(x => ({ c: x.c, back: -1 })); const backs = [row];
+    for (let i = 1; i < cands.length; i++) { row = cands[i].map(x => { let best = null; cands[i - 1].forEach((p, j) => { const c = backs[i - 1][j].c + trans(p.V, x.V); if (!best || c < best.c) best = { c, back: j }; }); return { c: best.c + x.c, back: best.back }; }); backs.push(row); }
+    let j = row.reduce((bi, r, i) => r.c < row[bi].c ? i : bi, 0); const out = [];
+    for (let i = cands.length - 1; i >= 0; i--) { out.unshift({ t: g.mel[i].t, d: g.mel[i].d, V: cands[i][j].V }); j = backs[i][j].back; }
+    return out;
+  }
+  // the tune itself: also check its outer voices against the bass, and (for a canon) against itself a bar later
+  function gen(tonic = 60 + rnd([0, 2, -3, 5, -5]), canon) {
+    let best = null;
+    for (let tr = 0; tr < (canon ? 2000 : 60); tr++) { const g = gen0(tonic), mv = melV(g);
+      let c = cpCost(mv, bassV(g), { fourthOK: true }) * .5 + leaps(mv);
+      if (canon) c += cpCost(mv, comesV(g)) * 2;
+      if (!best || c < best.c) best = { g, c }; if (c === 0) break; }
+    return best.g;
+  }
   const chordTones = (tonic, ch, oct) => [ch, ch + 2, ch + 4].map(x => dm(tonic, x) + 12 * oct);
   // schedule one texture; returns its length in seconds
   function render(kind, g, t0, bpm = 92) {
@@ -44,21 +121,16 @@ window.FAM = (() => {
       const m = M(n) - 12 + 12, lag = .03 + Math.random() * .03, nx = g.mel[i + 1];
       if (n.d >= 1 && nx) { note("oboe", m, T(n.t) + lag, n.d * b * .45, .8); const step = nx.deg > n.deg ? -1 : 1; note("oboe", dm(g.tonic, n.deg + step), T(n.t + n.d / 2) + lag, n.d * b * .2, .7); note("oboe", m, T(n.t + n.d * .75) + lag, n.d * b * .23, .7); }
       else note("oboe", m, T(n.t) + lag, n.d * b * .95, .8); });
-    if (kind === "chordal") g.mel.forEach(n => { const m = M(n), ch = n.ch, tones = [ch, ch + 2, ch + 4].map(x => ((x % 7) + 7) % 7), onChord = tones.includes(((n.deg % 7) + 7) % 7), c = onChord ? ch : n.ch;
-      note("voice", m, T(n.t), n.d * b * .95, 1.1); const others = chordTones(g.tonic, c, 0).map(x => { let y = x; while (y >= m) y -= 12; while (y < m - 12) y += 12; return y; }).sort((a, z) => z - a);
-      note("voice", others[0], T(n.t), n.d * b * .95, .7); note("voice", others[1] - (others[1] > m - 5 ? 12 : 0), T(n.t), n.d * b * .95, .7); note("voice", dm(g.tonic, c) - 24, T(n.t), n.d * b * .95, .9); });
+    if (kind === "chordal") (g.chordal || (g.chordal = chordalOf(g))).forEach(c => c.V.forEach((m, i) => note("voice", m, T(c.t), c.d * b * .95, [1.1, .7, .7, .9][i])));
     if (kind === "melacc") g.prog.forEach((ch, bar) => { const c = chordTones(g.tonic, ch, -1); note("bass", dm(g.tonic, ch) - 24, T(bar * 4), 4 * b * .9, 1.1); [0, 2, 1, 2, 0, 2, 1, 2].forEach((k, i) => note("piano", c[k], T(bar * 4 + i * .5), b * .5, .6)); });
     if (kind === "canon") g.mel.forEach(n => { if (n.t < 12) note("clar", M(n) - 12, T(n.t + 4), n.d * b * .95, .9); });
-    if (kind === "free") g.prog.forEach((ch, bar) => {   // a countermelody in long notes, moving against the tune
-      const fast = g.mel.filter(n => n.t >= bar * 4 && n.t < bar * 4 + 4).length >= 4, pts = fast ? [0, 2] : [0, 1, 1.5, 2, 3], lens = fast ? [2, 2] : [1, .5, .5, 1, 1];
-      let prevD = null; pts.forEach((p, i) => { const tones = [ch, ch + 2, ch + 4].map(x => x - 7); let d = tones[(bar + i) % 3]; if (prevD != null && Math.abs(d - prevD) > 3) d = prevD + (d > prevD ? 1 : -1); prevD = d; note("clar", dm(g.tonic, d), T(bar * 4 + p), lens[i] * b * .95, .85); });
-      note("bass", dm(g.tonic, ch) - 24, T(bar * 4), 4 * b * .9, .5); });
+    if (kind === "free") { (g.counter || (g.counter = counterOf(g))).forEach(n => note("clar", n.m, T(n.t), n.d * b * .95, .85)); bassV(g).forEach(n => note("bass", n.m, T(n.t), n.d * b * .9, .5)); }
     return 16 * b + (kind === "canon" ? 4 * b : 0);
   }
   const KIND = { mono: "Monophony", hetero: "Heterophony", chordal: "Homophony: chordal (homorhythmic)", melacc: "Homophony: melody and accompaniment", canon: "Polyphony: imitative", free: "Polyphony: free (non-imitative)" };
   const WHY = { mono: "one unaccompanied melody", hetero: "two performers play the same tune at once, one with ornaments and slightly different timing", chordal: "all voices move together in the same rhythm, in block chords", melacc: "a clear melody over a supporting accompaniment (broken chords and bass)", canon: "a second voice enters later with the same melody", free: "two independent melodies with different rhythms and contours" };
   let SEED = {};
-  function playKind(kind, key) { if (!ac()) return; fresh(); if (!SEED[key]) SEED[key] = gen(); render(kind, SEED[key], AC.currentTime + .1); }
+  function playKind(kind, key) { if (!ac()) return; fresh(); if (!SEED[key]) SEED[key] = gen(undefined, kind === "canon"); render(kind, SEED[key], AC.currentTime + .1); }
   // texture builder: layers over one tune
   const LAY = { melody: "Melody (flute)", double: "Melody doubled an octave lower (clarinet)", counter: "Countermelody (clarinet)", canon: "Canon: the melody a bar later", block: "Block chords (strings)", broken: "Broken chords (piano)", bass: "Bass line", drone: "Drone on the tonic" };
   const LS = { on: { melody: true }, g: null };
@@ -71,7 +143,7 @@ window.FAM = (() => {
     return o.double ? "Monophony (doubled in octaves: still one line)" : "Monophony";
   }
   function playBuilder() {
-    if (!ac()) return; fresh(); if (!LS.g) LS.g = gen(); const g = LS.g, b = 60 / 92, t0 = AC.currentTime + .1, T = x => t0 + x * b, o = LS.on;
+    if (!ac()) return; fresh(); if (!LS.g) LS.g = gen(undefined, true); const g = LS.g, b = 60 / 92, t0 = AC.currentTime + .1, T = x => t0 + x * b, o = LS.on;
     if (o.melody) g.mel.forEach(n => note("flute", dm(g.tonic, n.deg), T(n.t), n.d * b * .95));
     if (o.double) g.mel.forEach(n => note("clar", dm(g.tonic, n.deg) - 12, T(n.t), n.d * b * .95, .8));
     if (o.canon) g.mel.forEach(n => { if (n.t < 12) note("horn", dm(g.tonic, n.deg) - 12, T(n.t + 4), n.d * b * .95, .8); });
@@ -81,7 +153,7 @@ window.FAM = (() => {
       if (o.bass) [0, 2].forEach(bt => note("bass", dm(g.tonic, ch) - 24 + (bt === 2 && bar % 2 ? 7 - 12 : 0), T(bar * 4 + bt), 2 * b * .9, 1));
     });
     if (o.drone) { note("str", g.tonic - 24, T(0), 16 * b, .8); note("str", g.tonic - 17, T(0), 16 * b, .6); }
-    if (o.counter) g.prog.forEach((ch, bar) => { const fast = g.mel.filter(n => n.t >= bar * 4 && n.t < bar * 4 + 4).length >= 4, pts = fast ? [0, 2] : [0, 1, 1.5, 2, 3], lens = fast ? [2, 2] : [1, .5, .5, 1, 1]; pts.forEach((p, i) => { const tones = [ch, ch + 2, ch + 4].map(x => x - 7); note("clar", dm(g.tonic, tones[(bar + i) % 3]), T(bar * 4 + p), lens[i] * b * .95, .8); }); });
+    if (o.counter) (g.counter || (g.counter = counterOf(g))).forEach(n => note("clar", n.m, T(n.t), n.d * b * .95, .8));
   }
   if (!window.__txWired) { window.__txWired = true;
     document.addEventListener("click", e => {
@@ -121,11 +193,11 @@ window.FAM = (() => {
       const kind = H.rnd(Object.keys(KIND)), s = "q" + Math.random().toString(36).slice(2, 8);
       return H.mc("Listen. Which texture is this?", KIND[kind], Object.values(KIND), `It's ${KIND[kind].toLowerCase()}: ${WHY[kind]}.`, { kicker: "Listen: texture", fig: row(btn("Play", { tx: "kind", k: kind, s }), stop) });
     }
-    if (mode === "describe") {
+    if (mode === "describe" || mode === "concepts") {
+      if (Math.random() < .45) { const [q, a, w, y] = H.rnd(FACTS); return H.mc(q, a, w, y, { kicker: "Describe and define" }); }
       const D = [["A single voice sings an unaccompanied chant.", "Monophony"], ["A singer and a fiddler perform the same tune together, each decorating it differently.", "Heterophony"], ["A four-part choir sings a hymn, all voices in the same rhythm.", "Homophony"], ["A singer is accompanied by strummed guitar chords.", "Homophony"], ["Three voices sing a round, each entering a few beats after the last.", "Polyphony"], ["A violin and a cello play two different, equally important melodies at once.", "Polyphony"], ["An orchestra plays one melody in unison and octaves, with nothing else.", "Monophony"], ["A pianist plays a tune in the right hand over Alberti-bass broken chords.", "Homophony"], ["The subject of a fugue enters in one voice, then another, while the first continues.", "Polyphony"], ["Two flutes play the same melody at the same time, one adding trills and runs.", "Heterophony"]];
-      const [q, a] = H.rnd(D); return H.mc(`${q} Which texture is this?`, a, ["Monophony", "Heterophony", "Homophony", "Polyphony"], { Monophony: "One line, even if doubled in unison or octaves.", Heterophony: "Simultaneous variants of one melody.", Homophony: "One main melody with accompaniment, or block chords moving together.", Polyphony: "Independent lines: imitative (rounds, canons, fugues) or free." }[a], { kicker: "Describe the texture" });
+      const [q, a] = H.rnd(D); return H.mc(`${q} Which texture is this?`, a, ["Monophony", "Heterophony", "Homophony", "Polyphony"], { Monophony: "One line, even if doubled in unison or octaves.", Heterophony: "Simultaneous variants of one melody.", Homophony: "One main melody with accompaniment, or block chords moving together.", Polyphony: "Independent lines: imitative (rounds, canons, fugues) or free." }[a], { kicker: "Describe and define" });
     }
-    const [q, a, w, y] = H.rnd(FACTS); return H.mc(q, a, w, y, { kicker: "Concepts" });
   }
   function reference() {
     return tbl("The four basic textures", ["Texture", "What you hear", "Examples"], [["Monophony", "one line (even in unison or octaves)", "chant, solo song, unison singing"], ["Heterophony", "variants of one melody at once", "folk ensembles, gamelan, Middle Eastern ensembles"], ["Homophony", "melody + accompaniment, or block chords", "hymns, songs with guitar or piano"], ["Polyphony", "independent lines", "rounds, canons, fugues, Renaissance motets"]]);
@@ -153,7 +225,7 @@ window.FAM = (() => {
   ] };
   return {
     key: "silverapps-texture-v1", lesson, make, reference,
-    modes: [{ id: "listen", kicker: "Listen: texture" }, { id: "describe", kicker: "Describe the texture" }, { id: "concepts", kicker: "Concepts" }],
+    modes: [{ id: "listen", kicker: "Listen: texture" }, { id: "describe", kicker: "Describe and define" }],
     topics: [],
   };
 })();

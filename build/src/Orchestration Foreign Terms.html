@@ -2792,7 +2792,7 @@ function newRound(rows){
 }
 function soloAsk(){
   const q=G.qs[G.i]; const st=$("#stage");
-  st.innerHTML=`<div class="progress"><span>Question ${G.i+1} of ${G.qs.length}</span><div class="bar"><i style="width:${G.i/G.qs.length*100}%"></i></div><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>`;
+  st.innerHTML=`<div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${G.i+1} of ${G.qs.length}</span><div class="bar"><i style="width:${G.i/G.qs.length*100}%"></i></div><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>`;
   G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,onSubmit:ans=>{
     const rev=revealOf(q); const g=grade(q,ans,rev);
     G.ctl.mark(rev,ans);
@@ -2980,7 +2980,7 @@ function hostNext(){
 }
 function hostQuestion(r){
   const q=H.qs[H.idx]; hostTop();
-  app.innerHTML=`<div class="hostgrid"><div class="card"><div class="progress"><span>Question ${H.idx+1}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div><div class="card" data-side></div></div>`;
+  app.innerHTML=`<div class="hostgrid"><div class="card"><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${H.idx+1}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div><div class="card" data-side></div></div>`;
   const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true});
   const side=app.querySelector("[data-side]");
   if(!r){
@@ -3134,7 +3134,7 @@ function stuInner(st){
   if(st.phase==="q"){
     if(S.curKey===key) return; S.curKey=key;
     S.deadline=st.left!=null?Date.now()+st.left:null; S.limit=st.limit; S.timedOut=false;
-    app.innerHTML=`<div class="card"><div class="stu-timer" data-stimer><span class="label-sm">Time</span><div class="tbar"><i style="width:100%"></i></div><b>0:00</b></div><div class="progress"><span>Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>
+    app.innerHTML=`<div class="card"><div class="stu-timer" data-stimer><span class="label-sm">Time</span><div class="tbar"><i style="width:100%"></i></div><b>0:00</b></div><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>
       <p class="small muted center" data-crowd style="margin:0">${st.joined?`${st.answered||0} of ${st.joined} classmates have answered`:""}</p></div>`;
     S.ctl=renderQ(app.querySelector("[data-q]"),q,{submitLabel:"Lock in",onSubmit:ans=>{
       S.myAns[q.id]=ans; S.send({t:"ans",qid:q.id,ans}); practiceVis();
@@ -3147,7 +3147,7 @@ function stuInner(st){
     if(S.curKey===key) return;
     const wasShowing=S.curKey===q.id+":q"; S.curKey=key;
     if(!wasShowing){
-      app.innerHTML=`<div class="card"><div class="progress"><span>Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div>`;
+      app.innerHTML=`<div class="card"><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div>`;
       S.ctl=renderQ(app.querySelector("[data-q]"),q,{focus:false}); S.ctl.preset(S.myAns[q.id]);
     }
     const tm=$("[data-stimer]");if(tm)tm.remove(); const cr=$("[data-crowd]");if(cr)cr.remove();

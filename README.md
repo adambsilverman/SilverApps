@@ -1,4 +1,4 @@
-# SilverApps for Music Training
+# SilverApps Interactive Music Training
 
 Apps for review, practice and skill building in music theory, ear training and performance, by [Adam Silverman](https://adambsilverman.com).
 

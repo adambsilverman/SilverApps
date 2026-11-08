@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orchestration Foreign Terms · SilverApps for Music Training</title>
+<title>Orchestration Foreign Terms · SilverApps Interactive Music Training</title>
 <meta name="author" content="Adam Silverman">
 <meta name="description" content="Orchestration Foreign Terms: solo practice and a live class game, made by Adam Silverman.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -209,7 +209,7 @@ body.fauxfs{position:fixed;inset:0;overflow:auto;z-index:50}
 <link rel="stylesheet" href="assets/foreign-terms-skin.css">
 </head>
 <body>
-<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps for Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">for Music Training</span></a><span class="spacer"></span><a class="site-btn" href="index.html" aria-label="All SilverApps"><span aria-hidden="true">▦</span><span class="lbl">All SilverApps</span></a><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><a class="site-btn" href="index.html" aria-label="All SilverApps"><span aria-hidden="true">▦</span><span class="lbl">All SilverApps</span></a><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
 
 <div class="wrap">
   <header>
@@ -2830,7 +2830,7 @@ function newRound(rows){
 }
 function soloAsk(){
   const q=G.qs[G.i]; const st=$("#stage");
-  st.innerHTML=`<div class="progress"><span>Question ${G.i+1} of ${G.qs.length}</span><div class="bar"><i style="width:${G.i/G.qs.length*100}%"></i></div><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>`;
+  st.innerHTML=`<div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${G.i+1} of ${G.qs.length}</span><div class="bar"><i style="width:${G.i/G.qs.length*100}%"></i></div><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>`;
   G.ctl=renderQ(st.querySelector("[data-q]"),q,{giveUp:true,shaker:true,onSubmit:ans=>{
     const rev=revealOf(q); const g=grade(q,ans,rev); window.SFX&&SFX.play(g.ok); window.SAprogress&&SAprogress.record(q.fam,g.ok);
     G.ctl.mark(rev,ans);
@@ -3017,7 +3017,7 @@ function hostNext(){
 }
 function hostQuestion(r){
   const q=H.qs[H.idx]; hostTop();
-  app.innerHTML=`<div class="hostgrid"><div class="card"><div class="progress"><span>Question ${H.idx+1}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div><div class="card" data-side></div></div>`;
+  app.innerHTML=`<div class="hostgrid"><div class="card"><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${H.idx+1}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div><div class="card" data-side></div></div>`;
   const ctl=renderQ(app.querySelector("[data-q]"),q,{display:true,shaker:!r}); if(r) ctl.lock();
   const side=app.querySelector("[data-side]");
   if(!r){
@@ -3171,7 +3171,7 @@ function stuInner(st){
   if(st.phase==="q"){
     if(S.curKey===key) return; S.curKey=key;
     S.deadline=st.left!=null?Date.now()+st.left:null; S.limit=st.limit; S.timedOut=false;
-    app.innerHTML=`<div class="card"><div class="stu-timer" data-stimer><span class="label-sm">Time</span><div class="tbar"><i style="width:100%"></i></div><b>0:00</b></div><div class="progress"><span>Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>
+    app.innerHTML=`<div class="card"><div class="stu-timer" data-stimer><span class="label-sm">Time</span><div class="tbar"><i style="width:100%"></i></div><b>0:00</b></div><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div>
       <p class="small muted center" data-crowd style="margin:0">${st.joined?`${st.answered||0} of ${st.joined} classmates have answered`:""}</p></div>`;
     S.ctl=renderQ(app.querySelector("[data-q]"),q,{submitLabel:"Lock in",onSubmit:ans=>{
       S.myAns[q.id]=ans; S.send({t:"ans",qid:q.id,ans}); practiceVis();
@@ -3184,7 +3184,7 @@ function stuInner(st){
     if(S.curKey===key) return;
     const wasShowing=S.curKey===q.id+":q"; S.curKey=key;
     if(!wasShowing){
-      app.innerHTML=`<div class="card"><div class="progress"><span>Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div>`;
+      app.innerHTML=`<div class="card"><div class="progress"><span><b class="qapp">Orchestration Foreign Terms</b> · Question ${st.n}</span><span>${q.fam}</span></div><div data-q style="display:flex;flex-direction:column;gap:16px"></div></div>`;
       S.ctl=renderQ(app.querySelector("[data-q]"),q,{focus:false}); S.ctl.preset(S.myAns[q.id]);
     }
     const tm=$("[data-stimer]");if(tm)tm.remove(); const cr=$("[data-crowd]");if(cr)cr.remove();
@@ -3277,7 +3277,7 @@ document.addEventListener("keydown",e=>{
 if(JOIN_CODE) joinScreen(JOIN_CODE); else home();
 </script>
 
-<script src="assets/progress.js?v=0b022bd8"></script>
+<script src="assets/progress.js?v=0916b76d"></script>
 <script src="assets/sfx.js?v=b8f71476"></script>
 <script>SAprogress.init({ id: "foreignterms", name: "Orchestration Foreign Terms", before: ".fi-credit" });</script>
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
