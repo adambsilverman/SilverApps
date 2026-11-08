@@ -126,11 +126,16 @@ window.FAM = (() => {
     const deg = i => { const n = k.scale[((i % 7) + 7) % 7]; return H.N(n.l, n.a, n.o + Math.floor(i / 7)); };
     const pairs = [[6, 7, "ti → do"], [3, 2, "fa → mi"], [5, 4, "la → sol"], [1, 0, "re → do"]];
     const notes = [], arrows = [];
-    pairs.forEach(([a, b, t]) => { const i = notes.length; [a, b].forEach(d => { const n = deg(d); notes.push({ s: stepOf(n), acc: accVs(k, n), label: SOL.major[d % 7] }); }); arrows.push([i, i + 1, ""]); });
-    return H.miniStaff({ notes, arrows, dx: 46, ks: ksOf(k), label: `Tendency tones in ${k.label} with arrows to their resolutions: ti to do, fa to mi, la to sol, re to do` })
-      + `<div class="lbtns">${pairs.map(([a, b, t]) => `<button class="play" data-tdp="${H.midi(deg(a))},${H.midi(deg(b))}"><span aria-hidden="true">▶ </span>${t}</button>`).join("")}</div>`;
+    pairs.forEach(([a, b, t]) => { const i = notes.length; [a, b].forEach(d => notes.push({ s: stepOf(deg(d)), acc: accVs(k, deg(d)) })); arrows.push([i, i + 1, ""]); });
+    // the solfège under each pair is the play button for that resolution
+    const extra = (xs, stepY, y0) => pairs.map(([a, b, t], j) => { const x = (xs[2 * j][0] + xs[2 * j + 1][0]) / 2, y = y0 + 40 + 40;
+      return `<g class="gsn tdbtn" role="button" tabindex="0" aria-label="Play ${t.replace("→", "to")}" data-tdp="${H.midi(deg(a))},${H.midi(deg(b))}"><rect x="${x - 42}" y="${y - 17}" width="84" height="26" rx="13" class="tdr"/><text x="${x}" y="${y + 1}" text-anchor="middle" font-size="15" font-weight="600" fill="currentColor"><tspan font-size="10" aria-hidden="true">▶ </tspan>${t}</text></g>`; }).join("");
+    return H.miniStaff({ notes, arrows, dx: 46, ks: ksOf(k), extra, bottom: -6, role: "group", label: `Tendency tones in ${k.label} with arrows to their resolutions. Each solfège label below plays its resolution.` })
+      + `<p class="lcap">Click a solfège pair under the staff to hear the resolution.</p>`;
   }
-  if (!window.__tdWired) { window.__tdWired = true; document.addEventListener("click", e => { const b = e.target.closest("[data-tdp]"); if (b && HH) HH.play({ chords: b.dataset.tdp.split(",").map(m => [+m]), gap: 1.05 }); }); }
+  if (!window.__tdWired) { window.__tdWired = true; const tdGo = b => { if (b && HH) HH.play({ chords: b.dataset.tdp.split(",").map(m => [+m]), gap: 1.05 }); };
+    document.addEventListener("click", e => tdGo(e.target.closest("[data-tdp]")));
+    document.addEventListener("keydown", e => { const b = e.target.closest && e.target.closest("[data-tdp]"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tdGo(b); } }); }
   const lesson = { defMode: "major", steps: [
     { title: "Keys and scale degrees", kick: "Prerequisites", render: () => `<p>This lesson assumes you know how major and minor keys organize the diatonic notes, how key signatures show them, and how <b>parallel</b> keys (same tonic) and <b>relative</b> keys (same signature) relate. If not, review them first in the <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson, especially its key-signature steps (“Why key signatures?” and “Reading key signatures”).</p>
       <p>Scale degrees are named by number or by name. A caret over the number marks a scale degree: 1̂, 2̂, 3̂… Some websites can't show the caret, so you may also see ^1, ^2. Altered degrees take a ♯ or ♭ (♯4̂, ♭7̂) whatever accidental the actual note uses: in E major, the lowered supertonic is ♭2̂ even though it's F♮.</p>` },

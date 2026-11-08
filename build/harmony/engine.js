@@ -230,7 +230,7 @@
       cols.forEach((c, i) => {
         const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0], x = sn.getAbsoluteX() + 6;
         if (c.hl) mk("rect", { x: x - 22, y: yTop - 34, width: 46, height: yBot - yTop + 68, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
-        if (c.lab) rnSVG(mk, svg, x, Math.max(yBot + 46, yLow + 26), c.lab, ink);
+        if (c.lab) rnSVG(mk, svg, x, c.labNear ? Math.max(yBot + 13, yLow + 14) : Math.max(yBot + 46, yLow + 26), c.lab, ink);   // labNear: a figure, right under the bass staff
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
         if (c.tag) { const t = mk("text", { x, y: Math.max(yBot + 66, yLow + 46), "text-anchor": "middle", "font-size": 13, "font-family": "'Barlow Condensed', sans-serif", fill: ink }, svg); t.textContent = c.tag; }
       });
@@ -303,7 +303,7 @@
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + (o.tagSide && n.tag ? String(n.tag).length * 9 + 8 : 0);
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + (o.tagSide && n.tag ? String(n.tag).length * 11 + 10 : 0);
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
       const vs = ids.flatMap(id => bar[id] || []); if (!vs.length) return 0;
@@ -316,6 +316,12 @@
     let cur = [], w = 0;
     o.bars.forEach((b, i) => { const bw = barW(b) + (cur.length ? 0 : headW(i === 0)); if (cur.length && w + bw > MAXW) { rows.push(cur); cur = []; w = 0; } cur.push(i); w += cur.length === 1 ? barW(b) + headW(i === 0) : bw; });
     if (cur.length) rows.push(cur);
+    if (rows.length > 1) {   // balance the rows (no lone bar on the last line): equal numbers of bars per row when they fit
+      const N = o.bars.length, per = Math.ceil(N / rows.length), even = [];
+      for (let i = 0; i < N; i += per) even.push(o.bars.slice(i, i + per).map((_, j) => i + j));
+      const fits = even.every(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0) <= MAXW * 1.12);
+      if (fits && even.length === rows.length) rows.splice(0, rows.length, ...even);
+    }
     const all = o.bars.flatMap(b => ids.flatMap(id => (b[id] || []).flat()));
     const has = f => all.some(n => n[f]);
     const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") || o.beatNums ? 22 : 0) + (has("bs") ? 26 : 0);
@@ -432,9 +438,9 @@
       if (n.n != null) txt(x, si ? bot + 26 : nY, String(n.n), { "font-size": 13, "font-weight": 700 });
       if (n.tag && o.tagSide) {   // the name beside the notehead (right of its circle), so labels above the staff stay low
         let hx = x + 12; try { hx = sn.getNoteHeadEndX(); } catch (e) {}
-        txt(hx + (n.hl ? 11 : 5), Math.min(...ys) + 5, n.tag, { "text-anchor": "start", "font-size": 13, "font-weight": 700, "font-family": "'Barlow Condensed', 'Schibsted Grotesk', sans-serif" });
+        txt(hx + (n.hl ? 11 : 5), Math.min(...ys) + 6, n.tag, { "text-anchor": "start", "font-size": 17, "font-weight": 700, "font-family": "'Barlow Condensed', 'Schibsted Grotesk', sans-serif" });
       } else if (n.tag) txt(x, si ? bot + (n.n != null ? 44 : 26) : tagY, n.tag, { "font-size": 14, "font-weight": 700 });
-      if (n.sym) txt(x, symY, n.sym, { "font-size": 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
+      if (n.sym) txt(x, symY, n.sym, { "font-size": o.symSize || 16, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif" });
       if (n.lab) rnSVG(mk, svg, x, bot + 44, n.lab, ink);
       lyr.push({ si, ri, x, y: staves[si].getYForLine(4) + 34, n, sn, el: n.ly != null ? txt(x, staves[si].getYForLine(4) + 34, n.ly, { "font-size": 15, "font-family": "Literata, serif" }) : null });
       if (n.bs) brOpen[si + ":" + n.bs] = { x: x - 10, ri, label: n.bs };
@@ -1039,7 +1045,7 @@
     const i = Math.min(LS.step, L.steps.length - 1), st = L.steps[i];
     const k = st.keyed ? lessonKey(st) : null;
     figs = {};
-    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, follow: !!opts.follow, play: opts.play || (opts.play === false ? null : FAM.sing && spec.type === "score" ? singOf(spec) : playOf(spec)) };   // FAM.sing: the lesson's examples are sung (letter names) if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
+    const fig = (spec, cap, opts = {}) => { const id = "f" + Object.keys(figs).length; figs[id] = { spec, follow: !!opts.follow, play: opts.play || (opts.play === false ? null : FAM.sing && spec.type === "score" ? singOf(spec) : playOf(spec)) }; if (opts.count) figs[id + "c"] = { spec, play: withCount(spec) };   // FAM.sing: the lesson's examples are sung (letter names) if (opts.count) figs[id + "c"] = { play: opts.count === true ? withCount(spec) : opts.count };   // opts.count: add a "Play with counting" button (spoken count)
       return `<figure class="lfig${opts.small ? " small" : ""}"><div class="staff ${wideOf(spec)}" data-lfig="${id}"></div>${cap ? `<figcaption>${richHTML(cap)}</figcaption>` : ""}${figs[id].play ? `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(opts.playLabel || "Play")}</button>` : ""}${opts.count ? `<button class="play" data-lplay="${id}c">${PLAY_SVG}Play with counting</button>` : ""}</figure>`; };
     const sound = (p, label) => { const id = "s" + Object.keys(figs).length; figs[id] = { play: p }; return `<button class="play" data-lplay="${id}">${PLAY_SVG}${esc(label || "Play")}</button>`; };
     const body = richHTML(st.render(H, k, { fig, sound, rich, rn: rnHTML, sym: symHTML }));

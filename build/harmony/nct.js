@@ -89,7 +89,7 @@ window.FAM = (() => {
     // accompaniment on a grand staff: the bass note in the left hand, the three chord tones in close position in the right hand
     const acc = rhSeq(H, x.prog.map(d => H.diat(k, d)));
     const rh = acc.map(v => ({ k: v.rh, q: 2 })), lh = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: [acc[i].bass], q: 2, sym: o.sym === false ? null : c.sym }; });
-    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ m: [mel], t: [rh], b: [lh] }) };
+    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, symSize: 20, rowW: 820, vf: k.vf, sig: k.sig, time: "4/4", bpm: 84, bars: H.toBars({ m: [mel], t: [rh], b: [lh] }) };
   }
   // right hand: the triad's three tones in close position (lowest note G3–F4, top note at most D5), each chord moving as little as possible from the last; left hand: the root, F2–E3
   function rhSeq(H, chords) {
@@ -203,7 +203,7 @@ window.FAM = (() => {
     const notes = mel.map(([i, q, tag, tie]) => ({ k: [H.nmO(dn(H, k, i))], q, tag: tag || undefined, hl: !!tag, tie: !!tie }));
     const acc = rhSeq(H, prog.map(([d]) => H.diat(k, d)));
     const rh = prog.map(([d, q], i) => ({ k: acc[i].rh, q: q || 2 })), lh = prog.map(([d, q], i) => ({ k: o.ped ? [o.ped] : [acc[i].bass], q: q || 2, tie: !!o.ped && i < prog.length - 1, tag: o.ped && i === prog.length - 1 ? "PED" : undefined, sym: o.sym === false ? null : H.diat(k, d).sym }));
-    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ m: [notes], t: [rh], b: [lh] }) };
+    return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, symSize: 20, rowW: o.rowW || 820, vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ m: [notes], t: [rh], b: [lh] }) };
   };
   const lesson = { defMode: "major", steps: [
     { title: "Chord tones and non-chord tones", kick: "Consonance and dissonance", keyed: "major", render: (H, k, U) => {
@@ -253,9 +253,9 @@ window.FAM = (() => {
       return `<div class="lfigs">${U.fig(ant, "<b>Anticipation (ANT)</b>: a note of the next chord arrives early, then repeats (or holds) when the chord changes. Often a side effect of syncopation.", { small: true })}${U.fig(ha, "<b>Harmonic anticipation (HA)</b>: anticipates a note of the next chord, but not the next melody note: it leaps to a different chord tone.", { small: true })}</div>`;
     } },
     { title: "Double neighbors and pedal tones", kick: "Around and under", keyed: "major", render: (H, k, U) => {
-      const dnx = ex(H, k, [[1, 4]], [[4, 1], [5, .5, "DN"], [3, .5, "DN"], [4, 2]]);
+      const dnx = ex(H, k, [[1, 4], [5, 2], [1, 2]], [[4, 1], [5, .5, "DN"], [3, .5, "DN"], [4, 2], [4, 2], [2, 2]]);
       const t0 = dn(H, k, -14), ped = ex(H, k, [[1], [4], [5], [1]], [[7, 2], [5, 2], [6, 2], [7, 2]], { ped: H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2)) });
-      return `<div class="lfigs">${U.fig(dnx, "<b>Double neighbor (DN)</b>, or <b>changing tones</b>: two non-chord tones surround the note they resolve to, one on each side.", { small: true })}${U.fig(ped, "<b>Pedal tone (PED)</b>: a held or repeated note (usually in the bass) that persists while the chords change; it's dissonant whenever it isn't in the chord above.", { small: true })}</div>
+      return `${U.fig(dnx, "<b>Double neighbor (DN)</b>, or <b>changing tones</b>: two non-chord tones surround the note they resolve to, one on each side.")}${U.fig(ped, "<b>Pedal tone (PED)</b>: a held or repeated note (usually in the bass) that persists while the chords change; it's dissonant whenever it isn't in the chord above.")}
         <p>Imagine a phrase in E minor whose lowest voice holds E throughout. It works as a chord tone under every chord except the B7, where it becomes a pedal-tone dissonance.</p>`;
     } },
     { title: "Locate and label", kick: "Put it together", keyed: "major", render: (H, k, U) => {

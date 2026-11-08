@@ -1,4 +1,4 @@
-<!-- title: Modes: The Simple Truth | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). -->
+<!-- title: Modes: The Simple Truth | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, modes in real music (recorded excerpts), PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). -->
 <style>
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
 .lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -24,6 +24,13 @@
 .readout small{display:block;font:15px/1.4 var(--fi-serif);color:var(--fi-muted)}
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
 .note{font-size:.95rem;color:var(--fi-muted)}
+.mexs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.mex{margin:0;border:1.5px solid var(--fi-line);border-radius:12px;padding:10px 12px;display:grid;gap:6px;background:var(--fi-bg, transparent)}
+.mex figcaption{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.mexm{font:700 15px var(--fi-ui);color:var(--fi-red-dk, #a8321f);text-transform:uppercase;letter-spacing:.04em}
+.mex audio{width:100%;height:40px}
+.mexh{margin:6px 0 0;font:700 16px var(--fi-ui)}
+.lcite{font-style:italic}
 /* quiz */
 .q{border-top:1px dashed var(--fi-soft);padding-top:12px;display:grid;gap:8px}
 .q .opts{display:flex;flex-wrap:wrap;gap:8px}
@@ -104,8 +111,21 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     <div id="famStaff" class="cell" hidden><p class="lab">Parent scale, then the mode</p><div id="famStaffIn"></div></div>
   </section>
 
+  <section class="slide" data-title="In real music" hidden>
+    <p class="kick">4 · Listening: real music</p><h2>Modes in real music</h2>
+    <p>Here are the diatonic modes at work in folk, rock and song. For each, find the tonic, decide whether its 3rd is major or minor, then listen for the one note that makes the mode. (Ionian and Aeolian are the everyday major and natural minor.)</p>
+    <div class="mexs">
+      <figure class="mex"><figcaption><b class="mexm">Dorian</b> <span><i>Swallowtail Jig</i>, traditional Irish jig, played by Callanish</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/swallowtail-jig-dorian.mp3"></audio><p class="note">Minor 3rd, but a raised 6th: the bright note in an otherwise minor tune.</p></figure>
+      <figure class="mex"><figcaption><b class="mexm">Phrygian</b> <span><i>Dror Yikra</i>, a Hebrew poem by Dunash ben Labrat (10th century), sung by Divahn</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/dror-yikra-phrygian.mp3"></audio><p class="note">Minor, with the lowered 2nd right above the tonic.</p></figure>
+      <figure class="mex"><figcaption><b class="mexm">Lydian</b> <span><i>Waltz #1</i>, Elliott Smith</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/elliott-smith-waltz-no-1-lydian.mp3"></audio><p class="note">Entirely Lydian except for the bass note of a single chord, which comes from the major mode.</p></figure>
+      <figure class="mex"><figcaption><b class="mexm">Mixolydian</b> <span><i>Cinnamon Girl</i>, Neil Young</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/cinnamon-girl-mixolydian.mp3"></audio><p class="note">Major, with a lowered 7th: very common in rock.</p></figure>
+      <figure class="mex"><figcaption><b class="mexm">Locrian</b> <span><i>Dust to Dust</i>, John Kirkpatrick</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/dust-to-dust-locrian.mp3"></audio><p class="note">The rarest diatonic mode: a lowered 2nd and a diminished 5th above the tonic.</p></figure>
+    </div>
+    <p class="note lcite">Short excerpts are included for teaching under fair use (educational use). All rights remain with the artists and copyright holders.</p>
+  </section>
+
   <section class="slide" data-title="PADMIL" hidden>
-    <p class="kick">4 · How: PADMIL</p><h2>PADMIL: one note at a time</h2>
+    <p class="kick">5 · How: PADMIL</p><h2>PADMIL: one note at a time</h2>
     <p>Line up the six common modes so each differs from its neighbor by a single note: <b>P</b>hrygian → <b>A</b>eolian → <b>D</b>orian → <b>M</b>ixolydian → <b>I</b>onian → <b>L</b>ydian. Each step to the right <b>raises one scale degree by a half step</b>, which adds one sharp or removes one flat. PADMIL is the circle of fifths in disguise. Locrian fits on the far left: lower <span class='sd'>5</span> of Phrygian.</p>
     <div class="row"><label class="fld2" for="pdTon">Tonic<select id="pdTon"></select></label></div>
     <div class="padmil" role="group" aria-label="Modes in PADMIL order" id="pdBtns"></div>
@@ -115,7 +135,7 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   </section>
 
   <section class="slide" data-title="Key signatures" hidden>
-    <p class="kick">5 · How: key signatures</p><h2>Finding any modal key signature</h2>
+    <p class="kick">6 · How: key signatures</p><h2>Finding any modal key signature</h2>
     <p>Start from the tonic's <b>major</b> key signature, then count along PADMIL: <b>Lydian</b> one sharp more; <b>Mixolydian</b> one flat more; <b>Dorian</b> two flats more; <b>Aeolian</b> three; <b>Phrygian</b> four; <b>Locrian</b> five. (In real music, modal pieces often keep the ordinary major or minor key signature and add accidentals instead.)</p>
     <div class="pickrow" role="group" aria-label="Tonic"><span class="pl">Tonic</span><span id="ksTon"></span></div>
     <div class="mcards" role="group" aria-label="Mode" id="ksModes"></div>
@@ -124,7 +144,7 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   </section>
 
   <section class="slide" data-title="By ear" hidden>
-    <p class="kick">6 · Listening</p><h2>Name that mode by ear</h2>
+    <p class="kick">7 · Listening</p><h2>Name that mode by ear</h2>
     <p>Three steps: (1) find the tonic; (2) decide whether the 3rd above it is major or minor; (3) listen for the note that differs from major or natural minor. Each scale starts and ends on its tonic.</p>
     <div class="row"><button class="lbtn primary" id="earNew" type="button">▶ Play a new mode</button><button class="lbtn" id="earAgain" type="button">▶ Play again</button><button class="lbtn" id="earDrone" type="button">▶ Tonic + 3rd</button></div>
     <div class="mcards" role="group" aria-label="Which mode?" id="earOpts"></div>
@@ -133,16 +153,24 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   </section>
 
   <section class="slide" data-title="Augmented 2nds" hidden>
-    <p class="kick">7 · Beyond diatonic</p><h2>Modes with an augmented 2nd</h2>
+    <p class="kick">8 · Beyond diatonic</p><h2>Modes with an augmented 2nd</h2>
     <p>Some modes include an <b>augmented 2nd</b> (+2): a gap of three half steps between neighboring letters. In common-practice music it appears only in <b>harmonic minor</b> (between <span class='sd'>6</span> and <span class='sd'>7</span>), but it's central to Hungarian minor, Phrygian dominant (Freygish) and the Byzantine scale.</p>
     <div class="mcards" role="group" aria-label="Scales" id="augBtns"></div>
     <div class="big2" id="augRead" aria-live="polite"></div>
     <div class="view2"><div class="cell"><p class="lab">Staff</p><div id="augStaff"></div></div><div class="cell"><p class="lab">Keyboard</p><div id="augKb"></div><div class="steps2" id="augSteps"></div></div></div>
     <div class="row"><button class="lbtn primary" id="augPlay" type="button">▶ Play</button></div>
+    <h3 class="mexh">Hear them in music</h3>
+    <div class="mexs">
+      <figure class="mex"><figcaption><b class="mexm">Harmonic minor</b> <span><i>Kars 2</i>, Tigran Hamasyan</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/tigran-hamasyan-kars-2-harmonic-minor.mp3"></audio></figure>
+      <figure class="mex"><figcaption><b class="mexm">Hungarian minor</b> <span><i>Ó, szerencsés éjszaka</i>, Éva Korpás and Kálmán Balogh</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/hungarian-o-szerencses-ejszaka-hungarian-minor.mp3"></audio></figure>
+      <figure class="mex"><figcaption><b class="mexm">Phrygian dominant (Freygish)</b> <span><i>Klezsex</i>, Charming Hostess</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/charming-hostess-klezsex-freygish.mp3"></audio></figure>
+      <figure class="mex"><figcaption><b class="mexm">Byzantine (double harmonic)</b> <span><i>Miserlou</i>, Dick Dale and His Del-Tones</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/dick-dale-miserlou-byzantine.mp3"></audio></figure>
+    </div>
+    <p class="note lcite">Short excerpts are included for teaching under fair use (educational use). All rights remain with the artists and copyright holders.</p>
   </section>
 
   <section class="slide" data-title="Pentatonic & blues" hidden>
-    <p class="kick">8 · Beyond diatonic</p><h2>Five notes: pentatonic and blues</h2>
+    <p class="kick">9 · Beyond diatonic</p><h2>Five notes: pentatonic and blues</h2>
     <p>Pentatonic scales have five notes and <b>no half steps</b>: only whole steps and minor 3rds. The black keys of a piano form one. <b>Major and minor pentatonic</b> are relatives (same notes, different tonic), and the <b>blues scale</b> adds one note to minor pentatonic: ♯4 / ♭5.</p>
     <div class="mcards" role="group" aria-label="Scales" id="penBtns"></div>
     <div class="big2" id="penRead" aria-live="polite"></div>
@@ -151,21 +179,27 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   </section>
 
   <section class="slide" data-title="Symmetrical scales" hidden>
-    <p class="kick">9 · Beyond diatonic</p><h2>Symmetrical scales</h2>
+    <p class="kick">10 · Beyond diatonic</p><h2>Symmetrical scales</h2>
     <p><b>Whole-tone</b> (all whole steps, 6 notes) and <b>octatonic</b> (alternating whole and half steps, 8 notes) divide the octave evenly. Because every note has the same surroundings, the tonic is ambiguous. Only 2 whole-tone and 3 octatonic collections exist: shift them and they repeat. Rotate the shape to see.</p>
     <div class="mcards" role="group" aria-label="Scales" id="symBtns"></div>
     <div class="view2"><div class="cell"><p class="lab">Pitch circle</p><svg id="symSvg" viewBox="0 0 320 320" role="img" aria-labelledby="symDesc"><desc id="symDesc"></desc></svg></div><div class="cell"><p class="lab">Staff</p><div id="symStaff"></div><div class="steps2" id="symSteps"></div></div></div>
     <div class="row"><button class="lbtn" id="symRot" type="button">↻ Move up a half step</button><button class="lbtn primary" id="symPlay" type="button">▶ Play</button></div>
     <p class="big2" id="symRead" aria-live="polite"></p>
+    <h3 class="mexh">Hear them in music</h3>
+    <div class="mexs">
+      <figure class="mex"><figcaption><b class="mexm">Whole-tone</b> <span><i>La mer, III: Dialogue du vent et de la mer</i>, Claude Debussy</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/debussy-dialogue-du-vent-et-de-la-mer-whole-tone.mp3"></audio></figure>
+      <figure class="mex"><figcaption><b class="mexm">Octatonic</b> <span><i>Rising</i>, Joan Tower</span></figcaption><audio controls preload="none" src="assets/audio/modes/web/joan-tower-rising-octatonic.mp3"></audio></figure>
+    </div>
+    <p class="note lcite">Short excerpts are included for teaching under fair use (educational use). All rights remain with the artists and copyright holders.</p>
   </section>
 
   <section class="slide" data-title="Summary" hidden>
-    <p class="kick">10 · Summary</p><h2>Modes in a nutshell</h2>
+    <p class="kick">11 · Summary</p><h2>Modes in a nutshell</h2>
     <div class="cards3"><div class="c1"><b>Major family</b>Lydian ♯4 · Ionian · Mixolydian ♭7</div><div class="c2"><b>Minor family</b>Dorian ♯6 · Aeolian · Phrygian ♭2 · Locrian ♭2 ♭5</div><div class="c3"><b>Beyond</b>+2 modes · pentatonic · blues · whole-tone · octatonic</div></div>
     <div id="quiz"></div>
   </section>
   <section class="slide" data-title="Practice" hidden>
-    <p class="kick">11 · Practice</p><h2>On to the drills</h2>
+    <p class="kick">12 · Practice</p><h2>On to the drills</h2>
     <p>You've finished the lesson. Now practice what you learned in the <b>Modes drills</b>.</p>
     <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
   </section>
@@ -279,6 +313,7 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   const btnRow = (id, items, cur, onPick, cls = "lbtn") => { $(id).innerHTML = items.map(([v, label, small]) => `<button type="button" class="${cls}" data-v="${v}" aria-pressed="${v === cur}">${small !== undefined ? `<b>${label}</b><small>${small}</small>` : label}</button>`).join(""); $(id).onclick = e => { const b = e.target.closest("[data-v]"); if (b) onPick(b.dataset.v); }; };
 
   // ---------- steps ----------
+  document.addEventListener("play", e => { if (e.target.tagName === "AUDIO") document.querySelectorAll(".mex audio").forEach(x => { if (x !== e.target) x.pause(); }); }, true);   // one excerpt at a time
   const slides = [...document.querySelectorAll(".slide")], stepsEl = $("steps"), SL = t => slides.find(x => x.dataset.title === t);
   let cur = 0; const seen = new Set([0]);
   slides.forEach((s, i) => { const li = document.createElement("li"); li.innerHTML = `<button type="button" aria-label="Step ${i + 1}: ${s.dataset.title}">${i + 1}</button>`; li.firstChild.onclick = () => go(i, true); stepsEl.appendChild(li); });

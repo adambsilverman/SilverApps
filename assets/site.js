@@ -28,7 +28,7 @@
       var html = '<div class="saj-head"><h2 id="saJumpH">Jump to an app</h2><button type="button" class="saj-x" aria-label="Close">✕</button></div><label class="saj-find">Find <input type="search" id="saJumpQ" placeholder="e.g. cadences, rhythm, tuner" autocomplete="off"></label><div class="saj-body">';
       (window.SA_NAV || []).forEach(function (sec) {
         html += '<section class="saj-sec"><h3>' + sec[0] + '</h3><ul>';
-        sec[1].forEach(function (t) { html += '<li data-q="' + (sec[0] + " " + t[0]).toLowerCase().replace(/"/g, "") + '"><span class="saj-name">' + t[0] + '</span>' + t[1].map(function (l) { return '<a href="' + l[1] + '">' + l[0] + '<span class="sr">: ' + t[0] + '</span></a>'; }).join("") + '</li>'; });
+        sec[1].forEach(function (t) { html += '<li data-q="' + (sec[0] + " " + t[0]).toLowerCase().replace(/"/g, "") + '"><span class="saj-name">' + t[0] + '</span>' + t[1].map(function (l) { return '<a href="' + l[1] + '" aria-label="' + l[0] + ': ' + t[0].replace(/"/g, "") + '">' + l[0] + '</a>'; }).join("") + '</li>'; });
         html += '</ul></section>';
       });
       dlg.innerHTML = html + '</div><p class="saj-home"><a href="index.html">Go to the front page</a></p>';

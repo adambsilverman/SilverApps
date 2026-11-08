@@ -2,7 +2,7 @@ window.FAM = (() => {
   // ===== Chord Figures and Symbols: lesson only (the drills are the Chord Figures and Symbols app). Engine: build/harmony/engine.js =====
   const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   // a grand-staff figure: each column { t: treble notes, b: bass notes, lab }
-  const gfig = (H, U, cols, cap) => U.fig({ type: "grand", vf: "C", sig: {}, cols }, cap, { play: { chords: cols.map(c => (c.t || []).concat(c.b || []).map(s => H.midi(H.parse(s)))), gap: 1.3, dur: .9 } });
+  const gfig = (H, U, cols, cap) => U.fig({ type: "grand", vf: "C", sig: {}, cols: cols.map(c => Object.assign({ labNear: true }, c)) }, cap, { play: { chords: cols.map(c => (c.t || []).concat(c.b || []).map(s => H.midi(H.parse(s)))), gap: 1.3, dur: .9 } });
   const tfig = (H, U, list, cap) => U.fig({ type: "score", clefs: ["treble"], time: null, vf: "C", sig: {}, bpm: 50, final: false, bars: list.map(([keys, sym]) => ({ t: [[{ k: keys, d: "w", sym }]] })) }, cap, { play: { chords: list.map(([k]) => k.map(s => H.midi(H.parse(s)))), gap: 1.4, dur: .9 } });
   const C = s => `{sym:${s}}`, R = s => `{rn:${s}}`, F = (...n) => `<span class="fstk">${n.map(x => `<span>${x}</span>`).join("")}</span>`;
   // ---------- a small grand staff for this lesson's diagrams and activities ----------
@@ -15,7 +15,7 @@ window.FAM = (() => {
     let g = "";
     [30, 110].forEach(t => { for (let i = 0; i < 5; i++) g += `<line x1="8" x2="${W - 6}" y1="${t + i * 10}" y2="${t + i * 10}" stroke="${ink}"/>`; });
     g += `<line x1="8" x2="8" y1="30" y2="150" stroke="${ink}" stroke-width="1.5"/><line x1="${W - 6}" x2="${W - 6}" y1="30" y2="150" stroke="${ink}"/>`;
-    g += `<text x="12" y="70" font-family="'Noto Music', serif" font-size="41" fill="${ink}" aria-hidden="true">&#x1D11E;</text><text x="12" y="140.8" font-family="'Noto Music', serif" font-size="46" fill="${ink}" aria-hidden="true">&#x1D122;</text>`;
+    g += `<text x="12" y="70" font-family="'Noto Music', serif" font-size="41" fill="${ink}" aria-hidden="true">&#x1D11E;</text><text x="12" y="150.8" font-family="'Noto Music', serif" font-size="46" fill="${ink}" aria-hidden="true">&#x1D122;</text>`;
     const head = (x, y, col, attrs = "") => `<ellipse cx="${x}" cy="${y}" rx="7.2" ry="5" transform="rotate(-20 ${x} ${y})" fill="none" stroke="${col}" stroke-width="2.6" ${attrs}/>`;
     const ledgers = (x, d, staff) => { let s = ""; if (staff === "t") { for (let L = 28; L >= d; L -= 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${TY(L)}" y2="${TY(L)}" stroke="${ink}"/>`; for (let L = 40; L <= d; L += 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${TY(L)}" y2="${TY(L)}" stroke="${ink}"/>`; }
       else { for (let L = 16; L >= d; L -= 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${BY(L)}" y2="${BY(L)}" stroke="${ink}"/>`; for (let L = 28; L <= d; L += 2) s += `<line x1="${x - 11}" x2="${x + 11}" y1="${BY(L)}" y2="${BY(L)}" stroke="${ink}"/>`; } return s; };
@@ -117,7 +117,8 @@ window.FAM = (() => {
       const b = e.target.closest("[data-sll]"); if (!b || SL.done) return; const c = SL.c, right = c.inv ? c.bass[0] : "-", ans = b.dataset.sll;
       playC(tools, [c.bass, ...c.rh]);
       if (ans === right) { SL.done = true; out.innerHTML = `<b>Yes!</b> ${c.inv ? `${c.bass[0]} is the lowest note, so the symbol is ${c.sym}/${c.bass[0]}.` : `The root, ${c.sym[0]}, is already the lowest note, so no slash is needed: just ${c.sym}.`}`; }
-      else out.innerHTML = `Not quite. Look only at the <b>lowest</b> note (bass staff)${ans === "-" ? ": it isn't the root" : `: it isn't ${ans}`}.`;
+      else if (!c.inv && ans === c.bass[0]) out.innerHTML = `Not quite. ${ans} <i>is</i> the lowest note, but it's also the chord's root, so no slash is needed. The symbol is just ${c.sym}: choose “no slash”.`;
+      else out.innerHTML = `Not quite. Look only at the <b>lowest</b> note (bass staff)${ans === "-" ? ": it isn't the root, so this chord needs a slash" : `: it isn't ${ans}`}.`;
       slDraw(root, tools);
     });
     slDraw(root, tools);
@@ -161,6 +162,19 @@ window.FAM = (() => {
       + `<h3>Try it</h3>${slHTML()}`
       + H.check("What does G7/B mean?", "a G dominant 7th chord with B in the bass (first inversion)", ["a G7 chord followed by B", "G7 with an added B", "a B chord over G"], "The letter after the slash is the bass note."),
       after: (root, H, k, tools) => slWire(root, Object.assign({ H }, tools)) },
+    { title: "How a lead sheet works", kick: "Melody, words and chord symbols", render: (H, k, U) => `<p>A <b>lead sheet</b> is the usual written form of a song in jazz, pop and musical theater. It gives only three things: the <b>melody</b> on one staff, the <b>lyrics</b> under it, and <b>chord symbols</b> above it. Everything else (the bass line, the voicings, the rhythm of the accompaniment) is left to the players, who make it up from the symbols.</p>
+      <figure class="lfig lsfig"><img src="assets/img/Gershwin%20-%20Love%20Is%20Here%20to%20Stay.png" alt="Lead sheet of the first eight bars of (Our) Love Is Here to Stay by George and Ira Gershwin, in F major, 4/4. A pickup bar with C13 under the words It's very; then a boxed A1 and the chords G9, Gm7 C7, F B-flat, Am7 D7, G9, Gm7 C7, E-flat7(flat 5), Bm7(flat 5) E7, above the melody and lyrics." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">
+      <figcaption><p class="small lcite"><i>(Our) Love Is Here to Stay</i> (1938), music by George Gershwin, lyrics by Ira Gershwin: the opening bars as a lead sheet. Excerpt included for teaching under fair use; all rights remain with the copyright holders.</p></figcaption></figure>
+      <h3>Reading it</h3>
+      <ul><li><b>Where a chord starts:</b> each symbol sits above the beat where its chord begins, and it lasts until the next symbol. ${C("G9")} fills a whole bar; in the bar with ${C("F")} and ${C("B♭")}, each gets two beats.</li>
+      <li><b>The pickup:</b> the song starts with a three-beat pickup (“It's ver-y”) over ${C("C13")}, which leads into the first full bar.</li>
+      <li><b>Form markers:</b> the boxed <b>A1</b> is a rehearsal mark: the first A section starts here. Section letters help players find their place and describe the song's form.</li>
+      <li><b>The symbols themselves</b> combine everything in this lesson: a root letter, a quality, then any 7th, extensions or alterations: ${C("Gm7")} (minor 7th), ${C("C7")} (dominant 7th), ${C("G9")} (dominant 7th plus a 9th), ${C("C13")} (dominant with a 13th), ${C("Bm7(♭5)")} (half-diminished, also written Bø7) and ${C("E♭7(♭5)")} (a dominant 7th with a lowered 5th). Extensions and alterations are covered in <a href="extended-and-altered-chords-lesson.html">Chord Extensions</a>.</li>
+      <li><b>Melody against chord:</b> the melody note often isn't the chord's root. Over ${C("G9")} the melody holds A, the chord's 9th; that color is exactly what the symbol names.</li>
+      <li><b>No figures, no inversions unless asked for:</b> the bass player plays the roots (or a line built on them) unless a slash chord asks for another bass note.</li></ul>
+      <p>Pianists and guitarists <b>voice</b> each symbol however they like: the order of the notes, which octave, and which tones to leave out (usually the 5th first) are up to them.</p>`
+      + H.check("On a lead sheet, how long does a chord last?", "until the next chord symbol", ["one beat", "one bar, always", "until the melody changes"], "A symbol holds until a new one replaces it; two symbols in a 4/4 bar usually split it two beats each.")
+      + H.check("Which of these is NOT written on a lead sheet?", "the bass line and the chord voicings", ["the melody", "the lyrics", "the chord symbols"], "The players make up the accompaniment from the symbols.") },
     { title: "Suspended chords (sus4)", kick: "A 4th instead of a 3rd", render: (H, k, U) => `<p>A <b>sus4</b> chord replaces the 3rd with a <b>perfect 4th</b> above the root: root, 4th, 5th. ${C("Csus4")} is C–F–G; ${C("Gsus4")} is G–C–D. With no 3rd it is neither major nor minor, so it sounds open and unsettled, as if it wants to move.</p>
       ${tfig(H, U, [[["C4", "E4", "G4"], "C"], [["C4", "F4", "G4"], "Csus4"], [["C4", "E4", "G4"], "C"]], "C, Csus4, C: the 3rd (E) moves up to the 4th (F) and back down. Only one note changes.")}
       <p>The name comes from the <b>suspension</b>. In classical music a 4th above the bass is held over from the previous chord and then resolves down by step to the 3rd: the <b>4–3 suspension</b>. Figured bass writes it as 4 then 3 under the bass note, often on the chord built on the 5th degree. That chord (the dominant) is the most common place for it, right before a cadence:</p>

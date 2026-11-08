@@ -338,3 +338,19 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .gs .gszone { cursor: crosshair; }
 .gs .gsn:focus { outline: none; }
 .lcap { font-size: .95rem; }
+/* Keys: solfège play buttons under the tendency-tone staff */
+.ministaff .tdbtn { cursor: pointer; }
+.ministaff .tdr { fill: var(--paper, #fff); stroke: currentColor; stroke-width: 1.5; }
+.ministaff .tdbtn:hover .tdr, .ministaff .tdbtn:focus-visible .tdr { fill: rgba(232,87,63,.18); stroke: var(--fi-red-dk, #a8321f); }
+.ministaff .tdbtn:focus { outline: none; }
+.ministaff .tdbtn:focus-visible .tdr { stroke-width: 3; }
+/* Pitch: choose-your-own-pitches panel */
+.pcbox { border: 1.5px solid var(--line, #ccc); border-radius: 14px; padding: 12px 16px 14px; margin: 8px 0 14px; background: var(--card, #fff); }
+.pcstep { margin: 12px 0 6px; padding-left: 32px; text-indent: -32px; }
+.pcstep .pcn { margin-right: 6px; text-indent: 0; vertical-align: 1px; }
+.pcstep:first-child { margin-top: 2px; }
+.pcn { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--fi-red-dk, #a8321f); color: #fff; font-weight: 700; font-size: 14px; flex: none; }
+.pcgrid { display: grid; grid-template-columns: max-content max-content; gap: 6px 14px; align-items: center; justify-content: start; margin: 4px 0 6px 32px; }
+.pcgrid select, .pcbox .pcpanel select { min-height: 40px; font: inherit; font-size: 16px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
+.pcbox .lbtns, .pcbox .pcpanel { margin-left: 32px; }
+@media (max-width: 520px) { .pcgrid, .pcbox .lbtns, .pcbox .pcpanel { margin-left: 0; } }
