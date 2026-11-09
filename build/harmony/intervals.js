@@ -30,7 +30,7 @@ window.FAM = (() => {
     const w = 100 / whites.length; let h = "";
     whites.forEach((m, i) => { h += `<button class="ik w${marks[m] ? " mk" : ""}" data-ikb="${m}" style="left:${i * w}%;width:${w}%" aria-label="${PCN[m % 12]} ${Math.floor(m / 12) - 1}${marks[m] ? ", " + marks[m] : ""}">${marks[m] ? `<b>${marks[m]}</b>` : ""}${m % 12 === 0 ? `<span>C${Math.floor(m / 12) - 1}</span>` : ""}</button>`; });
     for (let m = lo; m <= hi; m++) if ([1, 3, 6, 8, 10].includes(m % 12)) { const i = whites.indexOf(m - 1); h += `<button class="ik b${marks[m] ? " mk" : ""}" data-ikb="${m}" style="left:${(i + 1) * w - w * .3}%;width:${w * .6}%" aria-label="${PCN[m % 12]} ${Math.floor(m / 12) - 1}${marks[m] ? ", " + marks[m] : ""}">${marks[m] ? `<b>${marks[m]}</b>` : ""}</button>`; }
-    return `<details class="ikbd"${kbOpen() ? " open" : ""}><summary>Show keyboard</summary><div class="ikbwrap"><div class="ikb" role="group" aria-label="Keyboard for counting half steps; click a key to hear it">${h}</div></div><p class="ikbnote">Count half steps from key to key (black keys included). Click keys to hear them and see their names.</p><p class="sr" id="ikLive" aria-live="polite"></p></details>`;
+    return `<details class="ikbd"${kbOpen() ? " open" : ""}><summary><span class="kbs">Show keyboard</span><span class="kbh">Hide keyboard</span></summary><div class="ikbwrap"><div class="ikb" role="group" aria-label="Keyboard for counting half steps; click a key to hear it">${h}</div></div><p class="ikbnote">Count half steps from key to key (black keys included). Click keys to hear them and see their names.</p><p class="sr" id="ikLive" aria-live="polite"></p></details>`;
   }
 
   // ---------- question building ----------
@@ -50,7 +50,7 @@ window.FAM = (() => {
   // the matching-accidentals shortcut for 4ths and 5ths: same accidental on both notes = perfect, except the B–F pair
   const trick = (lo, hi, i) => { if (i !== 3 && i !== 4) return ""; const odd = i === 4 ? lo.l === 6 : lo.l === 3, same = lo.a === hi.a;
     return ` Shortcut: ${i === 4 ? "5ths" : "4ths"} whose two notes carry the same accidental are perfect, except ${i === 4 ? "B up to F (diminished)" : "F up to B (augmented)"}. Here the accidentals ${same ? "match" : "don't match"}${odd ? ` and the letters are ${i === 4 ? "B–F" : "F–B"}` : ""}.`; };
-  const why = (H, lo, hi, i, q) => `${H.nm(lo)} up to ${H.nm(hi)}: ${i + 1} letter names (${Array.from({ length: i + 1 }, (_, k) => "CDEFGAB"[(lo.l + k) % 7]).join(" ")}), so ${i === 0 ? "a unison" : i === 7 ? "an octave" : "a " + NUM[i]}; ${H.midi(hi) - H.midi(lo)} half steps, so ${nameOf(i, q)}.` + trick(lo, hi, i);
+  const why = (H, lo, hi, i, q) => `${H.nm(lo)} up to ${H.nm(hi)}: ${i === 0 ? `both notes share one letter name (${"CDEFGAB"[lo.l]})` : `${i + 1} letter names (${Array.from({ length: i + 1 }, (_, k) => "CDEFGAB"[(lo.l + k) % 7]).join(" ")})`}, so ${i === 0 ? "a unison" : i === 7 ? "an octave" : "a " + NUM[i]}; ${H.midi(hi) - H.midi(lo)} half steps, so ${nameOf(i, q)}.` + trick(lo, hi, i);
 
   function make(mode, H) {
     if (mode === "note" || mode === "above" || mode === "below") mode = mode === "note" ? (Math.random() < .5 ? "above" : "below") : mode;   // one "write the note" drill, above or below at random
@@ -78,7 +78,7 @@ window.FAM = (() => {
       const enh = [-1, 1].map(st => H.up(other, st, 0)).filter(n => Math.abs(n.a) <= 1);
       const wrong = [...new Set(cands.concat(enh).map(H.nm))].filter(x => x !== H.nm(other));
       const ansStaff = staff(H, [lo, hi], clef, false);
-      return H.mc(`Which note is ${/^[aeiou]/.test(nameOf(i, q)) ? "an" : "a"} ${nameOf(i, q)} ${above ? "above" : "below"} ${H.nm(given)}? Choose its letter and accidental.`, H.nm(other), wrong, why(H, lo, hi, i, q) + (enh.some(n => H.midi(n) === H.midi(other)) ? ` The spelling matters: ${i === 7 ? "an octave" : "a " + NUM[i]} must span ${i + 1} letter names, so the enharmonic note is a different interval.` : ""), { widget: "pitchpick", kicker: above ? "Write the note above" : "Write the note below", topic, staff: staff(H, [given], clef, false), staffAns: ansStaff, playQ: { chords: [[H.midi(given)]] }, play: play(H, lo, hi, false), fig: keyboard({ [H.midi(given)]: "★" }) });
+      return H.mc(`Which note is ${/^[aeiou]/.test(nameOf(i, q)) ? "an" : "a"} ${nameOf(i, q)} ${above ? "above" : "below"} ${H.nm(given)}? Choose its letter and accidental.`, H.nm(other), wrong, why(H, lo, hi, i, q) + (enh.some(n => H.midi(n) === H.midi(other)) ? (i === 0 ? ` The spelling matters: in a unison both notes share the same letter name, so the enharmonic note is a different interval.` : ` The spelling matters: ${i === 7 ? "an octave" : "a " + NUM[i]} must span ${i + 1} letter names, so the enharmonic note is a different interval.`) : ""), { widget: "pitchpick", kicker: above ? "Write the note above" : "Write the note below", topic, staff: staff(H, [given], clef, false), staffAns: ansStaff, playQ: { chords: [[H.midi(given)]] }, play: play(H, lo, hi, false), fig: keyboard({ [H.midi(given)]: "★" }) });
     }
     return make(mode, H);
   }

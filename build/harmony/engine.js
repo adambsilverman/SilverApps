@@ -119,7 +119,7 @@
   const rnHTML = t => `<span class="rn" role="img" aria-label="${esc(rnSpoken(t))}"><span aria-hidden="true">${String(t).split("/").map(rnPart).join("/")}</span></span>`;
   const rnSpoken = t => String(t).split("/").map(rnSpokenPart).join(" of ");
   const symHTML = t => `<span class="csym" role="img" aria-label="${esc(speak(t))}"><span aria-hidden="true">${accHTML(t)}</span></span>`;
-  const fmtVal = (v, f) => f === "rn" ? rnHTML(v) : f === "sym" ? symHTML(v) : accHTML(v);
+  const fmtVal = (v, f) => f === "rn" ? rnHTML(v) : f === "sym" ? symHTML(v) : /\{(rn|sym):/.test(String(v)) ? rich(String(v)) : accHTML(v);   // answers may embed {rn:…}/{sym:…}
   // inline markup in content text: {rn:V7/V} and {sym:F♯°7/A}
   const rich = s => dimHTML(sdHTML(esc(s)).replace(/\{rn:([^}]+)\}/g, (_, t) => rnHTML(t.replace(/&amp;/g, "&"))).replace(/\{sym:([^}]+)\}/g, (_, t) => symHTML(t)).replace(/(?<!"acc">)([♭♯♮𝄫𝄪])(?![^<]*>)/g, '<span class="acc">$1</span>'));
   // the same inline markup inside HTML that is already escaped (lesson bodies): leaves tags and attributes alone
@@ -353,7 +353,7 @@
     rows.forEach((row, ri) => {
       let x = 8; const y0 = ri * rowH + above + 10;
       // a passage that wraps: stretch every row to the same width, so lines end together (no row wider than the widest)
-      const hw = headW(row[0] === 0), natural = row.reduce((t, bi) => t + barW(o.bars[bi]), 0), k = rows.length > 1 ? Math.max(1, (totalW - 14 - hw) / natural) : 1;
+      const hw = headW(row[0] === 0), natural = row.reduce((t, bi) => t + barW(o.bars[bi]), 0), k0 = rows.length > 1 ? Math.max(1, (totalW - 14 - hw) / natural) : 1, k = ri === rows.length - 1 && k0 > 1.2 ? 1 : k0;   // a short last line stays its natural width (not right-justified)
       const rowStaves = [];
       row.forEach((bi, j) => {
         const bar = o.bars[bi]; let bw = barW(bar) * k + (j ? 0 : headW(bi === 0));

@@ -354,3 +354,4 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .pcgrid select, .pcbox .pcpanel select { min-height: 40px; font: inherit; font-size: 16px; border-radius: 8px; border: 1.5px solid var(--line, #bbb); background: var(--card, #fff); color: inherit; }
 .pcbox .lbtns, .pcbox .pcpanel { margin-left: 32px; }
 @media (max-width: 520px) { .pcgrid, .pcbox .lbtns, .pcbox .pcpanel { margin-left: 0; } }
+details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { display: none; }
