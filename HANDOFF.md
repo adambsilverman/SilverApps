@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-09 (z94)** — *Modulation lesson*: Lady Madonna now plays from YouTube (uLRiGX3L-kw, 0:09–0:54) instead of the hosted MP3, to lower fair-use exposure. `MEDIA()` takes `{ yt, start, end, title }` in place of an audio file name for this.
 - **2026-11-09 (z93)** — Fixes and credits.
   - *Forms*: the K. 421 Menuetto clip plays 14:20–15:57 (`?start=860&end=957`).
   - *Extended and Altered Chords*: example chords are centered in their bars (`center: true` in `chordSpec`); C+maj7 (augmented major seventh) added to the seventh-chord example and table; *Altered tones* explains why D△7(♭13) has no 9th or 11th.
