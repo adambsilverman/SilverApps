@@ -41,6 +41,10 @@
 .mexm{font:700 15px var(--fi-ui);color:var(--fi-red-dk, #a8321f);text-transform:uppercase;letter-spacing:.04em}
 .mex audio{width:100%;height:40px}
 .mexh{margin:6px 0 0;font:700 16px var(--fi-ui)}
+.trk2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0}
+.trk2>div{border:1.5px solid var(--fi-line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
+.trk2 b{font:700 14px var(--fi-ui);color:var(--fi-red-dk)}
+.trk2 span{font-size:1.15rem}
 .lcite{font-style:italic}
 /* quiz */
 .q{border-top:1px dashed var(--fi-soft);padding-top:12px;display:grid;gap:8px}
@@ -187,6 +191,19 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     <div class="big2" id="penRead" aria-live="polite"></div>
     <div class="view2"><div class="cell"><p class="lab">Staff</p><div id="penStaff"></div></div><div class="cell"><p class="lab">Keyboard</p><div id="penKb"></div><div class="steps2" id="penSteps"></div></div></div>
     <div class="row"><button class="lbtn primary" id="penPlay" type="button">▶ Play</button></div>
+    <p>Pentatonic (five-note) scales are probably the most widespread scales on Earth: they provide a palette for music on every continent. In traditions that tune differently from Western equal temperament they vary, but they're usually built entirely from intervals larger than a half step. Compared with major:</p>
+    <div class="trk2"><div><b>Major pentatonic</b><span>1̂ – 2̂ – 3̂ – 5̂ – 6̂</span></div><div><b>Minor pentatonic</b><span>1̂ – ♭3̂ – 4̂ – 5̂ – ♭7̂</span></div></div>
+    <figure class="mex pfig"><img src="assets/img/pentatonic/keyboard-pentatonic.jpg" alt="Piano keyboard with lines from the five black keys to two scales on a staff with six flats: E-flat minor pentatonic (E-flat, G-flat, A-flat, B-flat, D-flat) and G-flat major pentatonic (G-flat, A-flat, B-flat, D-flat, E-flat)." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px"><figcaption>The black keys make both: E♭ minor pentatonic and its relative, G♭ major pentatonic.</figcaption></figure>
+    <h3 class="mexh">Pentatonic melodies, fuller harmony</h3>
+    <p>Outside folk music played on pentatonically tuned instruments (often percussion or harps), purely pentatonic music is unusual. More often a <b>pentatonic melody</b> is harmonized with full chords that include notes outside the scale, and passing tones may decorate the melody without changing its five-note character.</p>
+    <div class="mexs">
+      <figure class="mex pfig"><img src="assets/img/pentatonic/swift-shake-it-off.png" alt="Melody in G major with chord symbols Am, C, G and lyrics beginning Cause the player's gonna play. It uses only G, A, B, D and E." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px"><audio controls preload="none" src="assets/audio/pentatonic/swift-shake-it-off.mp3"></audio><figcaption>Taylor Swift, “Shake It Off” (2014): the melody uses only G major pentatonic (G A B D E); the missing C appears only in the Am and C chords.</figcaption></figure>
+      <figure class="mex pfig"><img src="assets/img/pentatonic/charles-hit-the-road-jack.png" alt="Melody in G-sharp minor with chords G-sharp minor over a descending bass F-sharp, E, D-sharp, and lyrics Hit the road, Jack. It uses only G-sharp, B, C-sharp, D-sharp and F-sharp." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px"><audio controls preload="none" src="assets/audio/pentatonic/charles-hit-the-road-jack.mp3"></audio><figcaption>Ray Charles, “Hit the Road Jack” (1961): the melody uses only G♯ minor pentatonic (G♯ B C♯ D♯ F♯); the missing E is heard in the bass line.</figcaption></figure>
+    </div>
+    <h3 class="mexh">The blues scale</h3>
+    <p>The <b>blues scale</b> is a minor pentatonic scale with one added tone, ♯4̂ (or ♭5̂). Blues melodies use it as a framework, plus a nuanced vocabulary of embellishing tones.</p>
+    <figure class="mex pfig"><img src="assets/img/pentatonic/blues-scale.png" alt="F blues scale on a staff: F, A-flat, B-flat, B natural (circled in red), C, E-flat, F, labeled 1, flat 3, 4, sharp 4, 5, flat 7, 8." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px"><figcaption>The F blues scale: minor pentatonic (black) plus ♯4̂ (red).</figcaption></figure>
+    <figure class="mex pfig"><img src="assets/img/pentatonic/johnson-sweet-home-chicago.png" alt="Melody in F with chord symbols F7, B-flat 7 and C7, lyrics Oh, baby don't you want to go, back to the land of California, to my sweet home Chicago. Most notes are in the F blues scale; a few, colored purple, are outside it." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px"><audio controls preload="none" src="assets/audio/pentatonic/johnson-sweet-home-chicago.mp3"></audio><figcaption>Robert Johnson, “Sweet Home Chicago” (1936): blues-scale notes in black, notes outside the scale in purple.</figcaption></figure>
   </section>
 
   <section class="slide" data-title="Symmetrical scales" hidden>
