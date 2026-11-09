@@ -443,3 +443,4 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pbld .pb-bar { font-family: var(--body); }
 .pbld .rn, .pbld .csym, .pbld select, .pbld .pb-cnt { font-family: "Schibsted Grotesk", system-ui, sans-serif; }
 .pbld a.lk { display: inline-flex; align-items: center; text-decoration: none; margin-left: auto; }
+.pbld .rn .rq.dim, .pbld .dimc { border-radius: 50% !important; }

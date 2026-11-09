@@ -403,7 +403,7 @@
         {
           "name": "Groove Player",
           "topic": "Roman numerals in action",
-          "blurb": "Build progressions from diatonic and chromatic Roman numerals, drag them into order, give them a style, meter, bass line and beat, transpose and export audio. (Formerly the Chord Progression Lab.)",
+          "blurb": "Build progressions from diatonic and chromatic Roman numerals, drag them into order, give them a style, meter, bass line and beat, transpose and export audio.",
           "open": "chord-progression-lab.html",
           "note": "Creative tool"
         }

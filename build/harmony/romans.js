@@ -130,9 +130,20 @@ window.FAM = (() => {
     if (S.cfg.bassLvl == null) S.cfg.bassLvl = 1.2; }
   const curSys = () => (document.querySelector("[data-rsysbtn][aria-pressed='true']") || { dataset: { rsysbtn: window.__rsys || "cl" } }).dataset.rsysbtn;
   // one progression entry -> chord object with .rn (figure included)
+  // chromatic chords measured against the major scale on the tonic: [id, {a: accidental, d: degree} | {t: target degree, lt: leading-tone chord}, triad, seventh]
+  const CHRP = [["♭III", { a: -1, d: 3 }, "M", "M7"], ["iv", { a: 0, d: 4 }, "m", "m7"], ["♭VI", { a: -1, d: 6 }, "M", "M7"], ["♭VII", { a: -1, d: 7 }, "M", "7"], ["i", { a: 0, d: 1 }, "m", "m7"], ["v", { a: 0, d: 5 }, "m", "m7"], ["♭II", { a: -1, d: 2 }, "M", "M7"],
+    ["V/ii", { t: 2 }, "M", "7"], ["V/IV", { t: 4 }, "M", "7"], ["V/V", { t: 5 }, "M", "7"], ["V/vi", { t: 6 }, "M", "7"], ["vii°/V", { t: 5, lt: 1 }, "d", "o7"]];
+  const chrDeg = x => x.d || (x.lt ? (x.t + 5) % 7 + 1 : (x.t + 3) % 7 + 1);
+  const PALS = { maj: "Major diatonic", min: "Minor diatonic", chr: "Major + chromatic numerals" };
+  const palOf = kind => kind === "maj" ? [1, 2, 3, 4, 5, 6, 7].map(d => ({ d })) : kind === "min" ? MINP.map(m => ({ id: m[0] })) : [1, 2, 3, 4, 5, 6, 7].map(d => ({ d })).concat(CHRP.map(c => ({ c: c[0] })));
   function pbChord(H, k, e, sys) {
-    const f = e.s ? FIG7[e.b] : FIG3[e.b];
-    if (k.mode === "major") return H.tok(k, e.d + f);
+    const f = e.s ? FIG7[e.b] : FIG3[e.b], km = () => k.mode === "major" ? k : H.key(k.name, "major");
+    if (e.c) { const [id, x, tq, sq] = CHRP.find(c => c[0] === e.c) || CHRP[0], K = km();
+      let root; if (x.t) { const T = H.deg(K, x.t); root = x.lt ? H.down(T, 1, 1) : H.up(T, 4, 7); } else { const r = H.deg(K, x.d); root = H.N(r.l, r.a + x.a, 4); }
+      const c = H.chord(root, e.s ? sq : tq, e.b), [num, of] = id.split("/");
+      c.rn = num + f + (of ? "/" + of : ""); return c; }
+    if (e.d) return H.tok(km(), e.d + f);
+    if (k.mode === "major") k = H.key(k.name, "minor");
     const p = MINP.find(m => m[0] === e.id) || MINP[0], root = p[6] ? H.up(H.deg(k, 7), 0, 1) : H.deg(k, p[1]);
     const c = H.chord(root, e.s ? p[3] : p[2], e.b);
     let rn = sys === "mj" ? p[5] : p[4];
@@ -193,7 +204,7 @@ window.FAM = (() => {
       <label>Bass <select data-pbbi>${Object.entries(BI).map(([v, n]) => `<option value="${v}">${n}</option>`).join("")}</select></label>
       <label>Drums <select data-pbkit><option value="rock">Rock kit</option><option value="chip">Chiptune</option><option value="samba">Samba</option><option value="k808">808</option><option value="off">No drums</option></select></label>
       <label>Bass level <input type="range" min="0" max="2" step=".1" data-pblvl></label></div>
-    ${trans ? `<div class="pb-row pb-keys" role="group" aria-label="Key"></div>` : `<div class="pb-row" role="group" aria-label="Bass tone and 7th for the next chord"><span class="pb-lab" aria-hidden="true">Bass tone:</span>${BASSN.map((n, i) => `<button class="lk" data-pbb="${i}" aria-pressed="${i === 0}">${n}</button>`).join("")}<button class="lk" data-pbs aria-pressed="false">Add 7th</button></div>
+    ${trans ? `<div class="pb-row pb-keys" role="group" aria-label="Key"></div>` : `${mode === "minor" ? `<div class="pb-row pb-pals" role="group" aria-label="Chord palette">${Object.entries(PALS).map(([v, n]) => `<button class="lk pb-sty" data-pbpal="${v}" aria-pressed="${v === "min"}">${n}</button>`).join("")}</div>` : ""}<div class="pb-row" role="group" aria-label="Bass tone and 7th for the next chord"><span class="pb-lab" aria-hidden="true">Bass tone:</span>${BASSN.map((n, i) => `<button class="lk" data-pbb="${i}" aria-pressed="${i === 0}">${n}</button>`).join("")}<button class="lk" data-pbs aria-pressed="false">Add 7th</button></div>
     <div class="pb-pal" role="group" aria-label="Chords in the key (tap to add)"></div>`}
     <div class="pb-prog" role="group" aria-label="Your progression, one chord per bar"></div>
     <div class="pb-row"><button class="play pb-go" data-pbplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg><span>Play</span></button><button class="lk" data-pbloop aria-pressed="true">Loop</button>${trans ? "" : `<button class="lk" data-pbdel>Remove last</button><button class="lk" data-pbclr>Clear</button><button class="lk" data-pbreset>Example</button>`}<a class="lk pb-full" data-pbfull href="chord-progression-lab.html">Open in the full Groove Player</a></div>
@@ -205,10 +216,10 @@ window.FAM = (() => {
     const mode = box.dataset.pb, trans = box.hasAttribute("data-trans"), S = pbState(), C = S.cfg;
     const prog = () => (trans && !S[mode].length ? PBDEF[mode] : S[mode]);
     let b = 0, s = 0, sel = null, k = k0, playing = null;
-    const pal = mode === "major" ? [1, 2, 3, 4, 5, 6, 7].map(d => ({ d })) : MINP.map(m => ({ id: m[0] }));
+    let palK = mode === "major" ? "maj" : "min", pal = palOf(palK);
     const $ = q => box.querySelector(q), live = t => { $("[data-pblive]").textContent = t; };
     const chordOf = e => pbChord(H, k, e, curSys());
-    const degOf = e => e.d || (MINP.find(m => m[0] === e.id) || [0, 1])[1];
+    const degOf = e => e.d || (e.c ? chrDeg((CHRP.find(c => c[0] === e.c) || CHRP[0])[1]) : (MINP.find(m => m[0] === e.id) || [0, 1])[1]);
     const label = c => `<span aria-hidden="true">${H.rnHTML(c.rn)}<small>${H.symHTML(c.sym)}</small></span>`;
     const M = () => METERS[C.meter], st = () => STYLES[C.style];
     const lanes = () => ["Chords", "Bass"].concat(C.kit === "off" ? [] : KITS[C.kit]);
@@ -253,6 +264,7 @@ window.FAM = (() => {
     const changed = () => { pbSave(); };
     box.addEventListener("click", ev => {
       if (noClick) return; const t = ev.target.closest("button"); if (!t || !box.contains(t)) return; const P = S[mode];
+      if (t.dataset.pbpal) { palK = t.dataset.pbpal; pal = palOf(palK); box.querySelectorAll("[data-pbpal]").forEach(x => x.setAttribute("aria-pressed", x === t)); draw(); live(`${PALS[palK]} palette.`); return; }
       if (t.dataset.pbstyle) { pbStyle(S, t.dataset.pbstyle); box._prev = null; sets(); grid(); changed(); live(`${STYLES[C.style].name}: ${CI[C.ci]}, ${BI[C.bi]}, ${C.meter}.`); if (!playing) start(); return; }
       if (t.dataset.row != null) { const r = +t.dataset.row, p = +t.dataset.col, a = C.rows[r], j = a.indexOf(p); if (j >= 0) a.splice(j, 1); else a.push(p); t.setAttribute("aria-pressed", j < 0); changed(); return; }
       if (t.hasAttribute("data-pbplay")) { playing ? stop() : start(); return; }
@@ -292,10 +304,12 @@ window.FAM = (() => {
     box.addEventListener("input", ev => { const t = ev.target; if (t.matches("[data-pbbpm]")) { C.bpm = +t.value; $("[data-pbbpmv]").textContent = C.bpm; } if (t.matches("[data-pblvl]")) C.bassLvl = +t.value; changed(); });
     // hand the groove to the full Groove Player page (same link format as its "Copy link")
     const fullHref = () => { const st = STYLES[C.style] || STYLES.rock, seq = st.seq.join(""), bars = METERS[C.meter].n / 4;
-      const id = e => mode === "major" ? ["I", "ii", "iii", "IV", "V", "vi", "vii"][e.d - 1] : ({ "vii°": "vii" }[e.id] || e.id);
-      const h = { v: 2, t: k.name, m: mode, cv: curSys() === "mj" ? "pop" : "classical", mt: C.meter, b: C.bpm, sm: 1, vo: C.ci === "dist" ? "power" : "close", ci: C.ci === "eguitar" ? "pluck" : C.ci, bi: C.bi, kit: C.kit === "off" ? "rock" : C.kit, st: C.style,
+      const P = prog(), lm = mode === "major" || P.some(e => e.d || e.c) ? "major" : "minor";
+      const CH = { "♭III": "bIII", "♭VI": "bVI", "♭VII": "bVII", "♭II": "bII", "vii°/V": "vii/V" }, MI = { III: "bIII", VI: "bVI", VII: "bVII", "vii°": "vii" };
+      const id = e => e.d ? ["I", "ii", "iii", "IV", "V", "vi", "vii"][e.d - 1] : e.c ? (CH[e.c] || e.c) : lm === "major" ? (MI[e.id] || e.id) : ({ "vii°": "vii" }[e.id] || e.id);
+      const h = { v: 2, t: k.name, m: lm, cv: curSys() === "mj" ? "pop" : "classical", mt: C.meter, b: C.bpm, sm: 1, vo: C.ci === "dist" ? "power" : "close", ci: C.ci === "eguitar" ? "pluck" : C.ci, bi: C.bi, kit: C.kit === "off" ? "rock" : C.kit, st: C.style,
         ar: st.arp ? "up" : "", bt: seq === "b" ? "root" : !seq.includes("5") ? "oct" : "alt5", sw: 0, rw: C.kit === "off" ? [C.rows[0], C.rows[1], [], [], []] : C.rows, ed: { C: 1, B: 1, D: 1 },
-        c: prog().map(e => [id(e), e.s ? "7" : "triad", e.b, bars, ""]) };
+        c: P.map(e => [id(e), e.s ? "7" : "triad", e.b, bars, ""]) };
       return "chord-progression-lab.html#p=" + encodeURIComponent(JSON.stringify(h)); };
     box.addEventListener("pointerdown", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
     box.addEventListener("focusin", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
@@ -339,7 +353,7 @@ window.FAM = (() => {
       <div data-rsys="mj" hidden><p><b>Relative to the major scale</b> (common in pop, rock and jazz, and in some textbooks): every key and mode is measured against the major scale on the same tonic, so those chords are <b>♭III, ♭VI, ♭VII</b>. One numeral then always means one chord relative to the tonic: {rn:♭VI} is the same chord in ${kM.label} and ${k.label}, which makes borrowing between modes easy to see.</p></div>
       ${tbl(`Chords in ${k.label}`, ["Degree", "Chord", "Numeral", "Note"], rows)}
       <h3>Build a minor-key progression</h3>
-      <p>The palette has both chords on the 5th degree (v and V) and both on the 7th (VII and vii°), and its labels follow the numeral system chosen above. Try {rn:v} and then {rn:V} before {rn:i} to hear what the raised 7th does, or {rn:VII} against {rn:vii°}. This progression is also used in the <b>Transposition</b> step.</p>
+      <p>Switch the palette between <b>Minor diatonic</b>, <b>Major diatonic</b> (the parallel major) and <b>Major + chromatic numerals</b> (borrowed chords, the Neapolitan and applied dominants) and mix them in one progression. The minor palette has both chords on the 5th degree (v and V) and both on the 7th (VII and vii°), and its labels follow the numeral system chosen above. Try {rn:v} and then {rn:V} before {rn:i} to hear what the raised 7th does, or {rn:VII} against {rn:vii°}. This progression is also used in the <b>Transposition</b> step.</p>
       ${pbHTML("minor", "pbMin")}
       <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Groove Player lets you switch between them.</p>
       <h3>Chromatic numerals</h3>

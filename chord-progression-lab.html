@@ -83,7 +83,7 @@
 <main class="gp" id="main">
   <header>
     <h1>Groove <span>Player</span></h1>
-    <p>Build a progression from Roman numerals, drag the chords into order, then give it a groove: pick a style, a meter and separate instruments for the chords, bass and drums, and tap the boxes to change the beat. Change the key and every chord moves at once, because numerals describe chords by scale degree. (This is the former Chord Progression Lab.) Learn the labels in <a href="roman-numeral-analysis-lesson.html">Introduction to Roman Numeral Analysis</a>.</p>
+    <p>Build a progression from Roman numerals, drag the chords into order, then give it a groove: pick a style, a meter and separate instruments for the chords, bass and drums, and tap the boxes to change the beat. Change the key and every chord moves at once, because numerals describe chords by scale degree. Learn the labels in <a href="roman-numeral-analysis-lesson.html">Introduction to Roman Numeral Analysis</a>.</p>
   </header>
 
   <section class="gpbox" aria-labelledby="gpH">
@@ -100,6 +100,7 @@
     <div class="styles" id="styles" role="group" aria-labelledby="stH"></div>
     <h3 id="palH">Chords</h3>
     <div class="styles" id="tabs" role="group" aria-label="Chord groups"></div>
+    <div class="row" id="pset" role="group" aria-label="Bass tone and 7th for new chords"><span class="fld" aria-hidden="true">Bass tone</span><button class="tb" type="button" data-pinv="0" aria-pressed="true">Root</button><button class="tb" type="button" data-pinv="1" aria-pressed="false">3rd</button><button class="tb" type="button" data-pinv="2" aria-pressed="false">5th</button><button class="tb" type="button" data-pinv="3" aria-pressed="false">7th</button><button class="tb" type="button" data-psev aria-pressed="false">Add 7th</button></div>
     <div class="pal" id="palette" role="group" aria-labelledby="palH"></div>
     <h3 id="progH">Progression <span class="sr">(drag a chord, or press Shift with an arrow key, to move it; select it to edit)</span></h3>
     <div class="prog" id="prog" role="group" aria-labelledby="progH"></div>
@@ -309,7 +310,7 @@
     let qs = e.q === "d" ? "°" : e.q === "A" ? "+" : "";
     let fig = "", ex = "";
     const sev = (ext === "dom7" || ext === "7sus4") ? "7" : e.s;
-    if (isAug6(e)) { fig = "+6"; num = e.num; }
+    if (isAug6(e)) { fig = "+6"; num = e.num; if (inv) ex = ` (bass ${nm(t[inv].n)})`; }
     else if (ext === "triad") fig = ["", "6", "64"][inv];
     else if (ext === "7" || ext === "dom7") { if (e.q === "d") qs = sev === "o7" ? "°" : "ø"; if (sev === "M7") qs = "△"; fig = ["7", "65", "43", "42"][inv]; }
     else { if (e.q === "d") qs = sev === "o7" ? "°" : "ø"; ex = { "9": sev === "M7" ? "△9" : "9", "6": "add6", add9: "add9", sus4: "sus4", sus2: "sus2", "7sus4": "7sus4" }[ext]; if (inv) ex += ` (bass ${nm(t[inv].n)})`; }
@@ -519,12 +520,16 @@
   const degOf = e => (e ? e.deg : 1);
   function fillSel(id, obj, val, custom) { $(id).innerHTML = (custom ? `<option value="__c">Custom (edited)</option>` : "") + Object.entries(obj).map(([k, l]) => `<option value="${k}" ${k === String(val) && !custom ? "selected" : ""}>${Array.isArray(l) ? l[0] : l}</option>`).join(""); if (custom) $(id).value = "__c"; }
   function drawStyles() { $("styles").innerHTML = Object.entries(STY).map(([k, [l]]) => `<button type="button" class="tb" data-style="${k}" aria-pressed="${S.style === k}">${l}</button>`).join(""); }
+  // new chords take the bass tone and 7th chosen above the palette (augmented sixths take the bass tone only)
+  let pInv = 0, pSev = false;
+  function palChord(id) { const e = entry(id), c = newChord(id); if (pSev && !isAug6(e)) c.ext = "7"; c.inv = Math.min(pInv, tones(c).length - 1); return c; }
   function drawPalette() {
+    document.querySelectorAll("[data-pinv]").forEach(x => x.setAttribute("aria-pressed", +x.dataset.pinv === pInv)); document.querySelector("[data-psev]").setAttribute("aria-pressed", pSev);
     const groups = PAL[S.mode]; if (tab >= groups.length) tab = 0;
     $("tabs").innerHTML = groups.map(([t], i) => `<button type="button" class="tb" data-tab="${i}" aria-pressed="${i === tab}">${t}</button>`).join("");
     const [title, list] = groups[tab];
     $("palette").setAttribute("aria-label", title);
-    $("palette").innerHTML = list.map(e => { const c = newChord(e.id); const r = rn(c); return `<button type="button" class="ch" data-add="${e.id}" data-deg="${degOf(e)}" title="${e.why}: ${sym(c)}"><span aria-hidden="true">${r.html.replace(/role="img" aria-label="[^"]*"/, "")}</span><small aria-hidden="true">${sym(c)}</small><span class="sr">Add ${r.spoken}, ${e.why}, ${sym(c)}</span></button>`; }).join("");
+    $("palette").innerHTML = list.map(e => { const c = palChord(e.id); const r = rn(c); return `<button type="button" class="ch" data-add="${e.id}" data-deg="${degOf(e)}" title="${e.why}: ${sym(c)}"><span aria-hidden="true">${r.html.replace(/role="img" aria-label="[^"]*"/, "")}</span><small aria-hidden="true">${sym(c)}</small><span class="sr">Add ${r.spoken}, ${e.why}, ${sym(c)}</span></button>`; }).join("");
   }
   const lenLabel = b => { const bb = barBeats(); return b === bb ? "1 bar" : b === bb * 2 ? "2 bars" : b === bb / 2 ? "½ bar" : `${b} beat${b === 1 ? "" : "s"}`; };
   function drawProg() {
@@ -535,7 +540,7 @@
     const ed = $("edit"); if (sel < 0 || !S.ch[sel]) { ed.hidden = true; ed.innerHTML = ""; return; }
     const c = S.ch[sel], e = entry(c.id), t = tones(c), aug = isAug6(e), dim = e.q === "d" || e.q === "A";
     const exts = aug ? ["triad"] : dim ? ["triad", "7", "9"] : Object.keys(EXT);
-    const invN = ["Root", "3rd", "5th", "7th", "9th"].slice(0, aug ? 1 : t.length);
+    const invN = (aug ? t.map((x, i) => nm(x.n) + (i ? "" : " (usual)")) : ["Root", "3rd", "5th", "7th", "9th"]).slice(0, t.length);
     const bb = barBeats(), lens = uniq([bb / 2, bb, bb * 2, 1, 2, 3, 4].filter(x => x * 4 === Math.round(x * 4) && x > 0));
     ed.hidden = false;
     ed.innerHTML = `<div class="row"><span class="ttl">Chord ${sel + 1}: ${rn(c).html} ${sym(c)}</span> <span class="note">${e.why}</span></div>
@@ -625,7 +630,10 @@
   $("grid").addEventListener("click", e => { const b = e.target.closest("[data-row]"); if (!b) return; const r = +b.dataset.row, p = +b.dataset.col, a = S.rows[r], j = a.indexOf(p);
     if (j >= 0) a.splice(j, 1); else { a.push(p); a.sort((x, y) => x - y); } b.setAttribute("aria-pressed", j < 0);
     const g = r === 0 ? "C" : r === 1 ? "B" : "D"; if (!S.edited[g]) { S.edited[g] = 1; fillSel({ C: "rhythm", B: "bass", D: "drums" }[g], { C: RHY, B: BASS, D: DR }[g], "", 1); } S.style = ""; drawStyles(); saveHash(); refresh(); });
-  $("palette").addEventListener("click", e => { const b = e.target.closest("[data-add]"); if (!b) return; S.ch.push(newChord(b.dataset.add)); sel = -1; drawProg(); audition(S.ch.length - 1); status(`Added ${rn(S.ch[S.ch.length - 1]).text}.`); });
+  $("pset").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.pinv != null) { pInv = +b.dataset.pinv; if (pInv === 3) pSev = true; } else { pSev = !pSev; if (!pSev && pInv === 3) pInv = 0; }
+    drawPalette(); });
+  $("palette").addEventListener("click", e => { const b = e.target.closest("[data-add]"); if (!b) return; S.ch.push(palChord(b.dataset.add)); sel = -1; drawProg(); audition(S.ch.length - 1); status(`Added ${rn(S.ch[S.ch.length - 1]).text}.`); });
   // progression: select / edit; drag (mouse or touch) or Shift+arrow keys to reorder
   let drag = null, noClick = false;
   const blkAt = (x, y, not) => [...document.querySelectorAll(".blk")].find(c => { const r = c.getBoundingClientRect(); return c !== not && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; });
