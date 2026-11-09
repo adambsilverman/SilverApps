@@ -102,6 +102,8 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       const semis = [0].concat(sev ? SEV[q][1] : TRI[q][1]), steps = [0, 2, 4, 6].slice(0, semis.length);
       const root = { l: rootL, a: rootA }, tones = steps.map((st, i) => { const l = (rootL + st) % 7, want = (NAT[rootL] + rootA + semis[i]) % 12; let a = ((want - NAT[l]) % 12 + 18) % 12 - 6; return { l, a }; });
       if (tones.some(t => Math.abs(t.a) > 1) || (accs === "none" && tones.some(t => t.a))) continue;
+      // keep to chords musicians actually spell: no A♯ roots and no F♭, C♭, E♯ or B♯ anywhere in the chord
+      if ((rootL === 5 && rootA === 1) || tones.some(t => (t.a === -1 && (t.l === 3 || t.l === 0)) || (t.a === 1 && (t.l === 2 || t.l === 6)))) continue;
       const inv = invs === "root" ? 0 : Math.floor(Math.random() * tones.length);
       const clef = $("clef").value === "mix" ? rnd(["treble", "bass"]) : $("clef").value;
       // close position from the bass up, placed on the staff

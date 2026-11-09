@@ -590,6 +590,75 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { display: none; }
 /* plain-text chord chart (lyrics with chords under them) */
 .chordchart { font: clamp(9px, 2.05vw, 14px)/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--card, #fff); border: 1.5px solid var(--line, #ccc); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: pre; margin: 10px 0; }
+/* romans: groove player (hookpad-style colors by scale degree) */
+.pbld { --d1: #ffd3d3; --d2: #ffe0bd; --d3: #fff0a8; --d4: #cdf1c6; --d5: #cbe0ff; --d6: #e3d3ff; --d7: #ffd3ec;
+  --e1: #d43a3a; --e2: #d9771f; --e3: #c9a400; --e4: #3c9a35; --e5: #2f6fd1; --e6: #7d4bd1; --e7: #c93c93;
+  border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; margin: 12px 0; background: var(--surface); }
+.pb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.pb-sets { gap: 10px 16px; font-size: 15px; }
+.pb-sets label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.pb-sets select { min-height: 36px; font: 400 15px var(--body); border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 6px; }
+.pb-sets input[type=range] { width: 110px; accent-color: var(--ink); }
+.pb-sty { font-size: 15px; }
+.pb-lab { font-weight: 700; margin-right: 2px; }
+.pb-pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; margin: 10px 0; }
+.pb-prog { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 12px 0; padding: 8px; min-height: 72px; border-radius: 10px; background: rgba(127,127,127,.1); }
+.pb-ch, .pb-chip { min-height: 60px; padding: 4px 8px; border-radius: 10px; border: 2px solid transparent; background: var(--d1); color: #1a1a1a; font: 700 20px var(--body); cursor: pointer; box-shadow: inset 0 -5px 0 var(--e1); }
+.pb-chip { min-height: 72px; position: relative; text-align: left; }
+.pb-ch > span, .pb-chip > span:last-child { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.pb-ch > span > small, .pb-chip > span > small { display: block; margin-top: 2px; font: 400 14px var(--body); }
+.pb-bar { position: absolute; top: 3px; left: 6px; font: 700 11px var(--mono); opacity: .7; }
+.pbld [data-deg="1"] { background: var(--d1); box-shadow: inset 0 -5px 0 var(--e1); }
+.pbld [data-deg="2"] { background: var(--d2); box-shadow: inset 0 -5px 0 var(--e2); }
+.pbld [data-deg="3"] { background: var(--d3); box-shadow: inset 0 -5px 0 var(--e3); }
+.pbld [data-deg="4"] { background: var(--d4); box-shadow: inset 0 -5px 0 var(--e4); }
+.pbld [data-deg="5"] { background: var(--d5); box-shadow: inset 0 -5px 0 var(--e5); }
+.pbld [data-deg="6"] { background: var(--d6); box-shadow: inset 0 -5px 0 var(--e6); }
+.pbld [data-deg="7"] { background: var(--d7); box-shadow: inset 0 -5px 0 var(--e7); }
+.pb-ch:hover { border-color: #1a1a1a; }
+.pb-chip[aria-pressed="true"] { border-color: #1a1a1a; outline: 3px dashed #1a1a1a; outline-offset: 1px; }
+.pb-chip.now { border-color: #1a1a1a; transform: translateY(-2px); box-shadow: 0 3px 0 #1a1a1a; }
+.pb-ch:focus-visible, .pb-chip:focus-visible, .pb-cell:focus-visible { outline: 3px solid var(--fi-red-dk, #b33); outline-offset: 2px; }
+.pb-empty { margin: 0; grid-column: 1 / -1; color: var(--muted, #555); align-self: center; }
+.pbld .play:disabled, .pbld .lk:disabled { opacity: .5; cursor: default; }
+.pb-grid-wrap { overflow-x: auto; margin-top: 10px; }
+.pb-grid { display: grid; gap: 3px; min-width: 420px; align-items: center; }
+.pb-gl { font: 700 13px var(--body); padding-right: 6px; white-space: nowrap; }
+.pb-gl.bass { color: var(--e5); }
+.pb-cnt { text-align: center; font: 400 12px var(--mono); color: var(--muted, #555); }
+.pb-cnt.bt { font-weight: 700; color: var(--ink); }
+.pb-cnt.now { background: var(--ink); color: #fff; border-radius: 4px; }
+.pb-cell { height: 28px; min-width: 18px; padding: 0; border: 1.5px solid var(--line); border-radius: 4px; background: var(--surface); cursor: pointer; }
+.pb-cell.bt { border-color: #888; }
+.pb-cell.ft { border-color: #555; }
+.pb-cell[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); }
+.pb-cell.chd[aria-pressed="true"] { background: var(--e4); border-color: var(--e4); }
+.pb-cell.bass[aria-pressed="true"] { background: var(--e5); border-color: var(--e5); }
+.pb-cell.now { box-shadow: 0 0 0 2px var(--e1); }
+@media (max-width: 560px) { .pb-prog { grid-template-columns: repeat(2, 1fr); } }
+.pb-syms { font-size: 18px; }
+.pbld .pb-cell { --fi-pill: 3px; border-radius: 3px !important; }
+.pbld .pb-ch, .pbld .pb-chip { --fi-pill: 9px; border-radius: 9px !important; }
+/* compact groove player */
+.pbld { padding: 8px 10px; }
+.pbld .pb-row { margin: 4px 0; gap: 5px; }
+.pbld .lk { min-height: 32px; padding: 0 9px; font-size: 14px; }
+.pbld .pb-sty { font-size: 13px; min-height: 30px; padding: 0 8px; }
+.pbld .pb-sets { gap: 4px 12px; font-size: 13px; }
+.pbld .pb-sets select { min-height: 30px; font-size: 13px; max-width: 150px; }
+.pbld .pb-sets input[type=range] { width: 80px; }
+.pbld .pb-pal { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 5px; margin: 6px 0; }
+.pbld .pb-ch { min-height: 44px; font-size: 16px; padding: 2px 4px; }
+.pbld .pb-ch > span > small, .pbld .pb-chip > span > small { font-size: 12px; margin-top: 0; }
+.pbld .pb-prog { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 5px; padding: 5px; margin: 6px 0; min-height: 52px; }
+.pbld .pb-chip { min-height: 50px; font-size: 17px; }
+.pbld .play { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.pbld .pb-grid-wrap { margin-top: 6px; }
+.pbld .pb-grid { gap: 2px; min-width: 0; grid-template-columns: 4.6em repeat(var(--n), minmax(14px, 1fr)) !important; }
+.pbld .pb-cell { height: 22px; min-width: 14px; }
+.pbld .pb-gl { font-size: 12px; }
+.pbld .pb-lab { font-size: 13px; }
+.pbld .pb-grid-wrap { contain: inline-size; width: 100%; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
