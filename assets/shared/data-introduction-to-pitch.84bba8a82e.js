@@ -539,8 +539,6 @@ window.FAM = (() => {
       <p>Absolute pitch is a <b>labeling</b> skill. People with it hear an A as "A" the way most people see red as "red". It doesn't mean singing perfectly in tune, and it can be a nuisance with transposing instruments or music tuned to A = 415 Hz.</p>
       <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/t3Cb1qwCUvI" title="Video about absolute pitch (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
       <p>Most people have more <b>pitch memory</b> than they think. Studies have found that people without absolute pitch, asked to sing a favorite recording from memory, often start within a semitone or two of the original key, and can tell when a familiar recording has been shifted in pitch. They remember the pitch; they just don't have names for it.</p>
-      <p><b>Try it:</b> hear this A4, then come back tomorrow and hum the A before you play it again.</p>
-      ${row(btn("A4 (440 Hz)", { px: "tone", f: 440, d: 2.2 }))}
       <h3>Relative pitch</h3>
       <p><b>Relative pitch</b> is hearing notes by their relationships: the interval between two notes, or a note's place in the key (its scale degree). It's what lets you recognize a tune whatever key it's in, sing in harmony, and take melodic dictation. Almost every musician relies on it, and unlike absolute pitch, it improves with practice at any age.</p>
       <p>Movable-do solfège, scale-degree numbers and interval singing are all ways of training relative pitch. The <b>Ear Training</b> app on this site practices them: sing-backs, intervals, scale degrees and dictation.</p>` },
