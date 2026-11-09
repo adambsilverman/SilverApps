@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="stylesheet" href="assets/shared/styles-apps.8db63dbb5c.css">
+<link rel="stylesheet" href="assets/shared/styles-apps.f6cf2476dd.css">
 <link rel="stylesheet" href="assets/indie.css">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 <link rel="stylesheet" href="assets/trainer-skin.css">
@@ -145,7 +145,8 @@ window.FAM = (() => {
     g += row(130, "Rounded binary", [{ w: 2, t: "A: I → V", sub: "" }, { w: 1.2, t: "B", up: true, sub: "away; open cadence" }, { w: 1.4, t: "A′: I", sub: "home key" }]);
     g += row(220, "Ternary", [{ w: 1, t: "A: I", sub: "" }, { w: 1, t: "B: new key", up: true, sub: "contrast" }, { w: 1, t: "A: I", sub: "" }]);
     g += row(310, "Pop song", [{ w: 1, t: "Verse" }, { w: 1, t: "Chorus" }, { w: 1, t: "Verse" }, { w: 1, t: "Chorus" }, { w: 1.2, t: "Chorus ↑", up: true, sub: "gear change" }]);
-    return `<figure class="lfig"><svg viewBox="-4 6 ${W + 20} 372" role="img" aria-label="Key maps of four forms. Sections in the home key are blue and low; sections in another key are red and raised. Binary: A moves from I to V, B moves from V back to I. Rounded binary: A moves from I to V; a short B away from home ends on an open cadence; A prime returns in the home key. Ternary: A in I, B in a new key, A in I. Pop song: verse, chorus, verse, chorus in the home key, then a final chorus raised by a truck driver's gear change." style="width:100%;max-width:680px;display:block;margin:0 auto;color:var(--ink,#222)">${g}</svg>
+    g += row(400, "Alternating keys", [{ w: 1, t: "Verse: E" }, { w: 1, t: "Chorus: A", up: true }, { w: 1, t: "Verse: E" }, { w: 1, t: "Chorus: A", up: true }, { w: 1, t: "Verse: E" }]) + `<text x="${X0}" y="462" font-size="12" fill="currentColor">verses at home, choruses away, as in Kodachrome (E and A)</text>`;
+    return `<figure class="lfig"><svg viewBox="-4 6 ${W + 20} 466" role="img" aria-label="Key maps of five forms. Sections in the home key are blue and low; sections in another key are red and raised. Binary: A moves from I to V, B moves from V back to I. Rounded binary: A moves from I to V; a short B away from home ends on an open cadence; A prime returns in the home key. Ternary: A in I, B in a new key, A in I. Pop song: verse, chorus, verse, chorus in the home key, then a final chorus raised by a truck driver's gear change. Alternating keys: verses in E, choruses in A, back and forth, as in Kodachrome." style="width:100%;max-width:680px;display:block;margin:0 auto;color:var(--ink,#222)">${g}</svg>
       <figcaption>Key maps: <b style="color:#1a5fb4">blue</b> sections are in the home key, <b style="color:#A8321F">red</b> ones are in another key. In binary forms the first part usually ends in the dominant (or the relative major, in minor), and the second part brings the music home.</figcaption></figure>`;
   }
   const lesson = { defMode: "major", steps: [
@@ -200,7 +201,8 @@ window.FAM = (() => {
 When I think back on all the crap I learned in high school,
    E    | E7 | A    | A     |
 It's a wonder I can think at all.
-   F#m  | B  | E    | F#m B |      ← turnaround (stays in E)
+   F#m  | B  | E    | F#m B |
+                        ↑ turnaround (stays in E)
 And though my lack of education hasn't hurt me none,
    E    | E7 | A    | A     |
 I can read the writing on the wall
@@ -216,11 +218,13 @@ Makes you think all the world's a sunny day
 I got a Nikon camera, I love to take a photograph,
    Bm   | E  | A    | D  |
 So mama, don't take my Kodachrome away.
-   B    | E  | A | C#m   | F#m | B |      ← modulating turnaround (back to E; F#m is the pivot)</pre>
+   B    | E  | A | C#m   | F#m | B |
+                 ↑ modulating turnaround (back to E;
+                   F#m is the pivot)</pre>
       <p><b>Tonicization</b> is a weaker reference to a new key within a phrase, with no cadence there. The dominant is often tonicized just before a half cadence: that's <i>not</i> a modulation, so label the chord as a secondary dominant, as in Schumann's “The Happy Farmer” (<i>Album for the Young</i>).</p>`
       + MEDIA("i-will-always-love-you.png", { yt: "3JWTaaS7LdU", start: 171, end: 214, title: "Whitney Houston, I Will Always Love You" }, "Dolly Parton, <i>I Will Always Love You</i> (performed by Whitney Houston; the video plays 2:51–3:34): after a cadence on V⁷ in A major, the final chorus begins directly in B major, up a whole step.", "Lead sheet: A major I, iii, vi, I six-four, IV, V7, then a 2/4 bar and a key signature change to B major, labeled direct modulation: B major I, vi, IV, V7.")
       + MEDIA("simon-kodachrome-1.png", { yt: "8rlDTK6QI-w", start: 0, end: 17, title: "Paul Simon, Kodachrome (verse)" }, "Paul Simon, <i>Kodachrome</i>, verse (the video plays 0:00–0:17): after the cadence on E, the turnaround chords F♯m–B keep the music in E major.", "Lead sheet of the verse in E major with chord symbols F-sharp minor, B, E, E7, A, F-sharp minor, B, E; an arrow marks the cadence point on E, and a box marks the turnaround chords F-sharp minor, B.")
-      + MEDIA("simon-kodachrome-2.png", { yt: "8rlDTK6QI-w", start: 28, end: 66, title: "Paul Simon, Kodachrome (chorus)" }, "<i>Kodachrome</i>, chorus (the video plays 0:28–1:06). At the end of the chorus: after the cadence in A major, the modulating turnaround C♯m–F♯m–B leads back to E major for the next verse, with F♯m as the pivot.", "Lead sheet of the end of the chorus: E, A, D, B, E, A, then boxed modulating turnaround chords C-sharp minor, F-sharp minor, B.")
+      + MEDIA("simon-kodachrome-2.png", { yt: "8rlDTK6QI-w", start: 56, end: 78, title: "Paul Simon, Kodachrome (end of the chorus)" }, "<i>Kodachrome</i>, end of the chorus (the video plays 0:56–1:18): after the cadence in A major, the modulating turnaround C♯m–F♯m–B leads back to E major for the next verse, with F♯m as the pivot.", "Lead sheet of the end of the chorus: E, A, D, B, E, A, then boxed modulating turnaround chords C-sharp minor, F-sharp minor, B.")
       + MEDIA("happyfarmer.jpg", "happyfarmer", "Schumann, “The Happy Farmer” (<i>Album for the Young</i>, No. 10), performed by Vladimir Feltsman: the dominant is tonicized (V⁴₃/V) right before the half cadence. That's not a modulation.", "Piano score in F major: I, IV, I, V7, I, V6, V four-three of V, V.") },
     { title: "Modulation and form", kick: "Where it happens", render: () => `<p>Modulation usually shapes a piece's form and often comes at section boundaries.</p>
       <ul><li><b>Classical music:</b> sectional forms (binary, ternary) commonly use contrasting, closely related keys for their sections.</li><li><b>Pop music:</b> verses and choruses may be in different keys; truck driver's gear changes lift a final chorus; modulations may bring a repeated verse back home.</li></ul>

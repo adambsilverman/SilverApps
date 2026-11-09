@@ -356,4 +356,4 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 @media (max-width: 520px) { .pcgrid, .pcbox .lbtns, .pcbox .pcpanel { margin-left: 0; } }
 details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { display: none; }
 /* plain-text chord chart (lyrics with chords under them) */
-.chordchart { font: 15px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--card, #fff); border: 1.5px solid var(--line, #ccc); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: pre; margin: 10px 0; }
+.chordchart { font: clamp(9px, 2.05vw, 14px)/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--card, #fff); border: 1.5px solid var(--line, #ccc); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: pre; margin: 10px 0; }
