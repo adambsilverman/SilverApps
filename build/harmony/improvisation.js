@@ -67,6 +67,9 @@ window.FAM = (() => {
       <li><b>Feel the beat</b>: a simple phrase placed firmly in time sounds better than a busy one that drifts.</li></ul>` },
     { title: "Scales for improvising", kick: "Pentatonic and blues", render: (H, k, U) => `<p>The <b>minor pentatonic</b> scale (A C D E G) has no half steps, so it's hard to land on a clashing note: a common first scale in blues, rock and many folk styles. The <b>major pentatonic</b> (C D E G A) uses the same notes from a different tonic. The <b>blues scale</b> adds the ♭5 to the minor pentatonic:</p>
       ${U.fig(blues, "The A blues scale: A C D E♭ E G A.")}
+      <p>Hear these scales in real melodies: Ray Charles's “Hit the Road Jack” uses only minor pentatonic, and Robert Johnson's “Sweet Home Chicago” is built on the blues scale with a few notes outside it.</p>
+      <figure class="lfig"><audio controls preload="none" src="assets/audio/pentatonic/charles-hit-the-road-jack.mp3" style="width:100%"></audio><figcaption>Ray Charles, “Hit the Road Jack” (1961): G♯ minor pentatonic.</figcaption></figure>
+      <figure class="lfig"><audio controls preload="none" src="assets/audio/pentatonic/johnson-sweet-home-chicago.mp3" style="width:100%"></audio><figcaption>Robert Johnson, “Sweet Home Chicago” (1936): the F blues scale. Scores for both are on the “Pentatonic &amp; blues” step of <a href="modes-the-simple-truth.html">Modes</a>.</figcaption></figure>
       <p>The <b>12-bar blues</b> (I7 for 4 bars, IV7 for 2, I7 for 2, V7, IV7, I7, V7 or I7) is a classic frame to practice on.</p>` },
     { title: "Playing the changes", kick: "Chord tones, guide tones, modes", render: () => `<p>In jazz and many other styles, soloists follow the chord progression (the <b>changes</b>).</p>
       <ul><li><b>Target notes</b>: land chord tones on strong beats, approached by step from above or below.</li>
