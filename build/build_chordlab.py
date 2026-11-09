@@ -25,9 +25,9 @@ rep('<button class="brand" id="brandbtn" title="Main screen"><div class="logo">�
 rep("$('#brandbtn').onclick = goHome;", "")
 rep("<h1>Chords, figures & symbols — live.</h1>", f"<h1>{NAME}</h1>")
 # --- link back to the front page from the app's own top bar ---
-rep('<button class="fsbtn" id="homebtn"', '<a class="fsbtn" href="index.html" title="All SilverApps"><span aria-hidden="true">▦</span><span>All SilverApps</span></a>\n  <button class="fsbtn" id="homebtn"')
+rep('<button class="fsbtn" id="homebtn"', '<span id="saJumpSlot" data-cls="fsbtn" hidden></span>\n  <button class="fsbtn" id="homebtn"')
 # --- answer sounds toggle in the app's top bar ---
-rep('<a class="fsbtn" href="index.html"', '<button class="fsbtn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><span aria-hidden="true">♪</span><span class="lbl">Sound on</span></button>\n  <a class="fsbtn" href="index.html"')
+rep('<span id="saJumpSlot" data-cls="fsbtn" hidden></span>', '<button class="fsbtn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><span aria-hidden="true">♪</span><span class="lbl">Sound on</span></button>\n  <span id="saJumpSlot" data-cls="fsbtn" hidden></span>')
 # --- progress record + sounds at each graded answer ---
 rep("const g = grade(q, ans); log.push(g.ok);", "const g = grade(q, ans); log.push(g.ok); window.SFX && SFX.play(g.ok); window.SAprogress && SAprogress.record(DRILLS[q.drill].short, g.ok);")
 rep("const g = grade(q, ans); P.n++; if (g.ok) P.score++;", "const g = grade(q, ans); P.n++; if (g.ok) P.score++; window.SFX && SFX.play(g.ok); window.SAprogress && SAprogress.record(DRILLS[q.drill].short, g.ok);")

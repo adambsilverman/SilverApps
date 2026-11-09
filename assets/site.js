@@ -17,11 +17,12 @@
 (function () {
   function ready(f) { if (document.readyState !== "loading") f(); else document.addEventListener("DOMContentLoaded", f); }
   ready(function () {
-    var home = document.querySelector('a.site-btn[href="index.html"], a.fsbtn[href="index.html"]');
+    // the menu goes where the page marks a slot (or, on older pages, next to a front-page button)
+    var slot = document.getElementById("saJumpSlot"), home = slot || document.querySelector('a.site-btn[href="index.html"], a.fsbtn[href="index.html"]');
     if (!home || document.getElementById("saJump")) return;
-    var btn = document.createElement("button"); btn.type = "button"; btn.id = "saJump"; btn.className = home.className;
+    var btn = document.createElement("button"); btn.type = "button"; btn.id = "saJump"; btn.className = slot ? slot.getAttribute("data-cls") : home.className;
     btn.setAttribute("aria-haspopup", "dialog"); btn.innerHTML = '<span aria-hidden="true">☰</span><span class="lbl">Jump to…</span>'; btn.setAttribute("aria-label", "Jump to another app");
-    home.parentNode.insertBefore(btn, home.nextSibling);
+    if (slot) slot.parentNode.replaceChild(btn, slot); else home.parentNode.insertBefore(btn, home.nextSibling);
     var dlg = null;
     function build() {
       dlg = document.createElement("dialog"); dlg.id = "saJumpDlg"; dlg.setAttribute("aria-labelledby", "saJumpH");

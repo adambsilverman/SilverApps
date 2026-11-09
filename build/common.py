@@ -17,7 +17,7 @@ def strip_html(full_screen=True, sound=False):
            '<span class="lbl">Sound on</span></button>') if sound else ""
     return ('<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps">'
             '<img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a>'
-            '<span class="spacer"></span><a class="site-btn" href="index.html" aria-label="All SilverApps"><span aria-hidden="true">▦</span><span class="lbl">All SilverApps</span></a>'
+            '<span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span>'
             + snd + fs + '</header>')
 
 CREDIT = ('<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener">'
