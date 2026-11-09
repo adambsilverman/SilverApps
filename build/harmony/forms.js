@@ -102,8 +102,16 @@ window.FAM = (() => {
 
   const lesson = { steps: [
     { title: "Binary and rounded binary", kick: "Two parts", render: () => `<p><b>Binary form</b> has two contrasting sections, A and B. A introduces an idea; B contrasts and usually ends more decisively. Each section is usually repeated: <b>||: A :||: B :||</b>. It's common in Baroque dances (minuet, allemande) and in European and American folk music, which may repeat differently (for instance, looping the whole tune with only the second part repeated, varying ornaments and octaves each time).</p>
+      <figure class="lfig"><img src="assets/img/Nancy%20Blevins.png" alt="Nancy Blevins, a fiddle tune in D major in cut time, 14 bars. Part A is bars 1 to 6, mostly in the upper register; part B, bars 7 to 14, is in a low register and is enclosed in repeat signs. Note: repeat entire tune again and again." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">
+      <figcaption><b>Simple binary:</b> <i>Nancy Blevins</i>, a traditional old-time fiddle tune. A (bars 1–6) and a contrasting, lower B (bars 7–14, repeated); players loop the whole tune again and again. Listen for the change of register at B, and notice that A never comes back inside the tune.</figcaption></figure>
+      <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/76zNOeTh6Lg" title="Nancy Blevins performance (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+
       <p><b>Rounded binary</b> returns to the A material at the end of B: <b>||: A :||: B A′ :||</b>, with B usually shorter. It bridges binary and ternary forms and is common in Classical music. Its essential features:</p>
-      <ul><li>a first part that is repeated, then a second part (the contrasting “digression” plus the return), also repeated;</li><li>an <b>open cadence</b> at the end of the digression;</li><li>the <b>a</b> melody both starting and ending the piece.</li></ul>` },
+      <ul><li>a first part that is repeated, then a second part (the contrasting “digression” plus the return), also repeated;</li><li>an <b>open cadence</b> at the end of the digression;</li><li>the <b>a</b> melody both starting and ending the piece.</li></ul>
+      <figure class="lfig"><img src="assets/img/Mozart%20-%20Quartet%20minuet.png" alt="Menuetto, Allegretto, in D minor, 3/4: the first violin part. The first section, about ten bars, ends with repeat signs. The second section wanders through other keys, comes to rest on an open cadence on A, then brings back the opening melody, marked forte, and ends with repeat signs." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">
+      <figcaption><b>Rounded binary:</b> Mozart, String Quartet in D minor, K. 421, Menuetto (first violin). ||: A :||: B (a digression through other keys, ending on an open half cadence on A) then A′ (the opening melody returns, forte) :||.</figcaption></figure>
+      <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/03cxqYUY10s?start=860" title="Mozart String Quartet in D minor, K. 421, Menuetto (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      <p class="small">The video starts at the Menuetto (14:20).</p>` },
     { title: "Ternary and strophic", kick: "Three parts, many verses", render: () => `<p><b>Ternary form</b> has three parts, typically A, B and a return to A (||: A :||: B :||: A :||); ABC also counts. <b>Simple ternary</b> divides a piece or section with one phrase or phrase pair per part. <b>Compound ternary</b> has larger sections, as in a <b>minuet and trio</b> (da capo form): often both minuet and trio are rounded binaries, and “M.D.C.” (menuetto da capo) brings back the whole minuet as the third part.</p>
       <p><b>Strophic form</b> (AAA) uses the same music for every verse: folk songs, hymns, ballads. Each verse of a hymn is often a period or double period.</p>
       <p><b>32-bar song form</b> (AABA) is a variant of rounded binary with one 8-bar phrase per section: A (main theme), A (repeated), B (the <b>bridge</b> or <b>middle eight</b>, contrasting and ending with a half cadence), A. It's common in early 20th-century American popular song and in jazz standards.</p>` },
@@ -124,14 +132,25 @@ window.FAM = (() => {
       <p>A song may have a refrain or a chorus, and some have both. The intro and link often use the same music.</p>` },
     { title: "Larger units in songs", kick: "Repeating groups of sections", render: () => `<p>Pop songs usually group sections into larger repeating units. A typical plan: intro; verse – pre-chorus – chorus; verse – pre-chorus – chorus; link – bridge; chorus – outro. Some songs open with the chorus before the first verse.</p>
       <p>Very few songs have every section type; a song that does might add a post-chorus (often a vamp on the chorus's first chords), an instrumental link and a bridge on dominant harmony. Some songs are <b>through-composed</b>, developing continuously without repeating sections.</p>` },
-    { title: "Hear the forms", kick: "Listen", render: (H, k, U) => `<p>Each example is newly made every time you open this step: short sections, with A always the same music.</p>
-      <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Form</th><th scope="col">Plan</th><th scope="col">Hear</th></tr></thead><tbody>${HEAR.map(([l, f, p]) => `<tr><td><b>${f}</b></td><td>${p}</td><td>${U.sound(formSound(H, l.split(" ")), "Play")}</td></tr>`).join("")}</tbody></table></div>` },
+    { title: "Form patterns", kick: "All the plans in one place", render: () => `<p>Letters stand for sections: the same letter means the same music, a prime (A′) means a varied return, and ||: :|| are repeat signs.</p>
+      <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Form</th><th scope="col">Plan</th><th scope="col">What to listen for</th></tr></thead><tbody>${[
+        ["Binary", "||: A :||: B :||", "two contrasting parts, each repeated; A doesn't come back"],
+        ["Rounded binary", "||: A :||: B A′ :||", "B is a short digression ending on an open cadence, then A returns"],
+        ["Ternary", "A B A", "a complete, contrasting middle section, then a full return of A"],
+        ["Compound ternary", "minuet – trio – minuet", "each part is itself binary or rounded binary"],
+        ["Strophic", "A A A …", "the same music for every verse of the text"],
+        ["32-bar song form (AABA)", "A A B A", "an 8-bar tune twice, an 8-bar bridge, the tune again"],
+        ["Verse–chorus", "verse – chorus – verse – chorus – (bridge) – chorus", "the chorus repeats words and music; verses change words"],
+        ["Rondo", "A B A C A (or A B A C A B A)", "a refrain that keeps returning between contrasting episodes"],
+        ["Theme and variations", "A A′ A″ A‴ …", "one theme, changed each time (melody, harmony, rhythm or texture)"],
+        ["Through-composed", "A B C D …", "new music throughout, with little or no return"],
+        ["Sonata form", "exposition – development – recapitulation", "two key areas, a development, then both themes in the home key"]].map(([f, p, w]) => `<tr><td><b>${f}</b></td><td>${p}</td><td>${w}</td></tr>`).join("")}</tbody></table></div>` },
     { title: "Quick check", kick: "Before the drills", render: (H) => H.check("Which form is this? ||: A :||: B A′ :||", "Rounded binary", ["Binary", "Ternary", "Rondo"], "The A material returns at the end of the second part.") + H.check("A B A C A:", "Rondo", ["Ternary", "Theme and variations", "Strophic"], "A main theme alternating with episodes.") + H.check(SONATA[6][0], SONATA[6][1], SONW.filter(x => x !== SONATA[6][1]).slice(0, 3), "The retransition prepares the recapitulation.") + H.check("A transitional passage connecting the verse to the chorus:", "Pre-chorus", ["Bridge", "Post-chorus", "Link"], "It often builds tension toward the chorus.") },
   ] };
 
   return {
     key: "silverapps-forms-v1", lesson, make, reference,
-    modes: [{ id: "scheme", kicker: "Name the form" }, { id: "hear", kicker: "Hear the form" }, { id: "sonata", kicker: "Sonata & larger forms" }, { id: "pop", kicker: "Song sections" }],
+    modes: [{ id: "scheme", kicker: "Name the form" }, { id: "sonata", kicker: "Sonata & larger forms" }, { id: "pop", kicker: "Song sections" }],
     topics: [],
   };
 })();

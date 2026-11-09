@@ -234,6 +234,16 @@
         if (c.sym) { const t = mk("text", { x, y: yTop - 40, "text-anchor": "middle", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); t.textContent = c.sym; }
         if (c.tag) { const t = mk("text", { x, y: Math.max(yBot + 66, yLow + 46), "text-anchor": "middle", "font-size": 13, "font-family": "'Barlow Condensed', sans-serif", fill: ink }, svg); t.textContent = c.tag; }
       });
+      // pivot bracket: old-key numerals on the first line, new-key numerals on a second line from the pivot on; the pivot's two labels are bracketed
+      if (o.pivot != null) {
+        const row1 = Math.max(yBot + 46, yLow + 26), row2 = row1 + 32, xs = cols.map((c, i) => { const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0]; return sn.getAbsoluteX() + 6; });
+        cols.forEach((c, i) => { if (c.lab2) rnSVG(mk, svg, xs[i], row2, c.lab2, ink); });
+        const kt = (x, y, t) => { const e = mk("text", { x, y, "text-anchor": "end", "font-size": 17, "font-weight": 700, "font-family": "Literata, 'Noto Music', serif", fill: ink }, svg); e.textContent = t; };
+        const first = cols.findIndex(c => c.lab); if (o.key1 && first >= 0) kt(xs[first] - 24, row1, o.key1);
+        const px = xs[o.pivot], bl = px - 26, br = px + 26, red = cssVar("--fi-red-dk") || "#A8321F";
+        if (o.key2) kt(bl - 6, row2, o.key2);
+        mk("path", { d: `M${bl + 7} ${row1 - 20} H${bl} V${row2 + 8} H${bl + 7} M${br - 7} ${row1 - 20} H${br} V${row2 + 8} H${br - 7}`, fill: "none", stroke: red, "stroke-width": 2 }, svg);
+      }
       let vb = `0 0 ${W} ${Ht}`;
       try { const bb = svg.getBBox(); if (bb.width) vb = `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`; } catch (e) {}
       svg.setAttribute("viewBox", vb); svg.removeAttribute("width"); svg.removeAttribute("height");
@@ -303,14 +313,19 @@
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + (o.tagSide && n.tag ? String(n.tag).length * 11 + 10 : 0);
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + tagW(n);
+    const tagW = n => o.tagSide && n.tag ? String(n.tag).length * 11 + 10 : 0;   // a side tag needs room beside its note
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
       const vs = ids.flatMap(id => bar[id] || []); if (!vs.length) return 0;
       const rate = Math.max(0, ...vs.flat().filter(n => !n.ghost).map(n => wNote(n) / durN(n))), len = Math.max(...vs.map(v => v.reduce((t, n) => t + durN(n), 0)));
       return Math.min(rate * len, 640) * .92;
     };
-    const barW = bar => (bar.time ? 26 : 0) + Math.max(bar.minBar || o.minBar || 70, propW(bar), ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
+    let evenOK = null;   // evenBars: no bar much narrower than the widest, as long as the whole passage still fits on one line
+    const barW = bar => { if (!o.evenBars) return barW0(bar); const top = .75 * Math.max(...o.bars.map(barW0));
+      if (evenOK === null) evenOK = o.bars.reduce((t, b) => t + Math.max(barW0(b), top), 0) + 120 <= (o.rowW || 680);
+      return evenOK ? Math.max(barW0(bar), top) : barW0(bar); };
+    const barW0 = bar => (bar.time ? 26 : 0) + Math.max(bar.minBar || o.minBar || 70, propW(bar), ...ids.map(id => Math.max(0, ...((bar[id] || []).map(v => v.reduce((t, n) => t + wNote(n), 0)))))) + 26;
     const headW = first => 44 + sigN * 11 + (first && o.time !== null ? 28 : 0);
     const MAXW = o.rowW || 680, rows = [];
     let cur = [], w = 0;
@@ -1056,6 +1071,7 @@
     lessonEl.querySelectorAll("[data-lfig]").forEach(el => { drawStaff(el, figs[el.dataset.lfig].spec); if (figs[el.dataset.lfig].follow) wireFollow(el, figs[el.dataset.lfig]); });
     lessonEl.querySelectorAll(".lq").forEach(bindCheck);
     if (st.after) st.after(lessonEl, H, k, { play, drawStaff });
+    lessonEl.querySelectorAll(".ltable-wrap:not([tabindex])").forEach((w, i) => { w.tabIndex = 0; w.setAttribute("role", "region"); w.setAttribute("aria-label", (w.querySelector("caption") || {}).textContent || "Table"); });   // keyboard users can scroll wide tables
     if (focus) { const h = $("lsTitle"); if (h) h.focus(); }
   }
   // following figures (fig option follow: true): each note lights up while it sounds; click (or Enter/Space on) a note to hear it

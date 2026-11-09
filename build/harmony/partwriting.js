@@ -73,6 +73,37 @@ window.FAM = (() => {
     return null;
   }
 
+
+  // a well-written chord before or after a given one (for three-chord drill examples)
+  const NEXT = { "1": ["4", "5", "2", "6"], "4": ["5", "1", "2"], "5": ["1", "6"], "57": ["1", "6"], "2": ["5", "57"], "27": ["5", "57"], "6": ["4", "2"], "57x": ["1"] };
+  const PREV = ["4", "2", "6", "1"];
+  function addChord(H, k, cA, vA, after) {
+    const opts = after ? (NEXT[cA.tok || ""] || NEXT[String(cA.deg || "")] || ["1", "4", "5"]) : PREV;
+    for (const tok of H.shuffle(opts.slice())) {
+      const c = H.tok(k, tok); if (!c) continue;
+      const L = H.shuffle(H.satbCands(k, c, { loose: true }).filter(v => !v.flags.length && v.dcost <= 2));
+      for (const v of L) {
+        if ([0, 1, 2].some(i => Math.abs(v.m[i] - vA.m[i]) > 5) || Math.abs(v.m[3] - vA.m[3]) > 12) continue;
+        const iss = after ? H.pwIssues(k, cA, vA, c, v) : H.pwIssues(k, c, v, cA, vA);
+        if (!iss.length) return { c, v };
+      }
+    }
+    return null;
+  }
+  // voice overlap ("hidden" crossing): a voice moves past where its neighbor just was, though the voices never cross within a chord
+  function overlapEx(H, k) {
+    const pairs = H.shuffle([["1", "4"], ["1", "2"], ["1", "6"], ["4", "5"], ["6", "4"], ["1", "5"]]);
+    for (const [a, b] of pairs) {
+      const c1 = H.tok(k, a), c2 = H.tok(k, b), L1 = H.shuffle(H.satbCands(k, c1).filter(v => !v.flags.length && v.dcost <= 1 && v.m[0] >= 67 && v.m[0] <= 76)), L2 = H.satbCands(k, c2).filter(v => !v.flags.length && v.dcost <= 1);
+      for (const v1 of L1.slice(0, 60)) for (const v2 of H.shuffle(L2.slice())) {
+        if ([0, 1, 2].some(i => Math.abs(v1.m[i] - v2.m[i]) > 5) || Math.abs(v1.m[3] - v2.m[3]) > 12) continue;
+        const up = v2.m[2] > v1.m[1], down = v2.m[1] < v1.m[2];   // tenor above the old alto, or alto below the old tenor
+        const iss = (up || down) ? H.pwIssues(k, c1, v1, c2, v2) : [];
+        if (iss.length && iss.every(x => x.code === "overlap" && /alto and tenor/.test(x.text))) return { k, chords: [c1, c2], vs: [v1, v2], up };
+      }
+    }
+    return null;
+  }
   const FACTS = [
     ["Part-writing rhythm should be…", "simple, with durations equal to or longer than the beat", ["full of syncopation", "mostly sixteenth notes", "different in every voice"], "Keep it simple."],
     ["Each part's melodic contour should be…", "mostly conjunct (stepwise), with a single climax", ["mostly leaps", "always rising", "a series of octave leaps"], "Steps, with one high point."],
@@ -99,32 +130,39 @@ window.FAM = (() => {
   ];
 
   function make(mode, H) {
+    if (mode === "dtend") mode = Math.random() < .5 ? "double" : "tend";   // one drill: doubling and tendency tones
     if (mode === "error") {
       const want = H.rnd(Object.keys(ERR).concat(["ok"])), x = errorQ(H, want);
       if (!x) return null;
-      const spec = { type: "voices", vf: x.k.vf, sig: x.k.sig, cols: H.satbCols([x.v1, x.v2], [x.c1.rn, x.c2.rn]) };
+      // three chords: add a well-written chord after (or before) the pair that holds the error
+      let list = [[x.c1, x.v1], [x.c2, x.v2]];
+      const aft = addChord(H, x.k, x.c2, x.v2, true), bef = aft ? null : addChord(H, x.k, x.c1, x.v1, false);
+      if (aft) list.push([aft.c, aft.v]); else if (bef) list.unshift([bef.c, bef.v]);
+      const spec = { type: "voices", vf: x.k.vf, sig: x.k.sig, cols: H.satbCols(list.map(y => y[1]), list.map(y => y[0].rn)) };
       const flags = [[x.c1, x.v1], [x.c2, x.v2]].flatMap(([c, v]) => v.flags.map(f => FLAGTXT(H, x.k, c, v, f)));
       const iss = x.e.iss.filter(i => ISS[i.code]).map(i => i.text);
       const all = flags.concat(iss);
-      return H.mc(`In ${x.k.label}: what's wrong with this part-writing?`, ERR[want], Object.values(ERR), all.length ? all[0].charAt(0).toUpperCase() + all[0].slice(1) + "." : "Complete chords with good doubling, every voice in range, no parallels, and tendency tones resolved.", { kicker: "Find the error", staff: spec, playQ: H.satbPlay([x.v1, x.v2], 1.1), playQLabel: "Play", topic: "err" });
+      return H.mc(`In ${x.k.label}: what's wrong with this part-writing?`, ERR[want], Object.values(ERR), all.length ? all[0].charAt(0).toUpperCase() + all[0].slice(1) + "." : "Complete chords with good doubling, every voice in range, no parallels, and tendency tones resolved.", { kicker: "Find the error", staff: spec, playQ: H.satbPlay(list.map(y => y[1]), 1.1), playQLabel: "Play", topic: "err" });
     }
     if (mode === "v7") {
       const want = H.rnd(Object.keys(V7CAT)), k = H.randKey(["major", "minor"]), x = v7ex(H, k, want);
       if (!x) return null;
+      const pre = addChord(H, k, x.chords[0], x.vs[0], false);   // three chords: a predominant (or tonic) before the V⁷
+      if (pre) { x.chords.unshift(pre.c); x.vs.unshift(pre.v); }
       const W = { inc: "The V⁷ has no 5th, so the I can be complete without parallels.", frus: "The leading tone is in an inner voice and drops to the 5th of I, so I stays complete.", trip: "The I has three roots and no 5th.", dbl: "The I doubles both its root and its 3rd, with no 5th.", par: "Complete V⁷ to complete I: two voices move in parallel 5ths. This is the one to avoid." };
-      return H.mc(`In ${k.label}: which solution does this V⁷–I resolution use?`, V7CAT[want], Object.values(V7CAT), W[want] + " In every case the 7th steps down and the leading tone (when it's in the soprano) steps up.", { kicker: "Resolving V⁷", staff: H.satbSpec(x), playQ: H.satbPlay(x.vs, 1.1), playQLabel: "Play", topic: "tech" });
+      return H.mc(`In ${k.label}: which solution does the V⁷–I resolution ${pre ? "(the last two chords) " : ""}use?`, V7CAT[want], Object.values(V7CAT), W[want] + " In every case the 7th steps down and the leading tone (when it's in the soprano) steps up.", { kicker: "Resolving V⁷", staff: H.satbSpec(x), playQ: H.satbPlay(x.vs, 1.1), playQLabel: "Play", topic: "tech" });
     }
     if (mode === "double") {
       const k = H.randKey(["major", "minor"]), form = H.rnd(["root", "root", "first", "second", "never"]);
       if (form === "never") {
         const c = H.tok(k, H.rnd(["5", "57", "76"]));
         const lt = c.tones.find(t => H.pc(t) === H.ltPC(k));
-        return H.mc(`In ${k.label}, which tone of {rn:${c.rn}} (${c.sym}) should never be doubled?`, H.nm(lt), c.tones.map(H.nm), `${H.nm(lt)} is the leading tone (7̂). Doubled, both would resolve to 1̂: parallel octaves.`, { kicker: "Doubling", topic: "princ" });
+        return H.mc(`In ${k.label}, which tone of {rn:${c.rn}} (${c.sym}) should never be doubled?`, H.nm(lt), c.tones.map(H.nm), `${H.nm(lt)} is the leading tone (7̂). Doubled, both would resolve to 1̂: parallel octaves.`, { kicker: "Doubling and tendency tones", topic: "princ" });
       }
       const d = H.rnd(k.mode === "major" ? [1, 2, 4, 5, 6] : [1, 4, 5, 6]), c = H.tok(k, String(d) + (form === "first" ? "6" : form === "second" ? "64" : "")), names = c.tones.map(H.nm);
-      if (form === "root") return H.mc(`In ${k.label}, which note is best doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[0], names, `Root position: double the root, ${names[0]} (the 5th is the next choice).`, { kicker: "Doubling", topic: "princ" });
-      if (form === "second") return H.mc(`In ${k.label}, which note is usually doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[2], names, `Second inversion: double the bass, ${names[2]} (the chord's 5th).`, { kicker: "Doubling", topic: "princ" });
-      return H.mc(`In ${k.label}, which note should you avoid doubling in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[1], names, `First inversion: avoid doubling the bass, ${names[1]} (the chord's 3rd); double the root or 5th.`, { kicker: "Doubling", topic: "princ" });
+      if (form === "root") return H.mc(`In ${k.label}, which note is best doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[0], names, `Root position: double the root, ${names[0]} (the 5th is the next choice).`, { kicker: "Doubling and tendency tones", topic: "princ" });
+      if (form === "second") return H.mc(`In ${k.label}, which note is usually doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[2], names, `Second inversion: double the bass, ${names[2]} (the chord's 5th).`, { kicker: "Doubling and tendency tones", topic: "princ" });
+      return H.mc(`In ${k.label}, which note should you avoid doubling in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[1], names, `First inversion: avoid doubling the bass, ${names[1]} (the chord's 3rd); double the root or 5th.`, { kicker: "Doubling and tendency tones", topic: "princ" });
     }
     if (mode === "tend") {
       const k = H.randKey(["major", "minor"]), v = H.tok(k, "57"), lt = v.tones[1], sev = v.tones[3], s4 = H.deg(k, 4), s3 = H.deg(k, 3), s1 = H.deg(k, 1);
@@ -135,7 +173,7 @@ window.FAM = (() => {
         [`In ${k.label}, V⁴₂ (${H.tok(k, "542").sym}) almost always resolves to…`, `{rn:${H.rnOf(k, 1)}6}`, [`{rn:${H.rnOf(k, 1)}}`, `{rn:${H.rnOf(k, 4)}}`, `{rn:${H.rnOf(k, 6)}}`], `The 7th (${H.nm(sev)}) is in the bass and must step down to ${H.nm(s3)}: the 3rd of I, so I⁶.`],
       ];
       const [q, a, w, y] = H.rnd(qs);
-      return H.mc(q, a, w, y, { kicker: "Tendency tones", topic: "tech" });
+      return H.mc(q, a, w, y, { kicker: "Doubling and tendency tones", topic: "tech" });
     }
     const [q, a, w, y] = H.rnd(FACTS);
     return H.mc(q, a, w, y, { kicker: "Principles", topic: "princ" });
@@ -157,14 +195,27 @@ window.FAM = (() => {
     { title: "Voice-leading and part-writing", kick: "SATB", render: () => `<p><b>Voice-leading</b> and <b>part-writing</b> focus on how individual lines move and interact: each voice should move smoothly from one note or chord to the next, keeping both melodic interest and harmonic clarity.</p>
       <p>The usual framework is four-part <b>SATB</b> writing (soprano, alto, tenor, bass), familiar from hymns and chorales. The soprano and bass define the outer structure; alto and tenor support from inside. It makes abstract harmonic ideas concrete.</p>
       <p>This lesson covers progressions between root-position triads, seventh chords resolving by a 4th or 5th (including V⁷ in inversion), and vii°⁷.</p>` },
-    { title: "Each line is a melody", kick: "Rhythm, contour, leaps", render: () => `<ul><li><b>Rhythm:</b> keep it simple, with durations equal to or longer than the beat.</li>
-      <li><b>Non-chord tones:</b> use them carefully (if at all), favoring passing tones, neighbor tones and suspensions, and resolve them properly.</li>
-      <li><b>Contour:</b> mostly conjunct (stepwise) motion, with a single climax.</li>
-      <li><b>Leaps:</b> avoid augmented intervals, 7ths and anything larger than an octave. Diminished intervals are OK if the line changes direction by step right after. Approach and leave a leap larger than a P4 in the opposite direction. Smaller leaps in the same direction should outline a triad.</li></ul>` },
+    { title: "Each line is a melody", kick: "Rhythm, contour, leaps", render: (H, k, U) => `<ul><li><b>Rhythm</b> ①: keep it simple, with durations equal to or longer than the beat.</li>
+      <li><b>Non-chord tones</b> ②: use them carefully (if at all), favoring passing tones, neighbor tones and suspensions, and resolve them properly.</li>
+      <li><b>Contour</b> ③: mostly conjunct (stepwise) motion, with a single climax.</li>
+      <li><b>Leaps</b> ④ ⑤: avoid augmented intervals, 7ths and anything larger than an octave. Diminished intervals are OK if the line changes direction by step right after. Approach and leave a leap larger than a P4 in the opposite direction. Smaller leaps in the same direction should outline a triad.</li></ul>`
+      + U.fig({ type: "score", clefs: ["treble"], ids: ["s"], names: ["melody"], time: "4/4", vf: "C", sig: {}, bpm: 92, tagSide: true, evenBars: true, rowW: 820, symSize: 18, bars: H.toBars({ s: [[
+        { k: ["E4"], q: 1, sym: "C", tag: "①" }, { k: ["D4"], q: 1, tag: "②", hl: true }, { k: ["C4"], q: 1, tag: "④" }, { k: ["A4"], q: 1, sym: "F", hl: true },
+        { k: ["G4"], q: 1, sym: "C" }, { k: ["F4"], q: 1, tag: "②", hl: true }, { k: ["E4"], q: 1 }, { k: ["G4"], q: 1 },
+        { k: ["C5"], q: 2, sym: "F", tag: "③", hl: true }, { k: ["B4"], q: 1, sym: "G" }, { k: ["G4"], q: 1, tag: "⑤" },
+        { k: ["E4"], q: 1, sym: "C" }, { k: ["C4"], q: 1 }, { k: ["D4"], q: 1, sym: "G" }, { k: ["B3"], q: 1 },
+        { k: ["C4"], q: 4, sym: "C" }]] }) },
+        `① Simple rhythm: quarters, a half note and a whole note, nothing shorter than the beat. ② Passing tones (D between E and C; F between G and E), each resolved by step. ③ One climax, the high C. ④ A leap larger than a P4 (C up to A, a 6th) approached from above and left by step down: both in the opposite direction. ⑤ Smaller leaps in one direction (G–E–C) outline a C major triad.`) },
     { title: "Spacing and doubling", kick: "Building each chord", keyed: "both", render: (H, k, U) => `<ul><li><b>Spacing and crossing:</b> no voice crosses above the soprano or below the bass; keep adjacent upper voices (S–A, A–T) within an octave.</li>
       <li><b>Never omit</b> the root or 3rd. <b>Never double</b> 7̂: it makes parallel octaves when it resolves to 1̂.</li>
       <li><b>Root position:</b> double the root, unless that causes poor voice-leading; then the 5th.</li><li><b>First inversion:</b> avoid doubling the bass (the 3rd).</li><li><b>Second inversion:</b> double the bass (the 5th).</li></ul>
-      <div class="lfigs">${errFig(H, U, k, "dbl", "Doubled leading tone")}${errFig(H, U, k, "space", "Upper voices too far apart")}${errFig(H, U, k, "cross", "Voice crossing")}</div>` },
+      <div class="lfigs">${errFig(H, U, k, "dbl", "Doubled leading tone")}${errFig(H, U, k, "space", "Upper voices too far apart")}${errFig(H, U, k, "cross", "Voice crossing")}</div>
+      <h3>Hidden crossing: voice overlap</h3>
+      <p>Voices can also cross <i>between</i> chords without ever crossing inside one. When the tenor moves above the note the alto just sang (or the alto moves below the tenor's last note), the two lines overlap: listeners may follow the wrong voice. This <b>voice overlap</b> is a hidden form of crossing; avoid it, especially between alto and tenor, where the voices are closest.</p>
+      ${(() => { const x = overlapEx(H, k); if (!x) return "";
+        const [v1, v2] = x.vs, nm = m => H.nm(m);
+        const cap = x.up ? `The tenor moves up to ${H.nm(v2.T)}, above the alto's previous note (${H.nm(v1.A)}). No chord has crossed voices, but the lines overlap.` : `The alto moves down to ${H.nm(v2.A)}, below the tenor's previous note (${H.nm(v1.T)}). No chord has crossed voices, but the lines overlap.`;
+        return U.fig(H.satbSpec(x, { hl: [0, 1] }), cap + ` <i>(in ${k.label})</i>`, { play: H.satbPlay(x.vs, 1.1) }); })()}` },
     { title: "Tendency tones", kick: "Where notes want to go", keyed: "both", render: (H, k, U) => `<p>Resolve tendency tones by step whenever possible, especially in the soprano: <b>7̂ up to 8̂</b> and <b>4̂ down to 3̂</b>. <b>Chordal 7ths resolve down</b>, especially in an upper voice.</p>
       <div class="lfigs">${errFig(H, U, k, "lt", "The leading tone in the soprano doesn't resolve")}${errFig(H, U, k, "sev", "The chordal 7th doesn't resolve down")}</div>` },
     { title: "Parallels and direct intervals", kick: "Keeping voices independent", keyed: "both", render: (H, k, U) => `<ul><li>Avoid <b>parallel perfect unisons, octaves and 5ths</b>. Parallel 4ths between inner voices are fine, but not between the outer voices (they make parallel ⁶₄ chords).</li>
@@ -183,7 +234,7 @@ window.FAM = (() => {
 
   return {
     key: "silverapps-partwriting-v1", lesson, make, reference,
-    modes: [{ id: "error", kicker: "Find the error" }, { id: "double", kicker: "Doubling" }, { id: "tend", kicker: "Tendency tones" }, { id: "v7", kicker: "Resolving V⁷" }, { id: "princ", kicker: "Principles" }],
+    modes: [{ id: "error", kicker: "Find the error" }, { id: "dtend", kicker: "Doubling and tendency tones" }, { id: "v7", kicker: "Resolving V⁷" }, { id: "princ", kicker: "Principles" }],
     topics: [],
   };
 })();

@@ -47,7 +47,10 @@ window.FAM = (() => {
   const okSpell = n => Math.abs(n.a) <= 2;
   const staff = (H, notes, clef, harm) => ({ type: "score", clefs: [clef], time: null, vf: "C", sig: {}, bpm: 100, final: false, minBar: harm ? 60 : 110, scale: 1.3, bars: [{ [clef === "bass" ? "b" : "t"]: [harm ? [{ k: notes.map(H.nmO), d: "w" }] : notes.map(n => ({ k: [H.nmO(n)], d: "w" }))] }] });
   const play = (H, lo, hi, harm) => harm ? { chords: [[H.midi(lo), H.midi(hi)]], gap: 1.4 } : { chords: [[H.midi(lo)], [H.midi(hi)]], gap: .8 };
-  const why = (H, lo, hi, i, q) => `${H.nm(lo)} up to ${H.nm(hi)}: ${i + 1} letter names (${Array.from({ length: i + 1 }, (_, k) => "CDEFGAB"[(lo.l + k) % 7]).join(" ")}), so ${i === 0 ? "a unison" : i === 7 ? "an octave" : "a " + NUM[i]}; ${H.midi(hi) - H.midi(lo)} half steps, so ${nameOf(i, q)}.`;
+  // the matching-accidentals shortcut for 4ths and 5ths: same accidental on both notes = perfect, except the B–F pair
+  const trick = (lo, hi, i) => { if (i !== 3 && i !== 4) return ""; const odd = i === 4 ? lo.l === 6 : lo.l === 3, same = lo.a === hi.a;
+    return ` Shortcut: ${i === 4 ? "5ths" : "4ths"} whose two notes carry the same accidental are perfect, except ${i === 4 ? "B up to F (diminished)" : "F up to B (augmented)"}. Here the accidentals ${same ? "match" : "don't match"}${odd ? ` and the letters are ${i === 4 ? "B–F" : "F–B"}` : ""}.`; };
+  const why = (H, lo, hi, i, q) => `${H.nm(lo)} up to ${H.nm(hi)}: ${i + 1} letter names (${Array.from({ length: i + 1 }, (_, k) => "CDEFGAB"[(lo.l + k) % 7]).join(" ")}), so ${i === 0 ? "a unison" : i === 7 ? "an octave" : "a " + NUM[i]}; ${H.midi(hi) - H.midi(lo)} half steps, so ${nameOf(i, q)}.` + trick(lo, hi, i);
 
   function make(mode, H) {
     if (mode === "note" || mode === "above" || mode === "below") mode = mode === "note" ? (Math.random() < .5 ? "above" : "below") : mode;   // one "write the note" drill, above or below at random

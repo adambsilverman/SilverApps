@@ -108,6 +108,10 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 .estaff .trio{grid-template-columns:1fr}.estaff .trio-cell{background:var(--fi-card);padding:6px 8px}
 @media (max-width:560px){.enh{grid-template-columns:1fr}.eq{font-size:28px}}
 @media (max-width:560px){.slide{padding:16px}.chord{grid-template-columns:1fr}.stack{width:100%}.kb{height:120px}.key{font-size:10px}}
+.trk{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.trk>div{border:1.5px solid var(--fi-line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
+.trk b{font:700 14px var(--fi-ui);color:var(--fi-red-dk)}
+.trk span{font-size:1.05rem}
 </style>
 
 <main class="lesson" id="main">
@@ -170,6 +174,14 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     <p>Scales follow the same rule: a major or minor scale uses <b>each letter name once</b>, so each scale degree is the right size above the tonic. In E major the 7th degree is <b>D♯</b> (a major 7th above E), not E♭ (which would be a diminished 8th and repeat the letter E).</p>
     <div class="row" role="group" aria-label="Scales" id="scBtns"></div>
     <div class="enh" id="scBox"></div>
+    <h3 class="sub3">A shortcut for 5ths (and 4ths)</h3>
+    <p>On the white keys, every 5th is perfect except one: <b>B up to F</b>, which is a half step smaller (a <b>diminished 5th</b>). So you can spot a perfect 5th from its accidentals alone: <b>if both notes carry the same accidental, the 5th is perfect</b> (both natural, both sharp, both flat, even both double sharp). The only exception is the B–F pair, where the bottom note needs one more sharp (or one less flat) than the top: <b>B♭–F</b> and <b>B–F♯</b> are perfect.</p>
+    <div class="trk">
+      <div><b>Same accidental: perfect</b><span>D–A · E♭–B♭ · F♯–C♯ · G♭–D♭ · A♯–E♯</span></div>
+      <div><b>The exception: B–F</b><span>B–F is diminished; B♭–F and B–F♯ are perfect</span></div>
+      <div><b>Accidentals don't match</b><span>D–A♭ is diminished (top lowered); D♭–A is augmented (bottom lowered)</span></div>
+    </div>
+    <p>4ths work the same way, with the exception reversed: every white-key 4th is perfect except <b>F up to B</b> (augmented), so a 4th whose notes carry the same accidental is perfect unless the letters are F and B. Because a 4th inverts to a 5th, it's really one fact.</p>
   </section>
 
   <section class="slide" data-title="Melodies" hidden>
@@ -667,6 +679,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     ["An interval's size (3rd, 5th…) is found by counting…", ["letter names", "half steps", "black keys"], 0, "Count letters for the size; count half steps for the quality."],
     ["C–D♯ and C–E♭ sound the same. What are they?", ["an augmented 2nd and a minor 3rd", "both minor 3rds", "both augmented 2nds"], 0, "Spelling counts: C–D♯ spans two letters, C–E♭ three."],
     ["A perfect 5th made one half step larger becomes…", ["augmented", "major", "minor"], 0, "Perfect intervals become augmented or diminished, never major or minor."],
+    ["E♭ up to B♭, F♯ up to C♯, A up to E: what do these 5ths have in common?", ["they're all perfect: each pair has matching accidentals", "they're all diminished", "they're all augmented"], 0, "Matching accidentals make a perfect 5th; the only exception is the B–F pair (B–F is diminished, B♭–F is perfect)."],
     ["Lowering the middle note of a major triad a half step makes it…", ["minor", "augmented", "an octave"], 0, "Major 3rd + minor 3rd becomes minor 3rd + major 3rd."],
     ["After a big upward leap, a melody usually…", ["comes back down, often by step", "leaps up again", "stops"], 0, "The stretch wants to resolve in the opposite direction."],
   ];
