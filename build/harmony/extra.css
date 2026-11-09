@@ -404,8 +404,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pb-cell.now { box-shadow: 0 0 0 2px var(--e1); }
 @media (max-width: 560px) { .pb-prog { grid-template-columns: repeat(2, 1fr); } }
 .pb-syms { font-size: 18px; }
-.pbld .pb-cell { --fi-pill: 3px; border-radius: 3px !important; }
-.pbld .pb-ch, .pbld .pb-chip { --fi-pill: 9px; border-radius: 9px !important; }
+.pbld .pb-cell { --fi-pill: 0; }
+.pbld .pb-ch, .pbld .pb-chip { --fi-pill: 0; }
 /* compact groove player */
 .pbld { padding: 8px 10px; }
 .pbld .pb-row { margin: 4px 0; gap: 5px; }
@@ -426,3 +426,20 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pbld .pb-gl { font-size: 12px; }
 .pbld .pb-lab { font-size: 13px; }
 .pbld .pb-grid-wrap { contain: inline-size; width: 100%; }
+/* Groove Player: sharp skin */
+.pbld { --body: "Schibsted Grotesk", system-ui, sans-serif; --fi-pill: 0; font-family: var(--body); border: 2px solid var(--ink); border-radius: 0; padding: 0 10px 8px; }
+.pbld *, .pbld .pb-cell, .pbld .pb-ch, .pbld .pb-chip { border-radius: 0 !important; }
+.pbld .pb-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 -10px 8px; padding: 6px 10px 5px; background: var(--ink); color: #fff; }
+.pbld .pb-title { font: 400 26px/1 "League Gothic", "Barlow Condensed", sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.pbld .pb-sub { font: 500 13px "Barlow Condensed", var(--body); letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.pbld .lk, .pbld .play { font-family: var(--body); font-weight: 700; letter-spacing: .02em; border-width: 1.5px; }
+.pbld .pb-sty { text-transform: uppercase; font-size: 12px; letter-spacing: .05em; }
+.pbld .pb-sets label, .pbld .pb-lab, .pbld .pb-gl { text-transform: uppercase; letter-spacing: .05em; font-size: 12px; }
+.pbld .pb-ch, .pbld .pb-chip { font-family: var(--body); border: 1.5px solid rgba(0,0,0,.25); }
+.pbld .pb-prog { border-radius: 0; background: rgba(127,127,127,.12); }
+.pbld .pb-chip { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.pbld .pb-chip.drag { cursor: grabbing; z-index: 5; opacity: .9; box-shadow: 4px 4px 0 var(--ink); }
+.pbld .pb-chip.over { outline: 3px solid var(--ink); outline-offset: -3px; }
+.pbld .pb-bar { font-family: var(--body); }
+.pbld .rn, .pbld .csym, .pbld select, .pbld .pb-cnt { font-family: "Schibsted Grotesk", system-ui, sans-serif; }
+.pbld a.lk { display: inline-flex; align-items: center; text-decoration: none; margin-left: auto; }

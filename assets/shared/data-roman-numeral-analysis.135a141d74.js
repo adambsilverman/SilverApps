@@ -184,7 +184,8 @@ window.FAM = (() => {
   const bassM = (H, c) => 36 + ((pcOf(H, c.tones[c.bass]) - 36) % 12 + 12) % 12;
   function bassNote(H, c, kind) { const b = bassM(H, c); if (kind === "8") return b + 12; if (kind === "5") { const f = pcOf(H, c.tones[(c.bass + 2) % c.tones.length]); return b + (((f - b) % 12 + 12) % 12 || 12); } return b; }
 
-  const pbHTML = (mode, id, trans) => `<div class="pbld" data-pb="${mode}" id="${id}"${trans ? " data-trans" : ""}>
+  const pbHTML = (mode, id, trans) => `<div class="pbld" data-pb="${mode}" id="${id}"${trans ? " data-trans" : ""} role="group" aria-labelledby="${id}h">
+    <div class="pb-head"><span class="pb-title" id="${id}h">Groove Player</span><span class="pb-sub">${trans ? "same numerals, any key" : "tap chords · drag bars to reorder · tap boxes to change the beat"}</span></div>
     <div class="pb-row pb-styles" role="group" aria-label="Style">${Object.entries(STYLES).map(([s, x]) => `<button class="lk pb-sty" data-pbstyle="${s}" aria-pressed="false">${x.name}</button>`).join("")}</div>
     <div class="pb-row pb-sets">
       <label>Meter <select data-pbmeter>${Object.keys(METERS).map(m => `<option>${m}</option>`).join("")}</select></label>
@@ -196,7 +197,7 @@ window.FAM = (() => {
     ${trans ? `<div class="pb-row pb-keys" role="group" aria-label="Key"></div>` : `<div class="pb-row" role="group" aria-label="Bass tone and 7th for the next chord"><span class="pb-lab" aria-hidden="true">Bass tone:</span>${BASSN.map((n, i) => `<button class="lk" data-pbb="${i}" aria-pressed="${i === 0}">${n}</button>`).join("")}<button class="lk" data-pbs aria-pressed="false">Add 7th</button></div>
     <div class="pb-pal" role="group" aria-label="Chords in the key (tap to add)"></div>`}
     <div class="pb-prog" role="group" aria-label="Your progression, one chord per bar"></div>
-    <div class="pb-row"><button class="play pb-go" data-pbplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg><span>Play</span></button><button class="lk" data-pbloop aria-pressed="true">Loop</button>${trans ? "" : `<button class="lk" data-pbdel>Remove last</button><button class="lk" data-pbclr>Clear</button><button class="lk" data-pbreset>Example</button>`}</div>
+    <div class="pb-row"><button class="play pb-go" data-pbplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg><span>Play</span></button><button class="lk" data-pbloop aria-pressed="true">Loop</button>${trans ? "" : `<button class="lk" data-pbdel>Remove last</button><button class="lk" data-pbclr>Clear</button><button class="lk" data-pbreset>Example</button>`}<a class="lk pb-full" data-pbfull href="chord-progression-lab.html">Open in the full Groove Player</a></div>
     <div class="pb-grid-wrap" tabindex="0" role="region" aria-label="One-bar pattern: tap boxes to change when chords, bass and drums play"><div class="pb-grid"></div></div>
     <p class="sr" aria-live="polite" data-pblive></p></div>`;
 
@@ -222,7 +223,7 @@ window.FAM = (() => {
         $(".pb-pal").innerHTML = pal.map((p, i) => { const c = chordOf(Object.assign({}, p, { b, s })); return `<button class="pb-ch" data-deg="${degOf(p)}" data-pbi="${i}" aria-label="${H.esc(pbSay(H, c))}${sel != null ? " (replaces the selected chord)" : ""}">${label(c)}</button>`; }).join(""); }
       else $(".pb-keys").innerHTML = `<span class="pb-lab" aria-hidden="true">Key:</span>` + H.KEYS[mode].map(n => `<button class="lk" data-pbkey="${H.esc(n)}" aria-pressed="${n === k.name}">${H.symHTML(n + (mode === "minor" ? "m" : ""))}</button>`).join("");
       const P = prog();
-      $(".pb-prog").innerHTML = P.length ? P.map((e, i) => { const c = chordOf(e); return `<button class="pb-chip" data-deg="${degOf(e)}" data-pbc="${i}" aria-pressed="${sel === i}" aria-label="Bar ${i + 1}: ${H.esc(pbSay(H, c))}"${trans ? " tabindex=\"-1\"" : ""}><span class="pb-bar" aria-hidden="true">${i + 1}</span>${label(c)}</button>`; }).join("") : `<p class="pb-empty">Tap chords above to build a progression (up to ${PBMAX} bars).</p>`;
+      $(".pb-prog").innerHTML = P.length ? P.map((e, i) => { const c = chordOf(e); return `<button class="pb-chip" data-deg="${degOf(e)}" data-pbc="${i}" aria-pressed="${sel === i}" aria-label="Bar ${i + 1}: ${H.esc(pbSay(H, c))}${trans ? "" : ". Shift plus arrow keys to move"}"${trans ? " tabindex=\"-1\"" : ""}><span class="pb-bar" aria-hidden="true">${i + 1}</span>${label(c)}</button>`; }).join("") : `<p class="pb-empty">Tap chords above to build a progression (up to ${PBMAX} bars).</p>`;
       if (!trans) { $("[data-pbdel]").disabled = !P.length; $("[data-pbdel]").textContent = sel != null ? "Remove selected" : "Remove last"; }
       $("[data-pbplay]").disabled = !P.length;
     }
@@ -252,7 +253,7 @@ window.FAM = (() => {
       const bo = AC.createGain(); bo.gain.value = C.bassLvl; bo.connect(out); BASSV[C.bi](bassNote(H, c, "b"), AC.currentTime + .03, .9, 1, bo); }
     const changed = () => { pbSave(); };
     box.addEventListener("click", ev => {
-      const t = ev.target.closest("button"); if (!t || !box.contains(t)) return; const P = S[mode];
+      if (noClick) return; const t = ev.target.closest("button"); if (!t || !box.contains(t)) return; const P = S[mode];
       if (t.dataset.pbstyle) { pbStyle(S, t.dataset.pbstyle); box._prev = null; sets(); grid(); changed(); live(`${STYLES[C.style].name}: ${CI[C.ci]}, ${BI[C.bi]}, ${C.meter}.`); if (!playing) start(); return; }
       if (t.dataset.row != null) { const r = +t.dataset.row, p = +t.dataset.col, a = C.rows[r], j = a.indexOf(p); if (j >= 0) a.splice(j, 1); else a.push(p); t.setAttribute("aria-pressed", j < 0); changed(); return; }
       if (t.hasAttribute("data-pbplay")) { playing ? stop() : start(); return; }
@@ -269,11 +270,36 @@ window.FAM = (() => {
       if (t.hasAttribute("data-pbclr")) { stop(); P.length = 0; sel = null; changed(); live("Progression cleared."); draw(); return; }
       if (t.hasAttribute("data-pbreset")) { S[mode] = PBDEF[mode].map(x => ({ ...x })); sel = null; changed(); live("Example progression loaded."); draw(); return; }
     });
+    // reorder bars: drag with mouse or touch; Shift+Arrow keys from the keyboard
+    let drag = null, noClick = false;
+    const chipAt = (x, y, not) => [...box.querySelectorAll(".pb-chip")].find(c => { const r = c.getBoundingClientRect(); return c !== not && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; });
+    const move = (i, j) => { const P = S[mode]; if (j < 0 || j >= P.length || i === j) return false; const [e] = P.splice(i, 1); P.splice(j, 0, e); sel = null; changed(); draw(); live(`Moved to bar ${j + 1}.`); return true; };
+    if (!trans) {
+      const pg = $(".pb-prog");
+      pg.addEventListener("pointerdown", e => { const c = e.target.closest(".pb-chip"); if (!c || e.button > 0) return; drag = { i: +c.dataset.pbc, x: e.clientX, y: e.clientY, el: c, on: false, id: e.pointerId }; });
+      pg.addEventListener("pointermove", e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+        if (!drag.on && Math.hypot(dx, dy) > 6) { drag.on = true; drag.el.setPointerCapture(e.pointerId); drag.el.classList.add("drag"); }
+        if (drag.on) { drag.el.style.transform = `translate(${dx}px, ${dy}px)`; box.querySelectorAll(".pb-chip.over").forEach(c => c.classList.remove("over")); const o = chipAt(e.clientX, e.clientY, drag.el); if (o) o.classList.add("over"); } });
+      const end = e => { if (!drag) return; const d = drag; drag = null; if (!d.on) return; noClick = true; setTimeout(() => noClick = false, 0);
+        const o = chipAt(e.clientX, e.clientY, d.el); d.el.style.transform = ""; d.el.classList.remove("drag"); if (!(o && move(d.i, +o.dataset.pbc))) draw(); };
+      pg.addEventListener("pointerup", end); pg.addEventListener("pointercancel", end);
+      pg.addEventListener("keydown", e => { const c = e.target.closest(".pb-chip"); if (!c || !e.shiftKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return; e.preventDefault();
+        const i = +c.dataset.pbc, j = i + (e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1); if (move(i, j)) box.querySelector(`[data-pbc="${j}"]`).focus(); });
+    }
     box.addEventListener("change", ev => { const t = ev.target;
       if (t.matches("[data-pbmeter]")) { C.meter = t.value; const g = st().gen(M()); C.rows = [g.chord, g.bass, ...g.d]; grid(); live(`Meter ${C.meter}; the ${st().name} pattern now fits it. Tap boxes to change it.`); }
       if (t.matches("[data-pbci]")) C.ci = t.value; if (t.matches("[data-pbbi]")) C.bi = t.value; if (t.matches("[data-pbkit]")) { C.kit = t.value; grid(); }
       changed(); });
     box.addEventListener("input", ev => { const t = ev.target; if (t.matches("[data-pbbpm]")) { C.bpm = +t.value; $("[data-pbbpmv]").textContent = C.bpm; } if (t.matches("[data-pblvl]")) C.bassLvl = +t.value; changed(); });
+    // hand the groove to the full Groove Player page (same link format as its "Copy link")
+    const fullHref = () => { const st = STYLES[C.style] || STYLES.rock, seq = st.seq.join(""), bars = METERS[C.meter].n / 4;
+      const id = e => mode === "major" ? ["I", "ii", "iii", "IV", "V", "vi", "vii"][e.d - 1] : ({ "vii°": "vii" }[e.id] || e.id);
+      const h = { v: 2, t: k.name, m: mode, cv: curSys() === "mj" ? "pop" : "classical", mt: C.meter, b: C.bpm, sm: 1, vo: C.ci === "dist" ? "power" : "close", ci: C.ci === "eguitar" ? "pluck" : C.ci, bi: C.bi, kit: C.kit === "off" ? "rock" : C.kit, st: C.style,
+        ar: st.arp ? "up" : "", bt: seq === "b" ? "root" : !seq.includes("5") ? "oct" : "alt5", sw: 0, rw: C.kit === "off" ? [C.rows[0], C.rows[1], [], [], []] : C.rows, ed: { C: 1, B: 1, D: 1 },
+        c: prog().map(e => [id(e), e.s ? "7" : "triad", e.b, bars, ""]) };
+      return "chord-progression-lab.html#p=" + encodeURIComponent(JSON.stringify(h)); };
+    box.addEventListener("pointerdown", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
+    box.addEventListener("focusin", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
     box._redraw = draw; sets(); grid(); draw();
   }
   // Transposition: the progression built earlier, in any key of the same mode, plus a table across keys
@@ -300,7 +326,7 @@ window.FAM = (() => {
     { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>A Roman numeral names a chord's root and quality, not which note is in the bass. To show an inversion, <b>figures</b> are often attached to the numeral: {rn:V6} is a V chord in first inversion, {rn:ii65} a ii⁷ chord in first inversion. The figures themselves (what ⁶, ⁶₄, ⁶₅, ⁴₃ and ⁴₂ mean, and how to find them) are covered in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>.</p>
       <p>Seventh chords add a sign for the chord's quality: {rn:V7} (major triad, minor 7th: dominant 7th), {rn:ii7} (minor 7th), {rn:viiø7} (half-diminished) and {rn:vii°7} (fully diminished). A major 7th chord, such as the one on I or IV, is simply {rn:I7} or {rn:IV7}: the key tells you its 7th is major.</p>
       <h3>Build a progression</h3>
-      <p>Choose a <b>bass tone</b> (and whether to <b>add the 7th</b>), then tap chords to add them, one per bar; each numeral updates to show its figure. Tap a bar to select it and change its chord, bass tone or 7th. Pick a style, a meter and instruments for the chords, bass and drums, press Play, and tap the boxes in the pattern grid to change when each part plays. Turn up <b>Bass level</b> to make the bass line pop out. Your progression is saved for the <b>Transposition</b> step.</p>
+      <p>Choose a <b>bass tone</b> (and whether to <b>add the 7th</b>), then tap chords to add them, one per bar; each numeral updates to show its figure. Tap a bar to select it and change its chord, bass tone or 7th; drag bars (or press Shift with an arrow key) to reorder them. Pick a style, a meter and instruments for the chords, bass and drums, press Play, and tap the boxes in the pattern grid to change when each part plays. Turn up <b>Bass level</b> to make the bass line pop out. Your progression is saved for the <b>Transposition</b> step.</p>
       ${pbHTML("major", "pbMaj")}`
       + H.check("Figures attached to a Roman numeral show…", "which chord tone is in the bass (the inversion)", ["the chord's root", "the key", "how long the chord lasts"], "The numeral gives the root and quality; the figures give the inversion."),
       after: (root, H, k, tools) => pbMount(root, H, k, tools) },
@@ -316,7 +342,7 @@ window.FAM = (() => {
       <h3>Build a minor-key progression</h3>
       <p>The palette has both chords on the 5th degree (v and V) and both on the 7th (VII and vii°), and its labels follow the numeral system chosen above. Try {rn:v} and then {rn:V} before {rn:i} to hear what the raised 7th does, or {rn:VII} against {rn:vii°}. This progression is also used in the <b>Transposition</b> step.</p>
       ${pbHTML("minor", "pbMin")}
-      <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Chord Progression Lab lets you switch between them.</p>
+      <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Groove Player lets you switch between them.</p>
       <h3>Chromatic numerals</h3>
       <p>Chords with notes outside the key get numerals too. An <b>accidental before the numeral</b> shows that the root is lowered (♭) or raised (♯) from the scale it's measured against; case and quality signs work as usual. (♭ means "lowered", even in sharp keys where the actual note may carry a natural.)</p>
       <p><b>Borrowed chords</b> (mode mixture) bring chords of the minor key into its parallel major. In ${kM.label}, measured against the major scale, both systems label them the same way:</p>
@@ -383,7 +409,7 @@ window.FAM = (() => {
       <li>Songs in minor keys are often charted with the minor tonic as 6- (counting from the relative major), though some players write 1- instead. Agree on which before the session.</li>
       <li>Players add their own marks for stops, rests, key changes and section names (V for verse, C for chorus, B for bridge), so charts vary a little from studio to studio.</li></ul>`
       + H.check(`In ${k.label}, what chord is 6- in Nashville numbers?`, N["6"].sym, [N["4"].sym, N["2"].sym, N["5"].sym, H.chord(H.deg(k, 6), "M").sym], "Count up six scale degrees; the minus sign means minor.", "sym"); } },
-    { title: "Try it: the Chord Progression Lab", kick: "Build, voice and groove", render: () => `<p>The <a href="chord-progression-lab.html"><b>Chord Progression Lab</b></a> lets you build progressions from diatonic, borrowed, applied and other chromatic numerals, choose voicings (close, open, drop 2, shell, rootless, quartal, power chords, clusters), add accompaniment patterns, a bass line and a drum beat, transpose to any key with one menu, switch between the two minor-key systems, and export audio.</p>
+    { title: "Try it: the Groove Player", kick: "Build, voice and groove", render: () => `<p>The full <a href="chord-progression-lab.html"><b>Groove Player</b></a> lets you build progressions from diatonic, borrowed, applied and other chromatic numerals, choose voicings (close, open, drop 2, shell, rootless, quartal, power chords, clusters), add accompaniment patterns, a bass line and a drum beat, transpose to any key with one menu, switch between the two minor-key systems, and export audio.</p>
       <p>Try this: load a preset, then change the key. The numerals stay put while every chord symbol changes. Then swap one diatonic chord for a borrowed one (IV → iv, or vi → ♭VI) and listen to the change in color.</p>` },
     { title: "Quick check", kick: "Before the drills", render: H => [0, 2, 3, 4, 6, 9].map(i => { const [q, a, w, y] = FACTS[i]; return H.check(q, a, w, y); }).join("") },
   ] };
