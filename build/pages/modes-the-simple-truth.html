@@ -260,7 +260,6 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     { id: "majp", name: "Major pentatonic", tonic: { l: 0, a: 0, o: 4 }, items: [[0, 0], [1, 2], [2, 4], [4, 7], [5, 9]], tag: "major without 4 and 7", note: "C D E G A: whole steps and minor 3rds only." },
     { id: "minp", name: "Minor pentatonic", tonic: { l: 5, a: 0, o: 3 }, items: [[0, 0], [2, 3], [3, 5], [4, 7], [6, 10]], tag: "natural minor without 2 and ♭6", note: "A C D E G: the same notes as C major pentatonic, starting on A — relatives." },
     { id: "blues", name: "Blues scale", tonic: { l: 5, a: 0, o: 3 }, items: [[0, 0], [2, 3], [3, 5], [3, 6], [4, 7], [6, 10]], tag: "minor pentatonic + ♯4/♭5", note: "A C D D♯ E G: the added ‘blue note’ may be spelled ♯4 (D♯) or ♭5 (E♭)." },
-    { id: "black", name: "The black keys", tonic: { l: 6, a: -1, o: 3 }, items: [[0, 0], [1, 2], [2, 4], [4, 7], [5, 9]], tag: "G♭ major pentatonic", note: "G♭ A♭ B♭ D♭ E♭: every black key, a ready-made pentatonic scale." },
   ];
   const SYM = [
     { id: "wt", name: "Whole-tone", semis: [0, 2, 4, 6, 8, 10], letters: [0, 1, 2, 3, 4, 5], tag: "all whole steps · 6 notes · 2 collections", period: 2 },
@@ -268,8 +267,8 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     { id: "oct2", name: "Octatonic (H–W)", semis: [0, 1, 3, 4, 6, 7, 9, 10], letters: [0, 1, 2, 2, 3, 4, 5, 6], tag: "half, whole, half, whole… · 8 notes · 3 collections", period: 3 },
   ];
   const scale = (t, deg) => deg.map((s, i) => spell(t, i, s)).concat([{ l: t.l, a: t.a, o: t.o + 1 }]);
-  const stepNames = semis => { const all = semis.concat(12); return all.slice(1).map((v, i) => { const d = v - all[i]; return d === 1 ? "H" : d === 2 ? "W" : d === 3 ? "+2" : String(d); }); };
-  const stepsHTML = (semis, hilite = []) => stepNames(semis).map((s, i) => `<span class="${s === "H" ? "H" : s === "+2" ? "A" : ""}" ${hilite.includes(i) ? 'style="outline:3px solid var(--fi-red-dk)"' : ""}>${s}</span>`).join("");
+  const stepNames = (semis, m3) => { const all = semis.concat(12); return all.slice(1).map((v, i) => { const d = v - all[i]; return d === 1 ? "H" : d === 2 ? "W" : d === 3 ? (m3 ? "m3" : "+2") : String(d); }); };   // m3: a 3-half-step gap that skips a letter (pentatonic, blues)
+  const stepsHTML = (semis, hilite = [], m3) => stepNames(semis, m3).map((s, i) => `<span class="${s === "H" ? "H" : s === "+2" ? "A" : ""}" ${hilite.includes(i) ? 'style="outline:3px solid var(--fi-red-dk)"' : ""}>${s}</span>`).join("");
   const changed = (deg, par) => deg.map((v, i) => par && v !== par[i]);
 
   // ---------- sound ----------
@@ -481,7 +480,7 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     const s = PEN.find(x => x.id === pen), ns = s.items.map(([i, se]) => spell(s.tonic, i, se)).concat([{ ...s.tonic, o: s.tonic.o + 1 }]);
     btnRow("penBtns", PEN.map(x => [x.id, x.name, x.tag]), pen, v => { pen = v; drawPen(true); }, "mcard");
     $("penRead").innerHTML = `${nm(s.tonic)} ${s.name}<small>${s.note}</small>`;
-    staff("penStaff", ns); keyboard("penKb", ns, { red: pen === "blues" ? [ns[3]] : [] }); $("penSteps").innerHTML = stepsHTML(s.items.map(x => x[1]));
+    staff("penStaff", ns); keyboard("penKb", ns, { red: pen === "blues" ? [ns[3]] : [] }); $("penSteps").innerHTML = stepsHTML(s.items.map(x => x[1]), [], true);
     if (play) playScale(ns);
   }
   $("penPlay").onclick = () => { const s = PEN.find(x => x.id === pen); playScale(s.items.map(([i, se]) => spell(s.tonic, i, se)).concat([{ ...s.tonic, o: s.tonic.o + 1 }])); };
