@@ -43,7 +43,7 @@
   const mc = (text, answer, wrong, explain, extra) => {
     const w = shuffle([...new Set(wrong.map(String))].filter(v => v !== String(answer))).slice(0, (extra && extra.nWrong) || 3);
     const cs = [String(answer), ...w], ord = extra && extra.order;
-    return Object.assign({ text, choices: ord === "keep" ? cs : (ord !== "shuffle" && ordered(cs)) || shuffle(cs), answer: String(answer), explain }, extra || {});
+    return Object.assign({ text, choices: Array.isArray(ord) ? ord.map(String).filter(v => cs.includes(v)) : ord === "keep" ? cs : (ord !== "shuffle" && ordered(cs)) || shuffle(cs), answer: String(answer), explain }, extra || {});
   };
 
   // ---------- keys ----------
@@ -382,6 +382,7 @@
               const shown = n.barRest ? "w" : n.d;   // n.barRest: a whole-bar rest in any meter: drawn as a whole rest, timed as the bar (n.d = the bar's length, e.g. "hd" in 3/4 or 6/8)
               const keys = isRest ? [/^w/.test(shown) ? restW[c] : rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
               const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: shown + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest, align_center: !!n.center || (isRest && /^w/.test(shown) && voice.length === 1) });   // n.center: a whole-bar rest centered in the bar
+              if (n.center && !isRest) sn._saCenter = true;
               if (!isRest && c !== "percussion") keys.forEach((y, ki) => {
                 const kk = y.p.l + "/" + y.p.o, cur = kk in acc ? acc[kk] : ((o.sig && o.sig[y.p.l]) || 0);
                 const tiedIn = last[si + ":" + vi] && last[si + ":" + vi].tie && last[si + ":" + vi].sn && last[si + ":" + vi].n.k.includes(n.k[0]);
@@ -410,6 +411,9 @@
         clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
         if (vlist.length) { const vs = vlist.map(x => x.v); justifyW(VF, fmt, vs, Math.max(20, staves[0].getNoteEndX() - startX - 12)); }
         vlist.forEach(x => x.v.draw(ctx, x.s));
+        // centered notes (n.center): VexFlow centers the notehead and ignores accidentals, so re-center the whole drawn chord (heads + accidentals) in the bar
+        vlist.forEach(x => x.v.getTickables().forEach(n => { if (!n._saCenter) return; try { const el = n.getSVGElement && n.getSVGElement(); if (!el || !el.getBBox) return; const bb = el.getBBox(), a = x.s.getNoteStartX(), b = x.s.getNoteEndX(), dx = (a + b) / 2 - (bb.x + bb.width / 2);
+          if (Math.abs(dx) > .5) { el.setAttribute("transform", `translate(${dx.toFixed(1)} 0)`); n._saDx = dx; } } catch (e) {} }));
         { const Q = VF.RESOLUTION / 4; let used = 0;   // each note's onset in quarter notes from the start (sn._q), for highlighting during playback
           vlist.forEach(x => { let tk = 0; x.v.getTickables().forEach(n => { n._q = barQ + tk / Q; tk += n.getTicks().value(); }); used = Math.max(used, tk / Q); });
           barQ += used; }
@@ -444,7 +448,7 @@
     const hasN = has("n") || !!o.beatNums, hasTag = !o.tagSide && all.some(n => n.tag), hasSym = has("sym");
     beatMarks.forEach(b => txt(b.x, (rowTop[b.ri] ?? 40) - 12, b.label, { "font-size": 13, "font-weight": 700, "fill-opacity": .75 }));
     meta.forEach(({ sn, n, si, ri, staves }) => {
-      const x = sn.getAbsoluteX() + 6, top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
+      const x = sn.getAbsoluteX() + 6 + (sn._saDx || 0), top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
       const nY = rowTop[ri] - 12, tagY = nY - (hasN ? 18 : 0), symY = tagY - (hasTag ? 20 : 0) - (hasN || hasTag ? 4 : 12), brY = symY - (hasSym ? 24 : 0) - 2;
       if (n.hlc) mk("rect", { x: x - 20, y: top - 26, width: 42, height: bot - top + 52, rx: 10, fill: cssVar("--hl") || "#F7E3A1", "fill-opacity": .85 }, svg, true);
       if (n.hl) {   // circle centered on the notehead itself, a little wider than the head (whole notes are wide)
@@ -585,10 +589,8 @@
         barStart += Math.max(...ids.map(id2 => Math.max(0, ...((b[id2] || []).map(v => v.reduce((s, n) => s + durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1), 0)))))) * spb;
       });
     } });
-    // rhythms on a percussion staff play as a simple melody (an arch: up the C major scale and back to C), not a drum;
-    // o.drum keeps the drum sound
-    if (perc && !o.drum) { const pe = ev.filter(e => e[4] === "perc").sort((a, b) => a[1] - b[1]), N = pe.length, SC = [72, 74, 76, 77, 79, 81, 83, 84], A = Math.min(7, Math.max(1, Math.floor((N - 1) / 2)));
-      pe.forEach((e, i) => { e[0] = SC[Math.round(A * Math.sin(Math.PI * (N > 1 ? i / (N - 1) : 0)))]; e[3] = .8; e.length = 4; }); }
+    // rhythms on a percussion staff play on one steady pitch (C5), not a drum; o.drum keeps the drum sound
+    if (perc && !o.drum) ev.filter(e => e[4] === "perc").forEach(e => { e[0] = 72; e[3] = .8; e.length = 4; });
     return { ev, timbre: o.timbre };
   }
 

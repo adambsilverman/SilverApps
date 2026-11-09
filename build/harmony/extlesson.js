@@ -2,7 +2,7 @@ window.FAM = (() => {
   // ===== Extended and Altered Chords: lesson only (the drills are the Chord Extensions app). Engine: build/harmony/engine.js =====
   // a chord on the treble staff from a root and [letter steps, semitones] above it
   const stack = (H, root, ivs) => ivs.map(([st, se]) => H.nmO(H.up(root, st, se)));
-  const chordSpec = (H, list) => ({ type: "score", clefs: ["treble"], time: null, vf: "C", sig: {}, bpm: 50, final: false, bars: list.map(([keys, sym]) => ({ t: [[{ k: keys, d: "w", sym, center: true }]] })) });
+  const chordSpec = (H, list) => ({ type: "score", clefs: ["treble"], time: null, vf: "C", sig: {}, bpm: 50, final: false, minBar: 112, bars: list.map(([keys, sym]) => ({ t: [[{ k: keys, d: "w", sym, center: true }]] })) });
   const fig = (H, U, list, cap) => U.fig(chordSpec(H, list), cap, { play: { chords: list.map(([k]) => k.map(s => H.midi(H.parse(s)))), gap: 1.6, dur: .9 } });
   const C = s => `{sym:${s}}`;
   const I = { r: [0, 0], 3: [2, 4], m3: [2, 3], 5: [4, 7], b5: [4, 6], s5: [4, 8], 7: [6, 10], M7: [6, 11], o7: [6, 9], 9: [8, 14], b9: [8, 13], s9: [8, 15], 11: [10, 17], s11: [10, 18], 13: [12, 21], b13: [12, 20], 6: [5, 9], 2: [1, 2], 4: [3, 5] };

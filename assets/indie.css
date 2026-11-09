@@ -239,7 +239,7 @@ body.lc-fs .lc-timer{font-size:clamp(90px,11vw,170px)}
 .saj-find input{flex:1;font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-paper);color:var(--fi-ink);min-height:44px}
 .saj-body{padding:0 18px 18px;columns:2 300px;column-gap:24px}
 .saj-sec{break-inside:avoid;margin-bottom:12px}
-.saj-sec h3{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;color:var(--fi-muted)}
+.saj-sec h3{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px;color:var(--fi-red-dk);border-bottom:2px solid var(--fi-red);padding-bottom:3px}
 .saj-sec ul{list-style:none;margin:0;padding:0}
 .saj-sec li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:3px 0;border-bottom:1px solid var(--fi-soft)}
 .saj-name{flex:1 1 140px;font:600 15px var(--fi-serif)}

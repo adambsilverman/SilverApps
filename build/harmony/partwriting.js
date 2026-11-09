@@ -157,12 +157,12 @@ window.FAM = (() => {
       if (form === "never") {
         const c = H.tok(k, H.rnd(["5", "57", "76"]));
         const lt = c.tones.find(t => H.pc(t) === H.ltPC(k));
-        return H.mc(`In ${k.label}, which tone of {rn:${c.rn}} (${c.sym}) should never be doubled?`, H.nm(lt), c.tones.map(H.nm), `${H.nm(lt)} is the leading tone (7̂). Doubled, both would resolve to 1̂: parallel octaves.`, { kicker: "Doubling and tendency tones", topic: "princ" });
+        return H.mc(`In ${k.label}, which tone of {rn:${c.rn}} (${c.sym}) should never be doubled?`, H.nm(lt), c.tones.map(H.nm), `${H.nm(lt)} is the leading tone (7̂). Doubled, both would resolve to 1̂: parallel octaves.`, { kicker: "Doubling and tendency tones", topic: "princ", order: c.tones.map(H.nm) });
       }
       const d = H.rnd(k.mode === "major" ? [1, 2, 4, 5, 6] : [1, 4, 5, 6]), c = H.tok(k, String(d) + (form === "first" ? "6" : form === "second" ? "64" : "")), names = c.tones.map(H.nm);
-      if (form === "root") return H.mc(`In ${k.label}, which note is best doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[0], names, `Root position: double the root, ${names[0]} (the 5th is the next choice).`, { kicker: "Doubling and tendency tones", topic: "princ" });
-      if (form === "second") return H.mc(`In ${k.label}, which note is usually doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[2], names, `Second inversion: double the bass, ${names[2]} (the chord's 5th).`, { kicker: "Doubling and tendency tones", topic: "princ" });
-      return H.mc(`In ${k.label}, which note should you avoid doubling in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[1], names, `First inversion: avoid doubling the bass, ${names[1]} (the chord's 3rd); double the root or 5th.`, { kicker: "Doubling and tendency tones", topic: "princ" });
+      if (form === "root") return H.mc(`In ${k.label}, which note is best doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[0], names, `Root position: double the root, ${names[0]} (the 5th is the next choice).`, { kicker: "Doubling and tendency tones", topic: "princ", order: names });
+      if (form === "second") return H.mc(`In ${k.label}, which note is usually doubled in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[2], names, `Second inversion: double the bass, ${names[2]} (the chord's 5th).`, { kicker: "Doubling and tendency tones", topic: "princ", order: names });
+      return H.mc(`In ${k.label}, which note should you avoid doubling in a four-voice {rn:${c.rn}} chord (${c.sym})?`, names[1], names, `First inversion: avoid doubling the bass, ${names[1]} (the chord's 3rd); double the root or 5th.`, { kicker: "Doubling and tendency tones", topic: "princ", order: names });
     }
     if (mode === "tend") {
       const k = H.randKey(["major", "minor"]), v = H.tok(k, "57"), lt = v.tones[1], sev = v.tones[3], s4 = H.deg(k, 4), s3 = H.deg(k, 3), s1 = H.deg(k, 1);
@@ -170,10 +170,13 @@ window.FAM = (() => {
         [`In ${k.label}, V⁷ (${v.sym}) goes to I. Where does its 7th, ${H.nm(sev)}, go?`, H.nm(s3), [H.nm(H.deg(k, 5)), H.nm(s1), H.nm(H.deg(k, 2))], `Chordal 7ths resolve down by step: ${H.nm(sev)} → ${H.nm(s3)}.`],
         [`In ${k.label}, where does the leading tone ${H.nm(lt)} resolve?`, H.nm(s1), [H.nm(H.deg(k, 5)), H.nm(s3), H.nm(H.deg(k, 6))], `7̂ goes up to 8̂: ${H.nm(lt)} → ${H.nm(s1)}.`],
         [`In ${k.label}, where does scale degree 4̂ (${H.nm(s4)}) tend to resolve?`, H.nm(s3), [H.nm(H.deg(k, 5)), H.nm(s1), H.nm(H.deg(k, 2))], `4̂ goes down to 3̂.`],
-        [`In ${k.label}, V⁴₂ (${H.tok(k, "542").sym}) almost always resolves to…`, `{rn:${H.rnOf(k, 1)}6}`, [`{rn:${H.rnOf(k, 1)}}`, `{rn:${H.rnOf(k, 4)}}`, `{rn:${H.rnOf(k, 6)}}`], `The 7th (${H.nm(sev)}) is in the bass and must step down to ${H.nm(s3)}: the 3rd of I, so I⁶.`],
+        // a Roman-numeral answer is the same in every key, so this one names no key
+        [`V⁴₂ almost always resolves to…`, `{rn:I6}`, [`{rn:I}`, `{rn:IV}`, `{rn:vi}`], `The 7th of V⁴₂ is in the bass and must step down to 3̂, the 3rd of I: so I⁶ (i⁶ in minor).`, [`{rn:I}`, `{rn:I6}`, `{rn:IV}`, `{rn:vi}`]],
       ];
-      const [q, a, w, y] = H.rnd(qs);
-      return H.mc(q, a, w, y, { kicker: "Doubling and tendency tones", topic: "tech" });
+      const [q, a, w, y, ord] = H.rnd(qs);
+      // note answers in scale-degree order (1̂ up to 7̂)
+      const sdOrder = ord || [1, 2, 3, 4, 5, 6, 7].map(d => H.nm(H.deg(k, d)));
+      return H.mc(q, a, w, y, { kicker: "Doubling and tendency tones", topic: "tech", order: sdOrder });
     }
     const [q, a, w, y] = H.rnd(FACTS);
     return H.mc(q, a, w, y, { kicker: "Principles", topic: "princ" });
