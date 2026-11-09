@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-09 (z100)** — *Keys lesson*, *Stable and tendency tones*: "Smells Like Teen Spirit" example (Adam's annotated verse in F minor: 2̂→1̂, 4̂→3̂, 6̂→5̂, 4̂→3̂) with an 8-second excerpt. Files: `assets/img/keys/teen-spirit.png`, `assets/audio/keys/teen-spirit.mp3` (loudness-normalized).
 - **2026-11-09 (z99)** — Fixes.
   - *Engine*: rhythms on a percussion staff play on one steady pitch (C5) again; the up-and-down "arch" melody is gone. Centered notes (`n.center`) are re-centered after drawing so their accidentals stay inside the bar: the drawn note group (heads + accidentals) is translated to the bar's middle (`sn._saCenter` / `sn._saDx`; labels follow `_saDx`). `H.mc` accepts `order: [..]`, a fixed choice order.
   - *Extended and Altered Chords*: seventh-chord bars are wider (`minBar: 112`).

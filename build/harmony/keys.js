@@ -150,7 +150,11 @@ window.FAM = (() => {
       <tr><td>Chordal 7th</td><td>down by step</td><td>${H.nm(k.scale[3])} (7th of ${H.chord(H.deg(k, 5), "7").sym}) → ${H.nm(k.scale[2])}</td></tr>
       <tr><td>Submediant (la)</td><td>down to sol, or up in la–ti–do (in minor: down)</td><td>${H.nm(k.scale[5])} → ${H.nm(k.scale[4])}</td></tr>
       <tr><td>Supertonic (re)</td><td>down to do or up to mi</td><td>${H.nm(k.scale[1])} → ${H.nm(k.scale[0])} / ${H.nm(k.scale[2])}</td></tr></tbody></table></div>
-      <p>Non-chord tones (passing, neighbor, suspensions, appoggiaturas) also create tension that resolves to a chord tone.</p>` },
+      <p>Non-chord tones (passing, neighbor, suspensions, appoggiaturas) also create tension that resolves to a chord tone.</p>
+      <h3>Hear it: “Smells Like Teen Spirit”</h3>
+      <figure class="lfig"><img src="assets/img/keys/teen-spirit.png" alt="Melody in F minor (four flats), common time, with chord symbols Fm, B-flat, A-flat, D-flat repeating. Arrows mark four resolutions, one at the end of each short phrase: G to F (2 to 1), B-flat to A-flat (4 to 3), D-flat to C (6 to 5), B-flat to A-flat (4 to 3)." loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">
+      <audio controls preload="none" src="assets/audio/keys/teen-spirit.mp3" style="width:100%;margin-top:8px"></audio>
+      <figcaption>Nirvana, “Smells Like Teen Spirit” (Kurt Cobain, Krist Novoselic and Dave Grohl), verse. In F minor, every short phrase ends with a tendency tone falling by step to a stable tone: 2̂→1̂, 4̂→3̂, 6̂→5̂, 4̂→3̂. The arrival notes, 1̂, 3̂ and 5̂, are the stable tones.</figcaption></figure>` },
     { title: "Tendencies in melody", kick: "Structure and chromatics", render: () => `<p>These resolutions are tied to <i>harmony</i>: in a melody, any note can move either way. But tendency tones still shape melodies, especially near cadences, and they don't have to resolve immediately: often non-consecutive notes of the melody's structure carry the resolution, so a 7̂ early in a phrase may find its 1̂ only at the cadence.</p>
       <p>In jazz, tendency tones are used more flexibly. The 3rd and 7th of a dominant chord are <b>guide tones</b>, leading to the next chord's important tones.</p>
       <p><b>Chromatic notes</b> are often tendency tones: a D♯ in C major creates tension and resolves up to E. In general, chromatic tones move in the direction of their inflection: raised notes up, lowered notes down. That usually matches how chromatic chords are spelled.</p>` },
