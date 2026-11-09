@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-09 (z95)** — Fair-use trims. *Modulation lesson*: I Will Always Love You now plays from YouTube (3JWTaaS7LdU, 2:51–3:34) and Kodachrome from the official audio (8rlDTK6QI-w): verse 0:00–0:17, chorus 0:28–1:06 (times worked out by matching the old course-notes excerpt's loudness envelope against the YouTube audio: the excerpt starts at 0:00; 136 bpm, 1.76 s per bar). The hosted MP3s for Lady Madonna, Kodachrome (both copies) and I Will Always Love You are deleted. The Kodachrome summary table is replaced by Adam's chord chart (`pre.chordchart`, styles in `extra.css`). *Modes*: Adam clipped the Dick Dale original to 11 s; its web copy (`modes/web/dick-dale-miserlou-byzantine.mp3`) was regenerated from it. Note: the originals in `assets/audio/modes/` are also published by GitHub Pages, even though the page plays only the `web/` copies.
 - **2026-11-09 (z94)** — *Modulation lesson*: Lady Madonna now plays from YouTube (uLRiGX3L-kw, 0:09–0:54) instead of the hosted MP3, to lower fair-use exposure. `MEDIA()` takes `{ yt, start, end, title }` in place of an audio file name for this.
 - **2026-11-09 (z93)** — Fixes and credits.
   - *Forms*: the K. 421 Menuetto clip plays 14:20–15:57 (`?start=860&end=957`).

@@ -110,11 +110,31 @@ window.FAM = (() => {
       + MEDIA("beethoven-symphony-5.jpg", "beethoven-symphony-5", "Beethoven, Symphony No. 5, II (piano reduction, bars 23–31), performed by the Chamber Orchestra of Europe, conducted by Nikolaus Harnoncourt: in A♭ major, the V⁷/IV (A♭7) is reheard as a German +6 in C major and resolves to I⁶₄–V⁷–I in C.", "Piano reduction from bar 23 in A-flat major: I, then V7 of IV; in the next system the same chord is labeled C major German augmented sixth, followed by I six-four, V7, I. A note explains that the A-natural in bars 28 to 29 implies an A diminished seventh.") },
     { title: "Direct modulation and turnarounds", kick: "Between phrases", render: () => `<p>A <b>direct modulation</b> uses no common chord. It can happen mid-phrase, but more often between phrases: the new phrase just starts in the new key. Pop's <b>truck driver's gear change</b> is a sudden direct modulation up a half or whole step, often before the final chorus, as in Dolly Parton's <i>I Will Always Love You</i>, recorded by Whitney Houston (below). A direct or pivot modulation may also return to the home key for a repeated verse.</p>
       <p><b>Turnaround</b> chords come <i>after</i> a cadence: they keep things moving in the same key (often ii–V), quickly tonicize the key of the next phrase, or simply turn the tonic into a dom7 to lead to the subdominant. Paul Simon's <i>Kodachrome</i> has both kinds:</p>
-      ${tbl(["Section", "Chords"], [["Verse (E major)", "{sym:E} | {sym:E7} | {sym:A} | {sym:A} | {sym:F♯m} | {sym:B} | {sym:E} | {sym:F♯m} {sym:B} (a non-modulating turnaround after the cadence)"], ["Chorus (A major)", "{sym:A} {sym:C♯} | {sym:F♯} | {sym:Bm} | {sym:E} | {sym:A} | {sym:D} | {sym:B} | {sym:E} | {sym:A} {sym:C♯} | {sym:F♯} …"], ["End of chorus", "{sym:B} | {sym:E} | {sym:A} | {sym:C♯m} | {sym:F♯m} | {sym:B} — back to E major, with F♯m as the pivot"]])}
+      <pre class="chordchart" tabindex="0" aria-label="Kodachrome chord chart: verse in E major, chorus in A major">VERSE (E major):
+When I think back on all the crap I learned in high school,
+   E    | E7 | A    | A     |
+It's a wonder I can think at all.
+   F#m  | B  | E    | F#m B |      ← turnaround (stays in E)
+And though my lack of education hasn't hurt me none,
+   E    | E7 | A    | A     |
+I can read the writing on the wall
+   F#m  | B  | E E7 |
+
+CHORUS (A major):
+Kodachrome
+   A C# | F# |
+They give us those nice bright colors, they give us the greens of summers
+   Bm   | E  | A    | D  |
+Makes you think all the world's a sunny day
+   B    | E  | A C# | F# |
+I got a Nikon camera, I love to take a photograph,
+   Bm   | E  | A    | D  |
+So mama, don't take my Kodachrome away.
+   B    | E  | A | C#m   | F#m | B |      ← modulating turnaround (back to E; F#m is the pivot)</pre>
       <p><b>Tonicization</b> is a weaker reference to a new key within a phrase, with no cadence there. The dominant is often tonicized just before a half cadence: that's <i>not</i> a modulation, so label the chord as a secondary dominant, as in Schumann's “The Happy Farmer” (<i>Album for the Young</i>).</p>`
-      + MEDIA("i-will-always-love-you.png", "i-will-always-love-you", "Dolly Parton, <i>I Will Always Love You</i> (performed by Whitney Houston): after a cadence on V⁷ in A major, the final chorus begins directly in B major, up a whole step.", "Lead sheet: A major I, iii, vi, I six-four, IV, V7, then a 2/4 bar and a key signature change to B major, labeled direct modulation: B major I, vi, IV, V7.")
-      + MEDIA("simon-kodachrome-1.png", "simon-kodachrome", "Paul Simon, <i>Kodachrome</i>, verse: after the cadence on E, the turnaround chords F♯m–B keep the music in E major.", "Lead sheet of the verse in E major with chord symbols F-sharp minor, B, E, E7, A, F-sharp minor, B, E; an arrow marks the cadence point on E, and a box marks the turnaround chords F-sharp minor, B.")
-      + MEDIA("simon-kodachrome-2.png", null, "<i>Kodachrome</i>, end of the chorus: after the cadence in A major, the modulating turnaround C♯m–F♯m–B leads back to E major for the next verse, with F♯m as the pivot.", "Lead sheet of the end of the chorus: E, A, D, B, E, A, then boxed modulating turnaround chords C-sharp minor, F-sharp minor, B.")
+      + MEDIA("i-will-always-love-you.png", { yt: "3JWTaaS7LdU", start: 171, end: 214, title: "Whitney Houston, I Will Always Love You" }, "Dolly Parton, <i>I Will Always Love You</i> (performed by Whitney Houston; the video plays 2:51–3:34): after a cadence on V⁷ in A major, the final chorus begins directly in B major, up a whole step.", "Lead sheet: A major I, iii, vi, I six-four, IV, V7, then a 2/4 bar and a key signature change to B major, labeled direct modulation: B major I, vi, IV, V7.")
+      + MEDIA("simon-kodachrome-1.png", { yt: "8rlDTK6QI-w", start: 0, end: 17, title: "Paul Simon, Kodachrome (verse)" }, "Paul Simon, <i>Kodachrome</i>, verse (the video plays 0:00–0:17): after the cadence on E, the turnaround chords F♯m–B keep the music in E major.", "Lead sheet of the verse in E major with chord symbols F-sharp minor, B, E, E7, A, F-sharp minor, B, E; an arrow marks the cadence point on E, and a box marks the turnaround chords F-sharp minor, B.")
+      + MEDIA("simon-kodachrome-2.png", { yt: "8rlDTK6QI-w", start: 28, end: 66, title: "Paul Simon, Kodachrome (chorus)" }, "<i>Kodachrome</i>, chorus (the video plays 0:28–1:06). At the end of the chorus: after the cadence in A major, the modulating turnaround C♯m–F♯m–B leads back to E major for the next verse, with F♯m as the pivot.", "Lead sheet of the end of the chorus: E, A, D, B, E, A, then boxed modulating turnaround chords C-sharp minor, F-sharp minor, B.")
       + MEDIA("happyfarmer.jpg", "happyfarmer", "Schumann, “The Happy Farmer” (<i>Album for the Young</i>, No. 10), performed by Vladimir Feltsman: the dominant is tonicized (V⁴₃/V) right before the half cadence. That's not a modulation.", "Piano score in F major: I, IV, I, V7, I, V6, V four-three of V, V.") },
     { title: "Modulation and form", kick: "Where it happens", render: () => `<p>Modulation usually shapes a piece's form and often comes at section boundaries.</p>
       <ul><li><b>Classical music:</b> sectional forms (binary, ternary) commonly use contrasting, closely related keys for their sections.</li><li><b>Pop music:</b> verses and choruses may be in different keys; truck driver's gear changes lift a final chorus; modulations may bring a repeated verse back home.</li></ul>
