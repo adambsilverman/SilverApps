@@ -677,6 +677,17 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pbld .rn, .pbld .csym, .pbld select, .pbld .pb-cnt { font-family: "Schibsted Grotesk", system-ui, sans-serif; }
 .pbld a.lk { display: inline-flex; align-items: center; text-decoration: none; margin-left: auto; }
 .pbld .rn .rq.dim, .pbld .dimc { border-radius: 50% !important; }
+/* Introduction to Non-Chord Tones */
+.nci-fig .lbtns { justify-content: center; }
+.nci-fig [data-swi] { width: 100%; }
+.nci-fig audio { margin-top: 4px; }
+.nci-ans { width: 100%; margin-top: 4px; }
+.nci-ans summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+.nci-ans img { margin-top: 6px; }
+.nci-finder { border: 1.5px solid var(--fi-soft, var(--line)); border-radius: var(--fi-r-sm, 12px); padding: 12px 14px; margin: 12px 0; }
+.nci-finder h3 { margin: 0 0 6px; }
+.nci-lab { font-weight: 700; margin: 10px 0 4px; }
+.nci-res p { margin: 10px 0 0; font-size: 1.05rem; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
