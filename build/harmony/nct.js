@@ -207,7 +207,6 @@ window.FAM = (() => {
   };
   // two-staff example for suspensions: top / bottom = [[scale index (or array), quarters, tie, figure tag]]
   const two = (H, k, top, bot, bpm = 72) => { const v = a => a.map(([i, q, tie, tag]) => ({ k: (Array.isArray(i) ? i : [i]).map(j => H.nmO(dn(H, k, j))), q, tie, tag, hl: !!tag })); return { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm, bars: H.toBars({ t: [v(top)], b: [v(bot)] }) }; };
-  const NEWEX = ["PT", "NT", "APP", "ET", "SUS", "RET", "ANT", "DN"];
   // ===== lesson: Adam's real-music examples first (images + recordings in assets/img|audio/nct-intro), generated any-key examples second =====
   const tbl = (cap, head, rows) => `<div class="ltable-wrap"><table class="ltable"><caption class="sr">${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const IMG = (f, alt) => `<img src="assets/img/nct-intro/${f}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">`;
@@ -265,32 +264,40 @@ window.FAM = (() => {
   // ---- Mozart, Requiem, "Domine Jesu," bars 43–46: find the suspensions, then measure them from the bass ----
   // note positions are in the original 2208 x 1188 score image (shown at any width, so stored as percentages)
   const MZ = [
-    ["Tenors, bar 45, D", 261, 750, "S1"], ["Tenors, bar 45, C♯", 420, 760, "C♯ belongs to C♯ø7 (C♯–E–G–B♭). It is where the D above it resolves."], ["Tenors, bar 45, C♯", 516, 760, "A chord tone of C♯ø7."],
+    ["Basses, bar 43, G", 556, 340, "G is the root of G minor: a chord tone."], ["Basses, bar 43, G", 673, 340, "A chord tone of G minor."], ["Basses, bar 43, G", 789, 340, "Still a chord tone of G minor, and the preparation of what comes next."],
+    ["Basses, bar 43, G", 906, 340, "B43"], ["Basses, bar 43, F♯", 1043, 351, "F♯ is where the G before it resolves."], ["Basses, bar 43, F♯", 1138, 351, "The resolution, held."],
+    ["Basses, bar 44, C", 1446, 309, "C is the 7th of D7: a chord tone."], ["Basses, bar 44, C", 1607, 309, "Still the 7th of D7, and the preparation of what comes next."], ["Basses, bar 44, C", 1724, 309, "B44"], ["Basses, bar 44, B♭", 1957, 320, "B♭ is the 3rd of G minor: the resolution of the C before it."],
+    ["Tenors, bar 44, D", 1840, 134, "D is the 5th of G minor: a chord tone."], ["Tenors, bar 44, D", 1957, 134, "A chord tone of G minor."], ["Tenors, bar 44, D", 2073, 134, "A chord tone of G minor, and the preparation of what comes next."],
+    ["Tenors, bar 45, D", 261, 750, "T45"], ["Tenors, bar 45, C♯", 420, 760, "C♯ belongs to C♯ø7 (C♯–E–G–B♭). It is where the D above it resolves."], ["Tenors, bar 45, C♯", 516, 760, "A chord tone of C♯ø7."],
     ["Tenors, bar 45, G", 919, 719, "G is the 7th of A7: a chord tone. Keep an eye on it, though: it is held into the next bar."], ["Tenors, bar 45, G", 1078, 719, "Still the 7th of A7: a chord tone, and the preparation of what comes next."],
-    ["Tenors, bar 46, G", 1223, 719, "S2"], ["Tenors, bar 46, F♯", 1452, 729, "F♯ is the 3rd of D7: the resolution of the G before it."],
+    ["Tenors, bar 46, G", 1223, 719, "T46"], ["Tenors, bar 46, F♯", 1452, 729, "F♯ is the 3rd of D7: the resolution of the G before it."],
     ["Tenors, bar 46, F", 1795, 729, "F is the 7th of G7: a chord tone."], ["Tenors, bar 46, F", 1947, 729, "A chord tone of G7."], ["Tenors, bar 46, F", 2061, 729, "A chord tone of G7."],
     ["Basses, bar 45, B♭", 375, 970, "B♭ is the 7th of C♯ø7: a chord tone."], ["Basses, bar 45, G", 516, 990, "G is the 5th of C♯ø7: a chord tone."],
     ["Basses, bar 45, A", 630, 980, "Not a suspension: this A is a passing tone, stepping from G up to B♭ in one direction."], ["Basses, bar 45, B♭", 718, 970, "A chord tone of C♯ø7."],
     ["Basses, bar 45, E", 805, 1010, "E is the 3rd of C♯ø7, and the bass named by the slash."], ["Basses, bar 45, A", 999, 979, "A is the root of A7."],
     ["Basses, bar 46, C", 1337, 959, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1452, 959, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1566, 959, "Still a chord tone of D7, and the preparation of what comes next."],
-    ["Basses, bar 46, C", 1680, 959, "S3"], ["Basses, bar 46, B♮", 1851, 970, "B♮ is the 3rd of G7: the resolution of the C before it."], ["Basses, bar 46, B♮", 1947, 970, "A chord tone of G7."]];
+    ["Basses, bar 46, C", 1680, 959, "B46"], ["Basses, bar 46, B♮", 1851, 970, "B♮ is the 3rd of G7: the resolution of the C before it."], ["Basses, bar 46, B♮", 1947, 970, "A chord tone of G7."]];
   const SUSQ = {
-    S1: { where: "Tenors, bar 45", fmt: "notation with chord symbols", sus: "D", res: "C♯", chord: "C♯ø7/E", opts: ["C♯", "E", "G", "D"], bass: "E", ladder: "EFGABCD", n: 7, r: 6, fig: "7-6",
-      why: "The slash in C♯ø7/E names the bass: E. (On beat 1 the basses are resting; the orchestra plays the E.)", note: "Prepared as a chord tone of G minor in bar 44, held over the bar line, then down to C♯." },
-    S2: { where: "Tenors, bar 46", fmt: "notation with chord symbols", sus: "G", res: "F♯", chord: "D7", opts: ["D", "F♯", "G", "C"], bass: "D", ladder: "DEFG", n: 4, r: 3, fig: "4-3",
+    B43: { where: "Basses, bar 43", fmt: "notation with chord symbols", sus: "G", res: "F♯", chord: "A°", opts: ["A", "C", "E♭", "G"], bass: "A", ladder: "ABCDEFG", n: 7, r: 6, fig: "7-6",
+      why: "A° has no slash, so the bass is its root, A, below the singing basses (the orchestra plays it). The suspension is in the bass voice, but it is not the lowest note, so measure from A.", note: "Prepared as the root of G minor, held into beat 3, then down to F♯." },
+    B44: { where: "Basses, bar 44", fmt: "notation with chord symbols", sus: "C", res: "B♭", chord: "Gm", opts: ["G", "B♭", "D", "C"], bass: "G", ladder: "GABC", n: 4, r: 3, fig: "4-3",
+      why: "Gm has no slash, so the bass is its root, G (played by the orchestra, below the singing basses).", note: "Prepared as the 7th of D7, held into beat 3, then down to B♭." },
+    T45: { where: "Tenors, bar 45", fmt: "notation with chord symbols", sus: "D", res: "C♯", chord: "C♯ø7/E", opts: ["C♯", "E", "G", "D"], bass: "E", ladder: "EFGABCD", n: 7, r: 6, fig: "7-6",
+      why: "The slash in C♯ø7/E names the bass: E. (On beat 1 the basses are resting; the orchestra plays the E.)", note: "Prepared as a chord tone of G minor in bar 44, repeated over the bar line, then down to C♯." },
+    T46: { where: "Tenors, bar 46", fmt: "notation with chord symbols", sus: "G", res: "F♯", chord: "D7", opts: ["D", "F♯", "G", "C"], bass: "D", ladder: "DEFG", n: 4, r: 3, fig: "4-3",
       why: "D7 has no slash, so it is in root position: the bass is D.", note: "Prepared as the 7th of A7, repeated over the bar line, then down to F♯." },
-    S3: { where: "Basses, bar 46", fmt: "notation with chord symbols", sus: "C", res: "B♮", chord: "G7", opts: ["C", "G", "B", "F"], bass: "G", ladder: "GABC", n: 4, r: 3, fig: "4-3",
+    B46: { where: "Basses, bar 46", fmt: "notation with chord symbols", sus: "C", res: "B♮", chord: "G7", opts: ["C", "G", "B", "F"], bass: "G", ladder: "GABC", n: 4, r: 3, fig: "4-3",
       why: "G7 has no slash, so the bass is G: it lies below the singing basses (the orchestra plays it). The suspension is in the bass voice, but it is not the lowest note, so measure from G.", note: "Prepared as the 7th of D7, held into beat 3, then down to B♮." },
-    S4: { where: "The Beatles, “You Never Give Me Your Money”", fmt: "lead sheet", sus: "E", res: "D", chord: "D7", opts: ["A", "D", "E", "C"], bass: "D", ladder: "DE", n: 9, r: 8, fig: "9-8",
+    BEAT: { where: "The Beatles, “You Never Give Me Your Money”", fmt: "lead sheet", sus: "E", res: "D", chord: "D7", opts: ["A", "D", "E", "C"], bass: "D", ladder: "DE", n: 9, r: 8, fig: "9-8",
       why: "A lead sheet implies the bass: D7 has no slash, so the bass is the root, D.", note: "Prepared as the 5th of Am7, held into D7 on “mo-ney,” then down to D.", ninth: 1 } };
   const MZPCT = ([, x, y]) => `left:${(x / 2208 * 100).toFixed(2)}%;top:${(y / 1188 * 100).toFixed(2)}%`;
   const mozartFind = () => `<div class="mz" role="group" aria-labelledby="mzH">
       <h3 id="mzH">Find the suspensions</h3>
-      <p>W. A. Mozart, Requiem, “Domine Jesu,” bars 43–46 (tenors and basses; the orchestra is not shown). Recording: Les Arts Florissants, conducted by William Christie (Erato). Listen, then tap the notes in <b>bars 45–46</b> (the second system) that you think are suspensions. There are <b>three</b>.</p>
+      <p>W. A. Mozart, Requiem, “Domine Jesu,” bars 43–46 (tenors and basses; the orchestra is not shown). Recording: Les Arts Florissants, conducted by William Christie (Erato). Listen, then tap the notes you think are suspensions. There are <b>five</b>, and the basses have three of them.</p>
       ${AUD("mozart-domine", "Mozart, Requiem, Domine Jesu, bars 43 to 46")}
-      <div class="mz-score">${IMG("mozart-domine.png", "Mozart, Requiem, Domine Jesu, bars 43 to 46 in G minor, tenors and basses with chord symbols: G minor, A diminished, D7, G minor; then C-sharp half-diminished 7 over E, A7, D7, G7. The notes of bars 45 and 46 are buttons.")}
+      <div class="mz-score">${IMG("mozart-domine.png", "Mozart, Requiem, Domine Jesu, bars 43 to 46 in G minor, tenors and basses with chord symbols: G minor, A diminished, D7, G minor; then C-sharp half-diminished 7 over E, A7, D7, G7. The notes are buttons.")}
         ${MZ.map((m, i) => `<button class="mz-n" style="${MZPCT(m)}" data-mz="${i}" aria-label="${m[0]}" aria-pressed="false"></button>`).join("")}</div>
-      <p class="mz-fb" aria-live="polite">Found 0 of 3.</p>
+      <p class="mz-fb" aria-live="polite">Found 0 of 5.</p>
       <div class="lbtns"><button class="lk" data-mzshow>Show the suspensions</button></div></div>`;
   const measure = () => `<div class="mm" role="group" aria-labelledby="mmH">
       <h3 id="mmH">Measure from the bass</h3>
@@ -303,14 +310,14 @@ window.FAM = (() => {
       box.addEventListener("click", e => {
         const b = e.target.closest("[data-mz]");
         if (b) { const m = MZ[+b.dataset.mz];
-          if (/^S\d$/.test(m[3])) { found.add(m[3]); mark(+b.dataset.mz); const s = SUSQ[m[3]];
-            fb.innerHTML = `<b>Yes: ${m[0]} is a suspension</b> over ${s.chord}. ${s.note} Found ${found.size} of 3.${found.size === 3 ? " Now measure them below." : ""}`; }
-          else { b.classList.add("no"); fb.innerHTML = `<b>${m[0]}:</b> ${m[3]} Found ${found.size} of 3.`; } }
-        if (e.target.closest("[data-mzshow]")) { MZ.forEach((m, i) => { if (/^S\d$/.test(m[3])) { found.add(m[3]); mark(i); } });
-          fb.innerHTML = "The three suspensions: the tenors' D in bar 45, the tenors' G in bar 46, and the basses' C on beat 3 of bar 46. (The basses' A in bar 45 is a passing tone, not a suspension.)"; }
+          if (SUSQ[m[3]]) { found.add(m[3]); mark(+b.dataset.mz); const s = SUSQ[m[3]];
+            fb.innerHTML = `<b>Yes: ${m[0]} is a suspension</b> over ${s.chord}. ${s.note} Found ${found.size} of 5.${found.size === 5 ? " Now measure them below." : ""}`; }
+          else { b.classList.add("no"); fb.innerHTML = `<b>${m[0]}:</b> ${m[3]} Found ${found.size} of 5.`; } }
+        if (e.target.closest("[data-mzshow]")) { MZ.forEach((m, i) => { if (SUSQ[m[3]]) { found.add(m[3]); mark(i); } });
+          fb.innerHTML = "The five suspensions, all on beat 1 or beat 3: the basses' G in bar 43 and C in bar 44, the tenors' D in bar 45 and G in bar 46, and the basses' C in bar 46. (The basses' A in bar 45 is a passing tone, not a suspension.)"; }
       }); }
     const mm = root.querySelector(".mm"); if (!mm) return;
-    let id = "S1", stage = 0;
+    let id = "B43", stage = 0;
     const NUMS = [2, 3, 4, 5, 6, 7, 8, 9];
     const ladder = (s, upto) => { const L = s.ladder.split(""); const n = Math.min(upto, s.ninth ? 9 : L.length); let out = [];
       for (let i = 0; i < n; i++) out.push(`<span class="mm-l"><b>${"CDEFGAB"[("CDEFGAB".indexOf(s.ladder[0]) + i) % 7]}</b><small>${i + 1}</small></span>`); return `<div class="mm-ladder" aria-hidden="true">${out.join("")}</div>`; };
@@ -441,7 +448,7 @@ window.FAM = (() => {
     } },
 
     { title: "Measure it yourself", kick: "From the bass up", render: () => `
-      <p>Now find and measure some suspensions on your own: three in Mozart's Requiem (notation with chord symbols) and the Beatles one from the previous step (a lead sheet).</p>
+      <p>Now find and measure some suspensions on your own: five in Mozart's Requiem (notation with chord symbols) and the Beatles one from the previous step (a lead sheet).</p>
       ${mozartFind()}${measure()}`, after: root => wireMozart(root) },
 
     { title: "When suspensions get complicated", kick: "Moving bass, ornaments, chains", keyed: "major", render: (H, k, U) => {
@@ -474,25 +481,6 @@ window.FAM = (() => {
       ${ANS("ex-haydn.png", "ans-haydn.png", "Haydn, Piano Sonata No. 62 in E-flat major, finale, eight bars, unlabeled.", "Answer: the held low E-flat in the left hand is labeled PED three times.", "Joseph Haydn, Piano Sonata No. 62 in E♭ major, Hob. XVI:52, finale, performed by John Lill", ["haydn-sonata62", "Haydn, Piano Sonata No. 62, finale"])}
       ${ANS("ex-tchaik-nocturne.png", "ans-tchaik-nocturne.png", "Tchaikovsky, Nocturne, four bars in D minor, unlabeled.", "Answer: NT in bars 1 and 2, ET twice in bar 3, PT in bar 4.", "Piotr Tchaikovsky, Nocturne, performed by Alexandre Tharaud", ["tchaikovsky-nocturne", "Tchaikovsky, Nocturne, performed by Alexandre Tharaud"])}
       ${ANS("ex-sunshine.png", "ans-sunshine.png", "Oliver Hood, You Are My Sunshine, lead sheet in F, unlabeled.", "Answer: PT on the pick-up, NT on only, PT on make me, skies are, never, much I and don't take, and ET or HA on the last two non-chord tones.", "Oliver Hood, “You Are My Sunshine” (1939)")}` },
-
-    { title: "Locate and label", kick: "A new example every time", render: () => `
-      <p>Find the chords, compare the melody, and name the non-chord tone (or tones). Then show the labels to check. Each press of <b>New example</b> makes a new phrase in a new key.</p>
-      <div class="lfig nct-gen"><div class="lbtns"><button class="lk" data-ngen>New example</button><button class="play" data-nplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>Play</button><button class="lk" data-nshow aria-pressed="false">Show the labels</button></div>
-        <div class="staff wide" role="img" aria-label="A melody over chords"></div><p class="nct-gen-ans" aria-live="polite"></p></div>
-      <p>For unlimited practice by type, use the <a href="non-chord-tones.html">Non-Chord Tones drills</a>.</p>`,
-      after: (root, H, k, tools) => {
-        const box = root.querySelector(".nct-gen"); if (!box) return; let x = null, shown = false;
-        const draw = () => { const st = box.querySelector(".staff"); tools.drawStaff(st, spec(H, x, shown ? { tags: true, hl: true } : { hl: false }));
-          st.setAttribute("aria-label", `A two-bar melody in ${x.k.label} over ${x.prog.map(d => H.diat(x.k, d).sym).join(", ")}.`);
-          box.querySelector("[data-nshow]").setAttribute("aria-pressed", shown);
-          box.querySelector(".nct-gen-ans").innerHTML = shown ? `${x.ncts.map(a => `${H.nm(dn(H, x.k, x.notes[a].i))}: <b>${NAME[x.lab[a]]}</b> (${x.lab[a]})`).join("; ")}.` : ""; };
-        const fresh = () => { for (let t = 0; t < 20 && !x; t++) x = gen(H, H.rnd(NEWEX)); };
-        box.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
-          if (b.hasAttribute("data-ngen")) { x = null; fresh(); shown = false; draw(); }
-          else if (b.hasAttribute("data-nshow")) { shown = !shown; draw(); }
-          else if (b.hasAttribute("data-nplay") && x) H.play(H.scorePlay(spec(H, x))); });
-        fresh(); draw();
-      } },
   ] };
 
   return {
