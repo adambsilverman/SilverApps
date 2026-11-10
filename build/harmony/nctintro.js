@@ -52,6 +52,10 @@ window.FAM = (() => {
     });
   }
 
+  // fetch every score image in the background once the page has loaded, so later steps open instantly
+  const PRE = ["atgb-lead.png", "atgb-circled-fm.png", "atgb-circled-all.png", "atgb-keyboard.png", "atgb-pt.png", "atgb-nt.png", "atgb-et-app.png", "tchaikovsky-pc1.png", "bruckner-kyrie.png", "bruckner-sus-phases.png", "sus-types.png", "bruckner-sus-figures.png", "beatles-money.png", "brahms-op29.png", "ex-mozart.png", "ans-mozart.png", "ex-haydn.png", "ans-haydn.png", "ex-tchaik-nocturne.png", "ans-tchaik-nocturne.png", "ex-sunshine.png", "ans-sunshine.png"];
+  if (typeof window !== "undefined" && !window.__nciPre) { window.__nciPre = 1; const go = () => PRE.forEach((f, i) => setTimeout(() => { const im = new Image(); im.decoding = "async"; im.src = "assets/img/nct-intro/" + f; }, i * 60));
+    if (document.readyState === "complete") setTimeout(go, 800); else window.addEventListener("load", () => setTimeout(go, 800)); }
   const lesson = { steps: [
     { title: "What is a non-chord tone?", kick: "Consonance and dissonance", render: (H) => `
       <p>Most harmony is built from triads, but that does not mean every note sounding at a given moment belongs to the triad (or seventh chord) being implied. A <b>non-chord tone</b> is a pitch outside the three or four notes of the current chord.</p>
