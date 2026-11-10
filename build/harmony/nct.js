@@ -162,7 +162,121 @@ window.FAM = (() => {
     ["Another name for the appoggiatura (in some books) is…", "incomplete neighbor", ["changing tone", "passing tone", "pedal point"], "Leap to it, step away."],
   ];
 
+  // ===== drill: "A Whole New World" (Menken/Rice) lead sheet. Click melody notes; name each non-chord tone.
+  // AW: one entry per notehead, in reading order. x,y = % of assets/img/nct-intro/awnw.png; n = pitch; c = chord; l = line; k = note number on the line;
+  // w = lyric; t = type; acc = other accepted types; o = optional (accepted, not required); g = index of the note this one is tied from; ex = explanation; cl = clue; m = chord-tone message
+  const AW = [{"x":12.81,"y":8.8,"n":"F♯","c":"D","l":1,"k":1},{"x":16.03,"y":9.26,"n":"E","c":"D","l":1,"k":2,"w":"can","t":"DN","cl":"One of two notes that circle the F♯ that follows.","ex":"E over D: E and G circle around F♯, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":20.62,"y":8.46,"n":"G","c":"D","l":1,"k":3,"w":"show","t":"DN","cl":"One of two notes that circle the F♯ that follows.","ex":"G over D: E and G circle around F♯, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":25.21,"y":8.8,"n":"F♯","c":"D","l":1,"k":4},{"x":29.52,"y":9.6,"n":"D","c":"D","l":1,"k":5},{"x":34.32,"y":10.63,"n":"A","c":"D","l":1,"k":6},{"x":44.66,"y":8.8,"n":"F♯","c":"D","l":1,"k":7},{"x":49.18,"y":9.26,"n":"E","c":"D","l":1,"k":8,"w":"-ing","t":"DN","cl":"One of two notes that circle the F♯ that follows.","ex":"E over D: E and G circle around F♯, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":53.77,"y":8.46,"n":"G","c":"D","l":1,"k":9,"w":"shim-","t":"DN","cl":"One of two notes that circle the F♯ that follows.","ex":"G over D: E and G circle around F♯, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":58.01,"y":8.8,"n":"F♯","c":"D","l":1,"k":10},{"x":62.12,"y":9.6,"n":"D","c":"D","l":1,"k":11},{"x":66.78,"y":8.86,"n":"F♯","c":"G/B","l":1,"k":12,"w":"splen-","t":"APP","cl":"Approached by leap up from D; left by step down to E.","ex":"F♯ over G/B: leap up from D, then step down to E. Appoggiatura (accented)."},{"x":72.33,"y":9.26,"n":"E","c":"A/C♯","l":1,"k":13},{"x":78.77,"y":9.26,"n":"E","c":"Em/G","l":1,"k":14},{"x":82.88,"y":9.6,"n":"D♯","c":"Em/G","l":1,"k":15,"w":"me","t":"ET","cl":"Approached by step down from E; left by leap up to F♯.","ex":"D♯ over Em/G: step down from E, then leap up to F♯. Escape tone. (You can also hear D♯ and F♯ as a double neighbor around the E on “now.”)","acc":["ET","DN"]},{"x":85.75,"y":8.8,"n":"F♯","c":"Em/G","l":1,"k":16,"w":"prin-","t":"ANT","cl":"Approached by leap up from D♯; left by step down to E.","ex":"F♯ over Em/G: it sounds before F♯7 arrives, then the same note continues as a chord tone. Anticipation."},{"x":88.49,"y":8.8,"n":"F♯","c":"F♯7","l":1,"k":17,"g":15,"m":"F♯ is a chord tone of F♯7: the tied note where the anticipation lands."},{"x":91.71,"y":9.26,"n":"E","c":"F♯7","l":1,"k":18},{"x":96.37,"y":10.06,"n":"C♯","c":"F♯7","l":1,"k":19},{"x":8.97,"y":29.6,"n":"E","c":"Bm","l":2,"k":1,"w":"when","t":"APP","cl":"Approached by leap up from C♯; left by step down to D.","ex":"E over Bm: leap up from C♯, then step down to D. Appoggiatura (accented)."},{"x":13.49,"y":29.94,"n":"D","c":"Bm","l":2,"k":2},{"x":17.33,"y":30.4,"n":"C♯","c":"Bm/A","l":2,"k":3,"w":"You","t":"NT","cl":"Approached by step down from D; left by step up to D.","ex":"C♯ over Bm/A: step away from D and straight back. Neighbor tone."},{"x":21.37,"y":29.94,"n":"D","c":"Bm/A","l":2,"k":4},{"x":26.1,"y":30.74,"n":"B","c":"G","l":2,"k":5},{"x":29.93,"y":30.4,"n":"C♯","c":"G","l":2,"k":6,"w":"your","t":"DN","cl":"One of two notes that circle the D that follows.","ex":"C♯ over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":33.36,"y":29.6,"n":"E","c":"G","l":2,"k":7,"w":"heart","t":"DN","cl":"One of two notes that circle the D that follows.","ex":"E over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":36.71,"y":29.6,"n":"E","c":"G","l":2,"k":8,"g":25,"t":"DN","ex":"E over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":39.86,"y":29.94,"n":"D","c":"G","l":2,"k":9},{"x":42.47,"y":31.14,"n":"A","c":"G","l":2,"k":10,"w":"-cide","t":"ANT","cl":"Approached by leap down from D; left by step up to B.","ex":"A over G: it sounds before D arrives, then the same note continues as a chord tone. Anticipation."},{"x":47.95,"y":30.97,"n":"A","c":"D","l":2,"k":11,"g":28,"m":"A is a chord tone of D: the tied note where the anticipation lands."},{"x":60.55,"y":30.74,"n":"B","c":"G","l":2,"k":12},{"x":63.97,"y":30.4,"n":"C♯","c":"G","l":2,"k":13,"w":"-ic","t":"DN","cl":"One of two notes that circle the D that follows.","ex":"C♯ over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":67.12,"y":29.6,"n":"E","c":"G","l":2,"k":14,"w":"car-","t":"DN","cl":"One of two notes that circle the D that follows.","ex":"E over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":70.48,"y":29.6,"n":"E","c":"G","l":2,"k":15,"g":32,"t":"DN","ex":"E over G: C♯ and E circle around D, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":73.22,"y":29.94,"n":"D","c":"G","l":2,"k":16},{"x":76.44,"y":29.14,"n":"F♯","c":"G","l":2,"k":17,"w":"ride","t":"ANT","cl":"Approached by leap up from D; left by the same note.","ex":"F♯ over G: it sounds before D arrives, then the same note continues as a chord tone. Anticipation."},{"x":81.58,"y":29.14,"n":"F♯","c":"D","l":2,"k":18,"g":35,"m":"F♯ is a chord tone of D: the tied note where the anticipation lands."},{"x":86.78,"y":29.14,"n":"F♯","c":"D","l":2,"k":19},{"x":90.89,"y":28.8,"n":"G","c":"D","l":2,"k":20,"w":"whole","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"G over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":96.1,"y":28.0,"n":"B","c":"D","l":2,"k":21,"w":"new","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"B over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":9.25,"y":47.49,"n":"A","c":"A7","l":3,"k":1},{"x":19.25,"y":47.43,"n":"A","c":"D","l":3,"k":2,"g":40},{"x":25.75,"y":48.23,"n":"F♯","c":"D","l":3,"k":3},{"x":29.04,"y":47.89,"n":"G","c":"D","l":3,"k":4,"w":"new","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"G over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":32.88,"y":47.14,"n":"B","c":"D","l":3,"k":5,"w":"fan-","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"B over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":38.01,"y":47.43,"n":"A","c":"A","l":3,"k":6},{"x":41.85,"y":48.69,"n":"E","c":"A","l":3,"k":7},{"x":44.59,"y":47.89,"n":"G","c":"A","l":3,"k":8,"w":"point","t":"ANT","o":1,"cl":"Approached by leap up from E; left by step down to F♯.","ex":"G on “point” sounds under A, but it’s tied into A♯°7, where it’s the 7th. You can call it an anticipation, or count it with the A♯°7 chord. Optional."},{"x":47.33,"y":47.89,"n":"G","c":"A♯°7","l":3,"k":9,"g":47,"m":"G is a chord tone of A♯°7 (its 7th): the G on “point” is tied into it."},{"x":50.07,"y":48.23,"n":"F♯","c":"A♯°7","l":3,"k":10,"w":"of","t":"ANT","cl":"Approached by step down from G; left by the same note.","ex":"F♯ over A♯°7: it sounds before Bm arrives, then the same note continues as a chord tone. Anticipation."},{"x":53.9,"y":48.23,"n":"F♯","c":"A♯°7","l":3,"k":11,"w":"view","t":"ANT","cl":"Approached by the same note from F♯; left by the same note.","ex":"F♯ over A♯°7: it sounds before Bm arrives, then the same note continues as a chord tone. Anticipation."},{"x":63.29,"y":48.23,"n":"F♯","c":"Bm","l":3,"k":12,"g":50,"m":"F♯ is a chord tone of Bm: the tied note where the anticipation lands."},{"x":70.89,"y":48.23,"n":"F♯","c":"D7","l":3,"k":13},{"x":74.52,"y":47.89,"n":"G","c":"D7","l":3,"k":14,"w":"one","t":"PT","cl":"Approached by step up from F♯; left by step up to A.","ex":"G over D7: step up from F♯, then on to A in the same direction. Passing tone."},{"x":77.74,"y":47.43,"n":"A","c":"D7","l":3,"k":15},{"x":82.19,"y":46.74,"n":"C♯","c":"G","l":3,"k":16,"w":"tell","t":"APP","cl":"Approached by leap up from A; left by step down to B.","ex":"C♯ over G: leap up from A, then step down to B. Appoggiatura (accented)."},{"x":85.96,"y":47.14,"n":"B","c":"G","l":3,"k":17},{"x":89.79,"y":47.43,"n":"A","c":"D/F♯","l":3,"k":18},{"x":96.3,"y":49.03,"n":"D","c":"D/F♯","l":3,"k":19},{"x":8.97,"y":62.34,"n":"C♯","c":"G","l":4,"k":1,"w":"where","t":"APP","cl":"Approached by leap up from D; left by step up to D.","ex":"C♯ over G: leap up from D, then step up to D. Appoggiatura (accented)."},{"x":13.29,"y":61.94,"n":"D","c":"G","l":4,"k":2},{"x":15.82,"y":63.03,"n":"A","c":"G","l":4,"k":3,"w":"go","t":"ANT","cl":"Approached by leap down from D; left by leap down to D.","ex":"A over G: it sounds before D/F♯ arrives, then the same note continues as a chord tone. Anticipation."},{"x":18.42,"y":63.03,"n":"A","c":"D/F♯","l":4,"k":4,"g":61,"m":"A is a chord tone of D/F♯: the tied note where the anticipation lands."},{"x":24.45,"y":64.63,"n":"D","c":"D/F♯","l":4,"k":5},{"x":28.9,"y":63.83,"n":"F♯","c":"Bm7","l":4,"k":6},{"x":33.42,"y":64.29,"n":"E","c":"Bm7","l":4,"k":7,"w":"we’re","t":"PT","cl":"Approached by step down from F♯; left by step down to D.","ex":"E over Bm7: step down from F♯, then on to D in the same direction. Passing tone."},{"x":37.12,"y":64.63,"n":"D","c":"Bm7","l":4,"k":8},{"x":39.66,"y":64.63,"n":"D","c":"E7","l":4,"k":9},{"x":42.26,"y":65.43,"n":"B","c":"E7","l":4,"k":10},{"x":46.51,"y":64.63,"n":"D","c":"E7","l":4,"k":11},{"x":52.19,"y":64.29,"n":"E","c":"A7sus4","l":4,"k":12},{"x":58.22,"y":63.83,"n":"F♯","c":"A7sus4","l":4,"k":13,"w":"A","t":"PT","cl":"Approached by step up from E; left by step up to G.","ex":"F♯ over A7sus4: step up from E, then on to G in the same direction. Passing tone."},{"x":62.4,"y":63.49,"n":"G","c":"A7sus4","l":4,"k":14},{"x":67.67,"y":62.69,"n":"B","c":"A7sus4","l":4,"k":15,"w":"new","t":"APP","o":1,"cl":"Approached by leap up from G; left by step down to A.","ex":"B over A7sus4: leap up from G, then step down to A in the next bar. You can call it an appoggiatura, or hear it as a 9th added to the chord. Optional."},{"x":72.81,"y":63.09,"n":"A","c":"A7","l":4,"k":16},{"x":82.12,"y":63.03,"n":"A","c":"D","l":4,"k":17},{"x":88.22,"y":63.83,"n":"F♯","c":"D","l":4,"k":18},{"x":91.23,"y":63.49,"n":"G","c":"D","l":4,"k":19,"w":"daz-","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"G over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":95.82,"y":62.69,"n":"B","c":"D","l":4,"k":20,"w":"-zling","t":"DN","cl":"One of two notes that circle the A that follows.","ex":"B over D: G and B circle around A, one on each side, before the melody lands on it. Double neighbor (changing tones)."},{"x":8.97,"y":78.91,"n":"A","c":"A","l":5,"k":1},{"x":12.33,"y":80.17,"n":"E","c":"A","l":5,"k":2},{"x":16.3,"y":79.37,"n":"G","c":"A","l":5,"k":3},{"x":19.66,"y":79.37,"n":"G","c":"A♯°7","l":5,"k":4,"g":81,"m":"G is a chord tone of A♯°7 (its 7th), tied over from the bar’s first G."},{"x":22.53,"y":79.71,"n":"F♯","c":"A♯°7","l":5,"k":5,"w":"-ver","t":"ANT","cl":"Approached by step down from G; left by the same note.","ex":"F♯ over A♯°7: it sounds before Bm arrives, then the same note continues as a chord tone. Anticipation."},{"x":27.05,"y":79.71,"n":"F♯","c":"A♯°7","l":5,"k":6,"w":"knew","t":"ANT","cl":"Approached by the same note from F♯; left by the same note.","ex":"F♯ over A♯°7: it sounds before Bm arrives, then the same note continues as a chord tone. Anticipation."},{"x":37.12,"y":79.71,"n":"F♯","c":"Bm","l":5,"k":7,"g":84,"m":"F♯ is a chord tone of Bm: the tied note where the anticipation lands."},{"x":45.07,"y":79.71,"n":"F♯","c":"D7","l":5,"k":8},{"x":49.79,"y":79.37,"n":"G","c":"D7","l":5,"k":9,"w":"when","t":"PT","cl":"Approached by step up from F♯; left by step up to A.","ex":"G over D7: step up from F♯, then on to A in the same direction. Passing tone."},{"x":54.38,"y":78.91,"n":"A","c":"D7","l":5,"k":10},{"x":58.97,"y":78.11,"n":"C♯","c":"G","l":5,"k":11,"w":"way","t":"APP","cl":"Approached by leap up from A; left by step down to B.","ex":"C♯ over G: leap up from A, then step down to B. Appoggiatura (accented)."},{"x":62.95,"y":78.57,"n":"B","c":"G","l":5,"k":12},{"x":66.85,"y":78.91,"n":"A","c":"D/F♯","l":5,"k":13},{"x":73.7,"y":80.51,"n":"D","c":"D/F♯","l":5,"k":14},{"x":77.95,"y":78.11,"n":"C♯","c":"G","l":5,"k":15,"w":"cry","t":"APP","cl":"Approached by leap up from D; left by step up to D.","ex":"C♯ over G: leap up from D, then step up to D. Appoggiatura (accented)."},{"x":81.92,"y":77.77,"n":"D","c":"G","l":5,"k":16},{"x":86.3,"y":78.91,"n":"A","c":"G","l":5,"k":17,"w":"clear","t":"ANT","o":1,"cl":"Approached by leap down from D; left by leap down to D.","ex":"A over G on “clear”: it arrives before D/F♯ and is held into it. An anticipation. Optional: some analysts count it, some don’t."},{"x":89.66,"y":78.91,"n":"A","c":"D/F♯","l":5,"k":18,"g":95,"m":"A is a chord tone of D/F♯: the tied note where the A on “clear” lands."},{"x":96.51,"y":80.51,"n":"D","c":"D/F♯","l":5,"k":19},{"x":8.97,"y":95.2,"n":"F♯","c":"Bm7","l":6,"k":1},{"x":15.34,"y":95.66,"n":"E","c":"Bm7","l":6,"k":2,"w":"I’m","t":"PT","cl":"Approached by step down from F♯; left by step down to D.","ex":"E over Bm7: step down from F♯, then on to D in the same direction. Passing tone."},{"x":21.71,"y":96.0,"n":"D","c":"E7","l":6,"k":3},{"x":28.08,"y":95.66,"n":"E","c":"E7","l":6,"k":4},{"x":35.82,"y":94.86,"n":"G","c":"C","l":6,"k":5},{"x":42.19,"y":95.2,"n":"F♯","c":"C","l":6,"k":6,"w":"new","t":"ET","cl":"Approached by step down from G; left by leap down to D.","ex":"F♯ over C: step down from G, then leap down to D. Escape tone. (You can also hear F♯ and D as a double neighbor around the E on “with.”)","acc":["ET","DN"]},{"x":48.56,"y":96.0,"n":"D","c":"A7","l":6,"k":7,"w":"world","t":"APP","cl":"Approached by leap down from F♯; left by step up to E.","ex":"D over A7: leap down from F♯, then step up to E. Appoggiatura (accented)."},{"x":54.93,"y":95.66,"n":"E","c":"A7","l":6,"k":8},{"x":63.01,"y":96.06,"n":"D","c":"D","l":6,"k":9},{"x":79.04,"y":96.06,"n":"D","c":"D","l":6,"k":10,"g":106}];
+  const AWT = { D: "D–F♯–A", "G/B": "G–B–D", "A/C♯": "A–C♯–E", "Em/G": "E–G–B", "F♯7": "F♯–A♯–C♯–E", Bm: "B–D–F♯", "Bm/A": "B–D–F♯ over A", G: "G–B–D", A7: "A–C♯–E–G", "A7/C♯": "A–C♯–E–G",
+    A: "A–C♯–E", "A♯°7": "A♯–C♯–E–G", D7: "D–F♯–A–C", "D/F♯": "D–F♯–A", Bm7: "B–D–F♯–A", E7: "E–G♯–B–D", A7sus4: "A–D–E–G", C: "C–E–G" };
+  const AWK = ["PT", "NT", "DN", "APP", "ET", "SUS", "RET", "ANT", "PED"];
+  const AWREQ = AW.map((e, i) => i).filter(i => AW[i].t && !AW[i].o && AW[i].g == null);
+  const awWhere = i => `line ${AW[i].l}, note ${AW[i].k}${AW[i].w ? ` (“${AW[i].w}”)` : ""}`;
+  const AWVID = `<div class="aw-vid"><iframe src="https://www.youtube-nocookie.com/embed/hZ1Rb9hC4JY?start=16&rel=0" title="A Whole New World, from Aladdin (1992), on YouTube" loading="lazy" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+  const widgets = { awnw: {
+    html(c, q, H) {
+      const st = q.aw || (q.aw = { f: {}, ok: {}, ct: {}, chk: 0 }), done = q.done;
+      const cls = i => { const e = AW[i]; if (done) return e.t && e.g == null ? (e.o ? " ok op" : " ok") : ""; if (st.ok[i]) return e.o ? " ok op" : " ok"; if (st.f[i]) return " nf"; if (st.ct[i]) return " ct"; return ""; };
+      const tag = i => (done || st.ok[i]) && AW[i].t && AW[i].g == null ? `<span class="aw-tag" style="left:${AW[i].x}%;top:${AW[i].y}%" aria-hidden="true">${AW[i].t}${AW[i].o ? "?" : ""}</span>` : "";
+      const lab = i => `Line ${AW[i].l}, note ${AW[i].k}: ${AW[i].n}${st.ok[i] || done ? (AW[i].t && AW[i].g == null ? `, ${NAME[AW[i].t]}` : "") : st.f[i] ? ", non-chord tone, type not yet named" : st.ct[i] ? ", chord tone" : ""}`;
+      const key = done ? `<details class="aw-key" open><summary>Answer key</summary><ul>${AW.map((e, i) => e.t && e.g == null ? `<li>${e.o ? "(optional) " : ""}<b>${e.t}</b>: ${awWhere(i)}. ${H.esc(e.ex)}</li>` : "").join("")}</ul></details>` : "";
+      return `<div class="aw">
+        <div class="aw-wrap"><div class="aw-score"><img src="assets/img/nct-intro/awnw.png" alt="Lead sheet of A Whole New World in D major, 28 bars in six lines, melody with lyrics and chord symbols. Each melody note is a button." width="1460" height="1750">
+          ${AW.map((e, i) => `<button type="button" class="aw-n${cls(i)}" style="left:${e.x}%;top:${e.y}%" data-aw="${i}" aria-label="${H.esc(lab(i))}"${done ? " disabled" : ""}></button>${tag(i)}`).join("")}</div></div>
+        ${done ? "" : `<div class="aw-pick" hidden><p class="aw-q"></p><div class="pick-row" role="group" aria-label="Type of non-chord tone">${AWK.map(t => `<button type="button" class="pk" data-awt="${t}">${NAME[t]} (${t})</button>`).join("")}</div></div>`}
+        <p class="aw-fb" aria-live="polite"></p>
+        <p class="aw-tally" aria-live="polite"></p><div class="aw-hints"></div>${key}</div>`;
+    },
+    wire(root, c, q, H) {
+      const st = q.aw, box = root.querySelector(".aw"), pick = box.querySelector(".aw-pick"), fb = box.querySelector(".aw-fb"), btn = root.querySelector("[data-wcheck]");
+      root.__awq = q; btn.disabled = false;
+      let cur = null;
+      const say = h => { fb.innerHTML = h; };
+      const tally = () => { const f = AWREQ.filter(i => st.f[i]).length, n = AWREQ.filter(i => st.ok[i]).length;
+        box.querySelector(".aw-tally").textContent = `Non-chord tones found: ${f} of ${AWREQ.length}. Named correctly: ${n}.`; };
+      const paint = i => { const b = box.querySelector(`[data-aw="${i}"]`), e = AW[i];
+        b.className = "aw-n" + (st.ok[i] ? (e.o ? " ok op" : " ok") : st.f[i] ? " nf" : st.ct[i] ? " ct" : "");
+        b.setAttribute("aria-label", `Line ${e.l}, note ${e.k}: ${e.n}${st.ok[i] ? `, ${NAME[e.t]}` : st.f[i] ? ", non-chord tone, type not yet named" : st.ct[i] ? ", chord tone" : ""}`);
+        const old = b.nextElementSibling; if (old && old.classList.contains("aw-tag")) old.remove();
+        if (st.ok[i]) b.insertAdjacentHTML("afterend", `<span class="aw-tag" style="left:${e.x}%;top:${e.y}%" aria-hidden="true">${e.t}${e.o ? "?" : ""}</span>`); };
+      const open = i => { cur = i; const e = AW[i]; pick.hidden = false;
+        pick.querySelector(".aw-q").innerHTML = `Yes: <b>${e.n}</b> is not in ${e.c} (${AWT[e.c]}). What kind of non-chord tone is it?`;
+        pick.querySelector("[data-awt]").focus(); };
+      box.addEventListener("click", ev => {
+        const n = ev.target.closest("[data-aw]"), t = ev.target.closest("[data-awt]");
+        if (n) {
+          let i = +n.dataset.aw; const e0 = AW[i];
+          if (e0.g != null && AW[e0.g].t && !AW[e0.g].o && e0.t) i = e0.g;   // the tied half of a double-neighbor note
+          const e = AW[i]; box.querySelectorAll(".aw-n.awh").forEach(b => b.dataset.aw == i && b.classList.remove("awh"));
+          if (!e.t) { pick.hidden = true; cur = null; st.ct[i] = 1; paint(i); say(e.m ? H.esc(e.m) : `<b>${e.n}</b> is a chord tone of ${e.c} (${AWT[e.c]}).`); return; }
+          if (st.ok[i]) { pick.hidden = true; say(`<b>${NAME[e.t]}.</b> ${H.esc(e.ex)}`); return; }
+          st.f[i] = 1; paint(i); tally(); say(""); open(i); return;
+        }
+        if (t && cur != null) {
+          const e = AW[cur], v = t.dataset.awt, good = v === e.t || (e.acc || []).includes(v);
+          if (good || e.o) { st.ok[cur] = 1; paint(cur); tally(); pick.hidden = true;
+            say(`${good ? "<b>Right.</b> " : `<b>Most would call it ${NAME[e.t].toLowerCase()}.</b> `}${H.esc(e.ex)}`);
+            const b = box.querySelector(`[data-aw="${cur}"]`); cur = null; b.focus(); return; }
+          say(`Not ${/^[AEIOU]/.test(NAME[v]) ? "an" : "a"} ${NAME[v].toLowerCase()}. Clue: ${H.esc(e.cl)} Compare with the chart: ${NAME[v].toLowerCase()} is approached by ${HOW[v][0]} and left by ${HOW[v][1]}.`);
+        }
+      });
+      tally();
+    },
+    value(root) {
+      const q = root.__awq, st = q.aw, box = root.querySelector(".aw");
+      const miss = AWREQ.filter(i => !st.f[i]), un = AWREQ.filter(i => st.f[i] && !st.ok[i]);
+      if (!miss.length && !un.length) return "All " + AWREQ.length + " found and named";
+      st.chk++;
+      const lv = Math.min(st.chk, 3), lines = {}; miss.forEach(i => lines[AW[i].l] = (lines[AW[i].l] || 0) + 1);
+      let h = `<p><b>Not finished yet.</b> ${miss.length ? `${miss.length} non-chord tone${miss.length > 1 ? "s are" : " is"} still unfound.` : "You've found them all."}${un.length ? ` ${un.length} found note${un.length > 1 ? "s" : ""} (orange) still need${un.length > 1 ? "" : "s"} a type: click ${un.length > 1 ? "them" : "it"} again.` : ""}</p>`;
+      if (miss.length) {
+        if (lv === 1) h += `<p>Where to look: ${Object.entries(lines).map(([l, n]) => `line ${l} (${n})`).join(", ")}. For each note, ask: is it in the chord written above it? Check again for more help.</p>`;
+        else if (lv === 2) h += `<p>Try these:</p><ul>${miss.map(i => `<li>${awWhere(i)}: ${AW[i].n} over ${AW[i].c}</li>`).join("")}</ul><p>Check again to see them outlined.</p>`;
+        else { h += `<p>The missing notes are outlined in blue. Click each one and choose its type.</p><ul>${miss.map(i => `<li>${awWhere(i)}: ${H_esc(AW[i].cl)}</li>`).join("")}</ul>`;
+          miss.forEach(i => box.querySelector(`[data-aw="${i}"]`).classList.add("awh")); }
+      }
+      box.querySelector(".aw-hints").innerHTML = h;
+      return null;
+    },
+  } };
+  // ===== drill: complete the chart (selects in blank cells; one check, then the full chart with ✓/✗) =====
+  const CHART = [["PT", "step", "step in the same direction"], ["NT", "step", "step in the opposite direction"], ["DN", "step", "skip to the other side of the target, then step to it"],
+    ["APP", "leap", "step"], ["ET", "step", "leap"], ["SUS", "same note", "step down"], ["RET", "same note", "step up"], ["ANT", "step or leap", "same note"],
+    ["HA", "step or leap", "a different note of the next chord"], ["PED", "same note", "same note"]];
+  const CCOL = ["Type", "Approached by", "Left by"], cval = (r, c) => c ? CHART[r][c] : `${NAME[CHART[r][0]]} (${CHART[r][0]})`;
+  const COPT = [0, 1, 2].map(c => [...new Set(CHART.map((_, r) => cval(r, c)))].sort());
+  widgets.ncchart = {
+    html(c, q, H) {
+      const v = q.cc || (q.cc = {}), bl = new Set(c.cb.map(([r, k]) => r + "," + k));
+      const cell = (r, k) => { const id = r + "," + k, right = cval(r, k);
+        if (!bl.has(id)) return k ? H.esc(right) : `<b>${H.esc(right)}</b>`;
+        if (q.done) return v[id] === right ? `<span class="cc-ok">✓ ${H.esc(right)}</span>` : `<span class="cc-bad"><s>${H.esc(v[id] || "—")}</s></span> <span class="cc-ok">${H.esc(right)}</span>`;
+        const rowName = k ? cval(r, 0) : `row ${r + 1} (approached by ${CHART[r][1]}, left by ${CHART[r][2]})`;
+        return `<select data-cc="${id}" aria-label="${H.esc(CCOL[k])} for ${H.esc(rowName)}"><option value="">Choose…</option>${COPT[k].map(o => `<option${v[id] === o ? " selected" : ""}>${H.esc(o)}</option>`).join("")}</select>`; };
+      return `<div class="ltable-wrap cc" tabindex="0" role="region" aria-label="Non-chord tone chart"><table class="ltable"><caption class="sr">Non-chord tone chart with blanks to fill in</caption><thead><tr>${CCOL.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${CHART.map((_, r) => `<tr>${[0, 1, 2].map(k => k ? `<td>${cell(r, k)}</td>` : `<th scope="row">${cell(r, k)}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    },
+    wire(root, c, q) {
+      const btn = root.querySelector("[data-wcheck]"), sel = [...root.querySelectorAll("[data-cc]")];
+      const sync = () => { btn.disabled = sel.some(s => !s.value); };
+      root.querySelector(".cc").onchange = e => { const s = e.target.closest("[data-cc]"); if (s) { q.cc[s.dataset.cc] = s.value; sync(); } };
+      sync();
+    },
+    value(root) {
+      const sel = [...root.querySelectorAll("[data-cc]")]; if (sel.some(s => !s.value)) return null;
+      const ok = sel.filter(s => { const [r, k] = s.dataset.cc.split(",").map(Number); return s.value === cval(r, k); }).length;
+      return ok === sel.length ? "every blank filled in correctly" : `a chart with ${ok} of ${sel.length} blanks right`;
+    },
+  };
+  const H_esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+
   function make(mode, H) {
+    if (mode === "chart") {
+      const cells = H.shuffle(CHART.flatMap((_, r) => [0, 1, 2].map(k => [r, k]))), cb = [], per = {};
+      for (const [r, k] of cells) { if (cb.length >= 7) break; if ((per[r] || 0) >= 2) continue; per[r] = (per[r] || 0) + 1; cb.push([r, k]); }
+      return { kicker: "The chart", text: "Complete the chart: choose the missing type, approach or resolution in each blank, then Check.", answer: "every blank filled in correctly", choices: [], widget: "ncchart", cb,
+        explain: "Read each row as a recipe: how the melody gets to the non-chord tone (approached by) and how it gets away (left by). Steps on both sides: passing and neighbor tones. One leap: appoggiatura (leap in) or escape tone (leap out). Held over: suspension (down) or retardation (up). Early: anticipation." };
+    }
+    if (mode === "song") return { kicker: "A Whole New World", text: "Listen, then click every melody note that doesn't belong to the chord above it. Each time you find one, name its type. Click Check at any point for a hint about what's left.", answer: "All " + AWREQ.length + " found and named", choices: [], widget: "awnw", fig: AWVID,
+      explain: "In this song: 14 double-neighbor notes (Menken loves circling a note before landing on it), 8 anticipations, 7 appoggiaturas, 5 passing tones, 2 escape tones and 1 neighbor tone. Alan Menken and Tim Rice, “A Whole New World,” from Aladdin (1992)." };
     if (mode === "name" || mode === "find") {
       const pool = ["PT", "NT", "APP", "ET", "SUS", "RET", "ANT", "HA", "DN"].filter(t => H.topicOn(TOPIC[t]) && !(mode === "find" && t === "DN"));
       const want = H.rnd(pool.length ? pool : ["PT"]), x = gen(H, want);
@@ -262,21 +376,21 @@ window.FAM = (() => {
   }
 
   // ---- Mozart, Requiem, "Domine Jesu," bars 43–46: find the suspensions, then measure them from the bass ----
-  // note positions are in the original 2208 x 1188 score image (shown at any width, so stored as percentages)
+  // note positions are in the original 2256 x 1232 score image (shown at any width, so stored as percentages)
   const MZ = [
-    ["Basses, bar 43, G", 556, 340, "G is the root of G minor: a chord tone."], ["Basses, bar 43, G", 673, 340, "A chord tone of G minor."], ["Basses, bar 43, G", 789, 340, "Still a chord tone of G minor, and the preparation of what comes next."],
-    ["Basses, bar 43, G", 906, 340, "B43"], ["Basses, bar 43, F♯", 1043, 351, "F♯ is where the G before it resolves."], ["Basses, bar 43, F♯", 1138, 351, "The resolution, held."],
-    ["Basses, bar 44, C", 1446, 309, "C is the 7th of D7: a chord tone."], ["Basses, bar 44, C", 1607, 309, "Still the 7th of D7, and the preparation of what comes next."], ["Basses, bar 44, C", 1724, 309, "B44"], ["Basses, bar 44, B♭", 1957, 320, "B♭ is the 3rd of G minor: the resolution of the C before it."],
-    ["Tenors, bar 44, D", 1840, 134, "D is the 5th of G minor: a chord tone."], ["Tenors, bar 44, D", 1957, 134, "A chord tone of G minor."], ["Tenors, bar 44, D", 2073, 134, "A chord tone of G minor, and the preparation of what comes next."],
-    ["Tenors, bar 45, D", 261, 750, "T45"], ["Tenors, bar 45, C♯", 420, 760, "C♯ belongs to C♯ø7 (C♯–E–G–B♭). It is where the D above it resolves."], ["Tenors, bar 45, C♯", 516, 760, "A chord tone of C♯ø7."],
-    ["Tenors, bar 45, G", 919, 719, "G is the 7th of A7: a chord tone. Keep an eye on it, though: it is held into the next bar."], ["Tenors, bar 45, G", 1078, 719, "Still the 7th of A7: a chord tone, and the preparation of what comes next."],
-    ["Tenors, bar 46, G", 1223, 719, "T46"], ["Tenors, bar 46, F♯", 1452, 729, "F♯ is the 3rd of D7: the resolution of the G before it."],
-    ["Tenors, bar 46, F", 1795, 729, "F is the 7th of G7: a chord tone."], ["Tenors, bar 46, F", 1947, 729, "A chord tone of G7."], ["Tenors, bar 46, F", 2061, 729, "A chord tone of G7."],
-    ["Basses, bar 45, B♭", 375, 970, "B♭ is the 7th of C♯ø7: a chord tone."], ["Basses, bar 45, G", 516, 990, "G is the 5th of C♯ø7: a chord tone."],
-    ["Basses, bar 45, A", 630, 980, "Not a suspension: this A is a passing tone, stepping from G up to B♭ in one direction."], ["Basses, bar 45, B♭", 718, 970, "A chord tone of C♯ø7."],
-    ["Basses, bar 45, E", 805, 1010, "E is the 3rd of C♯ø7, and the bass named by the slash."], ["Basses, bar 45, A", 999, 979, "A is the root of A7."],
-    ["Basses, bar 46, C", 1337, 959, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1452, 959, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1566, 959, "Still a chord tone of D7, and the preparation of what comes next."],
-    ["Basses, bar 46, C", 1680, 959, "B46"], ["Basses, bar 46, B♮", 1851, 970, "B♮ is the 3rd of G7: the resolution of the C before it."], ["Basses, bar 46, B♮", 1947, 970, "A chord tone of G7."]];
+    ["Basses, bar 43, G", 578, 358, "G is the root of G minor: a chord tone."], ["Basses, bar 43, G", 695, 358, "A chord tone of G minor."], ["Basses, bar 43, G", 811, 358, "Still a chord tone of G minor, and the preparation of what comes next."],
+    ["Basses, bar 43, G", 928, 358, "B43"], ["Basses, bar 43, F♯", 1066, 369, "F♯ is where the G before it resolves."], ["Basses, bar 43, F♯", 1161, 369, "The resolution, held."],
+    ["Basses, bar 44, C", 1469, 327, "C is the 7th of D7: a chord tone."], ["Basses, bar 44, C", 1630, 327, "Still the 7th of D7, and the preparation of what comes next."], ["Basses, bar 44, C", 1746, 327, "B44"], ["Basses, bar 44, B♭", 1979, 338, "B♭ is the 3rd of G minor: the resolution of the C before it."],
+    ["Tenors, bar 44, D", 1863, 152, "D is the 5th of G minor: a chord tone."], ["Tenors, bar 44, D", 1979, 152, "A chord tone of G minor."], ["Tenors, bar 44, D", 2095, 152, "A chord tone of G minor, and the preparation of what comes next."],
+    ["Tenors, bar 45, D", 282, 768, "T45"], ["Tenors, bar 45, C♯", 442, 778, "C♯ belongs to C♯ø7 (C♯–E–G–B♭). It is where the D above it resolves."], ["Tenors, bar 45, C♯", 538, 778, "A chord tone of C♯ø7."],
+    ["Tenors, bar 45, G", 941, 738, "G is the 7th of A7: a chord tone. Keep an eye on it, though: it is held into the next bar."], ["Tenors, bar 45, G", 1100, 738, "Still the 7th of A7: a chord tone, and the preparation of what comes next."],
+    ["Tenors, bar 46, G", 1245, 738, "T46"], ["Tenors, bar 46, F♯", 1474, 747, "F♯ is the 3rd of D7: the resolution of the G before it."],
+    ["Tenors, bar 46, F", 1817, 747, "F is the 7th of G7: a chord tone."], ["Tenors, bar 46, F", 1969, 747, "A chord tone of G7."], ["Tenors, bar 46, F", 2084, 747, "A chord tone of G7."],
+    ["Basses, bar 45, B♭", 397, 988, "B♭ is the 7th of C♯ø7: a chord tone."], ["Basses, bar 45, G", 538, 1008, "G is the 5th of C♯ø7: a chord tone."],
+    ["Basses, bar 45, A", 652, 998, "PT"], ["Basses, bar 45, B♭", 740, 988, "A chord tone of C♯ø7."],
+    ["Basses, bar 45, E", 827, 1029, "E is the 3rd of C♯ø7, and the bass named by the slash."], ["Basses, bar 45, A", 1021, 998, "A is the root of A7."],
+    ["Basses, bar 46, C", 1359, 977, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1474, 977, "C is the 7th of D7: a chord tone."], ["Basses, bar 46, C", 1588, 977, "Still a chord tone of D7, and the preparation of what comes next."],
+    ["Basses, bar 46, C", 1703, 977, "B46"], ["Basses, bar 46, B♮", 1874, 988, "B♮ is the 3rd of G7: the resolution of the C before it."], ["Basses, bar 46, B♮", 1969, 988, "A chord tone of G7."]];
   const SUSQ = {
     B43: { where: "Basses, bar 43", fmt: "notation with chord symbols", sus: "G", res: "F♯", chord: "A°", opts: ["A", "C", "E♭", "G"], bass: "A", ladder: "ABCDEFG", n: 7, r: 6, fig: "7-6",
       why: "A° has no slash, so the bass is its root, A, below the singing basses (the orchestra plays it). The suspension is in the bass voice, but it is not the lowest note, so measure from A.", note: "Prepared as the root of G minor, held into beat 3, then down to F♯." },
@@ -287,34 +401,35 @@ window.FAM = (() => {
     T46: { where: "Tenors, bar 46", fmt: "notation with chord symbols", sus: "G", res: "F♯", chord: "D7", opts: ["D", "F♯", "G", "C"], bass: "D", ladder: "DEFG", n: 4, r: 3, fig: "4-3",
       why: "D7 has no slash, so it is in root position: the bass is D.", note: "Prepared as the 7th of A7, repeated over the bar line, then down to F♯." },
     B46: { where: "Basses, bar 46", fmt: "notation with chord symbols", sus: "C", res: "B♮", chord: "G7", opts: ["C", "G", "B", "F"], bass: "G", ladder: "GABC", n: 4, r: 3, fig: "4-3",
-      why: "G7 has no slash, so the bass is G: it lies below the singing basses (the orchestra plays it). The suspension is in the bass voice, but it is not the lowest note, so measure from G.", note: "Prepared as the 7th of D7, held into beat 3, then down to B♮." },
-    BEAT: { where: "The Beatles, “You Never Give Me Your Money”", fmt: "lead sheet", sus: "E", res: "D", chord: "D7", opts: ["A", "D", "E", "C"], bass: "D", ladder: "DE", n: 9, r: 8, fig: "9-8",
-      why: "A lead sheet implies the bass: D7 has no slash, so the bass is the root, D.", note: "Prepared as the 5th of Am7, held into D7 on “mo-ney,” then down to D.", ninth: 1 } };
-  const MZPCT = ([, x, y]) => `left:${(x / 2208 * 100).toFixed(2)}%;top:${(y / 1188 * 100).toFixed(2)}%`;
+      why: "G7 has no slash, so the bass is G: it lies below the singing basses (the orchestra plays it). The suspension is in the bass voice, but it is not the lowest note, so measure from G.", note: "Prepared as the 7th of D7, held into beat 3, then down to B♮." } };
+  const MZPCT = ([, x, y]) => `left:${(x / 2256 * 100).toFixed(2)}%;top:${(y / 1232 * 100).toFixed(2)}%`;
   const mozartFind = () => `<div class="mz" role="group" aria-labelledby="mzH">
       <h3 id="mzH">Find the suspensions</h3>
-      <p>W. A. Mozart, Requiem, “Domine Jesu,” bars 43–46 (tenors and basses; the orchestra is not shown). Recording: Les Arts Florissants, conducted by William Christie (Erato). Listen, then tap the notes you think are suspensions. There are <b>five</b>, and the basses have three of them.</p>
+      <p>W. A. Mozart, Requiem, “Domine Jesu,” bars 43–46 (tenors and basses; the orchestra is not shown). Recording: Les Arts Florissants, conducted by William Christie (Erato). Listen, then tap the notes you think are suspensions. There are <b>five</b>, and the basses have three of them. There is also one <b>passing tone</b>: find it too (hint: look for sixteenth notes in the basses).</p>
       ${AUD("mozart-domine", "Mozart, Requiem, Domine Jesu, bars 43 to 46")}
       <div class="mz-score">${IMG("mozart-domine.png", "Mozart, Requiem, Domine Jesu, bars 43 to 46 in G minor, tenors and basses with chord symbols: G minor, A diminished, D7, G minor; then C-sharp half-diminished 7 over E, A7, D7, G7. The notes are buttons.")}
         ${MZ.map((m, i) => `<button class="mz-n" style="${MZPCT(m)}" data-mz="${i}" aria-label="${m[0]}" aria-pressed="false"></button>`).join("")}</div>
-      <p class="mz-fb" aria-live="polite">Found 0 of 5.</p>
-      <div class="lbtns"><button class="lk" data-mzshow>Show the suspensions</button></div></div>`;
+      <p class="mz-fb" aria-live="polite">Suspensions found: 0 of 5. Passing tone: not yet.</p>
+      <div class="lbtns"><button class="lk" data-mzshow>Show the answers</button></div></div>`;
   const measure = () => `<div class="mm" role="group" aria-labelledby="mmH">
       <h3 id="mmH">Measure from the bass</h3>
-      <p>A suspension figure counts the letter names from the <b>bass</b> up to the suspended note, then to its resolution. Pick a suspension:</p>
+      <p>A suspension figure counts the letter names from the <b>bass</b> up to the suspended note, then to its resolution. Here, always measure from the <b>bass note indicated by the chord symbol</b>: the root, or the note after the slash (C♯ø7/E has E in the bass). That note is played by the orchestra, which is not shown, so it is often lower than any singer. Pick a suspension:</p>
       <div class="lbtns" role="group" aria-label="Suspension">${Object.entries(SUSQ).map(([id, s], i) => `<button class="lk" data-mmpick="${id}" aria-pressed="${i === 0}">${s.where}</button>`).join("")}</div>
       <div class="mm-body" aria-live="polite"></div></div>`;
   function wireMozart(root) {
     const box = root.querySelector(".mz"); if (box) { const found = new Set(), fb = box.querySelector(".mz-fb");
       const mark = (i, show) => { const b = box.querySelector(`[data-mz="${i}"]`); b.classList.add("sus"); b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-label", MZ[i][0] + " (suspension)"); };
+      let pt = false; const tally = () => ` Suspensions found: ${found.size} of 5. Passing tone: ${pt ? "found" : "not yet"}.${found.size === 5 && pt ? " Now measure the suspensions below." : ""}`;
       box.addEventListener("click", e => {
         const b = e.target.closest("[data-mz]");
         if (b) { const m = MZ[+b.dataset.mz];
           if (SUSQ[m[3]]) { found.add(m[3]); mark(+b.dataset.mz); const s = SUSQ[m[3]];
-            fb.innerHTML = `<b>Yes: ${m[0]} is a suspension</b> over ${s.chord}. ${s.note} Found ${found.size} of 5.${found.size === 5 ? " Now measure them below." : ""}`; }
-          else { b.classList.add("no"); fb.innerHTML = `<b>${m[0]}:</b> ${m[3]} Found ${found.size} of 5.`; } }
-        if (e.target.closest("[data-mzshow]")) { MZ.forEach((m, i) => { if (SUSQ[m[3]]) { found.add(m[3]); mark(i); } });
-          fb.innerHTML = "The five suspensions, all on beat 1 or beat 3: the basses' G in bar 43 and C in bar 44, the tenors' D in bar 45 and G in bar 46, and the basses' C in bar 46. (The basses' A in bar 45 is a passing tone, not a suspension.)"; }
+            fb.innerHTML = `<b>Yes: ${m[0]} is a suspension</b> over ${s.chord}. ${s.note}` + tally(); }
+          else if (m[3] === "PT") { pt = true; b.classList.add("pt"); b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-label", m[0] + " (passing tone)");
+            fb.innerHTML = `<b>Yes: ${m[0]} is a passing tone.</b> It is not in C♯ø7 (C♯–E–G–B♭), and it fills the step from G up to B♭, moving in one direction. It falls between the beats, so it is unaccented.` + tally(); }
+          else { b.classList.add("no"); fb.innerHTML = `<b>${m[0]}:</b> ${m[3]}` + tally(); } }
+        if (e.target.closest("[data-mzshow]")) { MZ.forEach((m, i) => { if (SUSQ[m[3]]) { found.add(m[3]); mark(i); } if (m[3] === "PT") { pt = true; const x = box.querySelector(`[data-mz="${i}"]`); x.classList.add("pt"); x.setAttribute("aria-pressed", "true"); } });
+          fb.innerHTML = "The five suspensions, all on beat 1 or beat 3: the basses' G in bar 43 and C in bar 44, the tenors' D in bar 45 and G in bar 46, and the basses' C in bar 46. The passing tone is the basses' A, the first sixteenth note in bar 45."; }
       }); }
     const mm = root.querySelector(".mm"); if (!mm) return;
     let id = "B43", stage = 0;
@@ -331,7 +446,7 @@ window.FAM = (() => {
       mm.querySelector(".mm-body").innerHTML = h; };
     mm.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const s = SUSQ[id];
       if (b.dataset.mmpick) { id = b.dataset.mmpick; stage = 0; mm.querySelectorAll("[data-mmpick]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); return; }
-      if (b.dataset.mmb) { if (b.dataset.mmb === s.bass) { stage = 1; draw(); } else draw(b.dataset.mmb === s.sus ? `${s.sus} is the suspension itself. The bass is the lowest note of the chord: ${s.ninth ? "in a lead sheet, the root unless a slash names another note" : "check the chord symbol (a slash names the bass; otherwise it is the root)"}.` : `Not ${b.dataset.mmb}. ${s.ninth ? "In a lead sheet, the bass is the root unless a slash names another note." : "Look at the chord symbol: a slash names the bass; otherwise it is the root."}`); return; }
+      if (b.dataset.mmb) { if (b.dataset.mmb === s.bass) { stage = 1; draw(); } else draw(b.dataset.mmb === s.sus ? `${s.sus} is the suspension itself. Measure from the bass note the chord symbol indicates: the note after a slash, or otherwise the root of ${s.chord}.` : `Not ${b.dataset.mmb}. Use the bass note the chord symbol indicates: the note after a slash, or otherwise the root of ${s.chord}.`); return; }
       if (b.dataset.mmn) { const n = +b.dataset.mmn; if (n === s.n) { stage = 2; draw(); } else draw(s.ninth && n === 2 ? "Close: the letters are a 2nd apart, but the melody is an octave higher than that. What is a 2nd plus an octave?" : `Not ${n}. Count ${s.bass} as 1 and say each letter name up to ${s.sus}.`); return; }
       if (b.dataset.mmr) { const n = +b.dataset.mmr; if (n === s.r) { stage = 3; draw(); } else draw(`Not ${n}. Count ${s.bass} as 1 again, up to ${s.res}${s.ninth ? " (an octave above the bass)" : ""}.`); }
     });
@@ -448,7 +563,7 @@ window.FAM = (() => {
     } },
 
     { title: "Measure it yourself", kick: "From the bass up", render: () => `
-      <p>Now find and measure some suspensions on your own: five in Mozart's Requiem (notation with chord symbols) and the Beatles one from the previous step (a lead sheet).</p>
+      <p>Now find and measure some suspensions on your own, in Mozart's Requiem. Measure each one from the bass note that the chord symbol indicates.</p>
       ${mozartFind()}${measure()}`, after: root => wireMozart(root) },
 
     { title: "When suspensions get complicated", kick: "Moving bass, ornaments, chains", keyed: "major", render: (H, k, U) => {
@@ -484,8 +599,8 @@ window.FAM = (() => {
   ] };
 
   return {
-    key: "silverapps-nct-v1", lesson, make, reference,
-    modes: [{ id: "name", kicker: "Name it" }, { id: "find", kicker: "Find it" }, { id: "sus", kicker: "Suspension figures" }, { id: "def", kicker: "Definitions" }],
+    key: "silverapps-nct-v1", lesson, make, reference, widgets,
+    modes: [{ id: "name", kicker: "Name it" }, { id: "find", kicker: "Find it" }, { id: "sus", kicker: "Suspension figures" }, { id: "def", kicker: "Definitions" }, { id: "song", kicker: "A Whole New World" }, { id: "chart", kicker: "The chart" }],
     topics: [{ id: "step", name: "Step-based (PT, NT, DN)", group: "t" }, { id: "leap", name: "One leap (APP, ET)", group: "t" }, { id: "held", name: "Held and early (SUS, RET, ANT, HA)", group: "t" }],
   };
 })();

@@ -706,6 +706,32 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .mm-l:first-child, .mm-l:last-child { border-color: var(--fi-ink, #222); }
 .mm-l small { font-size: 12px; }
 .mm-fig { font: 400 40px/1 var(--fi-display, sans-serif); margin: 10px 0 0; }
+.mz-n.pt { border: 3px solid #2f6fd1; background: rgba(47, 111, 209, .12); }
+/* NCT drill: A Whole New World (clickable lead sheet) */
+.aw-vid { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 560px; margin: 8px auto; }
+.aw-vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.aw-wrap { overflow-x: auto; contain: inline-size; }
+.aw-score { position: relative; min-width: 620px; }
+.aw-score img { display: block; width: 100%; height: auto; background: #fff; }
+.aw-n { --fi-pill: 50%; position: absolute; width: 2.7%; min-width: 18px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50% !important; border: 2px solid transparent; background: transparent; padding: 0; cursor: pointer; }
+.aw-n:hover, .aw-n:focus-visible { border-color: #222; background: rgba(127,127,127,.18); outline: none; }
+.aw-n.ct { border: 2px dashed #777; }
+.aw-n.nf { border: 3px solid #c77700; background: rgba(217,138,0,.18); }
+.aw-n.ok { border: 3px solid #b33; background: rgba(212,58,58,.12); }
+.aw-n.op { border-color: #2f6fd1; background: rgba(47,111,209,.12); }
+.aw-n.awh { outline: 3px dashed #2f6fd1; outline-offset: 3px; }
+.aw-tag { position: absolute; transform: translate(-50%, calc(-100% - 12px)); font: 700 11px/1.1 system-ui, sans-serif; color: #a32020; background: #fff; padding: 1px 3px; pointer-events: none; white-space: nowrap; }
+.aw-pick { position: sticky; bottom: 0; z-index: 3; background: var(--fi-bg, var(--bg, #fff)); border: 1.5px solid var(--fi-soft, var(--line)); padding: 10px 12px; margin-top: 8px; }
+.aw-pick .aw-q { margin: 0 0 8px; }
+.aw-fb { min-height: 1.4em; margin: 10px 0 4px; }
+.aw-tally { font-weight: 600; margin: 4px 0; }
+.aw-key ul { padding-left: 1.2em; }
+.fig-box:has(> .aw-vid) { align-self: stretch; width: 100%; }
+/* NCT drill: complete the chart */
+.cc { contain: inline-size; overflow-x: auto; }
+.cc select { font: inherit; width: 100%; min-width: 7em; padding: 4px 6px; }
+.cc .cc-ok { color: #1d6b34; font-weight: 600; }
+.cc .cc-bad { color: #a32020; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
