@@ -732,6 +732,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cc select { font: inherit; width: 100%; min-width: 7em; padding: 4px 6px; }
 .cc .cc-ok { color: #1d6b34; font-weight: 600; }
 .cc .cc-bad { color: #a32020; }
+.sfx { border-top: 1.5px solid var(--fi-soft, var(--line)); padding-top: 12px; margin-top: 18px; }
+.sfx .lbtns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
