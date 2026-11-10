@@ -688,6 +688,24 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .nci-finder h3 { margin: 0 0 6px; }
 .nci-lab { font-weight: 700; margin: 10px 0 4px; }
 .nci-res p { margin: 10px 0 0; font-size: 1.05rem; }
+/* Non-chord tones: "compare in any key" heading; Mozart find-the-suspensions and measuring activities */
+.nci-any { margin: 22px 0 2px; }
+.mz, .mm { border: 1.5px solid var(--fi-soft, var(--line)); border-radius: var(--fi-r-sm, 12px); padding: 12px 14px; margin: 14px 0; }
+.mz h3, .mm h3 { margin: 0 0 6px; }
+.mz-score { position: relative; margin: 8px 0; }
+.mz-n { position: absolute; width: 3.4%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50% !important; border: 2px solid transparent; background: transparent; cursor: pointer; padding: 0; min-width: 22px; }
+.mz-n:hover, .mz-n:focus-visible { border-color: var(--fi-ink, #222); background: rgba(127,127,127,.15); outline: none; }
+.mz-n.no { border-color: #888; border-style: dashed; }
+.mz-n.sus { border: 3px solid var(--fi-red-dk, #b33); background: rgba(212, 58, 58, .12); }
+.mz-fb { min-height: 1.4em; }
+.mm-q { font-weight: 700; margin: 12px 0 4px; }
+.mm-ok { margin: 6px 0; }
+.mm-no { margin: 8px 0 0; font-weight: 700; color: var(--fi-red-dk, #b33); }
+.mm-ladder { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.mm-l { display: grid; justify-items: center; min-width: 34px; padding: 4px 6px; border: 1.5px solid var(--fi-line, #bbb); border-radius: 8px; }
+.mm-l:first-child, .mm-l:last-child { border-color: var(--fi-ink, #222); }
+.mm-l small { font-size: 12px; }
+.mm-fig { font: 400 40px/1 var(--fi-display, sans-serif); margin: 10px 0 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

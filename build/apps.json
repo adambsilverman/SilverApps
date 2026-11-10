@@ -102,16 +102,9 @@
           "note": "Guided practice"
         },
         {
-          "name": "Introduction to Non-Chord Tones",
-          "topic": "Non-chord tones",
-          "blurb": "Find and name non-chord tones in real music: As Time Goes By, Tchaikovsky, Bruckner and more, with examples to label.",
-          "open": "introduction-to-non-chord-tones-lesson.html",
-          "note": "Lesson with recordings"
-        },
-        {
           "name": "Non-Chord Tones",
           "topic": "Non-chord tones",
-          "blurb": "Next step after the Introduction: compare the types in any key, accented tones, tricky suspensions, and endless labeling practice.",
+          "blurb": "Passing tones, neighbors, appoggiaturas, suspensions and more, in real music and in any key, with labeling practice.",
           "lesson": "non-chord-tones-lesson.html",
           "drills": "non-chord-tones.html",
           "class": true

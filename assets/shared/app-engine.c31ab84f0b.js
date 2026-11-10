@@ -1119,6 +1119,12 @@
     if (kb) { LS.key = kb.dataset.lkey; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lkey="${CSS.escape(LS.key)}"]`); if (again) again.focus(); return; }
     if (mb) { LS.mode = mb.dataset.lmode; LS.key = null; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lmode="${LS.mode}"]`); if (again) again.focus(); }
   });
+  // ← / → move between lesson steps (not while typing, choosing from a list, using a slider or another widget that uses arrow keys)
+  if (lessonEl) document.addEventListener("keydown", e => {
+    if (lessonEl.hidden || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+    const t = e.target; if (t && t.closest && t.closest("input, textarea, select, audio, video, iframe, [contenteditable], [role=slider], [role=listbox], [role=radiogroup], [role=tablist], [role=grid], .pbld, .gwrap")) return;
+    const b = lessonEl.querySelector(`[data-lgo="${e.key === "ArrowLeft" ? -1 : 1}"]:not([disabled])`); if (b) { e.preventDefault(); b.click(); }
+  });
   // Lesson / Drills switch
   function setView(v, focus) {
     if (!lessonEl) return;

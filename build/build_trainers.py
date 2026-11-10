@@ -142,7 +142,6 @@ HARM = [
   ("Chord Figures Lesson.html", "chord-figures-and-symbols-lesson.html", "figlesson", "Understanding Chord Figures and Symbols"),
   ("Extended and Altered Chords Lesson.html", "extended-and-altered-chords-lesson.html", "extlesson", "Understanding Extended and Altered Chords"),
   ("Modulation Lesson.html", "modulation-lesson.html", "modlesson", "Understanding Modulation"),
-  ("Non-Chord Tones Intro Lesson.html", "introduction-to-non-chord-tones-lesson.html", "nctintro", "Introduction to Non-Chord Tones"),
   ("Rhythm Notation Lesson.html", "rhythm-notation-lesson.html", "rhythmlesson", "Understanding Rhythm Notation"),
   ("Reading Pitch.html", "reading-pitch.html", "pitch", "Reading Pitch"),
   ("Reading Pitch Lesson.html", "reading-pitch-lesson.html", "pitch-lesson", "Understanding Clefs and Pitch Reading"),
