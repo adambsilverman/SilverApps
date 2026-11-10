@@ -100,7 +100,7 @@ window.FAM = (() => {
       <figcaption>${cap}</figcaption></figure>`;
   const wireSW = root => root.querySelectorAll("[data-sw]").forEach(fg => fg.addEventListener("click", e => { const b = e.target.closest("[data-swb]"); if (!b) return;
     fg.querySelectorAll("[data-swb]").forEach(x => x.setAttribute("aria-pressed", x === b)); fg.querySelectorAll("[data-swi]").forEach(x => x.hidden = x.dataset.swi !== b.dataset.swb); }));
-  const ANS = (q, a, qalt, aalt, cap) => `<figure class="lfig nci-fig">${IMG(q, qalt)}<figcaption>${cap}</figcaption>
+  const ANS = (q, a, qalt, aalt, cap, aud) => `<figure class="lfig nci-fig">${IMG(q, qalt)}${aud ? AUD(aud[0], aud[1]) : ""}<figcaption>${cap}</figcaption>
       <details class="nci-ans"><summary>Show the answer key</summary>${IMG(a, aalt)}</details></figure>`;
 
   // ---- the "name that tone" finder: how a non-chord tone is approached and left ----
@@ -191,7 +191,7 @@ window.FAM = (() => {
 
     { title: "Pedal tones", kick: "Held under changing chords", render: (H) => `
       <p>Bruckner's Mass in E minor has two more types. This passage from the Kyrie is for unaccompanied women's voices; chord symbols have been added to make the analysis easier.</p>
-      ${FIG(IMG("bruckner-kyrie.png", "Bruckner, Kyrie from the Mass in E minor, two treble staves. Chords: E minor, F-sharp half-diminished 7 over E, B7, E minor. The lowest voice repeats E throughout; it is labeled PED twice under the B7 bar. SUS marks the held B into bar 3 and the held F-sharp into bar 5; NT marks a lower-voice neighbor."), "Bruckner, Mass in E minor, Kyrie (women's voices). Recording: La Chapelle Royale, Collegium Vocale Gent and Ensemble Musique Oblique, conducted by Philippe Herreweghe (harmonia mundi).") + AUD("bruckner-kyrie", "Bruckner, Kyrie from the Mass in E minor")}
+      ${FIG(IMG("bruckner-kyrie.png", "Bruckner, Kyrie from the Mass in E minor, two treble staves. Chords: E minor, F-sharp half-diminished 7 over E, B7, E minor. The lowest voice repeats E throughout; it is labeled PED twice under the B7 bar. NT marks a neighbor tone in the lower staff."), "Bruckner, Mass in E minor, Kyrie (women's voices). Recording: La Chapelle Royale, Collegium Vocale Gent and Ensemble Musique Oblique, conducted by Philippe Herreweghe (harmonia mundi).") + AUD("bruckner-kyrie", "Bruckner, Kyrie from the Mass in E minor")}
       <p>A <b>pedal tone (PED)</b> is a note that persists from one harmony into the next. Here the lowest voice repeats an E for the whole phrase. It is a chord tone under every chord except B7: when B7 sounds in bar 4, the E clashes with the “proper” notes of the chord.</p>`
       + H.check("A note held or repeated (usually in the bass) while harmonies change above it is…", "a pedal tone", ["a suspension", "an anticipation", "a passing tone"], "Same note in, same note out: pedal tone.") },
 
@@ -209,12 +209,12 @@ window.FAM = (() => {
       <p>Some things complicate the labels, such as the bass changing at the moment of resolution, or melodic embellishment. The first suspension in the Bruckner is tricky because it happens together with the pedal tone. Ignoring the pedal, it is a 4-3: the B is a fourth above the lowest chord tone (F♯) and moves down to A. The second is easier: a 9-8, because the suspended F♯ is a ninth above the lowest chord tone (E) and steps down to E.</p>
       ${FIG(IMG("bruckner-sus-figures.png", "The Bruckner Kyrie with suspension figures: 4-3 under the first suspension in bar 3 and 9-8 above the second in bar 5."), "The Bruckner suspensions labeled 4-3 and 9-8.")}
       <p>You can also label a suspension in a lead sheet, because a lead sheet implies a bass line: if the chord symbol shows no slash bass, the chord is in root position.</p>
-      ${FIG(IMG("beatles-money.png", "The Beatles, You Never Give Me Your Money, lead sheet in C: Am7, D7, G7, C major 7. The E held over from Am7 into D7 on mo-ney resolves down to D: labeled 9-8. On fun-ny, the F over C major 7 is labeled APP."), "The Beatles, “You Never Give Me Your Money” (lead sheet): a 9-8 suspension over D7 and an appoggiatura.")}`
+      ${FIG(IMG("beatles-money.png", "The Beatles, You Never Give Me Your Money, lead sheet in C: Am7, D7, G7, C major 7. The E held over from Am7 into D7 on mo-ney resolves down to D: labeled 9-8. On fun-ny, the F over C major 7 is labeled APP.") + AUD("beatles-money", "The Beatles, You Never Give Me Your Money"), "The Beatles, “You Never Give Me Your Money” (lead sheet): a 9-8 suspension over D7 and an appoggiatura.")}`
       + H.check("In a 4-3 suspension, the suspended note is a fourth above the bass and resolves…", "down by step to a third above the bass", ["up by step to a fifth", "down by leap", "by staying on the same note"], "Suspensions resolve down by step: 4 → 3.") },
 
     { title: "Anticipations", kick: "Arriving early", render: (H) => `
       <p>The last type is the <b>anticipation (ANT)</b>: a melody note that arrives before the rest of its harmony. A <b>harmonic anticipation (HA)</b> anticipates a different tone of the following chord than the one the melody actually moves to.</p>
-      ${FIG(IMG("brahms-op29.png", "Brahms, Motet Op. 29 No. 2, four bars in G major, 6/4, for choir. A 4-3 suspension and a neighbor tone in the tenor in bar 2; in bar 3 the soprano's G arrives on beat 3 before the G chord of bar 4, labeled ANT."), "Johannes Brahms, Motet Op. 29 No. 2: a 4-3 suspension, a neighbor tone and an anticipation.")}`
+      ${FIG(IMG("brahms-op29.png", "Brahms, Motet Op. 29 No. 2, four bars in G major, 6/4, for choir. A 4-3 suspension and a neighbor tone in the tenor in bar 2; in bar 3 the soprano's G arrives on beat 3 before the G chord of bar 4, labeled ANT.") + AUD("brahms-op29", "Brahms, Motet Op. 29 No. 2"), "Johannes Brahms, Motet Op. 29 No. 2: a 4-3 suspension, a neighbor tone and an anticipation. Recording: St Bride's Church Choir, conducted by Matthew Morley.")}`
       + H.check("A melody note that arrives before its chord and is held into it is…", "an anticipation", ["a suspension", "a retardation", "an appoggiatura"], "It anticipates the next chord.") },
 
     { title: "The chart", kick: "All the types at once", render: () => tbl("Non-chord tones: how each type is approached and left", ["Type", "Approached by", "Left by"], [
@@ -225,9 +225,9 @@ window.FAM = (() => {
 
     { title: "Examples for labeling", kick: "Try it, then check", render: () => `
       <p>Find the chords, compare the melody, and label each non-chord tone. Then open the answer key.</p>
-      ${ANS("ex-mozart.png", "ans-mozart.png", "Mozart, You Birds, So Every Year, voice and piano in C major, 2/4, eight bars, unlabeled.", "Answer: NT, NT in bar 1; NT, NT in bar 3; APP then PT, PT in bar 5.", "W. A. Mozart, “You Birds, So Every Year”")}
-      ${ANS("ex-haydn.png", "ans-haydn.png", "Haydn, Piano Sonata No. 62 in E-flat major, finale, eight bars, unlabeled.", "Answer: the held low E-flat in the left hand is labeled PED three times.", "Joseph Haydn, Piano Sonata No. 62 in E♭ major, Hob. XVI:52, finale")}
-      ${ANS("ex-tchaik-nocturne.png", "ans-tchaik-nocturne.png", "Tchaikovsky, Nocturne, four bars in D minor, unlabeled.", "Answer: NT in bars 1 and 2, ET twice in bar 3, PT in bar 4.", "Piotr Tchaikovsky, Nocturne")}
+      ${ANS("ex-mozart.png", "ans-mozart.png", "Mozart, You Birds, So Every Year, voice and piano in C major, 2/4, eight bars, unlabeled.", "Answer: NT, NT in bar 1; NT, NT in bar 3; APP then PT, PT in bar 5.", "W. A. Mozart, “You Birds, So Every Year”", ["mozart-oiseaux", "Mozart, You Birds, So Every Year"])}
+      ${ANS("ex-haydn.png", "ans-haydn.png", "Haydn, Piano Sonata No. 62 in E-flat major, finale, eight bars, unlabeled.", "Answer: the held low E-flat in the left hand is labeled PED three times.", "Joseph Haydn, Piano Sonata No. 62 in E♭ major, Hob. XVI:52, finale", ["haydn-sonata62", "Haydn, Piano Sonata No. 62, finale"])}
+      ${ANS("ex-tchaik-nocturne.png", "ans-tchaik-nocturne.png", "Tchaikovsky, Nocturne, four bars in D minor, unlabeled.", "Answer: NT in bars 1 and 2, ET twice in bar 3, PT in bar 4.", "Piotr Tchaikovsky, Nocturne, performed by Alexandre Tharaud", ["tchaikovsky-nocturne", "Tchaikovsky, Nocturne, performed by Alexandre Tharaud"])}
       ${ANS("ex-sunshine.png", "ans-sunshine.png", "Oliver Hood, You Are My Sunshine, lead sheet in F, unlabeled.", "Answer: PT on the pick-up, NT on only, PT on make me, skies are, never, much I and don't take, and ET or HA on the last two non-chord tones.", "Oliver Hood, “You Are My Sunshine” (1939)")}
       <p>For more practice with notated examples in any key, see <a href="non-chord-tones-lesson.html">Understanding Non-Chord Tones</a> and the <a href="non-chord-tones.html">Non-Chord Tones drills</a>.</p>` },
   ] };
