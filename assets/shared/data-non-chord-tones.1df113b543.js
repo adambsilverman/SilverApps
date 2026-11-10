@@ -84,9 +84,10 @@ window.FAM = (() => {
     }
     return null;
   }
+  const NOTEL = (H, x, i) => `note ${i + 1} (${H.nm(dn(H, x.k, x.notes[i].i))})`;   // "Find it": the value of a clicked melody note
   function spec(H, x, o = {}) {
     const k = x.k;
-    const mel = x.notes.map((n, a) => Object.assign({ k: [H.nmO(dn(H, k, n.i))], q: n.q, tie: n.tie }, o.hl && x.ncts.includes(a) ? { hl: true } : {}, o.num ? { n: a + 1 } : {}, o.tags && x.ncts.includes(a) ? { tag: x.lab[a] } : {}));
+    const mel = x.notes.map((n, a) => Object.assign({ k: [H.nmO(dn(H, k, n.i))], q: n.q, tie: n.tie }, o.hl && x.ncts.includes(a) ? { hl: true } : {}, o.num ? { n: a + 1 } : {}, o.pick ? { pv: NOTEL(H, x, a), pl: `Melody note ${a + 1}: ${H.nm(dn(H, k, n.i))}` } : {}, o.tags && x.ncts.includes(a) ? { tag: x.lab[a] } : {}));
     // accompaniment on a grand staff: the bass note in the left hand, the three chord tones in close position in the right hand
     const acc = rhSeq(H, x.prog.map(d => H.diat(k, d)));
     const rh = acc.map(v => ({ k: v.rh, q: 2 })), lh = x.prog.map((d, i) => { const c = H.diat(k, d); return { k: [acc[i].bass], q: 2, sym: o.sym === false ? null : c.sym }; });
@@ -367,7 +368,7 @@ window.FAM = (() => {
       const play = spec(H, x).bars && H.scorePlay(spec(H, x));
       if (mode === "name")
         return H.mc(`In ${x.k.label}: what kind of non-chord tone is circled?`, NAME[want], Object.values(NAME).filter(v => v !== NAME.PED), why, { kicker: "Name it", staff: spec(H, x, { hl: true }), staffAns: spec(H, x, { tags: true, hl: true }), playQ: play, playQLabel: "Play", topic: TOPIC[want] });
-      return H.mc(`In ${x.k.label}: which melody note is the non-chord tone?`, `Note ${a + 1}`, x.notes.map((_, i) => `Note ${i + 1}`).filter((_, i) => i !== a && i > 0 && i < x.notes.length - 1), why, { kicker: "Find it", staff: spec(H, x, { num: true }), staffAns: spec(H, x, { num: true, tags: true, hl: true }), playQ: play, playQLabel: "Play", topic: TOPIC[want], nWrong: 3 });
+      return H.mc(`In ${x.k.label}: click the non-chord tone in the melody.`, NOTEL(H, x, a), x.notes.map((_, i) => NOTEL(H, x, i)).filter((_, i) => i !== a && i > 0 && i < x.notes.length - 1), why, { kicker: "Find it", staff: Object.assign(spec(H, x, { pick: true }), { pick: true }), staffAns: spec(H, x, { tags: true, hl: true }), pick: "Click a note in the melody (the top staff), or tab to it and press Enter.", playQ: play, playQLabel: "Play", topic: TOPIC[want], nWrong: 3 });
     }
     if (mode === "sus") {
       const want = H.rnd(Object.keys(SUSF)), x = susEx(H, want);

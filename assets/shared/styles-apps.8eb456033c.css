@@ -739,6 +739,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .sfr-menu { position: absolute; z-index: 50; display: flex; flex-direction: column; background: var(--fi-bg, var(--bg, #fff)); border: 2px solid #222; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 4px; max-width: 280px; }
 .sfr-menu button { --fi-pill: 0; text-align: left; font: inherit; background: transparent; border: 0; border-radius: 0 !important; padding: 10px 12px; cursor: pointer; color: inherit; }
 .sfr-menu button:hover, .sfr-menu button:focus-visible { background: #222; color: #fff; outline: none; }
+.staff g.npick:hover path, .staff g.npick:focus-visible path { fill: var(--fi-red-dk, #b33) !important; stroke: var(--fi-red-dk, #b33) !important; }
+.pick-hint { color: var(--fi-muted, #555); margin: 6px 0; text-align: center; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

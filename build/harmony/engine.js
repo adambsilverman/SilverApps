@@ -489,6 +489,17 @@
     svg.setAttribute("role", "img"); svg.setAttribute("focusable", "false");
     svg.setAttribute("aria-label", o.label || describeScore(o));
     el._notes = meta.filter(m => m.n.k.length && !m.n.ghost).map(m => ({ g: m.sn.getSVGElement ? m.sn.getSVGElement() : null, q: m.sn._q || 0, n: m.n })).filter(x => x.g);
+    // o.pick: notes with n.pv are buttons (click or Enter/Space) that fire a bubbling "sa-pick" event with that value (e.g. "click the non-chord tone")
+    if (o.pick) {
+      svg.setAttribute("role", "group");
+      el._notes.forEach(x => { if (x.n.pv == null) return; const g = x.g;
+        g.setAttribute("role", "button"); g.setAttribute("tabindex", "0"); g.classList.add("nclick", "npick"); g.setAttribute("aria-label", x.n.pl || x.n.pv);
+        try { const b = g.getBBox(); mk("rect", { x: b.x - 8, y: b.y - 8, width: b.width + 16, height: b.height + 16, fill: "transparent", stroke: "none", "pointer-events": "all" }, g, true); } catch (e) {}
+        const go = () => el.dispatchEvent(new CustomEvent("sa-pick", { bubbles: true, detail: x.n.pv }));
+        g.addEventListener("click", go);
+        g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      });
+    }
   }
   const DURNAME = { w: "whole note", h: "half note", q: "quarter note", "8": "eighth note", "16": "sixteenth note" };
   function describeScore(o) {
@@ -957,6 +968,8 @@
   function renderWork() {
     const q = Q[S.mode], c = q.c, W = c.widget && FAM.widgets && FAM.widgets[c.widget];
     // custom answer widgets (e.g. drag a note): FAM.widgets[name] = { html(c, q, H), wire(root, c, q, H), value(root) }
+    if (c.pick && !q.done) { work.innerHTML = `<p class="pick-hint">${rich(c.pick)}</p>`; return; }   // the answer is a click on the prompt's staff (see o.pick in drawScore); c.choices stay for class games
+    if (c.pick) { work.innerHTML = ""; return; }
     if (W) { work.innerHTML = `<div class="widget">${W.html(c, q, H)}</div>${q.done ? "" : '<div class="choice-row"><button class="btn primary" data-wcheck disabled>Check</button></div>'}`; if (W.wire && !q.done) W.wire(work, c, q, H); return; }
     const short = c.fmt === "rn" || c.fmt === "sym" || c.choices.every(v => v.length <= 18);
     work.innerHTML = `<div class="choice-row ${c.fmt ? "fmt " + c.fmt : ""} ${short ? "" : "wide"}" role="group" aria-labelledby="qText">${c.choices.map(v => choiceBtn(v, q)).join("")}</div>`;
@@ -993,6 +1006,7 @@
   function reveal() { const q = Q[S.mode]; if (q.done) return; q.tries = 1; choose(q.correctValue); }
   work.addEventListener("click", e => { const w = e.target.closest("[data-wcheck]"); if (w && !w.disabled) { const q = Q[S.mode], W = FAM.widgets[q.c.widget], v = W && W.value(work); if (v != null) choose(v); return; } });
   work.addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b && !b.disabled) choose(b.dataset.v); });
+  promptEl.addEventListener("sa-pick", e => { const q = Q[S.mode]; if (q && !q.done && q.c.pick) choose(e.detail); });
   document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (b && Q[S.mode]) play(b.dataset.play === "a" ? Q[S.mode].c.play : Q[S.mode].c.playQ); });
 
   function clearAnswer() { fb.innerHTML = ""; ansBox.innerHTML = ""; }

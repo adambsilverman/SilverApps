@@ -51,3 +51,10 @@
     });
   });
 })();
+
+// Long question prompts (instructions rather than questions) get smaller, lighter text: .q-text.q-long (assets/trainer-skin.css)
+(function () {
+  function tag() { document.querySelectorAll(".q-text").forEach(function (p) { var l = (p.textContent || "").trim().length > 85; if (p.classList.contains("q-long") !== l) p.classList.toggle("q-long", l); }); }
+  function go() { tag(); if (window.MutationObserver) new MutationObserver(tag).observe(document.body, { childList: true, subtree: true, characterData: true }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+})();
