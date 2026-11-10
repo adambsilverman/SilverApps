@@ -261,11 +261,62 @@ window.FAM = (() => {
   }
   const SFX = ["mozart", "haydn", "tchaik", "sunshine"];
   const sfState = () => ({ f: {}, ok: {}, ct: {}, chk: 0 });
-  const widgets = { sf: {
-    html(c, q, H) { const D = SFS[c.ds]; return sfHTML(D, q.aw || (q.aw = sfState()), H, q.done); },
-    wire(root, c, q, H) { root.__awq = q; root.querySelector("[data-wcheck]").disabled = false; sfWire(root.querySelector(".aw"), SFS[c.ds], q.aw, H); },
-    value(root) { const q = root.__awq, D = SFS[q.c.ds]; return sfCheck(root.querySelector(".aw"), D, q.aw) ? q.c.answer : null; },
-  } };
+  // drill mode "real": one question = one piece; buttons switch pieces (each keeps its own progress); finishing the shown piece answers the question
+  const SFR = ["song", "mozart", "haydn", "tchaik", "sunshine"];
+  let sfrNext = 0;
+  const SFRW = {
+    html(c, q, H) {
+      const R = q.sr || (q.sr = { cur: c.ds, st: {} }), D = SFS[R.cur], st = R.st[R.cur] || (R.st[R.cur] = sfState());
+      return `<h3 class="sfr-name">${D.kicker}</h3><p class="sfr-text">${D.text}</p>${D.fig || ""}${sfHTML(D, st, H, q.done)}`;
+    },
+    wire(root, c, q, H) {
+      root.__awq = q; root.__awH = H; root.querySelector("[data-wcheck]").disabled = false;
+      sfWire(root.querySelector(".aw"), SFS[q.sr.cur], q.sr.st[q.sr.cur], H);
+    },
+    value(root) { const q = root.__awq, R = q.sr, D = SFS[R.cur];
+      if (!sfCheck(root.querySelector(".aw"), D, R.st[R.cur])) return null;
+      q.c.answer = `All ${D.req.length} found and named in ${D.kicker}`; q.c.explain = D.explain; return q.correctValue; },
+  };
+  // the "Real music" mode button opens a menu of pieces (each piece keeps its progress while the question is open)
+  function sfrPick(id, btn) {
+    const work = document.getElementById("work"), modeOn = btn.getAttribute("aria-pressed") === "true";
+    sfrNext = SFR.indexOf(id);
+    if (!modeOn) btn.onclick && btn.onclick();
+    const q = work.__awq, live = q && q.c && q.c.widget === "sfr" && work.querySelector(".aw button:not([disabled])");
+    if (live) { sfrNext = SFR.indexOf(id) + 1; if (q.sr.cur !== id) { q.sr.cur = id; work.querySelector(".widget").innerHTML = SFRW.html(q.c, q, work.__awH); SFRW.wire(work, q.c, q, work.__awH); } }
+    else { const nb = document.getElementById("nextBtn"); if (nb) nb.click(); }
+    const h = document.getElementById("qHead"); if (h) h.focus();
+  }
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    let menu = null, opener = null;
+    const close = (back) => { if (!menu) return; menu.remove(); menu = null; opener.setAttribute("aria-expanded", "false"); if (back) opener.focus(); };
+    const open = btn => {
+      opener = btn; btn.setAttribute("aria-expanded", "true");
+      const r = btn.getBoundingClientRect();
+      menu = document.createElement("div"); menu.className = "sfr-menu"; menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "Choose a piece");
+      menu.innerHTML = SFR.map(id => `<button type="button" role="menuitem" data-sfm="${id}">${SFS[id].kicker}</button>`).join("");
+      menu.style.top = (r.bottom + scrollY + 4) + "px"; menu.style.left = Math.max(8, Math.min(r.left + scrollX, scrollX + document.documentElement.clientWidth - 288)) + "px"; menu.style.minWidth = Math.min(r.width, 280) + "px";
+      document.body.appendChild(menu); menu.querySelector("button").focus();
+    };
+    const setup = () => { const b = document.querySelector('.modes [data-mode="real"]'); if (b) { b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-expanded", "false"); } };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setup); else setup();
+    window.addEventListener("click", e => {
+      const b = e.target.closest && e.target.closest('.modes [data-mode="real"]');
+      if (b) { e.stopPropagation(); e.preventDefault(); if (menu) close(true); else open(b); return; }
+      const it = menu && e.target.closest && e.target.closest("[data-sfm]");
+      if (it) { e.stopPropagation(); const id = it.dataset.sfm, btn = opener; close(false); sfrPick(id, btn); return; }
+      if (menu && !menu.contains(e.target)) close(false);
+    }, true);
+    window.addEventListener("keydown", e => {
+      if (!menu) return;
+      const items = [...menu.querySelectorAll("[data-sfm]")], i = items.indexOf(document.activeElement);
+      if (e.key === "Escape") { e.preventDefault(); close(true); }
+      else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
+      else if (e.key === "Home" || e.key === "End") { e.preventDefault(); items[e.key === "Home" ? 0 : items.length - 1].focus(); }
+      else if (e.key === "Tab") close(false);
+    }, true);
+  }
+  const widgets = { sfr: SFRW };
   // ===== drill: complete the chart (selects in blank cells; one check, then the full chart with ✓/✗) =====
   const CHART = [["PT", "step", "step in the same direction"], ["NT", "step", "step in the opposite direction"], ["DN", "step", "skip to the other side of the target, then step to it"],
     ["APP", "leap", "step"], ["ET", "step", "leap"], ["SUS", "same note", "step down"], ["RET", "same note", "step up"], ["ANT", "step or leap", "same note"],
@@ -303,7 +354,7 @@ window.FAM = (() => {
       return { kicker: "The chart", text: "Complete the chart: choose the missing type, approach or resolution in each blank, then Check.", answer: "every blank filled in correctly", choices: [], widget: "ncchart", cb,
         explain: "Read each row as a recipe: how the melody gets to the non-chord tone (approached by) and how it gets away (left by). Steps on both sides: passing and neighbor tones. One leap: appoggiatura (leap in) or escape tone (leap out). Held over: suspension (down) or retardation (up). Early: anticipation." };
     }
-    if (SFS[mode]) { const D = SFS[mode]; return { kicker: D.kicker, text: D.text, fig: D.fig, explain: D.explain, answer: `All ${D.req.length} found and named`, choices: [], widget: "sf", ds: mode }; }
+    if (mode === "real") { const id = SFR[sfrNext++ % SFR.length]; return { kicker: "Real music", text: "Listen, then click every note that doesn't belong to the chord sounding with it, and name its type. Check gives a hint about what's left. Use the Real music menu to switch pieces.", answer: `All found and named in ${SFS[id].kicker}`, choices: [], widget: "sfr", ds: id, explain: SFS[id].explain }; }
     if (mode === "name" || mode === "find") {
       const pool = ["PT", "NT", "APP", "ET", "SUS", "RET", "ANT", "HA", "DN"].filter(t => H.topicOn(TOPIC[t]) && !(mode === "find" && t === "DN"));
       const want = H.rnd(pool.length ? pool : ["PT"]), x = gen(H, want);
@@ -630,7 +681,7 @@ window.FAM = (() => {
 
   return {
     key: "silverapps-nct-v1", lesson, make, reference, widgets,
-    modes: [{ id: "name", kicker: "Name it" }, { id: "find", kicker: "Find it" }, { id: "sus", kicker: "Suspension figures" }, { id: "def", kicker: "Definitions" }, { id: "song", kicker: "A Whole New World" }, { id: "chart", kicker: "The chart" }, { id: "mozart", kicker: "Mozart: You Birds" }, { id: "haydn", kicker: "Haydn: Sonata No. 62" }, { id: "tchaik", kicker: "Tchaikovsky: Nocturne" }, { id: "sunshine", kicker: "You Are My Sunshine" }],
+    modes: [{ id: "name", kicker: "Name it" }, { id: "find", kicker: "Find it" }, { id: "sus", kicker: "Suspension figures" }, { id: "def", kicker: "Definitions" }, { id: "chart", kicker: "The chart" }, { id: "real", kicker: "Real music" }],
     topics: [{ id: "step", name: "Step-based (PT, NT, DN)", group: "t" }, { id: "leap", name: "One leap (APP, ET)", group: "t" }, { id: "held", name: "Held and early (SUS, RET, ANT, HA)", group: "t" }],
   };
 })();

@@ -501,3 +501,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cc .cc-bad { color: #a32020; }
 .sfx { border-top: 1.5px solid var(--fi-soft, var(--line)); padding-top: 12px; margin-top: 18px; }
 .sfx .lbtns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.sfr-text { margin: 6px 0; }
+.sfr-name { margin: 0 0 4px; }
+.sfr-menu { position: absolute; z-index: 50; display: flex; flex-direction: column; background: var(--fi-bg, var(--bg, #fff)); border: 2px solid #222; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 4px; max-width: 280px; }
+.sfr-menu button { --fi-pill: 0; text-align: left; font: inherit; background: transparent; border: 0; border-radius: 0 !important; padding: 10px 12px; cursor: pointer; color: inherit; }
+.sfr-menu button:hover, .sfr-menu button:focus-visible { background: #222; color: #fff; outline: none; }
