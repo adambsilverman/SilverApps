@@ -200,72 +200,97 @@ window.FAM = (() => {
   // ---------- lesson examples (scale indexes over chords; each chord = 2 beats) ----------
   // every lesson example: melody staff (with the non-chord tones) over a grand staff (three close-position chord tones in the right hand, the root in the left)
   const ex = (H, k, prog, mel, o = {}) => {
-    const notes = mel.map(([i, q, tag, tie]) => ({ k: [H.nmO(dn(H, k, i))], q, tag: tag || undefined, hl: !!tag, tie: !!tie }));
+    const notes = mel.map(([i, q, tag, tie]) => ({ k: (Array.isArray(i) ? i : [i]).map(j => H.nmO(dn(H, k, j))), q, tag: tag || undefined, hl: !!tag, tie: !!tie }));
     const acc = rhSeq(H, prog.map(([d]) => H.diat(k, d)));
     const rh = prog.map(([d, q], i) => ({ k: acc[i].rh, q: q || 2 })), lh = prog.map(([d, q], i) => ({ k: o.ped ? [o.ped] : [acc[i].bass], q: q || 2, tie: !!o.ped && i < prog.length - 1, lab: o.ped && i === 0 ? "PED" : undefined, sym: o.sym === false ? null : H.diat(k, d).sym }));
     return { type: "score", clefs: ["treble", "treble", "bass"], ids: ["m", "t", "b"], names: ["melody staff", "right hand", "left hand"], tagSide: true, evenBars: true, symSize: 20, rowW: o.rowW || 820, vf: k.vf, sig: k.sig, time: o.time || "4/4", bpm: o.bpm || 80, bars: H.toBars({ m: [notes], t: [rh], b: [lh] }) };
   };
+  // two-staff example for suspensions: top / bottom = [[scale index (or array), quarters, tie, figure tag]]
+  const two = (H, k, top, bot, bpm = 72) => { const v = a => a.map(([i, q, tie, tag]) => ({ k: (Array.isArray(i) ? i : [i]).map(j => H.nmO(dn(H, k, j))), q, tie, tag, hl: !!tag })); return { type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm, bars: H.toBars({ t: [v(top)], b: [v(bot)] }) }; };
+  const NEWEX = ["PT", "NT", "APP", "ET", "SUS", "RET", "ANT", "DN"];
   const lesson = { defMode: "major", steps: [
-    { title: "Chord tones and non-chord tones", kick: "Consonance and dissonance", keyed: "major", render: (H, k, U) => {
-      const sp = ex(H, k, [[1, 4], [5, 4], [1, 4]], [[2, 1], [3, 1, "PT"], [4, 1], [5, 1, "NT"], [4, 1], [5, 1, "PT"], [6, 2], [7, 4]]);
-      return `<p>Most harmony is built from triads (or seventh chords), but not every note in the music belongs to the chord that's sounding. A <b>non-chord tone</b> is a pitch outside the three (or four) tones of the current chord. Another name for it is a <b>dissonance</b> or <b>dissonant tone</b>; a chord tone may be called a <b>consonance</b>.</p>`
-        + U.fig(sp, "Melody on top, chords below (right hand: three chord tones; left hand: the root). Circled notes don't belong to the chord.")
-        + `<p>Non-chord tones can be in the accompaniment too (usually when it has melodic activity of its own), but mostly they're a matter of melody.</p>`;
-    } },
-    { title: "How to find them", kick: "Spell each chord", keyed: "major", render: (H, k, U) => {
-      return `<ol><li><b>Find the chords.</b> In a lead sheet they're given. In fully notated music, first find the <b>harmonic rhythm</b> (the rate at which chords change), then decide which chord best represents each span.</li>
-        <li><b>Spell each chord</b> and compare its tones with the melody notes above it.</li>
-        <li>Any melody note that isn't in the chord is a non-chord tone. <b>Label it</b> by how it is approached and left.</li></ol>
-        <div class="callout"><b>Let style guide you</b>When two chords could explain the same notes, choose the one that fits the style. In classical and folk music, a chord's 7th is usually treated as a dissonance, except on the chord built on the 5th scale degree (G7 in C major); in jazz, 7ths (and extensions such as 9ths) are usually chord tones.</div>`
-        + H.check(`In ${k.label}, the chord is ${H.diat(k, 5).sym} and the melody note is ${H.nm(dn(H, k, 0))}. Is it a chord tone?`, "No", ["Yes"], `${H.diat(k, 5).sym} is ${H.diat(k, 5).tones.map(H.nm).join("–")}, so ${H.nm(dn(H, k, 0))} is a non-chord tone.`);
-    } },
-    { title: "Step, leap or hold", kick: "Approach and resolution", render: (H) => {
-      return `<p>Non-chord tones are named by how they are <b>approached</b> (from the note before) and <b>resolved</b> or left (to the note after): by <b>step</b>, by <b>leap</b>, or by <b>hold</b> (the same note, held or repeated). Notes approached and left by step sound the most “natural.”</p>${reference(H)}`;
-    } },
-    { title: "Passing and neighbor tones", kick: "Step in, step out", keyed: "major", render: (H, k, U) => {
+    { title: "Recap", kick: "Start with the Introduction", keyed: "major", render: (H, k) => `
+      <p>This lesson picks up where <a href="introduction-to-non-chord-tones-lesson.html"><b>Introduction to Non-Chord Tones</b></a> leaves off. There you met each type in real music (“As Time Goes By,” Tchaikovsky, Bruckner, Brahms). Here every example is generated <b>in any key</b> (pick one above) and can be played, so you can compare similar types side by side and then meet the trickier cases.</p>
+      <p>The routine is the same: find the chords, spell each one, compare the melody, and name each non-chord tone by how it is <b>approached</b> and <b>left</b>.</p>${reference(H)}`
+      + H.check(`In ${k.label}, the chord is ${H.diat(k, 5).sym} and the melody note is ${H.nm(dn(H, k, 0))}. Is it a chord tone?`, "No", ["Yes"], `${H.diat(k, 5).sym} is ${H.diat(k, 5).tones.map(H.nm).join("–")}, so ${H.nm(dn(H, k, 0))} is a non-chord tone.`) },
+    { title: "Passing vs. neighbor", kick: "Both step in and step out", keyed: "major", render: (H, k, U) => {
       const pt = ex(H, k, [[1], [1]], [[0, 1], [1, 1, "PT"], [2, 2]], { sym: true }), nt = ex(H, k, [[1], [1]], [[4, 1], [5, 1, "NT"], [4, 2]]);
-      return `<p>The most common non-chord tones are stepped into and out of.</p><div class="lfigs">${U.fig(pt, "<b>Passing tone (PT)</b>: step, then step in the <i>same</i> direction, filling in the gap between two chord tones.", { small: true })}${U.fig(nt, "<b>Neighbor tone (NT)</b>: step away, then step back to the same note.", { small: true })}</div>`
-        + H.check("A melody goes E – F – G over a C chord. What is F?", "Passing tone", ["Neighbor tone", "Appoggiatura", "Escape tone"], "Step up, then step up again: a passing tone.");
+      return `<p>Both are stepped into and out of. The difference is <b>direction</b>: a passing tone keeps going; a neighbor tone turns back.</p><div class="lfigs">${U.fig(pt, "<b>Passing tone (PT)</b>: step, then step in the <i>same</i> direction, filling the gap between two chord tones.", { small: true })}${U.fig(nt, "<b>Neighbor tone (NT)</b>: step away, then step <i>back</i> to the same note (upper or lower neighbor).", { small: true })}</div>`
+        + H.check(`A melody goes ${[0, 1, 2].map(i => H.nm(dn(H, k, i))).join(" – ")} over ${H.diat(k, 1).sym}. What is ${H.nm(dn(H, k, 1))}?`, "Passing tone", ["Neighbor tone", "Appoggiatura", "Escape tone"], "Step up, then step up again: a passing tone.")
+        + H.check(`A melody goes ${[4, 5, 4].map(i => H.nm(dn(H, k, i))).join(" – ")} over ${H.diat(k, 1).sym}. What is ${H.nm(dn(H, k, 5))}?`, "Neighbor tone", ["Passing tone", "Suspension", "Escape tone"], "Step up, then step back down: a neighbor tone.");
     } },
-    { title: "Appoggiaturas and escape tones", kick: "One leap, one step", keyed: "major", render: (H, k, U) => {
+    { title: "Appoggiatura vs. escape tone", kick: "One leap, one step", keyed: "major", render: (H, k, U) => {
       const app = ex(H, k, [[1], [4]], [[2, 1], [4, 1], [6, 1, "APP"], [5, 1]]), et = ex(H, k, [[5], [1]], [[6, 1], [5, 1, "ET"], [7, 2]]);
-      return `<div class="lfigs">${U.fig(app, "<b>Appoggiatura (APP)</b>: <i>leap</i> to the dissonance, then <i>step</i> to a chord tone, usually in the opposite direction. Often on a strong beat.", { small: true })}${U.fig(et, "<b>Escape tone (ET)</b>: <i>step</i> to the dissonance, then <i>leap</i> away to a chord tone, usually in the opposite direction.", { small: true })}</div>`
-        + H.check("Approached by leap, left by step:", "Appoggiatura", ["Escape tone", "Passing tone", "Anticipation"], "Leap in, step out.");
+      return `<p>Each has one leap and one step; they are mirror images. Ask <b>which side the leap is on</b>.</p><div class="lfigs">${U.fig(app, "<b>Appoggiatura (APP)</b>: <i>leap</i> in, <i>step</i> out (usually in the opposite direction). Often on a strong beat.", { small: true })}${U.fig(et, "<b>Escape tone (ET)</b>: <i>step</i> in, <i>leap</i> out (usually in the opposite direction). Usually on a weak beat.", { small: true })}</div>`
+        + H.check("Approached by leap, left by step:", "Appoggiatura", ["Escape tone", "Passing tone", "Anticipation"], "Leap in, step out.")
+        + H.check("Approached by step, left by leap:", "Escape tone", ["Appoggiatura", "Neighbor tone", "Retardation"], "Step in, leap out.");
     } },
-    { title: "Suspensions and retardations", kick: "Held over", keyed: "major", render: (H, k, U) => {
-      const sus = ex(H, k, [[4], [1]], [[7, 1], [5, 1, null, true], [5, 1, "SUS"], [4, 1]]), ret = ex(H, k, [[5], [1]], [[8, 1], [6, 1, null, true], [6, 1, "RET"], [7, 1]]);
-      return `<p>A <b>suspension (SUS)</b> is a note held over (or repeated) from the previous chord into a new one, where it is dissonant, then resolved <b>down by step</b>. It has three phases:</p>
-        <ol><li><b>Preparation</b>: the note is a consonant member of the previous chord.</li><li><b>Suspension</b>: the chord changes while the note holds, making a dissonance.</li><li><b>Resolution</b>: the suspended note steps down to a consonance.</li></ol>
-        <div class="lfigs">${U.fig(sus, "<b>Suspension</b>: tied into the new chord, then down a step.", { small: true })}${U.fig(ret, "<b>Retardation (RET)</b>: the same, but it resolves <i>up</i> by step.", { small: true })}</div>`;
+    { title: "Accented and unaccented", kick: "Where the dissonance falls", keyed: "major", render: (H, k, U) => {
+      const upt = ex(H, k, [[1], [5]], [[2, 1], [3, 1, "PT"], [4, 1], [6, 1]], { sym: true }), apt = ex(H, k, [[1], [2]], [[4, 1], [7, 1], [6, 1, "PT"], [5, 1]], { sym: true });
+      const ant = ex(H, k, [[1], [4]], [[4, 1], [7, 1], [8, 1, "NT"], [7, 1]], { sym: true });
+      return `<p>Most passing and neighbor tones are <b>unaccented</b>: they fall between the beats or on a weak beat, after the chord has already sounded. An <b>accented</b> non-chord tone lands on a strong beat, often right as the chord changes, so the dissonance is heard first and the chord tone arrives a moment later. Accented non-chord tones sound more expressive.</p>
+        <div class="lfigs">${U.fig(upt, "<b>Unaccented passing tone</b>: on a weak beat, inside one chord.", { small: true })}${U.fig(apt, `<b>Accented passing tone</b>: on the downbeat of ${H.diat(k, 2).sym}, where the chord changes.`, { small: true })}${U.fig(ant, `<b>Accented neighbor tone</b>: the upper neighbor sounds as ${H.diat(k, 4).sym} arrives.`, { small: true })}</div>
+        <p class="note">An appoggiatura is usually accented too, which is why some books describe it as an accented incomplete neighbor.</p>`
+        + H.check("An accented non-chord tone falls…", "on a strong beat, often as the chord changes", ["between beats, after the chord has sounded", "only in the bass", "only at cadences"], "Accented: the dissonance arrives with the beat.");
+    } },
+    { title: "Suspension, retardation, anticipation", kick: "Held over or early", keyed: "major", render: (H, k, U) => {
+      const sus = ex(H, k, [[4], [1]], [[7, 1], [5, 1, null, true], [5, 1, "SUS"], [4, 1]]), ret = ex(H, k, [[5], [1]], [[8, 1], [6, 1, null, true], [6, 1, "RET"], [7, 1]]), ant = ex(H, k, [[5], [1]], [[6, 1], [7, 1, "ANT"], [7, 2]]);
+      return `<p>All three involve the <b>same note</b> on one side. A suspension and a retardation are <b>late</b>: the note is held from the previous chord (preparation), clashes with the new chord, then resolves by step. An anticipation is <b>early</b>: the note belongs to the next chord and arrives before it.</p>
+        <div class="lfigs">${U.fig(sus, "<b>Suspension (SUS)</b>: held over, then <i>down</i> by step.", { small: true })}${U.fig(ret, "<b>Retardation (RET)</b>: held over, then <i>up</i> by step.", { small: true })}${U.fig(ant, "<b>Anticipation (ANT)</b>: the next chord's note, early, then repeated.", { small: true })}</div>`
+        + H.check("Held over and resolved UP by step:", "Retardation", ["Suspension", "Anticipation", "Neighbor tone"], "A suspension resolves down; a retardation resolves up.");
+    } },
+    { title: "Anticipation vs. harmonic anticipation", kick: "Arriving early", keyed: "major", render: (H, k, U) => {
+      const ant = ex(H, k, [[5], [1]], [[6, 1], [7, 1, "ANT"], [7, 2]]), ha = ex(H, k, [[2], [5], [1, 4]], [[3, 1], [5, 1], [6, 1], [9, 1, "HA"], [7, 4]]);
+      return `<div class="lfigs">${U.fig(ant, "<b>Anticipation (ANT)</b>: a note of the next chord arrives early, then repeats (or holds) when the chord changes. Often a side effect of syncopation.", { small: true })}${U.fig(ha, "<b>Harmonic anticipation (HA)</b>: it anticipates a note of the next chord, but the melody then leaps to a <i>different</i> note of that chord.", { small: true })}</div>`
+        + H.check("An anticipation that leaps to a different tone of the chord it anticipated is…", "a harmonic anticipation", ["an escape tone", "a suspension", "a pedal tone"], "It still belongs to the next chord, but the melody doesn't stay on it.");
     } },
     { title: "Suspension figures", kick: "4-3, 9-8, 7-6, 2-3", keyed: "major", render: (H, k, U) => {
-      const two = (top, bot) => ({ type: "score", vf: k.vf, sig: k.sig, time: "4/4", bpm: 132, bars: H.toBars({ t: [top.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))], b: [bot.map(([i, q, tie, tag]) => ({ k: [H.nmO(dn(H, k, i))], q, tie, tag, hl: !!tag }))] }) });
-      const f43 = two([[7, 4, true], [7, 2, false, "4"], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]);
-      const f98 = two([[8, 4, true], [8, 2, false, "9"], [7, 2, false, "8"]], [[-10, 4], [-7, 4]]);
-      const f76 = two([[8, 4, true], [8, 2, false, "7"], [7, 2, false, "6"]], [[-10, 4], [-5, 4]]);
-      const f23 = two([[4, 4], [8, 4]], [[0, 4, true], [0, 2, false, "2"], [-1, 2, false, "3"]].map(([i, q, t, g]) => [i - 7, q, t, g]));
-      return `<p>Suspensions are often labeled with two numbers: the interval from the <b>bass</b> to the suspended note, then to its resolution (compound intervals are usually reduced, except the 9-8).</p>
-        <div class="lfigs">${U.fig(f43, "<b>4-3</b>", { small: true })}${U.fig(f98, "<b>9-8</b>", { small: true })}${U.fig(f76, "<b>7-6</b>", { small: true })}${U.fig(f23, "<b>2-3</b>: the <i>bass</i> is suspended (the inversion of a 7-6)", { small: true })}</div>
-        <p class="note">Real music complicates things: the bass may move at the moment of resolution, or the resolution may be ornamented. A lead sheet implies a bass line, so you can label suspensions there too: with no slash bass, the chord is in root position.</p>`;
+      const f43 = two(H, k, [[7, 4, true], [7, 2, false, "4"], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]);
+      const f98 = two(H, k, [[8, 4, true], [8, 2, false, "9"], [7, 2, false, "8"]], [[-10, 4], [-7, 4]]);
+      const f76 = two(H, k, [[8, 4, true], [8, 2, false, "7"], [7, 2, false, "6"]], [[-10, 4], [-5, 4]]);
+      const f23 = two(H, k, [[4, 4], [8, 4]], [[0, 4, true], [0, 2, false, "2"], [-1, 2, false, "3"]].map(([i, q, t, g]) => [i - 7, q, t, g]));
+      return `<p>Suspensions are labeled with two numbers: the interval from the <b>bass</b> to the suspended note, then to its resolution (compound intervals are reduced, except the 9-8).</p>
+        <div class="lfigs">${U.fig(f43, "<b>4-3</b>", { small: true })}${U.fig(f98, "<b>9-8</b>", { small: true })}${U.fig(f76, "<b>7-6</b>", { small: true })}${U.fig(f23, "<b>2-3</b>: the <i>bass</i> is suspended (the inversion of a 7-6)", { small: true })}</div>`;
     } },
-    { title: "Anticipations", kick: "Arriving early", keyed: "major", render: (H, k, U) => {
-      const ant = ex(H, k, [[5], [1]], [[6, 1], [7, 1, "ANT"], [7, 2]]), ha = ex(H, k, [[2], [5], [1, 4]], [[3, 1], [5, 1], [6, 1], [9, 1, "HA"], [7, 4]]);
-      return `<div class="lfigs">${U.fig(ant, "<b>Anticipation (ANT)</b>: a note of the next chord arrives early, then repeats (or holds) when the chord changes. Often a side effect of syncopation.", { small: true })}${U.fig(ha, "<b>Harmonic anticipation (HA)</b>: anticipates a note of the next chord, but not the next melody note: it leaps to a different chord tone.", { small: true })}</div>`;
+    { title: "When suspensions get complicated", kick: "Moving bass, ornaments, chains", keyed: "major", render: (H, k, U) => {
+      const orn = two(H, k, [[7, 4, true], [7, 1, false, "4"], [5, 1], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]);
+      const mov = two(H, k, [[7, 4, true], [7, 2, false, "4"], [6, 2, false, "6"]], [[-7, 4], [-10, 2], [-6, 2]]);
+      const b = -2, chain = two(H, k, [[b + 5, 2], [b + 5, 2, true], [b + 5, 2, false, "7"], [b + 4, 2, true, "6"], [b + 4, 2, false, "7"], [b + 3, 2, true, "6"], [b + 3, 2, false, "7"], [b + 2, 2, false, "6"]], [[b - 7, 4], [b - 8, 4], [b - 9, 4], [b - 10, 4]], 80);
+      return `<p>Real suspensions are rarely as tidy as the textbook figures.</p>
+        <div class="lfigs">${U.fig(orn, "<b>Ornamented resolution</b>: the 4 dips to a lower note before it resolves to 3. Label the suspension by where it finally lands.", { small: true })}${U.fig(mov, "<b>The bass moves at the resolution</b>: the 4 resolves as the bass moves up a 5th, so the resolution is a 6th above the new bass: a 4-6.", { small: true })}</div>
+        ${U.fig(chain, "<b>A chain of suspensions</b>: each resolution is held over into the next bar and becomes the next preparation, over a bass that steps down: 7-6, 7-6, 7-6.")}`
+        + H.check("In a chain of 7-6 suspensions, each resolution…", "becomes the preparation of the next suspension", ["leaps to the bass", "is a pedal tone", "resolves up by step"], "Resolve, hold over, clash, resolve again.");
+    } },
+    { title: "Several at once", kick: "Thirds, inner voices and inverted pedals", keyed: "major", render: (H, k, U) => {
+      const thirds = ex(H, k, [[1], [1]], [[[2, 7], 1], [[3, 8], 1, "PT"], [[4, 9], 2]]);
+      const inv = ex(H, k, [[1], [2], [4], [1]], [[4, 2, null, true], [4, 2, "PED", true], [4, 2, "PED", true], [4, 2]]);
+      return `<p>Non-chord tones often travel in pairs. Two voices moving in parallel 3rds or 6ths produce two passing tones at once; each one is labeled separately. They can also appear in inner voices, not just the melody.</p>
+        <div class="lfigs">${U.fig(thirds, "<b>Double passing tones in 6ths</b>: both notes on beat 2 are passing tones.", { small: true })}${U.fig(inv, `<b>Inverted pedal</b>: a held note in an upper voice (here the 5th scale degree) while the chords change below; it clashes with ${H.diat(k, 2).sym} and ${H.diat(k, 4).sym}.`, { small: true })}</div>`
+        + H.check("A pedal tone held in the melody rather than the bass is called…", "an inverted pedal", ["a retardation", "a double neighbor", "an anticipation"], "Inverted (or upper) pedal: same note, same note, in an upper voice.");
     } },
     { title: "Double neighbors and pedal tones", kick: "Around and under", keyed: "major", render: (H, k, U) => {
       const dnx = ex(H, k, [[1, 4], [5, 2], [1, 2]], [[4, 1], [5, 1, "DN"], [3, 1, "DN"], [4, 1], [6, 1], [4, 1], [2, 2]]);
       const t0 = dn(H, k, -14), ped = ex(H, k, [[1], [4], [5], [1]], [[7, 2], [5, 2], [6, 2], [7, 2]], { ped: H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2)) });
-      return `${U.fig(dnx, "<b>Double neighbor (DN)</b>, or <b>changing tones</b>: two non-chord tones surround the note they resolve to, one on each side.")}${U.fig(ped, "<b>Pedal tone (PED)</b>: a held or repeated note (usually in the bass) that persists while the chords change; it's dissonant whenever it isn't in the chord above.")}
-        <p>Imagine a phrase in E minor whose lowest voice holds E throughout. It works as a chord tone under every chord except the B7, where it becomes a pedal-tone dissonance.</p>`;
+      return `${U.fig(dnx, "<b>Double neighbor (DN)</b>, or <b>changing tones</b>: two non-chord tones surround the note they resolve to, one on each side (often an ET followed by an APP).")}${U.fig(ped, "<b>Pedal tone (PED)</b>: a held or repeated bass note that persists while the chords change; it's dissonant whenever it isn't in the chord above.")}`;
     } },
-    { title: "Locate and label", kick: "Put it together", keyed: "major", render: (H, k, U) => {
-      const sp = ex(H, k, [[1], [6], [4], [5], [1, 4]], [[7, 1], [6, 1, "PT"], [5, 1], [6, 1, "NT"], [5, 1], [5, 1, null, true], [5, 1, "SUS"], [4, 1], [7, 4]]);
-      return `<p>A full example: chord by chord, compare the melody with each chord's tones. Then name each non-chord tone by its approach and resolution.</p>`
-        + U.fig(sp, `A passing tone, a neighbor tone and a 9-8 suspension: the note tied into the ${H.diat(k, 5).sym} chord is a 9th above its bass and resolves down by step.`)
-        + H.check(`The note tied into the ${H.diat(k, 5).sym} chord resolves down by step. What is it?`, "Suspension", ["Retardation", "Anticipation", "Pedal tone"], "Prepared, held into the new chord, resolved down by step.")
-        + H.check("Approached by step, left by leap:", "Escape tone", ["Appoggiatura", "Passing tone", "Double neighbor"], "Step in, leap out.")
-        + H.check("Held over and resolved UP by step:", "Retardation", ["Suspension", "Anticipation", "Neighbor tone"], "A suspension resolves down; a retardation resolves up.");
-    } },
+    { title: "Locate and label", kick: "A new example every time", render: () => `
+      <p>Find the chords, compare the melody, and name the non-chord tone (or tones). Then show the labels to check. Each press of <b>New example</b> makes a new phrase in a new key.</p>
+      <div class="lfig nct-gen"><div class="lbtns"><button class="lk" data-ngen>New example</button><button class="play" data-nplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>Play</button><button class="lk" data-nshow aria-pressed="false">Show the labels</button></div>
+        <div class="staff wide" role="img" aria-label="A melody over chords"></div><p class="nct-gen-ans" aria-live="polite"></p></div>
+      <p>For unlimited practice by type, use the <a href="non-chord-tones.html">Non-Chord Tones drills</a>.</p>`,
+      after: (root, H, k, tools) => {
+        const box = root.querySelector(".nct-gen"); if (!box) return; let x = null, shown = false;
+        const draw = () => { const st = box.querySelector(".staff"); tools.drawStaff(st, spec(H, x, shown ? { tags: true, hl: true } : { hl: false }));
+          st.setAttribute("aria-label", `A two-bar melody in ${x.k.label} over ${x.prog.map(d => H.diat(x.k, d).sym).join(", ")}.`);
+          box.querySelector("[data-nshow]").setAttribute("aria-pressed", shown);
+          box.querySelector(".nct-gen-ans").innerHTML = shown ? `${x.ncts.map(a => `${H.nm(dn(H, x.k, x.notes[a].i))}: <b>${NAME[x.lab[a]]}</b> (${x.lab[a]})`).join("; ")}.` : ""; };
+        const fresh = () => { for (let t = 0; t < 20 && !x; t++) x = gen(H, H.rnd(NEWEX)); };
+        box.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+          if (b.hasAttribute("data-ngen")) { x = null; fresh(); shown = false; draw(); }
+          else if (b.hasAttribute("data-nshow")) { shown = !shown; draw(); }
+          else if (b.hasAttribute("data-nplay") && x) H.play(H.scorePlay(spec(H, x))); });
+        fresh(); draw();
+      } },
   ] };
 
   return {

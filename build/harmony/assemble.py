@@ -267,7 +267,7 @@ APPS = [
             "<b>Plagal (PC):</b> IV–I. <b>Deceptive (DC):</b> V–vi (a tonic substitute).",
             "<b>Closure:</b> open = half cadences; weak = DC, IAC; closed = PAC, PC.",
             "<b>Only at phrase endings:</b> a V–I inside a phrase isn't a cadence. Besides V, an open cadence can end on IV, ♭VII, ♭VI, II, iv or Vsus4."]),
-  dict(src="Non-Chord Tones.html", drills="non-chord-tones.html", lesson="non-chord-tones-lesson.html", lesson_title="Understanding Non-Chord Tones", lesson_desc="A step-by-step lesson: find the chords, compare the melody, and name each non-chord tone by how it is approached and left: passing and neighbor tones, appoggiaturas, escape tones, suspensions (4-3, 9-8, 7-6, 2-3), retardations, anticipations, double neighbors and pedal tones.", data="nct.js", title="Non-Chord Tones",
+  dict(src="Non-Chord Tones.html", drills="non-chord-tones.html", lesson="non-chord-tones-lesson.html", lesson_title="Understanding Non-Chord Tones", lesson_desc="The follow-up to Introduction to Non-Chord Tones, with every example generated in any key and playable: passing vs. neighbor, appoggiatura vs. escape tone, accented and unaccented non-chord tones, suspension, retardation and anticipation, suspension figures and complications (moving bass, ornamented resolutions, chains), several at once and inverted pedals, and a new labeling example every time.", data="nct.js", title="Non-Chord Tones",
        desc="Name the circled non-chord tone, find the dissonance in a melody, label suspension figures, and review how each type is approached and left.",
        modes=[("name", "Name it", "PT · NT · APP · SUS…", "name the circled non-chord tone"),
               ("find", "Find it", "which note?", "find the non-chord tone in a melody"),
