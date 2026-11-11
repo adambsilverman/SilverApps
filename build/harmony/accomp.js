@@ -58,6 +58,11 @@ window.FAM = (() => {
     { title: "Alberti bass and broken chords", kick: "Low, high, middle, high", render: () => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
       ${DIME.fig("alberti", "Alberti bass in eighth notes, with the melody alone in the right hand.", { g7d: true })}${SHOW}
       <p>Other <b>broken-chord</b> patterns spread the chord wider (bass, 5th, octave, then the 3rd above) for ballads; with the pedal they fill out the sound without getting thick.</p>` },
+    { title: "Rhythmicized chords", kick: "A steady pattern for a singer", render: () => `<p>Another way to accompany a singer is to keep the chords moving in a <b>steady rhythm</b>. Here the right hand plays each chord as a repeating eighth-note figure (two chord tones on each beat, answered by a single lower note in between), while the left hand holds the bass in <b>half notes</b>, changing only with the chords. The pedal changes with each chord, so the sound stays connected but never blurs two harmonies together.</p>
+      ${DIME.fig("rhythm", "Voice (in the bass clef) and piano: right-hand chords in a steady eighth-note pattern, left-hand bass in half notes, pedal changing with each chord.")}${SHOW}
+      <ul><li>The pattern gives the song a pulse without the singer having to supply it.</li>
+      <li>The right-hand chords stay in one register (nearest inversions), so the figure barely moves as the harmony changes.</li>
+      <li>In bar 8 the pattern climbs to lead back to the top of the song: an accompaniment can fill the gaps the melody leaves.</li></ul>` },
     { title: "An active bass line", kick: "Connect the chords", render: () => `<p>Instead of repeating roots, the left hand can play a <b>bass line</b>: the chord's bass note on each change, connected by chord tones and steps. A note a step away from the next chord's bass leads into it smoothly. Above it, the right hand keeps the melody on top with chord tones under it.</p>
       ${DIME.fig("bassline", "An active bass line in the left hand; melody and chord tones in the right.", { g7d: true })}${SHOW}
       <p>Slash chords already sketch a line: ${C("Cm")}–${C("G7/D")}–${C("C7/E")}–${C("F")} gives a rising bass C–D–E–F before any extra notes are added.</p>` },
@@ -68,6 +73,7 @@ window.FAM = (() => {
         ["Stride", "left hand leaps: bass on 1 and 3, chords on 2 and 4", "ragtime, early jazz, solo piano"],
         ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
         ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
+        ["Rhythmicized chords", "chord tones in a steady repeating rhythm over a held bass", "ballads and accompanying a singer"],
         ["Active bass line", "bass moves between chord tones and steps", "jazz, pop, gospel; adding motion"]])}
       <ul><li><b>Start simple</b>: block chords first, then add rhythm.</li>
       <li><b>Pick one pattern for a section</b> and keep it; change pattern at a new section to mark the form.</li>

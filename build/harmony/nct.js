@@ -273,7 +273,6 @@ window.FAM = (() => {
     box.querySelector(".aw-hints").innerHTML = h;
     return false;
   }
-  const SFX = ["mozart", "haydn", "tchaik", "sunshine"];
   const sfState = () => ({ f: {}, ok: {}, ct: {}, chk: 0 });
   // drill mode "real": one question = one piece; buttons switch pieces (each keeps its own progress); finishing the shown piece answers the question
   const SFR = ["song", "mozart", "haydn", "tchaik", "sunshine"];
@@ -544,7 +543,7 @@ window.FAM = (() => {
   }
 
   // fetch every score image in the background once the lesson page has loaded, so later steps open instantly
-  const PRE = ["atgb-lead.png", "atgb-circled-fm.png", "atgb-circled-all.png", "atgb-keyboard.png", "atgb-pt.png", "atgb-nt.png", "atgb-et-app.png", "atgb-accent.png", "tchaikovsky-pc1.png", "bruckner-kyrie.png", "bruckner-sus-phases.png", "sus-types.png", "bruckner-sus-figures.png", "beatles-money.png", "mozart-domine.png", "brahms-op29.png", "ex-mozart.png", "ex-haydn.png", "ex-tchaik-nocturne.png", "ex-sunshine.png"];
+  const PRE = ["atgb-lead.png", "atgb-circled-fm.png", "atgb-circled-all.png", "atgb-keyboard.png", "atgb-pt.png", "atgb-nt.png", "atgb-et-app.png", "atgb-accent.png", "tchaikovsky-pc1.png", "bruckner-kyrie.png", "bruckner-sus-phases.png", "sus-types.png", "bruckner-sus-figures.png", "beatles-money.png", "mozart-domine.png", "brahms-op29.png"];
   if (typeof window !== "undefined" && !window.__nciPre && /-lesson\.html$/.test(location.pathname)) { window.__nciPre = 1; const go = () => PRE.forEach((f, i) => setTimeout(() => { const im = new Image(); im.decoding = "async"; im.src = "assets/img/nct-intro/" + f; }, i * 60));
     if (document.readyState === "complete") setTimeout(go, 800); else window.addEventListener("load", () => setTimeout(go, 800)); }
 
@@ -678,19 +677,8 @@ window.FAM = (() => {
       ["Neighbor tone (NT)", "step", "step in the opposite direction"], ["Passing tone (PT)", "step", "step in the same direction"],
       ["Double neighbor (DN) or changing tone (CT)", "step", "non-chord tones on either side of the resolution pitch"], ["Appoggiatura (APP)", "leap", "step"], ["Escape tone (ET)", "step", "leap"],
       ["Suspension (SUS)", "same note", "step down"], ["Retardation (RET)", "same note", "step up"], ["Anticipation (ANT)", "step or leap", "same note"],
-      ["Harmonic anticipation (HA)", "step or leap", "a different note of the next harmony than the one actually used"], ["Pedal tone (PED)", "same note", "same note"]]) },
+      ["Harmonic anticipation (HA)", "step or leap", "a different note of the next harmony than the one actually used"], ["Pedal tone (PED)", "same note", "same note"]]) + `<p>To practice finding and naming non-chord tones in real music (Mozart, Haydn, Tchaikovsky, “You Are My Sunshine” and “A Whole New World”), open the <a href="non-chord-tones.html"><b>Non-Chord Tones drills</b></a> and choose <b>Real music</b>.</p>` },
 
-    { title: "Examples for labeling", kick: "Find them, then name them", render: (H) => `
-      <p>Work these like the drills: click each note that doesn't belong to the chord sounding with it, then choose its type. <b>Check</b> tells you what's left (ask again for more help); <b>Show answers</b> fills in the key. Each example is also a mode in the Non-Chord Tones drills.</p>
-      ${SFX.map(id => { const D = SFS[id]; return `<section class="sfx" data-sf="${id}"><h3>${D.kicker}</h3><p>${D.text}</p>${D.fig || ""}${sfHTML(D, sfState(), H, false)}
-        <div class="lbtns"><button type="button" class="btn primary" data-sfc>Check</button><button type="button" class="btn" data-sfs>Show answers</button></div></section>`; }).join("")}`,
-      after: (root, H) => root.querySelectorAll("[data-sf]").forEach(sec => {
-        const D = SFS[sec.dataset.sf], st = sfState(); sfWire(sec.querySelector(".aw"), D, st, H);
-        sec.addEventListener("click", e => {
-          if (e.target.closest("[data-sfc]") && sfCheck(sec.querySelector(".aw"), D, st)) sec.querySelector(".aw-hints").innerHTML = `<p><b>All ${D.req.length} found and named.</b> ${H.esc(D.explain)}</p>`;
-          if (e.target.closest("[data-sfs]")) { sec.querySelector(".aw").outerHTML = sfHTML(D, st, H, true); sec.querySelectorAll("[data-sfc],[data-sfs]").forEach(b => b.disabled = true); }
-        });
-      }) },
   ] };
 
   return {
