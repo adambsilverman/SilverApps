@@ -531,3 +531,14 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pcbox { contain: inline-size; }
 .pcrow .pcf { max-width: 100%; flex-wrap: wrap; }
 .pcrow select { max-width: min(100%, 260px); }
+/* "Brother, Can You Spare a Dime?" settings: chord symbols hidden until revealed with their regions */
+.dm-wrap { overflow-x: auto; contain: inline-size; width: 100%; align-self: stretch; }
+.dm-score { position: relative; min-width: 560px; background: #fff; }
+.dm-score img { position: relative; display: block; width: 100%; height: auto; }
+.dm-cov { position: absolute; z-index: 2; background: #fff; }
+.dm-reg { position: absolute; z-index: 0; display: none; background: rgba(47,111,209,.13); border-left: 2px solid rgba(47,111,209,.7); }
+.dm-reg.alt { background: rgba(212,140,30,.14); border-left-color: rgba(190,110,10,.75); }
+.dm-fig.on .dm-cov { display: none; }
+.dm-fig.on .dm-reg { display: block; }
+.dm-score img { mix-blend-mode: multiply; z-index: 1; }
+.dm-fig figcaption .dm-show { margin-top: 6px; }
