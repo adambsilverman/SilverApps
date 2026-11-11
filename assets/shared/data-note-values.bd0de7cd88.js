@@ -317,6 +317,75 @@ window.FAM = (() => {
     setInterval(() => { if (MB.on && !document.getElementById("mbToy")) mbStop(); if (TP.on && !document.getElementById("tpToy")) tpStop(); }, 300);
   }
 
+  // ===== Rhythm grid (lesson step after "Counting"): a drum-machine row of boxes, one per subdivision. Boxes that are on are spoken
+  // with Adam's counting syllables (engine "say" events) over an optional beat click, and the bar is notated above, one beat at a time.
+  const RG = { meter: "4/4", on: {}, bpm: 76, click: true, playing: false, timer: 0, hl: [] };
+  const RG_M = ["2/4", "3/4", "4/4", "5/4", "6/8", "9/8", "12/8"];
+  const rgInfo = m => { const [n, d] = m.split("/").map(Number), comp = d === 8 && n % 3 === 0; return { comp, beats: comp ? n / 3 : n, per: comp ? 3 : 4, unit: comp ? .5 : .25 }; };
+  const rgSyl = (b, j, comp) => j === 0 ? String(b + 1) : comp ? ["and", "a"][j - 1] : ["e", "and", "a"][j - 1];
+  const rgShow = s => s === "and" ? "&" : s;
+  const rgKey = (b, j) => b + "." + j;
+  // one beat as note values: rests before the first attack, then each attack lasts until the next one (or the end of the beat)
+  function rgBeat(b, I) {
+    const on = []; for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) on.push(j);
+    const len = I.per * I.unit, D = { .25: "16", .5: "8", .75: "8d", 1: "q", 1.5: "qd" };
+    if (!on.length) return [I.comp ? "qdr" : "qr"];
+    const out = [], lead = on[0] * I.unit;
+    if (lead) out.push(...(I.comp ? (lead === 1 ? ["qr"] : ["8r"]) : ({ .25: ["16r"], .5: ["8r"], .75: ["8r", "16r"] })[lead]));
+    on.forEach((j, i) => { const end = i + 1 < on.length ? on[i + 1] * I.unit : len; out.push(D[end - j * I.unit]); });
+    return out;
+  }
+  const rgSpec = () => { const I = rgInfo(RG.meter), toks = []; for (let b = 0; b < I.beats; b++) toks.push(...rgBeat(b, I));
+    return { type: "score", clefs: ["percussion"], time: RG.meter, vf: "C", sig: {}, bpm: RG.bpm, final: true, minBar: 300, bars: [{ t: [toks.map(x => ({ k: /r/.test(x) ? [] : [P], d: x.replace("r", "") }))] }] }; };
+  function rgHTML() {
+    const I = rgInfo(RG.meter);
+    return `<div class="toy rg" id="rgToy">
+      <div class="toy-row"><label>Meter <select id="rgM">${RG_M.map(m => `<option ${m === RG.meter ? "selected" : ""}>${m}</option>`).join("")}</select></label>
+        <div class="toy-row" role="group" aria-label="Patterns"><button class="play" data-rgp="beats">Beats only</button><button class="play" data-rgp="all">Every box</button><button class="play" data-rgp="rand">Surprise me</button><button class="play" data-rgp="clear">Clear</button></div></div>
+      <div class="staff rg-staff" id="rgStaff" aria-hidden="true"></div>
+      <p class="sr" id="rgSay" aria-live="polite"></p>
+      <div class="rg-grid" role="group" aria-label="Rhythm grid: one box per ${I.comp ? "eighth note" : "sixteenth note"}; turn boxes on to make the rhythm">${Array.from({ length: I.beats }, (_, b) => `<div class="rg-beat">${Array.from({ length: I.per }, (_, j) => { const s = rgSyl(b, j, I.comp);
+        return `<button type="button" class="rg-b${j === 0 ? " big" : ""}" data-rg="${rgKey(b, j)}" aria-pressed="${!!RG.on[rgKey(b, j)]}" aria-label="Beat ${b + 1}, ${s === "and" ? "and" : s}">${rgShow(s)}</button>`; }).join("")}</div>`).join("")}</div>
+      <div class="toy-row"><button class="play" id="rgGo" aria-pressed="${RG.playing}">${RG.playing ? "■ Stop" : "▶ Play (loops)"}</button>
+        <label><input type="checkbox" id="rgClick" ${RG.click ? "checked" : ""}> Click on the beat</label>
+        <label>Tempo <input type="range" id="rgBpm" min="40" max="120" step="1" value="${RG.bpm}"><output id="rgBpmO">${RG.bpm}</output></label></div>
+      <p class="small" style="margin:0">Each box is one ${I.comp ? "eighth note (beats divide in three: 1 &amp; a)" : "sixteenth note (beats divide in four: 1 e &amp; a)"}. A note lasts until the next box that's on, or the end of its beat; empty boxes at the start of a beat are rests.</p></div>`;
+  }
+  function rgEvents() { const I = rgInfo(RG.meter), spb = 60 / RG.bpm, step = spb / I.per, ev = [];
+    for (let b = 0; b < I.beats; b++) { if (RG.click) ev.push([b ? 89 : 96, b * spb, .05, b ? .5 : .75, b ? "click" : "clickHi"]);
+      for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) ev.push([0, b * spb + j * step, 0, j ? .85 : 1, "say", rgSyl(b, j, I.comp)]); }
+    return { ev, len: I.beats * spb, step }; }
+  function rgStop() { RG.playing = false; clearTimeout(RG.timer); RG.hl.forEach(clearTimeout); RG.hl = []; document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now"));
+    const g = document.getElementById("rgGo"); if (g) { g.setAttribute("aria-pressed", "false"); g.textContent = "▶ Play (loops)"; } }
+  function rgCycle(tools) {
+    if (!RG.playing) return; if (!document.getElementById("rgToy")) { rgStop(); return; }
+    const I = rgInfo(RG.meter), E = rgEvents(); tools.play({ ev: E.ev });
+    RG.hl.forEach(clearTimeout); RG.hl = [];
+    for (let b = 0; b < I.beats; b++) for (let j = 0; j < I.per; j++) RG.hl.push(setTimeout(() => { document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now")); const x = document.querySelector(`[data-rg="${rgKey(b, j)}"]`); if (x) x.classList.add("now"); }, 60 + (b * I.per + j) * E.step * 1000));
+    RG.timer = setTimeout(() => rgCycle(tools), E.len * 1000);
+  }
+  function rgWire(root, H, k, tools) {
+    const toy = root.querySelector("#rgToy"); if (!toy) return;
+    const draw = () => { const st = toy.querySelector("#rgStaff"); tools.drawStaff(st, rgSpec());
+      const I = rgInfo(RG.meter), words = []; for (let b = 0; b < I.beats; b++) for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) words.push(rgShow(rgSyl(b, j, I.comp)));
+      toy.querySelector("#rgSay").textContent = words.length ? "Counted: " + words.join(" ") : "No boxes on: a bar of rests."; };
+    const rebuild = () => { const was = RG.playing; toy.outerHTML = rgHTML(); rgWire(root, H, k, tools); if (was) { RG.playing = true; } };
+    toy.addEventListener("click", e => {
+      const b = e.target.closest("[data-rg]");
+      if (b) { RG.on[b.dataset.rg] = !RG.on[b.dataset.rg]; b.setAttribute("aria-pressed", String(!!RG.on[b.dataset.rg])); draw(); return; }
+      const p = e.target.closest("[data-rgp]");
+      if (p) { const I = rgInfo(RG.meter), v = p.dataset.rgp; RG.on = {};
+        for (let bb = 0; bb < I.beats; bb++) for (let j = 0; j < I.per; j++) { const on = v === "all" || (v === "beats" && j === 0) || (v === "rand" && (j === 0 ? Math.random() < .75 : Math.random() < .4)); if (on) RG.on[rgKey(bb, j)] = true; }
+        toy.querySelectorAll("[data-rg]").forEach(x => x.setAttribute("aria-pressed", String(!!RG.on[x.dataset.rg]))); draw(); return; }
+      if (e.target.closest("#rgGo")) { if (RG.playing) rgStop(); else { RG.playing = true; const g = toy.querySelector("#rgGo"); g.setAttribute("aria-pressed", "true"); g.textContent = "■ Stop"; rgCycle(tools); } }
+    });
+    toy.querySelector("#rgM").onchange = e => { RG.meter = e.target.value; const I = rgInfo(RG.meter); RG.on = {}; for (let b = 0; b < I.beats; b++) RG.on[rgKey(b, 0)] = true; rebuild(); };
+    toy.querySelector("#rgClick").onchange = e => { RG.click = e.target.checked; };
+    toy.querySelector("#rgBpm").oninput = e => { RG.bpm = +e.target.value; toy.querySelector("#rgBpmO").textContent = RG.bpm; };
+    draw();
+  }
+  if (!Object.keys(RG.on).length) { RG.on = { "0.0": true, "1.0": true, "1.2": true, "2.0": true, "2.1": true, "2.2": true, "2.3": true, "3.0": true }; }
+
   const lesson = { steps: [
     { title: "Note values", kick: "Halving and halving again", render: (H, k, U) => `<p>Each note value is half the one before it: one <b>whole note</b> = two <b>halves</b> = four <b>quarters</b> = eight <b>eighths</b> = sixteen <b>sixteenths</b>.</p>`
       + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
@@ -373,6 +442,7 @@ window.FAM = (() => {
     } },
     { title: "Counting", kick: "Saying the rhythm", render: (H, k, U) => `<ul><li><b>Simple meter:</b> beats “1 2 3 4”; eighths “1 &amp; 2 &amp;”; sixteenths “1 e &amp; a”.</li><li><b>Compound meter:</b> beats “1 2” in 6/8, each dividing “1 &amp; a”.</li><li><b>Triplets:</b> “1 &amp; a 2 &amp; a”, like a beat of compound meter.</li></ul><p>Press <b>Play with counting</b> to hear each rhythm counted aloud over the click.</p>`
       + `<div class="lfigs">${fig(U, rh("4/4", ["16 16 16 16 8 8 q q"], { bpm: 72 }), "1 e &amp; a, 2 &amp;, 3, 4", { count: true })}${fig(U, rh("6/8", ["8 8 8 qd"]), "1 &amp; a, 2", { count: true })}${fig(U, rh("4/4", ["8t1 8t1 8t1 8t2 8t2 8t2 q q"], { bpm: 72 }), "1 &amp; a, 2 &amp; a, 3, 4", { count: true })}</div>` },
+    { title: "Rhythm grid", kick: "Build a rhythm, hear it counted", render: () => `<p>Turn boxes on to build a rhythm, like a drum machine. Press <b>Play</b> to hear it counted aloud, one syllable for each box that's on, and watch the notation above the grid change as you go: every beat is written as a quarter note, a rest, or the subdivision that matches its boxes.</p>${rgHTML()}`, after: (root, H, k, tools) => rgWire(root, H, k, tools) },
     { title: "Lining up rhythm", kick: "Vertical alignment", render: (H, k, U) => {
       const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 84, minBar: 320, bars: [{ t: [[{ k: ["E5"], d: "q" }, { k: ["D5"], d: "8" }, { k: ["C5"], d: "8" }, { k: ["B4"], d: "h" }]], b: [[{ k: ["C3"], d: "h" }, { k: ["G2"], d: "8" }, { k: ["A2"], d: "8" }, { k: ["B2"], d: "8" }, { k: ["G2"], d: "8" }]] }] };
       return `<ul><li>Notes and rests that happen at the same moment line up <b>vertically</b>, across every staff of a system.</li><li>Horizontal space follows time: longer values get more room (though not strictly in proportion), so the beat is easy to see.</li><li>Beam by beat, and don't hide the middle of a 4/4 bar (see the Rhythm Notation lesson for more).</li></ul>`

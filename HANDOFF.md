@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-11 (z124)** — *Understanding Units of Rhythm* (notevalues.js): new step "Rhythm grid" after "Counting": a drum-machine row of boxes (sixteenths in simple meters, eighths in compound; 2/4–5/4, 6/8, 9/8, 12/8), looped playback that speaks each "on" box with Adam's counting syllables (engine `say` events via `tools.play`) over an optional beat click, a moving playhead, presets, tempo, and live notation above (`tools.drawStaff`), each beat notated separately (rests before the first attack; each attack lasts to the next or to the end of the beat).
 - **2026-11-11 (z123)** — NCT lesson: removed the "Examples for labeling" step (those pieces live in the drills' Real music mode); "The chart" now ends with a pointer there. `ex-*.png` no longer prefetched by the lesson (still used by the drills).
 - **2026-11-11 (z122)** — Piano Accompaniment: new step "Rhythmicized chords" (before "An active bass line") with Adam's voice + piano setting (`assets/img/dime/rhythm.png`, `assets/audio/dime/rhythm.mp3`, trimmed from a 284 s export to 22 s); added to `DIME.IMG` and the summary table.
 - **2026-11-11 (z121)** — Piano Accompaniment opens with a new first step, "From lead sheet to piano part": intro text, the Dime lead sheet with its recording, and the framing that every later example is an expansion of it.

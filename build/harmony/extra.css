@@ -544,3 +544,11 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .dm-fig figcaption .dm-show { margin-top: 6px; }
 .dm-aud, .ls-auds audio { display: block; width: 100%; max-width: 520px; margin: 6px auto; }
 .ls-auds p { margin: 8px 0 0; }
+/* note values lesson: rhythm grid (drum-machine boxes spoken with counting syllables) */
+.rg-staff { min-height: 110px; }
+.rg-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.rg-beat { display: flex; gap: 4px; padding: 4px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
+.rg-b { --fi-pill: 8px; min-width: 42px; min-height: 44px; padding: 0 6px !important; font: 600 16px/1 system-ui, sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; border-radius: 8px !important; cursor: pointer; }
+.rg-b.big { font-weight: 800 !important; font-size: 18px !important; }
+.rg-b.now { outline: 3px solid #e0a020; outline-offset: 1px; }
+@media (max-width: 480px) { .rg-b { min-width: 32px; } }
