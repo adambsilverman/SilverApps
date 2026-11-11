@@ -316,74 +316,131 @@ window.FAM = (() => {
     setInterval(() => { if (MB.on && !document.getElementById("mbToy")) mbStop(); if (TP.on && !document.getElementById("tpToy")) tpStop(); }, 300);
   }
 
-  // ===== Rhythm grid (lesson step after "Counting"): a drum-machine row of boxes, one per subdivision. Boxes that are on are spoken
-  // with Adam's counting syllables (engine "say" events) over an optional beat click, and the bar is notated above, one beat at a time.
-  const RG = { meter: "4/4", on: {}, bpm: 76, click: true, playing: false, timer: 0, hl: [] };
+  // ===== Rhythm grid (lesson step after "Counting"): a drum machine. Mode "count": one row of boxes, spoken with Adam's counting syllables
+  // (assets/count-voice-Adam/). Mode "beat": eight rows of Adam's beatbox one-shots (assets/audio/beatbox/, round-robin through each sound's
+  // takes), one sound per box, notated on a percussion staff (hi-hat F5, snare C5, ooh B4, sweep A4, shaker G4, kick F4, KKhh 2 E4, KKhh 1 D4).
+  // Each beat is notated on its own: rests before the first attack, then each attack lasts until the next one or the end of the beat.
+  // Audio: its own lookahead scheduler on this file's AudioContext; samples → (beatbox: distortion) → dry + convolution reverb → out.
+  const RG = { mode: "count", meter: "4/4", on: {}, bb: {}, bpm: 76, click: true, rev: 15, dist: 0, playing: false, timer: 0, next: 0, step: 0, rr: {}, hl: [] };
   const RG_M = ["2/4", "3/4", "4/4", "5/4", "6/8", "9/8", "12/8"];
+  const BB = [["hh", "Hi-hat", "F5", 5], ["sn", "Snare", "C5", 4], ["oo", "Ooh", "B4", 3], ["sw", "Sweep", "A4", 0], ["sh", "Shaker", "G4", 0], ["kk", "Kick", "F4", 4], ["k2", "KKhh 2", "E4", 0], ["k1", "KKhh 1", "D4", 0]];
+  const BBF = { hh: "hihat", sn: "snare", oo: "ooh", sw: "sweep", sh: "shaker", kk: "kick", k2: "kkhh-2", k1: "kkhh-1" };
+  const bbFiles = r => { const n = BB.find(x => x[0] === r)[3]; return n ? Array.from({ length: n }, (_, i) => `assets/audio/beatbox/${BBF[r]}-${i + 1}.wav`) : [`assets/audio/beatbox/${BBF[r]}.wav`]; };
   const rgInfo = m => { const [n, d] = m.split("/").map(Number), comp = d === 8 && n % 3 === 0; return { comp, beats: comp ? n / 3 : n, per: comp ? 3 : 4, unit: comp ? .5 : .25 }; };
   const rgSyl = (b, j, comp) => j === 0 ? String(b + 1) : comp ? ["and", "a"][j - 1] : ["e", "and", "a"][j - 1];
   const rgShow = s => s === "and" ? "&" : s;
   const rgKey = (b, j) => b + "." + j;
-  // one beat as note values: rests before the first attack, then each attack lasts until the next one (or the end of the beat)
+  const rgRows = () => RG.mode === "beat" ? BB.map(x => x[0]) : ["c"];
+  const rgIsOn = (r, key) => r === "c" ? !!RG.on[key] : !!(RG.bb[r] && RG.bb[r][key]);
+  const rgSet = (r, key, v) => { if (r === "c") RG.on[key] = v; else (RG.bb[r] = RG.bb[r] || {})[key] = v; };
+  const rgKeysAt = key => RG.mode === "beat" ? BB.filter(x => rgIsOn(x[0], key)).map(x => x[2]) : (RG.on[key] ? [P] : []);
   function rgBeat(b, I) {
-    const on = []; for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) on.push(j);
+    const on = []; for (let j = 0; j < I.per; j++) if (rgKeysAt(rgKey(b, j)).length) on.push(j);
     const len = I.per * I.unit, D = { .25: "16", .5: "8", .75: "8d", 1: "q", 1.5: "qd" };
-    if (!on.length) return [I.comp ? "qdr" : "qr"];
-    const out = [], lead = on[0] * I.unit;
-    if (lead) out.push(...(I.comp ? (lead === 1 ? ["qr"] : ["8r"]) : ({ .25: ["16r"], .5: ["8r"], .75: ["8r", "16r"] })[lead]));
-    on.forEach((j, i) => { const end = i + 1 < on.length ? on[i + 1] * I.unit : len; out.push(D[end - j * I.unit]); });
+    if (!on.length) return [{ k: [], d: I.comp ? "qd" : "q" }];
+    const out = [], lead = on[0] * I.unit, R = d => ({ k: [], d });
+    if (lead) out.push(...(I.comp ? [R(lead === 1 ? "q" : "8")] : { .25: [R("16")], .5: [R("8")], .75: [R("8"), R("16")] }[lead]));
+    on.forEach((j, i) => { const end = i + 1 < on.length ? on[i + 1] * I.unit : len; out.push({ k: rgKeysAt(rgKey(b, j)), d: D[end - j * I.unit] }); });
     return out;
   }
-  const rgSpec = () => { const I = rgInfo(RG.meter), toks = []; for (let b = 0; b < I.beats; b++) toks.push(...rgBeat(b, I));
-    return { type: "score", clefs: ["percussion"], time: RG.meter, vf: "C", sig: {}, bpm: RG.bpm, final: true, minBar: 300, bars: [{ t: [toks.map(x => ({ k: /r/.test(x) ? [] : [P], d: x.replace("r", "") }))] }] }; };
+  const rgSpec = () => { const I = rgInfo(RG.meter), notes = []; for (let b = 0; b < I.beats; b++) notes.push(...rgBeat(b, I));
+    return { type: "score", clefs: ["percussion"], time: RG.meter, vf: "C", sig: {}, bpm: RG.bpm, final: true, minBar: 300, bars: [{ t: [notes] }] }; };
+  const rgRowHTML = (r, lab, I) => `<div class="rg-row">${lab ? `<span class="rg-lab">${lab}</span>` : ""}${Array.from({ length: I.beats }, (_, b) => `<div class="rg-beat">${Array.from({ length: I.per }, (_, j) => { const s = rgSyl(b, j, I.comp), key = rgKey(b, j);
+      return `<button type="button" class="rg-b${j === 0 ? " big" : ""}" data-rg="${r}|${key}" aria-pressed="${rgIsOn(r, key)}" aria-label="${lab ? lab + ", " : ""}beat ${b + 1}${j ? ", " + (s === "and" ? "and" : s) : ""}">${rgShow(s)}</button>`; }).join("")}</div>`).join("")}</div>`;
   function rgHTML() {
-    const I = rgInfo(RG.meter);
+    const I = rgInfo(RG.meter), beat = RG.mode === "beat";
     return `<div class="toy rg" id="rgToy">
-      <div class="toy-row"><label>Meter <select id="rgM">${RG_M.map(m => `<option ${m === RG.meter ? "selected" : ""}>${m}</option>`).join("")}</select></label>
-        <div class="toy-row" role="group" aria-label="Patterns"><button class="play" data-rgp="beats">Beats only</button><button class="play" data-rgp="all">Every box</button><button class="play" data-rgp="rand">Surprise me</button><button class="play" data-rgp="clear">Clear</button></div></div>
+      <div class="toy-row"><div class="toy-row" role="group" aria-label="Sound"><button class="play" data-rgmode="count" aria-pressed="${!beat}">Counting</button><button class="play" data-rgmode="beat" aria-pressed="${beat}">Beatbox</button></div>
+        <label>Meter <select id="rgM">${RG_M.map(m => `<option ${m === RG.meter ? "selected" : ""}>${m}</option>`).join("")}</select></label></div>
+      <div class="toy-row" role="group" aria-label="Patterns">${beat ? `<button class="play" data-rgp="groove">Basic groove</button>` : `<button class="play" data-rgp="beats">Beats only</button><button class="play" data-rgp="all">Every box</button>`}<button class="play" data-rgp="rand">Surprise me</button><button class="play" data-rgp="clear">Clear</button></div>
       <div class="staff rg-staff" id="rgStaff" aria-hidden="true"></div>
       <p class="sr" id="rgSay" aria-live="polite"></p>
-      <div class="rg-grid" role="group" aria-label="Rhythm grid: one box per ${I.comp ? "eighth note" : "sixteenth note"}; turn boxes on to make the rhythm">${Array.from({ length: I.beats }, (_, b) => `<div class="rg-beat">${Array.from({ length: I.per }, (_, j) => { const s = rgSyl(b, j, I.comp);
-        return `<button type="button" class="rg-b${j === 0 ? " big" : ""}" data-rg="${rgKey(b, j)}" aria-pressed="${!!RG.on[rgKey(b, j)]}" aria-label="Beat ${b + 1}, ${s === "and" ? "and" : s}">${rgShow(s)}</button>`; }).join("")}</div>`).join("")}</div>
+      <div class="rg-wrap" tabindex="0" role="region" aria-label="Rhythm grid"><div class="rg-grid${beat ? " bb" : ""}" role="group" aria-label="One box per ${I.comp ? "eighth note" : "sixteenth note"}; turn boxes on to make the rhythm">${beat ? BB.map(x => rgRowHTML(x[0], x[1], I)).join("") : rgRowHTML("c", "", I)}</div></div>
       <div class="toy-row"><button class="play" id="rgGo" aria-pressed="${RG.playing}">${RG.playing ? "■ Stop" : "▶ Play (loops)"}</button>
         <label><input type="checkbox" id="rgClick" ${RG.click ? "checked" : ""}> Click on the beat</label>
-        <label>Tempo <input type="range" id="rgBpm" min="40" max="120" step="1" value="${RG.bpm}"><output id="rgBpmO">${RG.bpm}</output></label></div>
-      <p class="small" style="margin:0">Each box is one ${I.comp ? "eighth note (beats divide in three: 1 &amp; a)" : "sixteenth note (beats divide in four: 1 e &amp; a)"}. A note lasts until the next box that's on, or the end of its beat; empty boxes at the start of a beat are rests.</p></div>`;
+        <label>Tempo <input type="range" id="rgBpm" min="40" max="140" step="1" value="${RG.bpm}"><output id="rgBpmO">${RG.bpm}</output></label></div>
+      <div class="toy-row"><label>Reverb <input type="range" id="rgRev" min="0" max="100" step="1" value="${RG.rev}"><output id="rgRevO">${RG.rev}</output></label>
+        ${beat ? `<label>Distortion <input type="range" id="rgDist" min="0" max="100" step="1" value="${RG.dist}"><output id="rgDistO">${RG.dist}</output></label>` : ""}</div>
+      <p class="small" style="margin:0">Each box is one ${I.comp ? "eighth note (beats divide in three: 1 &amp; a)" : "sixteenth note (beats divide in four: 1 e &amp; a)"}. A note lasts until the next box that's on, or the end of its beat; empty boxes at the start of a beat are rests.${beat ? " Each sound sits on its own line or space of the staff, and each box holds one sound: turning on a new sound in a box replaces the old one." : ""}</p></div>`;
   }
-  function rgEvents() { const I = rgInfo(RG.meter), spb = 60 / RG.bpm, step = spb / I.per, ev = [];
-    for (let b = 0; b < I.beats; b++) { if (RG.click) ev.push([b ? 89 : 96, b * spb, .05, b ? .5 : .75, b ? "click" : "clickHi"]);
-      for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) ev.push([0, b * spb + j * step, 0, j ? .85 : 1, "say", rgSyl(b, j, I.comp)]); }
-    return { ev, len: I.beats * spb, step }; }
-  function rgStop() { RG.playing = false; clearTimeout(RG.timer); RG.hl.forEach(clearTimeout); RG.hl = []; document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now"));
+  // ---------- audio ----------
+  const RGB = {};   // url → AudioBuffer (with ._lv), null if it failed
+  const rgLevel = buf => { const d = buf.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } }
+    const rms = n ? Math.sqrt(ss / n) : .1; return Math.min(.12 / Math.max(rms, 1e-4), .95 / Math.max(pk, 1e-4)); };
+  const rgLoad = urls => Promise.all(urls.filter(u => !(u in RGB)).map(u => fetch(u).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { buf._lv = rgLevel(buf); RGB[u] = buf; }).catch(() => { RGB[u] = null; })));
+  let FX = null;
+  function rgFX() {
+    if (FX) return FX;
+    const out = AC.createGain(), dry = AC.createGain(), wet = AC.createGain(), cv = AC.createConvolver(), bb = AC.createGain(), ws = AC.createWaveShaper(), post = AC.createGain(), voice = AC.createGain();
+    const L = AC.sampleRate * 2.2, ir = AC.createBuffer(2, L, AC.sampleRate); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3); }
+    cv.buffer = ir; bb.connect(ws); ws.connect(post); post.connect(out); voice.connect(out); out.connect(dry); out.connect(cv); cv.connect(wet); dry.connect(AC.destination); wet.connect(AC.destination);
+    FX = { out, dry, wet, ws, post, bb, voice }; rgMix(); return FX;
+  }
+  function rgMix() {
+    if (!FX) return; const t = AC.currentTime, r = RG.rev / 100, k = RG.dist / 100 * 60;
+    FX.wet.gain.setTargetAtTime(r * .7, t, .03); FX.dry.gain.setTargetAtTime(1 - r * .35, t, .03);
+    const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; c[i] = k ? (1 + k) * x / (1 + k * Math.abs(x)) : x; }
+    FX.ws.curve = c; FX.post.gain.setTargetAtTime(k ? 1 / (1 + k * .06) : 1, t, .03);
+  }
+  function rgSample(url, t, vol, dest, stopAt) { const buf = RGB[url]; if (!buf) return;
+    const s = AC.createBufferSource(), g = AC.createGain(), lv = (buf._lv || 1) * vol; s.buffer = buf; g.gain.setValueAtTime(lv, t);
+    if (stopAt) { g.gain.setValueAtTime(lv, Math.max(t, stopAt - .02)); g.gain.linearRampToValueAtTime(0, stopAt); }
+    s.connect(g); g.connect(dest); s.start(t); if (stopAt) s.stop(stopAt + .01); }
+  function rgSchedule() {
+    const I = rgInfo(RG.meter), n = I.beats * I.per, dt = 60 / RG.bpm / I.per, look = AC.currentTime + .12;
+    while (RG.next < look) {
+      const i = RG.step % n, b = Math.floor(i / I.per), j = i % I.per, key = rgKey(b, j), t = RG.next;
+      if (RG.click && j === 0) snd(t, b ? "click" : "hi", b ? .45 : .6);
+      if (RG.mode === "beat") BB.forEach(([r]) => { if (rgIsOn(r, key)) { const f = bbFiles(r), k2 = RG.rr[r] = ((RG.rr[r] || 0) + 1) % f.length; rgSample(f[k2], t, .9, FX.bb); } });
+      else if (RG.on[key]) { let m = 1; while (m < n && !RG.on[rgKey(Math.floor(((i + m) % n) / I.per), (i + m) % n % I.per)]) m++;
+        rgSample(`assets/count-voice-Adam/${rgSyl(b, j, I.comp)}.wav`, t, j ? .85 : 1, FX.voice, t + m * dt); }
+      RG.hl.push(setTimeout(() => { document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now")); document.querySelectorAll(`[data-rg$="|${key}"]`).forEach(x => x.classList.add("now")); }, Math.max(0, (t - AC.currentTime) * 1000)));
+      if (RG.hl.length > 64) RG.hl.splice(0, 32);
+      RG.next += dt; RG.step++;
+    }
+  }
+  function rgStop() { RG.playing = false; clearInterval(RG.timer); RG.timer = 0; RG.hl.forEach(clearTimeout); RG.hl = []; document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now"));
     const g = document.getElementById("rgGo"); if (g) { g.setAttribute("aria-pressed", "false"); g.textContent = "▶ Play (loops)"; } }
-  function rgCycle(tools) {
-    if (!RG.playing) return; if (!document.getElementById("rgToy")) { rgStop(); return; }
-    const I = rgInfo(RG.meter), E = rgEvents(); tools.play({ ev: E.ev });
-    RG.hl.forEach(clearTimeout); RG.hl = [];
-    for (let b = 0; b < I.beats; b++) for (let j = 0; j < I.per; j++) RG.hl.push(setTimeout(() => { document.querySelectorAll(".rg-b.now").forEach(x => x.classList.remove("now")); const x = document.querySelector(`[data-rg="${rgKey(b, j)}"]`); if (x) x.classList.add("now"); }, 60 + (b * I.per + j) * E.step * 1000));
-    RG.timer = setTimeout(() => rgCycle(tools), E.len * 1000);
+  function rgStart() {
+    if (!ac()) return; rgFX(); RG.playing = true;
+    const g = document.getElementById("rgGo"); if (g) { g.setAttribute("aria-pressed", "true"); g.textContent = "■ Stop"; }
+    const urls = RG.mode === "beat" ? BB.flatMap(x => bbFiles(x[0])) : ["1", "2", "3", "4", "5", "e", "and", "a"].map(s => `assets/count-voice-Adam/${s}.wav`);
+    rgLoad(urls).then(() => { if (!RG.playing) return; RG.next = AC.currentTime + .08; RG.step = 0; rgSchedule(); RG.timer = setInterval(() => { if (!document.getElementById("rgToy")) { rgStop(); return; } rgSchedule(); }, 25); });
   }
-  function rgWire(root, H, k, tools) {
+  function rgWire(root) {
     const toy = root.querySelector("#rgToy"); if (!toy) return;
-    const draw = () => { const st = toy.querySelector("#rgStaff"); tools.drawStaff(st, rgSpec());
-      const I = rgInfo(RG.meter), words = []; for (let b = 0; b < I.beats; b++) for (let j = 0; j < I.per; j++) if (RG.on[rgKey(b, j)]) words.push(rgShow(rgSyl(b, j, I.comp)));
-      toy.querySelector("#rgSay").textContent = words.length ? "Counted: " + words.join(" ") : "No boxes on: a bar of rests."; };
-    const rebuild = () => { const was = RG.playing; toy.outerHTML = rgHTML(); rgWire(root, H, k, tools); if (was) { RG.playing = true; } };
+    const draw = () => { const st = toy.querySelector("#rgStaff"); RGdraw(st, rgSpec());
+      const I = rgInfo(RG.meter), words = []; for (let b = 0; b < I.beats; b++) for (let j = 0; j < I.per; j++) { const ks = rgKeysAt(rgKey(b, j)); if (ks.length) words.push(RG.mode === "beat" ? BB.filter(x => ks.includes(x[2])).map(x => x[1]).join("+") : rgShow(rgSyl(b, j, I.comp))); }
+      toy.querySelector("#rgSay").textContent = words.length ? "Pattern: " + words.join(", ") : "No boxes on: a bar of rests."; };
+    const rebuild = () => { toy.outerHTML = rgHTML(); rgWire(root); };
     toy.addEventListener("click", e => {
       const b = e.target.closest("[data-rg]");
-      if (b) { RG.on[b.dataset.rg] = !RG.on[b.dataset.rg]; b.setAttribute("aria-pressed", String(!!RG.on[b.dataset.rg])); draw(); return; }
+      if (b) { const [r, key] = b.dataset.rg.split("|"), v = !rgIsOn(r, key);
+        if (v && r !== "c") BB.forEach(([o]) => { if (o !== r && rgIsOn(o, key)) { rgSet(o, key, false); const x = toy.querySelector(`[data-rg="${o}|${key}"]`); if (x) x.setAttribute("aria-pressed", "false"); } });   // one sound per box
+        rgSet(r, key, v); b.setAttribute("aria-pressed", String(v)); draw(); return; }
+      const m = e.target.closest("[data-rgmode]"); if (m) { if (RG.mode !== m.dataset.rgmode) { RG.mode = m.dataset.rgmode; const was = RG.playing; if (was) rgStop(); rebuild(); if (was) rgStart(); } return; }
       const p = e.target.closest("[data-rgp]");
-      if (p) { const I = rgInfo(RG.meter), v = p.dataset.rgp; RG.on = {};
-        for (let bb = 0; bb < I.beats; bb++) for (let j = 0; j < I.per; j++) { const on = v === "all" || (v === "beats" && j === 0) || (v === "rand" && (j === 0 ? Math.random() < .75 : Math.random() < .4)); if (on) RG.on[rgKey(bb, j)] = true; }
-        toy.querySelectorAll("[data-rg]").forEach(x => x.setAttribute("aria-pressed", String(!!RG.on[x.dataset.rg]))); draw(); return; }
-      if (e.target.closest("#rgGo")) { if (RG.playing) rgStop(); else { RG.playing = true; const g = toy.querySelector("#rgGo"); g.setAttribute("aria-pressed", "true"); g.textContent = "■ Stop"; rgCycle(tools); } }
+      if (p) { const I = rgInfo(RG.meter), v = p.dataset.rgp;
+        if (RG.mode === "beat") { RG.bb = {};
+          for (let bb = 0; bb < I.beats; bb++) for (let j = 0; j < I.per; j++) { const key = rgKey(bb, j);
+            if (v === "groove") { if (j === 0) rgSet(bb % 2 ? "sn" : "kk", key, true); else if (I.comp || j === 2) rgSet("hh", key, true); }
+            if (v === "rand") { const x = Math.random(), r = j === 0 ? (x < .45 ? "kk" : x < .75 ? "sn" : x < .9 ? "hh" : "") : (x < .35 ? "hh" : x < .45 ? "kk" : x < .52 ? "sn" : x < .6 ? "sh" : x < .66 ? "k1" : x < .72 ? "k2" : x < .76 ? "oo" : ""); if (r) rgSet(r, key, true); } } }
+        else { RG.on = {}; for (let bb = 0; bb < I.beats; bb++) for (let j = 0; j < I.per; j++) { const on = v === "all" || (v === "beats" && j === 0) || (v === "rand" && (j === 0 ? Math.random() < .75 : Math.random() < .4)); if (on) RG.on[rgKey(bb, j)] = true; } }
+        toy.querySelectorAll("[data-rg]").forEach(x => { const [r, key] = x.dataset.rg.split("|"); x.setAttribute("aria-pressed", String(rgIsOn(r, key))); }); draw(); return; }
+      if (e.target.closest("#rgGo")) RG.playing ? rgStop() : rgStart();
     });
-    toy.querySelector("#rgM").onchange = e => { RG.meter = e.target.value; const I = rgInfo(RG.meter); RG.on = {}; for (let b = 0; b < I.beats; b++) RG.on[rgKey(b, 0)] = true; rebuild(); };
+    toy.querySelector("#rgM").onchange = e => { RG.meter = e.target.value; const I = rgInfo(RG.meter); RG.on = {}; RG.bb = {}; for (let b = 0; b < I.beats; b++) RG.on[rgKey(b, 0)] = true; rebuild(); };
     toy.querySelector("#rgClick").onchange = e => { RG.click = e.target.checked; };
     toy.querySelector("#rgBpm").oninput = e => { RG.bpm = +e.target.value; toy.querySelector("#rgBpmO").textContent = RG.bpm; };
+    toy.querySelector("#rgRev").oninput = e => { RG.rev = +e.target.value; toy.querySelector("#rgRevO").textContent = RG.rev; rgMix(); };
+    const d = toy.querySelector("#rgDist"); if (d) d.oninput = e => { RG.dist = +e.target.value; toy.querySelector("#rgDistO").textContent = RG.dist; rgMix(); };
     draw();
   }
-  if (!Object.keys(RG.on).length) { RG.on = { "0.0": true, "1.0": true, "1.2": true, "2.0": true, "2.1": true, "2.2": true, "2.3": true, "3.0": true }; }
+  let RGdraw = () => {};
+  RG.on = { "0.0": true, "1.0": true, "1.2": true, "2.0": true, "2.1": true, "2.2": true, "2.3": true, "3.0": true };
+  RG.bb = { hh: { "0.2": true, "1.2": true, "2.2": true, "3.2": true }, kk: { "0.0": true, "2.0": true, "2.3": true }, sn: { "1.0": true, "3.0": true } };
+
 
   const lesson = { steps: [
     { title: "Note values", kick: "Halving and halving again", render: (H, k, U) => `<p>Each note value is half the one before it: one <b>whole note</b> = two <b>halves</b> = four <b>quarters</b> = eight <b>eighths</b> = sixteen <b>sixteenths</b>.</p>`
@@ -441,7 +498,7 @@ window.FAM = (() => {
     } },
     { title: "Counting", kick: "Saying the rhythm", render: (H, k, U) => `<ul><li><b>Simple meter:</b> beats “1 2 3 4”; eighths “1 &amp; 2 &amp;”; sixteenths “1 e &amp; a”.</li><li><b>Compound meter:</b> beats “1 2” in 6/8, each dividing “1 &amp; a”.</li><li><b>Triplets:</b> “1 &amp; a 2 &amp; a”, like a beat of compound meter.</li></ul><p>Press <b>Play with counting</b> to hear each rhythm counted aloud over the click.</p>`
       + `<div class="lfigs">${fig(U, rh("4/4", ["16 16 16 16 8 8 q q"], { bpm: 72 }), "1 e &amp; a, 2 &amp;, 3, 4", { count: true })}${fig(U, rh("6/8", ["8 8 8 qd"]), "1 &amp; a, 2", { count: true })}${fig(U, rh("4/4", ["8t1 8t1 8t1 8t2 8t2 8t2 q q"], { bpm: 72 }), "1 &amp; a, 2 &amp; a, 3, 4", { count: true })}</div>` },
-    { title: "Rhythm grid", kick: "Build a rhythm, hear it counted", render: () => `<p>Turn boxes on to build a rhythm, like a drum machine. Press <b>Play</b> to hear it counted aloud, one syllable for each box that's on, and watch the notation above the grid change as you go: every beat is written as a quarter note, a rest, or the subdivision that matches its boxes.</p>${rgHTML()}`, after: (root, H, k, tools) => rgWire(root, H, k, tools) },
+    { title: "Rhythm grid", kick: "Build a rhythm, hear it counted", render: () => `<p>Turn boxes on to build a rhythm, like a drum machine. Press <b>Play</b> to hear it counted aloud, one syllable for each box that's on (or switch to <b>Beatbox</b> and build a groove from beatbox sounds), and watch the notation above the grid change as you go: every beat is written as a quarter note, a rest, or the subdivision that matches its boxes.</p>${rgHTML()}`, after: (root, H, k, tools) => { RGdraw = tools.drawStaff; rgWire(root); } },
     { title: "Lining up rhythm", kick: "Vertical alignment", render: (H, k, U) => {
       const sp = { type: "score", clefs: ["treble", "bass"], time: "4/4", vf: "C", sig: {}, bpm: 84, minBar: 320, bars: [{ t: [[{ k: ["E5"], d: "q" }, { k: ["D5"], d: "8" }, { k: ["C5"], d: "8" }, { k: ["B4"], d: "h" }]], b: [[{ k: ["C3"], d: "h" }, { k: ["G2"], d: "8" }, { k: ["A2"], d: "8" }, { k: ["B2"], d: "8" }, { k: ["G2"], d: "8" }]] }] };
       return `<ul><li>Notes and rests that happen at the same moment line up <b>vertically</b>, across every staff of a system.</li><li>Horizontal space follows time: longer values get more room (though not strictly in proportion), so the beat is easy to see.</li><li>Beam by beat, and don't hide the middle of a 4/4 bar (see the Rhythm Notation lesson for more).</li></ul>`

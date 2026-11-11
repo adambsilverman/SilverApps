@@ -779,7 +779,14 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ls-auds p { margin: 8px 0 0; }
 /* note values lesson: rhythm grid (drum-machine boxes spoken with counting syllables) */
 .rg-staff { min-height: 110px; }
-.rg-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.rg-wrap { overflow-x: auto; contain: inline-size; margin: 6px 0 10px; }
+.rg-grid { display: flex; flex-direction: column; gap: 4px; }
+.rg-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rg-grid.bb .rg-row { flex-wrap: nowrap; gap: 6px; }
+.rg-lab { flex: 0 0 64px; font: 600 13px/1.1 system-ui, sans-serif; text-align: right; position: sticky; left: 0; z-index: 1; background: var(--fi-paper, #f3ede2); padding: 6px 4px 6px 0; align-self: stretch; display: flex; align-items: center; justify-content: flex-end; }
+.rg-grid.bb .rg-b { min-width: 30px; min-height: 30px; font-size: 12px !important; }
+.rg-grid.bb .rg-b.big { font-size: 13px !important; }
+.rg-grid.bb .rg-beat { padding: 2px; gap: 2px; }
 .rg-beat { display: flex; gap: 4px; padding: 4px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
 .rg-b { --fi-pill: 8px; min-width: 42px; min-height: 44px; padding: 0 6px !important; font: 600 16px/1 system-ui, sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; border-radius: 8px !important; cursor: pointer; }
 .rg-b.big { font-weight: 800 !important; font-size: 18px !important; }
