@@ -15,11 +15,17 @@ window.FAM = (() => {
     { t: [[R("q"), N(["G3", "C4", "E♭4"], "q", "Cm"), N(["G3", "C4", "E♭4"], "q")]], b: [[N(["C3"], "q"), R("q"), R("q")]] }] };
 
   const lesson = { steps: [
+    { title: "From lead sheet to piano part", kick: "One song, many accompaniments", render: () => `<p>Most songs reach a pianist as a <a href="lead-sheets-lesson.html">lead sheet</a>: a melody, its lyrics, and chord symbols. Nothing on the page says what the piano should actually play. That's the accompanist's job: to turn each chord symbol into notes, in a rhythm and texture that suit the song.</p>
+      <p>This lesson works from one lead sheet, the first eight bars of <i>Brother, Can You Spare a Dime?</i> (Jay Gorney and E. Y. Harburg, 1932):</p>
+      <figure class="lfig lsfig"><img src="assets/img/dime/leadsheet.png" alt="Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign." width="1600" height="553">
+      <figcaption>${DIME.aud("leadsheet")}</figcaption></figure>
+      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck, stride, Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
+      <p>In each setting the chord symbols are hidden at first. Before you show them, try to work out which chord each part of the accompaniment spells, using the lead sheet above.</p>` },
     { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: () => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
       <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
       <li><b>Harmony</b>: the other tones of each chord, tucked <b>under the melody</b> in the right hand (or in the middle of the keyboard).</li>
       <li><b>Bass</b>: the lowest note, in the left hand: the chord's root, or the note after the slash in a slash chord.</li></ul>
-      <p>Here are the first eight bars of <i>Brother, Can You Spare a Dime?</i> (from the <a href="lead-sheets-lesson.html">Lead Sheets</a> lesson) set that way: the melody on top of the right hand with chord tones under it, and a bass line in the left hand.</p>
+      <p>Here is the lead sheet set that way: the melody on top of the right hand with chord tones under it, and a bass line in the left hand.</p>
       ${DIME.fig("bassline", "Melody on top of the right hand, chord tones under it, bass in the left hand.", { g7d: true })}${SHOW}
       <p>When you accompany a <b>singer</b>, leave the melody out: the right hand plays only the chords (see “Keep the chords in one place”).</p>` },
     { title: "Fitting the notes in your hands", kick: "Span, spacing and register", render: (H, k, U) => `<p>Every note you write has to be playable. A few rules of thumb:</p>
