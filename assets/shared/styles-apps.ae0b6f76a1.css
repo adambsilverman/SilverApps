@@ -741,6 +741,7 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .sfr-menu button:hover, .sfr-menu button:focus-visible { background: #222; color: #fff; outline: none; }
 .staff g.npick:hover path, .staff g.npick:focus-visible path { fill: var(--fi-red-dk, #b33) !important; stroke: var(--fi-red-dk, #b33) !important; }
 .pick-hint { color: var(--fi-muted, #555); margin: 6px 0; text-align: center; }
+.aw-join { position: absolute; height: 0; border-top: 2px solid #a32020; transform: translateY(-12px); pointer-events: none; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

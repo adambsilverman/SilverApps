@@ -195,15 +195,24 @@ window.FAM = (() => {
       text: "Compare each melody note with the chord symbol above it. Click the ones that don't belong, and name their types.",
       explain: "Six passing tones and a neighbor tone, then two notes at the end that are escape tones or harmonic anticipations. Oliver Hood, “You Are My Sunshine” (1939)." },
   };
+  // double neighbors come in pairs: D.pair[i] = the other note of i's pair (naming one names both)
+  Object.values(SFS).forEach(D => { D.pair = {}; const dn = D.notes.map((e, i) => i).filter(i => D.notes[i].t === "DN" && D.notes[i].g == null); for (let k = 0; k + 1 < dn.length; k += 2) { D.pair[dn[k]] = dn[k + 1]; D.pair[dn[k + 1]] = dn[k]; } });
   Object.values(SFS).forEach(D => { D.req = D.notes.map((e, i) => i).filter(i => { const e = D.notes[i]; return e.t && !e.o && e.g == null && !(e.alt && e.alt.some(j => j < i)); }); });
   // e.alt: an either/or pair (two analyses); finding and naming either note satisfies the one required answer
   const sfF = (D, st, i) => !!(st.f[i] || (D.notes[i].alt || []).some(j => st.f[j])), sfOK = (D, st, i) => !!(st.ok[i] || (D.notes[i].alt || []).some(j => st.ok[j]));
   const sfWhere = (D, i) => { const e = D.notes[i]; return `${e.l === "pickup" ? "the pickup" : e.l}, ${e.lh ? "left hand, " : ""}note ${e.k}${e.w ? ` (“${e.w}”)` : ""}`; };
   const sfLab = (D, st, i, done) => { const e = D.notes[i], named = (done || st.ok[i]) && e.t && e.g == null;
     return `${sfWhere(D, i).replace(/ \(“.*”\)$/, "").replace(/^./, s => s.toUpperCase())}: ${e.n}${named ? `, ${NAME[e.t]}` : st.f[i] ? ", non-chord tone, type not yet named" : st.ct[i] ? ", chord tone" : ""}`; };
+  function sfTag(D, st, i, done) {
+    const e = D.notes[i], p = D.pair[i];
+    if (!((st.ok[i] || (done && !(e.alt && e.alt.some(j => j < i)))) && e.t && e.g == null)) return "";
+    if (p != null) { if (p < i) return ""; const f = D.notes[p], top = Math.min(e.y, f.y);
+      return `<span class="aw-join" style="left:${e.x}%;width:${f.x - e.x}%;top:${top}%" aria-hidden="true"></span><span class="aw-tag" style="left:${(e.x + f.x) / 2}%;top:${top}%" aria-hidden="true">DN</span>`; }
+    return `<span class="aw-tag" style="left:${e.x}%;top:${e.y}%" aria-hidden="true">${e.t}${e.o ? "?" : ""}</span>`;
+  }
   function sfHTML(D, st, H, done) {
     const cls = i => { const e = D.notes[i]; if (done) return e.t && e.g == null ? (e.o || e.alt ? " ok op" : " ok") : ""; if (st.ok[i]) return e.o ? " ok op" : " ok"; if (st.f[i]) return " nf"; if (st.ct[i]) return " ct"; return ""; };
-    const tag = i => { const e = D.notes[i]; return (st.ok[i] || (done && !(e.alt && e.alt.some(j => j < i)))) && e.t && e.g == null ? `<span class="aw-tag" style="left:${e.x}%;top:${e.y}%" aria-hidden="true">${e.t}${e.o ? "?" : ""}</span>` : ""; };
+    const tag = i => sfTag(D, st, i, done);
     const key = done ? `<details class="aw-key" open><summary>Answer key</summary><ul>${D.notes.map((e, i) => e.t && e.g == null ? (e.alt && e.alt.some(j => j < i)) ? "" : `<li>${e.o ? "(optional) " : ""}<b>${e.t}</b>: ${sfWhere(D, i)}${e.alttxt ? " " + e.alttxt : ""}. ${H.esc(e.ex)}</li>` : "").join("")}</ul></details>` : "";
     return `<div class="aw">
       <div class="aw-wrap"${done ? ' tabindex="0" role="region" aria-label="Score with the answers marked"' : ""}><div class="aw-score" style="min-width:${D.min || 620}px">${D.img}
@@ -221,8 +230,8 @@ window.FAM = (() => {
     const paint = i => { const b = box.querySelector(`[data-aw="${i}"]`), e = N[i];
       b.className = "aw-n" + (st.ok[i] ? (e.o ? " ok op" : " ok") : st.f[i] ? " nf" : st.ct[i] ? " ct" : "");
       b.setAttribute("aria-label", sfLab(D, st, i, false));
-      const old = b.nextElementSibling; if (old && old.classList.contains("aw-tag")) old.remove();
-      if (st.ok[i]) b.insertAdjacentHTML("afterend", `<span class="aw-tag" style="left:${e.x}%;top:${e.y}%" aria-hidden="true">${e.t}${e.o ? "?" : ""}</span>`); };
+      while (b.nextElementSibling && /aw-(tag|join)/.test(b.nextElementSibling.className)) b.nextElementSibling.remove();
+      b.insertAdjacentHTML("afterend", sfTag(D, st, i, false)); };
     const tones = c => TONES[c] ? ` (${TONES[c]})` : "";
     box.addEventListener("click", ev => {
       const n = ev.target.closest("[data-aw]"), t = ev.target.closest("[data-awt]");
@@ -238,8 +247,10 @@ window.FAM = (() => {
       }
       if (t && cur != null) {
         const e = N[cur], v = t.dataset.awt, good = v === e.t || (e.acc || []).includes(v);
-        if (good || e.o) { st.ok[cur] = 1; paint(cur); tally(); pick.hidden = true;
-          say(`${good ? "<b>Right.</b> " : `<b>Most would call it ${NAME[e.t].toLowerCase()}.</b> `}${H.esc(e.ex)}`);
+        if (good || e.o) { st.ok[cur] = 1; const p = v === "DN" ? D.pair[cur] : null;
+          if (p != null) { st.f[p] = st.ok[p] = 1; paint(p); }   // naming one double neighbor names its partner too
+          paint(cur); tally(); pick.hidden = true;
+          say(`${good ? "<b>Right.</b> " : `<b>Most would call it ${NAME[e.t].toLowerCase()}.</b> `}${H.esc(e.ex)}${p != null ? ` The ${N[p].n}${N[p].w ? ` on “${N[p].w}”` : ""} is the other half of the pair, so it’s marked too.` : ""}`);
           const b = box.querySelector(`[data-aw="${cur}"]`); cur = null; b.focus(); return; }
         say(`Not ${/^[AEIOU]/.test(NAME[v]) ? "an" : "a"} ${NAME[v].toLowerCase()}. Clue: ${H.esc(e.cl)} Compare with the chart: ${NAME[v].toLowerCase()} is approached by ${HOW[v][0]} and left by ${HOW[v][1]}.`);
       }

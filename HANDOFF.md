@@ -184,6 +184,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## Change log
 
+- **2026-11-10 (z116)** — Click-the-score: double neighbors are paired (`D.pair`, consecutive DN notes two by two); naming one as DN also marks and names its partner, and the pair gets one DN tag over a bracket (`.aw-join`, `sfTag()`).
 - **2026-11-10 (z115)** — *Understanding Texture*, Polyphony step (`build/harmony/texture.js`): "Imitative polyphony in real music" is now "Polyphony in Musical Theater" (Fugue for Tinhorns, no longer called a canon); the Bach C-minor fugue moved under a new "Imitative polyphony: a fugue" heading.
 - **2026-11-10 (z114)** — NCT drills, **Find it**: students click the non-chord tone on the staff instead of choosing "Note n" buttons. Engine (`build/harmony/engine.js`): a score spec with `pick: true` makes notes with `n.pv` focusable buttons (role=button, Enter/Space, a transparent hit rect) that fire a bubbling `sa-pick` event; `c.pick` (hint text) replaces the choice buttons and the prompt listens for `sa-pick` → `choose()`. `c.choices` are kept (class games). Values read "note 3 (B♭)".
 - **2026-11-10 (z113)** — Long question prompts (over 85 characters: instructions rather than questions) get smaller, regular-weight text site-wide: `assets/site.js` adds `.q-long` to `.q-text` (MutationObserver), styled in `assets/trainer-skin.css`. `build/cachebust.py` now also versions local stylesheets (`assets/*.css?v=`).
