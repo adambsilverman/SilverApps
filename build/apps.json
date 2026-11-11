@@ -95,6 +95,12 @@
           "lesson": "chord-figures-and-symbols-lesson.html"
         },
         {
+          "name": "Lead Sheets",
+          "topic": "Reading songs",
+          "blurb": "How a lead sheet works: melody, lyrics and chord symbols, what's left to the players, and chords as regions of harmony, with Hard Times.",
+          "lesson": "lead-sheets-lesson.html"
+        },
+        {
           "name": "Triads and Seventh Chords: First Steps",
           "topic": "Chord spelling",
           "blurb": "A step-by-step walkthrough: read each note, measure the intervals, find the root, check the 3rd, 5th and 7th, and name the inversion.",
@@ -399,6 +405,12 @@
           "blurb": "Write a fragment and run canons, phasing, additive and subtractive processes, chord loops, drones and drum beats on it; export audio.",
           "open": "process-lab.html",
           "note": "Creative tool"
+        },
+        {
+          "name": "Piano Accompaniment",
+          "topic": "From chords to a piano part",
+          "blurb": "Block chords, boom-chuck, waltz, stride, Alberti bass, broken chords and active bass lines, built from a lead sheet.",
+          "lesson": "piano-accompaniment-lesson.html"
         },
         {
           "name": "Groove Player",

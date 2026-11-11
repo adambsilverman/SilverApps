@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Understanding Lead Sheets · SilverApps Interactive Music Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="stylesheet" href="assets/shared/styles-apps.58736dbb97.css">
+<link rel="stylesheet" href="assets/indie.css?v=e3c3c9b0">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+<link rel="stylesheet" href="assets/trainer-skin.css?v=7c24d96e">
+</head>
+<body>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button><button class="site-btn" data-fs aria-pressed="false" type="button" aria-label="Full screen"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Full screen</span></button></header>
+
+<a class="skip" href="#lessonView">Skip to the lesson</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1><span class="h1-pre">Understanding</span> Lead Sheets</h1>
+      <p>How a lead sheet works: what it includes (melody, lyrics, chord symbols, key, form) and what it leaves to the players, and how each chord symbol marks a region of harmony. Example: Stephen Foster's Hard Times Come Again No More. Use the arrow keys or the buttons to move between steps.</p>
+    </div>
+    <div class="score" style="display:none">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <p class="other-page" id="views"><a href="chord-figures-and-symbols.html">Practice: Chord Figures and Symbols drills →</a></p>
+  <section class="lesson-view" id="lessonView" aria-label="Lesson"></section>
+  <div id="drillView" hidden>
+  <nav class="modes m0" aria-label="Practice mode">
+
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+      <div class="set-row" role="group" aria-labelledby="grp1"><span id="grp1">Include</span>
+        <div class="toggles" id="topicToggles"></div>
+      </div>
+      <div class="set-row" role="group" aria-labelledby="grp3"><span id="grp3">Sound</span>
+        <div class="toggles" id="autoToggles">
+          <button class="tog" data-auto="1">Play the music after each answer</button>
+          <button class="tog" data-auto="0">Only when I tap Play</button>
+        </div>
+      </div>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"></ol></div>
+  </details>
+  </aside>
+  </div>
+  
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script src="assets/shared/vexflow.b24b3b9880.js"></script>
+<script>window.SA_PAGE = { view: "lesson", other: "chord-figures-and-symbols.html", otherName: "Chord Figures and Symbols drills", cls: true };</script>
+<script>
+// ===== Stephen Foster, "Hard Times Come Again No More" (1854; public domain): melody, lyrics and chords of bars 1–8 as data,
+// plus generators that turn the chords into piano accompaniments (notated score specs for the engine's drawScore / scorePlay).
+// Shared by the Lead Sheets lesson (leadsheets.js) and the Piano Accompaniment lesson (accomp.js). Time in quarter-note beats; bar 1 starts at 0.
+window.HT = (() => {
+  const NM = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+  const name = m => NM[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  const E4 = 63, F4 = 65, G4 = 67, Ab4 = 68, Bb4 = 70, C5 = 72;
+  // melody: [start, length, midi, lyric]
+  const MEL = [[-1, .5, E4, "Let"], [-.5, .5, F4, "us"],
+    [0, 1, G4, "pause"], [1, .5, G4, "in"], [1.5, .5, F4, "life's"], [2, .5, G4, "plea-"], [2.5, 1, Bb4, "-sures"], [3.5, .5, G4, "and"],
+    [4, .5, F4, "count"], [4.5, .5, E4, "its"], [5, .5, E4, "ma-"], [5.5, .5, F4, "-ny"], [6, 1, E4, "tears"], [7, .75, C5, "While"], [7.75, .25, Bb4, "we"],
+    [8, 1, Bb4, "all"], [9, .75, G4, "sup"], [9.75, .25, G4, ""], [10, .75, G4, "sor-"], [10.75, .25, E4, "-row"], [11, .75, F4, "with"], [11.75, .25, F4, "the"],
+    [12, 2, E4, "poor."], [15, .5, E4, "There's"], [15.5, .5, F4, "a"],
+    [16, 1, G4, "song"], [17, .5, G4, "that"], [17.5, .5, F4, "will"], [18, .5, G4, "lin-"], [18.5, 1, Bb4, "-ger"], [19.5, .5, G4, "for-"],
+    [20, .5, F4, "-e-"], [20.5, .5, E4, "-ver"], [21, .5, E4, "in"], [21.5, .5, F4, "our"], [22, 1, E4, "ears;"], [23, 1, C5, "Oh!"],
+    [24, 1, Bb4, "Hard"], [25, 1, G4, "Times,"], [26, .75, G4, "come"], [26.75, .25, E4, "a-"], [27, .75, F4, "-gain"], [27.75, .25, F4, "no"],
+    [28, 2, E4, "more."], [31, .5, G4, "'Tis"], [31.5, .5, Ab4, "the"]];
+  const CHORD = { "E♭": { pcs: [3, 7, 10], bass: 3, sp: "E♭–G–B♭" }, "E♭/G": { pcs: [3, 7, 10], bass: 7, sp: "E♭–G–B♭, G in the bass" }, "E♭/B♭": { pcs: [3, 7, 10], bass: 10, sp: "E♭–G–B♭, B♭ in the bass" },
+    "A♭": { pcs: [8, 0, 3], bass: 8, sp: "A♭–C–E♭" }, "B♭": { pcs: [10, 2, 5], bass: 10, sp: "B♭–D–F" }, "B♭7": { pcs: [10, 2, 5, 8], bass: 10, sp: "B♭–D–F–A♭" } };
+  // chord changes: [start, symbol]
+  const CH = [[0, "E♭"], [3, "E♭/G"], [4, "A♭"], [5, "B♭"], [6, "E♭"], [7, "A♭"], [8, "E♭/B♭"], [11, "B♭7"], [12, "E♭"], [14, "A♭"], [15, "E♭"],
+    [16, "E♭"], [19, "E♭/G"], [20, "A♭"], [21, "B♭"], [22, "E♭"], [23, "A♭"], [24, "E♭/B♭"], [27, "B♭7"], [28, "E♭"], [30, "B♭7"], [31, "E♭"]];
+  const END = 32;
+  const segs = (from, to, ch = CH, end = END) => ch.map(([s, sym], i) => ({ s, e: i + 1 < ch.length ? ch[i + 1][0] : end, sym, c: CHORD[sym] })).filter(g => g.s < to && g.e > from).map(g => Object.assign(g, { s: Math.max(g.s, from), e: Math.min(g.e, to) }));
+  const chordAt = (b, ch = CH) => { let r = ch[0]; ch.forEach(c => { if (c[0] <= b + 1e-9) r = c; }); return CHORD[r[1]]; };
+  const inChord = (c, m) => c.pcs.includes(((m % 12) + 12) % 12);
+  // ---------- voicings ----------
+  const inRange = (pc, lo, hi) => { const r = []; for (let m = lo; m <= hi; m++) if (((m % 12) + 12) % 12 === pc) r.push(m); return r; };
+  const bassOf = (c, lo = 38, hi = 50) => inRange(c.bass, lo, hi)[0];
+  // close-position chords (every tone once, within an octave) whose notes all lie in [lo, hi]
+  function closeVoicings(c, lo, hi) {
+    const out = [];
+    for (let b = lo; b <= hi; b++) { const pc = ((b % 12) + 12) % 12; if (!c.pcs.includes(pc)) continue;
+      const v = [b]; c.pcs.filter(p => p !== pc).forEach(p => { let m = b + 1; while (((m % 12) + 12) % 12 !== p) m++; v.push(m); });
+      v.sort((x, y) => x - y); if (v[v.length - 1] <= hi && v[v.length - 1] - v[0] < 12) out.push(v); }
+    return out;
+  }
+  // smoothest path through the chords: each voicing as close as possible to the one before (stays in one register)
+  function smooth(list, lo = 55, hi = 70, start = 62) {
+    let prev = null;
+    return list.map(c => { const cands = closeVoicings(c, lo, hi); const cost = v => prev ? v.reduce((t, m, i) => t + Math.abs(m - (prev[i] !== undefined ? prev[i] : prev[prev.length - 1])), 0) + (v.length !== prev.length ? 2 : 0) : Math.abs(v[0] + v[v.length - 1] - 2 * start);
+      const v = cands.sort((a, b) => cost(a) - cost(b))[0]; prev = v; return v; });
+  }
+  // root position, always: the "jumping" alternative
+  const rootPos = (c, lo = 48) => { const r = inRange(c.pcs[0], lo, lo + 11)[0]; return c.pcs.map(p => { let m = r; while (((m % 12) + 12) % 12 !== p) m++; return m; }).sort((a, b) => a - b); };
+  // n chord tones just below a melody note (inside the octave under it), at or above floor
+  function under(c, top, n = 2, floor = 55) {
+    const r = []; for (let m = top - 1; m > top - 12 && r.length < n; m--) if (m >= floor && inChord(c, m) && (((m - top) % 12) + 12) % 12 !== 0) r.push(m);
+    return r.sort((a, b) => a - b);
+  }
+  const melIn = (s, e, up) => MEL.filter(n => n[0] >= s - 1e-9 && n[0] < e - 1e-9).map(n => n[2] + up);
+  const melAt = (b, up) => { let r = null; MEL.forEach(n => { if (n[0] <= b + 1e-9 && n[0] + n[1] > b + 1e-9) r = n[2] + up; }); return r; };
+  // ---------- notation: events → bars of notes and rests ----------
+  const VAL = [[4, "w"], [3, "hd"], [2, "h"], [1.5, "qd"], [1, "q"], [.75, "8d"], [.5, "8"], [.25, "16"]];
+  const ok = (p, pos, rest) => { const f = x => Math.abs(pos / x - Math.round(pos / x)) < 1e-6;
+    if (p === 4) return f(4); if (p === 3) return f(1) && pos < 1.01; if (p === 2) return rest ? f(2) : f(1); if (p === 1.5) return rest ? false : f(.5); if (p === 1) return rest ? f(1) : f(.5); if (p === .75) return rest ? false : f(.25); if (p === .5) return f(.5); return f(.25); };
+  function pieces(len, pos, rest) { const out = []; let guard = 0;
+    while (len > 1e-6 && guard++ < 20) { const v = VAL.find(([p]) => p <= len + 1e-6 && ok(p, pos, rest)) || VAL[VAL.length - 1]; out.push(v); len -= v[0]; pos += v[0]; }
+    return out; }
+  // ev: { s, d, m: [midi], ly, sym }; bars: [[start, end], ...]; syms: [[time, text]] placed on the first piece starting at or after each time
+  function voice(ev, bars, syms = []) {
+    const out = bars.map(() => []), sy = syms.map(x => x.slice());
+    const put = (bi, n, t) => { const hit = sy.find(x => !x.used && x[0] <= t + 1e-6); if (hit) { n.sym = hit[1]; hit.used = true; } out[bi].push(n); };
+    bars.forEach(([b0, b1], bi) => {
+      let t = b0;
+      const inBar = ev.filter(e => e.s < b1 - 1e-6 && e.s + e.d > b0 + 1e-6).sort((a, b) => a.s - b.s);
+      inBar.forEach(e => {
+        const s = Math.max(e.s, b0), en = Math.min(e.s + e.d, b1);
+        if (s > t + 1e-6) { pieces(s - t, t - b0, true).forEach(([p, d]) => { put(bi, { k: [], d }, t); t += p; }); }
+        const ps = pieces(en - s, s - b0, false);
+        ps.forEach(([p, d], i) => { const n = { k: e.m.map(name), d }; if (i === 0 && s === e.s && e.ly) n.ly = e.ly; if (i < ps.length - 1 || e.s + e.d > b1 + 1e-6) n.tie = true; put(bi, n, t); t += p; });
+      });
+      if (b1 > t + 1e-6) pieces(b1 - t, t - b0, true).forEach(([p, d]) => { put(bi, { k: [], d }, t); t += p; });
+    });
+    return out;
+  }
+  const barsOf = (from, to) => { const r = []; if (from < 0) r.push([from, 0]); for (let b = Math.max(0, from); b < to; b += 4) r.push([b, Math.min(b + 4, to)]); return r; };
+  // ---------- accompaniment patterns: each returns { rh: [events], lh: [events] } for the chords between from and to ----------
+  const E = (s, d, m) => ({ s, d, m: [].concat(m) });
+  const P = {
+    // block chords held for each chord's whole region (lead-sheet comping): one register, smooth voice leading
+    block(from, to) { const g = segs(from, to), v = smooth(g.map(x => x.c)); return { rh: g.map((x, i) => E(x.s, x.e - x.s, v[i])), lh: g.map(x => E(x.s, x.e - x.s, bassOf(x.c))) }; },
+    // the same chords in root position, every one: the hand jumps
+    jumpy(from, to) { const g = segs(from, to); return { rh: g.map(x => E(x.s, x.e - x.s, rootPos(x.c, 60))), lh: g.map(x => E(x.s, x.e - x.s, bassOf(x.c))) }; },
+    // chords repeated on every beat, bass on every beat (heavy)
+    pound(from, to) { const rh = [], lh = [], g = segs(from, to), v = smooth(g.map(x => x.c));
+      g.forEach((x, i) => { for (let b = x.s; b < x.e - 1e-6; b++) { rh.push(E(b, 1, v[i])); lh.push(E(b, 1, bassOf(x.c))); } }); return { rh, lh }; },
+    // melody on top of the right hand, two chord tones under it held through each region; bass held in the left hand
+    melBlock(from, to) { const up = 12, rh = [], lh = [];
+      segs(from, to).forEach(x => { const lowM = Math.min(...melIn(x.s, x.e, up).concat([melAt(x.s, up) || 99])); if (lowM < 99) { const u = under(x.c, lowM, 2, 58); if (u.length) rh.push(E(x.s, x.e - x.s, u)); } lh.push(E(x.s, x.e - x.s, bassOf(x.c))); });
+      return { rh, lh }; },
+    // boom-chuck (4/4): bass on beats 1 and 3 (root, then the 5th if the chord hasn't changed), chords on 2 and 4; a change on 2 or 4 gets its bass too
+    boom(from, to, o = {}) { const rh = [], lh = [], g = segs(from, to), v = o.under ? null : smooth(g.map(x => x.c), 55, 70);
+      for (let b = Math.ceil(from); b < to - 1e-6; b++) { const i = g.findIndex(x => x.s <= b + 1e-6 && x.e > b + 1e-6); if (i < 0) continue; const x = g[i], pos = ((b % 4) + 4) % 4, change = Math.abs(x.s - b) < 1e-6;
+        const chord = o.under ? under(x.c, melAt(b, 12) || 82, 2, 58) : v[i];
+        if (pos % 2 === 0 || (change && !o.strict)) { const root = bassOf(x.c), fifth = inRange((x.c.bass + 7) % 12, 36, 50).filter(m => Math.abs(m - root) <= 7)[0];
+          lh.push(E(b, 1, pos === 2 && !change && fifth ? fifth : root)); if (change && pos % 2) rh.push(E(b, 1, chord)); }
+        else rh.push(E(b, 1, chord)); }
+      return { rh, lh }; },
+    // stride: the left hand leaps between a low bass (1 and 3) and a chord in the middle (2 and 4); the right hand plays the melody
+    stride(from, to) { const lh = [], g = segs(from, to), v = smooth(g.map(x => x.c), 52, 64, 57);
+      for (let b = Math.ceil(from); b < to - 1e-6; b++) { const i = g.findIndex(x => x.s <= b + 1e-6 && x.e > b + 1e-6); if (i < 0) continue; const x = g[i], pos = ((b % 4) + 4) % 4;
+        if (pos % 2 === 0) { const r = inRange(x.c.bass, 31, 43)[0]; lh.push(E(b, 1, [r, r + 12])); } else lh.push(E(b, 1, v[i])); }
+      return { rh: [], lh }; },
+    // Alberti bass: low–high–middle–high in eighths, close position just above the bass
+    alberti(from, to) { const lh = [];
+      for (let t = Math.ceil(from); t < to - 1e-6; t += .5) { const c = chordAt(t), b = inRange(c.bass, 48, 59)[0], up = c.pcs.filter(p => p !== c.bass).map(p => { let m = b + 1; while (((m % 12) + 12) % 12 !== p) m++; return m; }).sort((x, y) => x - y);
+        const k = Math.round(((t % 2) + 2) % 2 * 2); lh.push(E(t, .5, [b, up[up.length - 1], up[0], up[up.length - 1]][k])); }
+      return { rh: [], lh }; },
+    // broken chords (ballad): the left hand rolls up from the bass in eighths (bass, 5th, octave, 3rd above); two chord tones under the melody on beats 1 and 3
+    broken(from, to) { const rh = [], lh = [];
+      for (let t = Math.ceil(from); t < to - 1e-6; t += .5) { const c = chordAt(t), b = bassOf(c, 36, 47), k = Math.round(((t % 2) + 2) % 2 * 2);
+        const up = []; for (let m = b + 3; m <= b + 20; m++) if (inChord(c, m)) up.push(m);
+        const fifth = up.find(m => m - b >= 6 && m - b <= 8) || up[1], oct = up.find(m => m - b === 12) || up[2], tenth = up.find(m => m - b >= 15) || up[up.length - 1];
+        lh.push(E(t, .5, [b, fifth, oct, tenth][k])); }
+      segs(from, to).forEach(x => { for (let b = x.s; b < x.e - 1e-6; b++) { if (((b % 2) + 2) % 2 === 0 || Math.abs(b - x.s) < 1e-6) { const top = melAt(b, 12); if (top) { const u = under(x.c, top, 2, 60); if (u.length) rh.push(E(b, 1, u)); } } } });
+      return { rh, lh }; },
+    // an active bass line: chord tones on the changes, connected by steps and chord tones; block chords above in the right hand
+    walk(from, to, o = {}) { const lh = [], g = segs(from, to), v = smooth(g.map(x => x.c), 55, 70); const SC = [3, 5, 7, 8, 10, 0, 2];   // E♭ major
+      const near = (pc, prev) => { const c = inRange(pc, 36, 55); return prev ? c.sort((a, b) => Math.abs(a - prev) - Math.abs(b - prev))[0] : c.find(m => m >= 39); };
+      const step = (m, dir) => { let x = m + dir; while (!SC.includes(((x % 12) + 12) % 12)) x += dir; return x; };
+      let prev = null;
+      g.forEach((x, i) => { const L = Math.round(x.e - x.s), root = near(x.c.bass, prev), nxt = g[i + 1] ? near(g[i + 1].c.bass, root) : null;
+        const line = [root];
+        for (let j = 1; j < L; j++) { if (j === L - 1 && nxt != null) line.push(step(nxt, nxt > line[j - 1] ? -1 : 1)); else { const ct = []; for (let m = line[j - 1] + 1; m <= line[j - 1] + 9; m++) if (inChord(x.c, m)) ct.push(m); line.push(ct[0] || step(line[j - 1], 1)); } }
+        line.forEach((m, j) => lh.push(E(x.s + j, 1, m))); prev = line[line.length - 1]; });
+      const rh = o.melody ? segs(from, to).map(x => { const lowM = Math.min(...melIn(x.s, x.e, 12).concat([melAt(x.s, 12) || 99])); const u = under(x.c, lowM, 2, 60); return u.length ? E(x.s, x.e - x.s, u) : null; }).filter(Boolean) : g.map((x, i) => E(x.s, x.e - x.s, v[i]));
+      return { rh, lh }; },
+  };
+  // ---------- whole score specs ----------
+  // o: { from, to, pattern, melody: "rh" (melody on top of the right hand, an octave up) | "staff" (a separate voice staff, as written) | null, bpm, label }
+  function spec(o) {
+    const from = o.from == null ? -1 : o.from, to = o.to || 16, bars = barsOf(from, to), pat = P[o.pattern](Math.max(0, from), to, o.opts || {});
+    const syms = segs(Math.max(0, from), to).map(x => [x.s, x.sym]);
+    const mel = MEL.filter(n => n[0] >= from - 1e-6 && n[0] < to - 1e-6).map(n => ({ s: n[0], d: n[1], m: [n[2] + (o.melody === "rh" ? 12 : 0)], ly: n[3] }));
+    const mv = o.melody ? voice(mel, bars, syms) : null, rv = pat.rh.length ? voice(pat.rh, bars, o.melody ? [] : syms) : null, lv = voice(pat.lh, bars, (o.melody || pat.rh.length) ? [] : syms);
+    const three = o.melody === "staff";
+    const B = bars.map((_, i) => {
+      const b = {};
+      if (three) { b.m = [mv[i]]; b.t = [rv ? rv[i] : voice([], bars)[i]]; b.b = [lv[i]]; }
+      else { b.t = mv && rv ? [mv[i], rv[i]] : [mv ? mv[i] : rv ? rv[i] : voice([], bars)[i]]; b.b = [lv[i]]; }
+      return b; });
+    return { type: "score", clefs: three ? ["treble", "treble", "bass"] : ["treble", "bass"], ids: three ? ["m", "t", "b"] : ["t", "b"], time: o.time || "4/4", vf: "Eb", sig: { 2: -1, 5: -1, 6: -1 }, bpm: o.bpm || 76, final: false, rowW: o.rowW || (o.melody ? 1080 : 760), bars: B };
+  }
+  // a short chord progression in 3/4 for boom-chuck-chuck (no melody)
+  function waltz() {
+    const ch = [[0, "E♭"], [3, "A♭"], [6, "B♭7"], [9, "E♭"]], bars = [[0, 3], [3, 6], [6, 9], [9, 12]], rh = [], lh = [], g = segs(0, 12, ch, 12), v = smooth(g.map(x => x.c));
+    g.forEach((x, i) => { lh.push(E(x.s, 1, bassOf(x.c))); rh.push(E(x.s + 1, 1, v[i]), E(x.s + 2, 1, v[i])); });
+    const syms = ch.map(c => [c[0], c[1]]), rv = voice(rh, bars, syms), lv = voice(lh, bars);
+    return { type: "score", clefs: ["treble", "bass"], time: "3/4", vf: "Eb", sig: { 2: -1, 5: -1, 6: -1 }, bpm: 132, final: true, rowW: 1000, bars: bars.map((_, i) => ({ t: [rv[i]], b: [lv[i]] })) };
+  }
+  // play a span of the song: melody + block chords (for the lead-sheet regions)
+  function regionPlay(s, e, sym) { const c = CHORD[sym], spb = 60 / 76, ev = [];
+    const v = closeVoicings(c, 55, 67)[0] || rootPos(c); v.forEach(m => ev.push([m, 0, (e - s) * spb, .45])); ev.push([bassOf(c), 0, (e - s) * spb, .55]);
+    MEL.filter(n => n[0] >= s - 1e-6 && n[0] < e - 1e-6).forEach(n => ev.push([n[2] + 12, (n[0] - s) * spb, n[1] * spb * .95, .9]));
+    return { ev }; }
+  return { MEL, CH, CHORD, END, segs, chordAt, inChord, name, spec, waltz, regionPlay, smooth, rootPos, bassOf };
+})();
+
+window.FAM = (() => {
+  // ===== Understanding Lead Sheets: lesson only (practice: the Chord Figures and Symbols drills). Example: Hard Times (build/harmony/hardtimes.js). Engine: build/harmony/engine.js =====
+  const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const YT = (id, title, start) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ""}" title="${title} (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
+  const C = s => `{sym:${s}}`;
+  const IMG = `<img src="assets/img/leadsheet/hard-times.png" alt="Lead sheet of the first eight bars of Hard Times Come Again No More by Stephen Foster, in E-flat major, 4/4, marked Moderato: one staff of melody with the lyrics below and chord symbols above (E-flat, E-flat/G, A-flat, B-flat, E-flat/B-flat, B-flat 7)." width="1600" height="712">`;
+  // chord regions on the image: [system, left x of the symbol] (pixels of the 2176-wide original), in the order of HT.CH
+  const SYSY = [[60, 318], [365, 625], [680, 935]];
+  const RX = [[0, 534], [0, 1093], [0, 1310], [0, 1530], [0, 1751], [0, 1904], [1, 218], [1, 728], [1, 937], [1, 1045], [1, 1153], [1, 1496], [1, 1963], [2, 218], [2, 410], [2, 603], [2, 736], [2, 898], [2, 1351], [2, 1568], [2, 1680], [2, 1793]];
+  const W0 = 2176, H0 = 969;
+  // what to say about each non-chord tone (by its start in beats)
+  const NCT = { 1.5: "a neighbor tone (G–F–G)", 4: "a passing tone, on the beat (G–F–E♭)", 5: "held over from the A♭ chord, then up a step to F", 7.75: "an anticipation: B♭ arrives just before the E♭/B♭ chord",
+    15.5: "a passing tone (E♭–F–G)", 17.5: "a neighbor tone (G–F–G)", 20: "a passing tone, on the beat (G–F–E♭)", 21: "held over from the A♭ chord, then up a step to F", 31.5: "a passing tone, leading on into the next phrase" };
+  const beatName = b => { const bar = Math.floor(b / 4) + 1, bt = b - (bar - 1) * 4 + 1; return { bar, bt: Number.isInteger(bt) ? bt : bt }; };
+  function regionInfo(i, H) {
+    const [s, sym] = HT.CH[i], e = i + 1 < HT.CH.length ? HT.CH[i + 1][0] : HT.END, c = HT.CHORD[sym], a = beatName(s), z = beatName(e - 1);
+    const notes = HT.MEL.filter(n => n[0] >= s - 1e-6 && n[0] < e - 1e-6);
+    const span = e - s === 1 ? `bar ${a.bar}, beat ${a.bt}` : a.bar === z.bar ? `bar ${a.bar}, beats ${a.bt}–${z.bt}` : `bars ${a.bar}–${z.bar}`;
+    const list = notes.length ? `<ul>${notes.map(n => { const ok = HT.inChord(c, n[2]), nm = HT.name(n[2]).replace(/\d/, ""), w = n[3] ? ` (“${n[3].replace(/^-|-$/g, "")}”)` : " (a held syllable)";
+      return `<li>${ok ? "✓" : "✗"} <b>${nm}</b>${w}: ${ok ? "a chord tone" : `not in the chord: ${NCT[n[0]] || "a non-chord tone"}`}</li>`; }).join("")}</ul>`
+      : `<p>The melody rests here, but the chord still sounds: the accompaniment plays it and fills the gap.</p>`;
+    return `<p><b>${H.esc(sym)}</b> (${c.sp}) · ${span}, ${e - s} beat${e - s === 1 ? "" : "s"}</p>${list}<button type="button" class="play" data-lsplay="${i}"><span aria-hidden="true">▶ </span>Hear this region</button>`;
+  }
+  const regions = () => `<div class="ls-wrap"><div class="ls-score">${IMG}${RX.map(([sy, x], i) => { const nx = RX[i + 1] && RX[i + 1][0] === sy ? RX[i + 1][1] : 2150, [y0, y1] = SYSY[sy], b = beatName(HT.CH[i][0]);
+    return `<button type="button" class="ls-r" data-lsr="${i}" style="left:${((x - 14) / W0 * 100).toFixed(2)}%;width:${((nx - x) / W0 * 100).toFixed(2)}%;top:${(y0 / H0 * 100).toFixed(2)}%;height:${((y1 - y0) / H0 * 100).toFixed(2)}%" aria-pressed="false" aria-label="${HT.CH[i][1]}, bar ${b.bar}, beat ${b.bt}"></button>`; }).join("")}</div></div>
+    <div class="ls-info" aria-live="polite"><p>Click a chord symbol (or anywhere under it) to see its region.</p></div>`;
+
+  const lesson = { steps: [
+    { title: "What is a lead sheet?", kick: "The song on one staff", render: (H, k, U) => `<p>A <b>lead sheet</b> writes down a song in its most compact form: the <b>melody</b> on a single staff, the <b>lyrics</b> under it, and <b>chord symbols</b> above it. It's how songs are passed around in jazz, pop, folk, musical theater, church music and wedding bands: a <i>fake book</i> is a whole library of them. Everything else about the performance is left to the musicians.</p>
+      <figure class="lfig lsfig">${IMG}<figcaption><p class="small lcite">Stephen Foster, <i>Hard Times Come Again No More</i> (1854), the first eight bars as a lead sheet.</p></figcaption></figure>
+      <p>Here's how one group of musicians turned that page into a performance, in their own key, with their own introduction, instruments and accompaniment:</p>
+      ${YT("uv2AcfmvIuw", "Hard Times Come Again No More, performed by Yo-Yo Ma, Edgar Meyer, Mark O'Connor and James Taylor")}
+      <p class="small lcite">Yo-Yo Ma, Edgar Meyer, Mark O'Connor and James Taylor, from <i>Appalachian Journey</i> (2000).</p>` },
+    { title: "What's on the page, and what isn't", kick: "The players fill in the rest", render: H => `<p>A lead sheet tells you what makes the song <i>that</i> song. It leaves out the things that change from one performance to the next.</p>
+      ${tbl("What a lead sheet includes and leaves out", ["Usually included", "Usually left out"], [
+        ["the <b>melody</b>: its pitches and rhythm", "the <b>accompaniment</b>: which notes of each chord, in what rhythm and register"],
+        ["the <b>lyrics</b>, under the notes", "the <b>bass line</b> (only the bass notes that slash chords ask for)"],
+        ["<b>chord symbols</b>, above the staff", "<b>dynamics</b>, accents and most articulations"],
+        ["the <b>key</b> and <b>time signature</b>", "<b>instrumentation</b> and who plays what"],
+        ["a <b>tempo or style</b> word (“Moderato”, “Swing”, “Bossa nova”)", "introductions, fills, solos and endings"],
+        ["the <b>form</b>: repeats, first and second endings, section letters, coda signs", "how many times through, and the exact tempo"]])}
+      <p>In <i>Hard Times</i> the page says <b>Moderato</b> and gives the melody, words and chords. Nothing says how loud to sing, what the piano plays, whether there's a guitar, or how to begin and end: those are the performers' choices, and they're why two performances of the same lead sheet can sound so different.</p>`
+      + H.check("Which of these would you expect to find on a lead sheet?", "chord symbols above the melody", ["the pianist's left-hand part", "dynamics for every phrase", "a written-out drum part"], "Melody, lyrics and chord symbols; the accompaniment is made up from the symbols.") },
+    { title: "A chord is a region of harmony", kick: "From one symbol to the next", render: H => `<p>A chord symbol doesn't name a single moment. It marks where a <b>region of harmony</b> begins, and the region lasts until the next symbol. For that whole stretch, the accompaniment plays that chord, in whatever rhythm, register and texture the players choose.</p>
+      <ul><li><b>The symbol starts the region</b> on the beat where it's written: ${C("A♭")} and ${C("B♭")} in bar 2 each last one beat; ${C("E♭/B♭")} in bar 3 lasts three.</li>
+      <li><b>The region keeps going through rests.</b> In bar 4 the melody stops on “poor,” but ${C("A♭")} still sounds on beat 3: the accompaniment fills the gap.</li>
+      <li><b>Melody notes inside a region don't all belong to the chord.</b> Most do, but some are passing tones, neighbors and other <a href="non-chord-tones-lesson.html">non-chord tones</a>. The F on “life's” sits inside an ${C("E♭")} region, between two Gs.</li>
+      <li><b>The melody can begin before any chord:</b> “Let us” is a pickup, with no symbol yet. The accompaniment waits, or plays an introduction.</li></ul>
+      <p>Try it: click a chord symbol to light up its region and check its melody notes against the chord.</p>
+      ${regions()}`,
+      after: (root, H, k, tools) => {
+        const info = root.querySelector(".ls-info"), sc = root.querySelector(".ls-score");
+        sc.addEventListener("click", e => { const b = e.target.closest("[data-lsr]"); if (!b) return; const i = +b.dataset.lsr;
+          sc.querySelectorAll("[data-lsr]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); info.innerHTML = regionInfo(i, H); });
+        info.addEventListener("click", e => { const p = e.target.closest("[data-lsplay]"); if (!p) return; const i = +p.dataset.lsplay, s = HT.CH[i][0], en = i + 1 < HT.CH.length ? HT.CH[i + 1][0] : HT.END; tools.play(HT.regionPlay(s, en, HT.CH[i][1])); });
+      } },
+    { title: "Reading Hard Times", kick: "What the symbols tell the players", render: H => `<ul>
+      <li><b>Harmonic rhythm:</b> most bars have one or two chords, but bars 2 and 6 change on every beat (${C("A♭")} ${C("B♭")} ${C("E♭")} ${C("A♭")}). Faster chord changes push a phrase forward.</li>
+      <li><b>Slash chords</b> name a bass note: ${C("E♭/G")} and ${C("E♭/B♭")} are E♭ major chords over G and B♭. Foster's bass climbs E♭–G–A♭–B♭ across bars 1–3, and the slash chords write that line into the symbols.</li>
+      <li><b>${C("B♭7")}</b> adds A♭ to the B♭ chord: the dominant 7th that pulls home to ${C("E♭")} at the cadence on “poor” and “more.”</li>
+      <li><b>Chords under rests:</b> ${C("A♭")} in bar 4 and ${C("B♭7")} in bar 8 fall where the singer rests. Only the accompaniment plays them.</li>
+      <li><b>Repeated music:</b> bars 5–8 repeat bars 1–4 with new words, and the chords tell you the cadence is the same.</li></ul>`
+      + H.check("On a lead sheet, how long does a chord last?", "until the next chord symbol", ["one beat", "until the melody changes note", "until the end of the bar, always"], "A symbol starts a region of harmony that lasts until the next symbol, even through rests and bar lines.")
+      + H.check("What does E♭/G ask for?", "an E♭ major chord with G in the bass", ["an E♭ chord, then a G chord", "an E♭ chord with an added G", "E♭ in the melody over a G chord"], "The letter after the slash is the bass note.") },
+    { title: "From lead sheet to performance", kick: "Same symbols, different accompaniments", render: (H, k, U) => `<p>Here the melody is sung (top staff) and a pianist accompanies from the chord symbols. Each version uses exactly the same chords in the same places; only the accompaniment's rhythm and texture change.</p>
+      ${U.fig(HT.spec({ from: -1, to: 16, pattern: "block", melody: "staff" }), "Block chords held for each region, bass on each change.", { follow: true })}
+      ${U.fig(HT.spec({ from: -1, to: 16, pattern: "boom", melody: "staff" }), "Boom-chuck: bass on beats 1 and 3, chords on 2 and 4.", { follow: true })}
+      ${U.fig(HT.spec({ from: -1, to: 16, pattern: "broken", melody: "staff", opts: {} }), "Broken chords rolling up from the bass, with a few chord tones in the right hand.", { follow: true })}
+      <p>The <a href="piano-accompaniment-lesson.html"><b>Piano Accompaniment</b></a> lesson shows how to build these patterns, and more, from any lead sheet.</p>` },
+    { title: "Practice", kick: "Reading the symbols fast", render: () => `<p>The <a href="chord-figures-and-symbols.html"><b>Chord Figures and Symbols</b></a> drills practice reading chord symbols: spelling them, naming them, and hearing them. To try accompaniments yourself, put a progression into the <a href="chord-progression-lab.html"><b>Groove Player</b></a>.</p>` },
+  ] };
+  return { key: "silverapps-leadsheets-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
+})();
+</script>
+<script src="assets/progress.js?v=0916b76d"></script>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/mqtt.min.js?v=c6d89040"></script>
+<script src="assets/qrcode.js?v=fbb6b69b"></script>
+<script src="assets/live.js?v=4cd58c7e"></script>
+<script src="assets/site.js?v=e7608be5"></script>
+<script>var __SA_APP = {"id": "leadsheets", "name": "Understanding Lead Sheets"};</script>
+<script src="assets/shared/app-engine.f359d8ce25.js"></script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+</body>
+</html>

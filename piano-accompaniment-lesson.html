@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Understanding Piano Accompaniment · SilverApps Interactive Music Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="stylesheet" href="assets/shared/styles-apps.58736dbb97.css">
+<link rel="stylesheet" href="assets/indie.css?v=e3c3c9b0">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+<link rel="stylesheet" href="assets/trainer-skin.css?v=7c24d96e">
+</head>
+<body>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button><button class="site-btn" data-fs aria-pressed="false" type="button" aria-label="Full screen"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Full screen</span></button></header>
+
+<a class="skip" href="#lessonView">Skip to the lesson</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1><span class="h1-pre">Understanding</span> Piano Accompaniment</h1>
+      <p>Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, stride, Alberti bass, broken chords and an active bass line, all on Hard Times. Use the arrow keys or the buttons to move between steps.</p>
+    </div>
+    <div class="score" style="display:none">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <p class="other-page" id="views"><a href="chord-progression-lab.html">Practice: Groove Player →</a></p>
+  <section class="lesson-view" id="lessonView" aria-label="Lesson"></section>
+  <div id="drillView" hidden>
+  <nav class="modes m0" aria-label="Practice mode">
+
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+      <div class="set-row" role="group" aria-labelledby="grp1"><span id="grp1">Include</span>
+        <div class="toggles" id="topicToggles"></div>
+      </div>
+      <div class="set-row" role="group" aria-labelledby="grp3"><span id="grp3">Sound</span>
+        <div class="toggles" id="autoToggles">
+          <button class="tog" data-auto="1">Play the music after each answer</button>
+          <button class="tog" data-auto="0">Only when I tap Play</button>
+        </div>
+      </div>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"></ol></div>
+  </details>
+  </aside>
+  </div>
+  
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script src="assets/shared/vexflow.b24b3b9880.js"></script>
+<script>window.SA_PAGE = { view: "lesson", other: "chord-progression-lab.html", otherName: "Groove Player", cls: false };</script>
+<script>
+// ===== Stephen Foster, "Hard Times Come Again No More" (1854; public domain): melody, lyrics and chords of bars 1–8 as data,
+// plus generators that turn the chords into piano accompaniments (notated score specs for the engine's drawScore / scorePlay).
+// Shared by the Lead Sheets lesson (leadsheets.js) and the Piano Accompaniment lesson (accomp.js). Time in quarter-note beats; bar 1 starts at 0.
+window.HT = (() => {
+  const NM = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+  const name = m => NM[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  const E4 = 63, F4 = 65, G4 = 67, Ab4 = 68, Bb4 = 70, C5 = 72;
+  // melody: [start, length, midi, lyric]
+  const MEL = [[-1, .5, E4, "Let"], [-.5, .5, F4, "us"],
+    [0, 1, G4, "pause"], [1, .5, G4, "in"], [1.5, .5, F4, "life's"], [2, .5, G4, "plea-"], [2.5, 1, Bb4, "-sures"], [3.5, .5, G4, "and"],
+    [4, .5, F4, "count"], [4.5, .5, E4, "its"], [5, .5, E4, "ma-"], [5.5, .5, F4, "-ny"], [6, 1, E4, "tears"], [7, .75, C5, "While"], [7.75, .25, Bb4, "we"],
+    [8, 1, Bb4, "all"], [9, .75, G4, "sup"], [9.75, .25, G4, ""], [10, .75, G4, "sor-"], [10.75, .25, E4, "-row"], [11, .75, F4, "with"], [11.75, .25, F4, "the"],
+    [12, 2, E4, "poor."], [15, .5, E4, "There's"], [15.5, .5, F4, "a"],
+    [16, 1, G4, "song"], [17, .5, G4, "that"], [17.5, .5, F4, "will"], [18, .5, G4, "lin-"], [18.5, 1, Bb4, "-ger"], [19.5, .5, G4, "for-"],
+    [20, .5, F4, "-e-"], [20.5, .5, E4, "-ver"], [21, .5, E4, "in"], [21.5, .5, F4, "our"], [22, 1, E4, "ears;"], [23, 1, C5, "Oh!"],
+    [24, 1, Bb4, "Hard"], [25, 1, G4, "Times,"], [26, .75, G4, "come"], [26.75, .25, E4, "a-"], [27, .75, F4, "-gain"], [27.75, .25, F4, "no"],
+    [28, 2, E4, "more."], [31, .5, G4, "'Tis"], [31.5, .5, Ab4, "the"]];
+  const CHORD = { "E♭": { pcs: [3, 7, 10], bass: 3, sp: "E♭–G–B♭" }, "E♭/G": { pcs: [3, 7, 10], bass: 7, sp: "E♭–G–B♭, G in the bass" }, "E♭/B♭": { pcs: [3, 7, 10], bass: 10, sp: "E♭–G–B♭, B♭ in the bass" },
+    "A♭": { pcs: [8, 0, 3], bass: 8, sp: "A♭–C–E♭" }, "B♭": { pcs: [10, 2, 5], bass: 10, sp: "B♭–D–F" }, "B♭7": { pcs: [10, 2, 5, 8], bass: 10, sp: "B♭–D–F–A♭" } };
+  // chord changes: [start, symbol]
+  const CH = [[0, "E♭"], [3, "E♭/G"], [4, "A♭"], [5, "B♭"], [6, "E♭"], [7, "A♭"], [8, "E♭/B♭"], [11, "B♭7"], [12, "E♭"], [14, "A♭"], [15, "E♭"],
+    [16, "E♭"], [19, "E♭/G"], [20, "A♭"], [21, "B♭"], [22, "E♭"], [23, "A♭"], [24, "E♭/B♭"], [27, "B♭7"], [28, "E♭"], [30, "B♭7"], [31, "E♭"]];
+  const END = 32;
+  const segs = (from, to, ch = CH, end = END) => ch.map(([s, sym], i) => ({ s, e: i + 1 < ch.length ? ch[i + 1][0] : end, sym, c: CHORD[sym] })).filter(g => g.s < to && g.e > from).map(g => Object.assign(g, { s: Math.max(g.s, from), e: Math.min(g.e, to) }));
+  const chordAt = (b, ch = CH) => { let r = ch[0]; ch.forEach(c => { if (c[0] <= b + 1e-9) r = c; }); return CHORD[r[1]]; };
+  const inChord = (c, m) => c.pcs.includes(((m % 12) + 12) % 12);
+  // ---------- voicings ----------
+  const inRange = (pc, lo, hi) => { const r = []; for (let m = lo; m <= hi; m++) if (((m % 12) + 12) % 12 === pc) r.push(m); return r; };
+  const bassOf = (c, lo = 38, hi = 50) => inRange(c.bass, lo, hi)[0];
+  // close-position chords (every tone once, within an octave) whose notes all lie in [lo, hi]
+  function closeVoicings(c, lo, hi) {
+    const out = [];
+    for (let b = lo; b <= hi; b++) { const pc = ((b % 12) + 12) % 12; if (!c.pcs.includes(pc)) continue;
+      const v = [b]; c.pcs.filter(p => p !== pc).forEach(p => { let m = b + 1; while (((m % 12) + 12) % 12 !== p) m++; v.push(m); });
+      v.sort((x, y) => x - y); if (v[v.length - 1] <= hi && v[v.length - 1] - v[0] < 12) out.push(v); }
+    return out;
+  }
+  // smoothest path through the chords: each voicing as close as possible to the one before (stays in one register)
+  function smooth(list, lo = 55, hi = 70, start = 62) {
+    let prev = null;
+    return list.map(c => { const cands = closeVoicings(c, lo, hi); const cost = v => prev ? v.reduce((t, m, i) => t + Math.abs(m - (prev[i] !== undefined ? prev[i] : prev[prev.length - 1])), 0) + (v.length !== prev.length ? 2 : 0) : Math.abs(v[0] + v[v.length - 1] - 2 * start);
+      const v = cands.sort((a, b) => cost(a) - cost(b))[0]; prev = v; return v; });
+  }
+  // root position, always: the "jumping" alternative
+  const rootPos = (c, lo = 48) => { const r = inRange(c.pcs[0], lo, lo + 11)[0]; return c.pcs.map(p => { let m = r; while (((m % 12) + 12) % 12 !== p) m++; return m; }).sort((a, b) => a - b); };
+  // n chord tones just below a melody note (inside the octave under it), at or above floor
+  function under(c, top, n = 2, floor = 55) {
+    const r = []; for (let m = top - 1; m > top - 12 && r.length < n; m--) if (m >= floor && inChord(c, m) && (((m - top) % 12) + 12) % 12 !== 0) r.push(m);
+    return r.sort((a, b) => a - b);
+  }
+  const melIn = (s, e, up) => MEL.filter(n => n[0] >= s - 1e-9 && n[0] < e - 1e-9).map(n => n[2] + up);
+  const melAt = (b, up) => { let r = null; MEL.forEach(n => { if (n[0] <= b + 1e-9 && n[0] + n[1] > b + 1e-9) r = n[2] + up; }); return r; };
+  // ---------- notation: events → bars of notes and rests ----------
+  const VAL = [[4, "w"], [3, "hd"], [2, "h"], [1.5, "qd"], [1, "q"], [.75, "8d"], [.5, "8"], [.25, "16"]];
+  const ok = (p, pos, rest) => { const f = x => Math.abs(pos / x - Math.round(pos / x)) < 1e-6;
+    if (p === 4) return f(4); if (p === 3) return f(1) && pos < 1.01; if (p === 2) return rest ? f(2) : f(1); if (p === 1.5) return rest ? false : f(.5); if (p === 1) return rest ? f(1) : f(.5); if (p === .75) return rest ? false : f(.25); if (p === .5) return f(.5); return f(.25); };
+  function pieces(len, pos, rest) { const out = []; let guard = 0;
+    while (len > 1e-6 && guard++ < 20) { const v = VAL.find(([p]) => p <= len + 1e-6 && ok(p, pos, rest)) || VAL[VAL.length - 1]; out.push(v); len -= v[0]; pos += v[0]; }
+    return out; }
+  // ev: { s, d, m: [midi], ly, sym }; bars: [[start, end], ...]; syms: [[time, text]] placed on the first piece starting at or after each time
+  function voice(ev, bars, syms = []) {
+    const out = bars.map(() => []), sy = syms.map(x => x.slice());
+    const put = (bi, n, t) => { const hit = sy.find(x => !x.used && x[0] <= t + 1e-6); if (hit) { n.sym = hit[1]; hit.used = true; } out[bi].push(n); };
+    bars.forEach(([b0, b1], bi) => {
+      let t = b0;
+      const inBar = ev.filter(e => e.s < b1 - 1e-6 && e.s + e.d > b0 + 1e-6).sort((a, b) => a.s - b.s);
+      inBar.forEach(e => {
+        const s = Math.max(e.s, b0), en = Math.min(e.s + e.d, b1);
+        if (s > t + 1e-6) { pieces(s - t, t - b0, true).forEach(([p, d]) => { put(bi, { k: [], d }, t); t += p; }); }
+        const ps = pieces(en - s, s - b0, false);
+        ps.forEach(([p, d], i) => { const n = { k: e.m.map(name), d }; if (i === 0 && s === e.s && e.ly) n.ly = e.ly; if (i < ps.length - 1 || e.s + e.d > b1 + 1e-6) n.tie = true; put(bi, n, t); t += p; });
+      });
+      if (b1 > t + 1e-6) pieces(b1 - t, t - b0, true).forEach(([p, d]) => { put(bi, { k: [], d }, t); t += p; });
+    });
+    return out;
+  }
+  const barsOf = (from, to) => { const r = []; if (from < 0) r.push([from, 0]); for (let b = Math.max(0, from); b < to; b += 4) r.push([b, Math.min(b + 4, to)]); return r; };
+  // ---------- accompaniment patterns: each returns { rh: [events], lh: [events] } for the chords between from and to ----------
+  const E = (s, d, m) => ({ s, d, m: [].concat(m) });
+  const P = {
+    // block chords held for each chord's whole region (lead-sheet comping): one register, smooth voice leading
+    block(from, to) { const g = segs(from, to), v = smooth(g.map(x => x.c)); return { rh: g.map((x, i) => E(x.s, x.e - x.s, v[i])), lh: g.map(x => E(x.s, x.e - x.s, bassOf(x.c))) }; },
+    // the same chords in root position, every one: the hand jumps
+    jumpy(from, to) { const g = segs(from, to); return { rh: g.map(x => E(x.s, x.e - x.s, rootPos(x.c, 60))), lh: g.map(x => E(x.s, x.e - x.s, bassOf(x.c))) }; },
+    // chords repeated on every beat, bass on every beat (heavy)
+    pound(from, to) { const rh = [], lh = [], g = segs(from, to), v = smooth(g.map(x => x.c));
+      g.forEach((x, i) => { for (let b = x.s; b < x.e - 1e-6; b++) { rh.push(E(b, 1, v[i])); lh.push(E(b, 1, bassOf(x.c))); } }); return { rh, lh }; },
+    // melody on top of the right hand, two chord tones under it held through each region; bass held in the left hand
+    melBlock(from, to) { const up = 12, rh = [], lh = [];
+      segs(from, to).forEach(x => { const lowM = Math.min(...melIn(x.s, x.e, up).concat([melAt(x.s, up) || 99])); if (lowM < 99) { const u = under(x.c, lowM, 2, 58); if (u.length) rh.push(E(x.s, x.e - x.s, u)); } lh.push(E(x.s, x.e - x.s, bassOf(x.c))); });
+      return { rh, lh }; },
+    // boom-chuck (4/4): bass on beats 1 and 3 (root, then the 5th if the chord hasn't changed), chords on 2 and 4; a change on 2 or 4 gets its bass too
+    boom(from, to, o = {}) { const rh = [], lh = [], g = segs(from, to), v = o.under ? null : smooth(g.map(x => x.c), 55, 70);
+      for (let b = Math.ceil(from); b < to - 1e-6; b++) { const i = g.findIndex(x => x.s <= b + 1e-6 && x.e > b + 1e-6); if (i < 0) continue; const x = g[i], pos = ((b % 4) + 4) % 4, change = Math.abs(x.s - b) < 1e-6;
+        const chord = o.under ? under(x.c, melAt(b, 12) || 82, 2, 58) : v[i];
+        if (pos % 2 === 0 || (change && !o.strict)) { const root = bassOf(x.c), fifth = inRange((x.c.bass + 7) % 12, 36, 50).filter(m => Math.abs(m - root) <= 7)[0];
+          lh.push(E(b, 1, pos === 2 && !change && fifth ? fifth : root)); if (change && pos % 2) rh.push(E(b, 1, chord)); }
+        else rh.push(E(b, 1, chord)); }
+      return { rh, lh }; },
+    // stride: the left hand leaps between a low bass (1 and 3) and a chord in the middle (2 and 4); the right hand plays the melody
+    stride(from, to) { const lh = [], g = segs(from, to), v = smooth(g.map(x => x.c), 52, 64, 57);
+      for (let b = Math.ceil(from); b < to - 1e-6; b++) { const i = g.findIndex(x => x.s <= b + 1e-6 && x.e > b + 1e-6); if (i < 0) continue; const x = g[i], pos = ((b % 4) + 4) % 4;
+        if (pos % 2 === 0) { const r = inRange(x.c.bass, 31, 43)[0]; lh.push(E(b, 1, [r, r + 12])); } else lh.push(E(b, 1, v[i])); }
+      return { rh: [], lh }; },
+    // Alberti bass: low–high–middle–high in eighths, close position just above the bass
+    alberti(from, to) { const lh = [];
+      for (let t = Math.ceil(from); t < to - 1e-6; t += .5) { const c = chordAt(t), b = inRange(c.bass, 48, 59)[0], up = c.pcs.filter(p => p !== c.bass).map(p => { let m = b + 1; while (((m % 12) + 12) % 12 !== p) m++; return m; }).sort((x, y) => x - y);
+        const k = Math.round(((t % 2) + 2) % 2 * 2); lh.push(E(t, .5, [b, up[up.length - 1], up[0], up[up.length - 1]][k])); }
+      return { rh: [], lh }; },
+    // broken chords (ballad): the left hand rolls up from the bass in eighths (bass, 5th, octave, 3rd above); two chord tones under the melody on beats 1 and 3
+    broken(from, to) { const rh = [], lh = [];
+      for (let t = Math.ceil(from); t < to - 1e-6; t += .5) { const c = chordAt(t), b = bassOf(c, 36, 47), k = Math.round(((t % 2) + 2) % 2 * 2);
+        const up = []; for (let m = b + 3; m <= b + 20; m++) if (inChord(c, m)) up.push(m);
+        const fifth = up.find(m => m - b >= 6 && m - b <= 8) || up[1], oct = up.find(m => m - b === 12) || up[2], tenth = up.find(m => m - b >= 15) || up[up.length - 1];
+        lh.push(E(t, .5, [b, fifth, oct, tenth][k])); }
+      segs(from, to).forEach(x => { for (let b = x.s; b < x.e - 1e-6; b++) { if (((b % 2) + 2) % 2 === 0 || Math.abs(b - x.s) < 1e-6) { const top = melAt(b, 12); if (top) { const u = under(x.c, top, 2, 60); if (u.length) rh.push(E(b, 1, u)); } } } });
+      return { rh, lh }; },
+    // an active bass line: chord tones on the changes, connected by steps and chord tones; block chords above in the right hand
+    walk(from, to, o = {}) { const lh = [], g = segs(from, to), v = smooth(g.map(x => x.c), 55, 70); const SC = [3, 5, 7, 8, 10, 0, 2];   // E♭ major
+      const near = (pc, prev) => { const c = inRange(pc, 36, 55); return prev ? c.sort((a, b) => Math.abs(a - prev) - Math.abs(b - prev))[0] : c.find(m => m >= 39); };
+      const step = (m, dir) => { let x = m + dir; while (!SC.includes(((x % 12) + 12) % 12)) x += dir; return x; };
+      let prev = null;
+      g.forEach((x, i) => { const L = Math.round(x.e - x.s), root = near(x.c.bass, prev), nxt = g[i + 1] ? near(g[i + 1].c.bass, root) : null;
+        const line = [root];
+        for (let j = 1; j < L; j++) { if (j === L - 1 && nxt != null) line.push(step(nxt, nxt > line[j - 1] ? -1 : 1)); else { const ct = []; for (let m = line[j - 1] + 1; m <= line[j - 1] + 9; m++) if (inChord(x.c, m)) ct.push(m); line.push(ct[0] || step(line[j - 1], 1)); } }
+        line.forEach((m, j) => lh.push(E(x.s + j, 1, m))); prev = line[line.length - 1]; });
+      const rh = o.melody ? segs(from, to).map(x => { const lowM = Math.min(...melIn(x.s, x.e, 12).concat([melAt(x.s, 12) || 99])); const u = under(x.c, lowM, 2, 60); return u.length ? E(x.s, x.e - x.s, u) : null; }).filter(Boolean) : g.map((x, i) => E(x.s, x.e - x.s, v[i]));
+      return { rh, lh }; },
+  };
+  // ---------- whole score specs ----------
+  // o: { from, to, pattern, melody: "rh" (melody on top of the right hand, an octave up) | "staff" (a separate voice staff, as written) | null, bpm, label }
+  function spec(o) {
+    const from = o.from == null ? -1 : o.from, to = o.to || 16, bars = barsOf(from, to), pat = P[o.pattern](Math.max(0, from), to, o.opts || {});
+    const syms = segs(Math.max(0, from), to).map(x => [x.s, x.sym]);
+    const mel = MEL.filter(n => n[0] >= from - 1e-6 && n[0] < to - 1e-6).map(n => ({ s: n[0], d: n[1], m: [n[2] + (o.melody === "rh" ? 12 : 0)], ly: n[3] }));
+    const mv = o.melody ? voice(mel, bars, syms) : null, rv = pat.rh.length ? voice(pat.rh, bars, o.melody ? [] : syms) : null, lv = voice(pat.lh, bars, (o.melody || pat.rh.length) ? [] : syms);
+    const three = o.melody === "staff";
+    const B = bars.map((_, i) => {
+      const b = {};
+      if (three) { b.m = [mv[i]]; b.t = [rv ? rv[i] : voice([], bars)[i]]; b.b = [lv[i]]; }
+      else { b.t = mv && rv ? [mv[i], rv[i]] : [mv ? mv[i] : rv ? rv[i] : voice([], bars)[i]]; b.b = [lv[i]]; }
+      return b; });
+    return { type: "score", clefs: three ? ["treble", "treble", "bass"] : ["treble", "bass"], ids: three ? ["m", "t", "b"] : ["t", "b"], time: o.time || "4/4", vf: "Eb", sig: { 2: -1, 5: -1, 6: -1 }, bpm: o.bpm || 76, final: false, rowW: o.rowW || (o.melody ? 1080 : 760), bars: B };
+  }
+  // a short chord progression in 3/4 for boom-chuck-chuck (no melody)
+  function waltz() {
+    const ch = [[0, "E♭"], [3, "A♭"], [6, "B♭7"], [9, "E♭"]], bars = [[0, 3], [3, 6], [6, 9], [9, 12]], rh = [], lh = [], g = segs(0, 12, ch, 12), v = smooth(g.map(x => x.c));
+    g.forEach((x, i) => { lh.push(E(x.s, 1, bassOf(x.c))); rh.push(E(x.s + 1, 1, v[i]), E(x.s + 2, 1, v[i])); });
+    const syms = ch.map(c => [c[0], c[1]]), rv = voice(rh, bars, syms), lv = voice(lh, bars);
+    return { type: "score", clefs: ["treble", "bass"], time: "3/4", vf: "Eb", sig: { 2: -1, 5: -1, 6: -1 }, bpm: 132, final: true, rowW: 1000, bars: bars.map((_, i) => ({ t: [rv[i]], b: [lv[i]] })) };
+  }
+  // play a span of the song: melody + block chords (for the lead-sheet regions)
+  function regionPlay(s, e, sym) { const c = CHORD[sym], spb = 60 / 76, ev = [];
+    const v = closeVoicings(c, 55, 67)[0] || rootPos(c); v.forEach(m => ev.push([m, 0, (e - s) * spb, .45])); ev.push([bassOf(c), 0, (e - s) * spb, .55]);
+    MEL.filter(n => n[0] >= s - 1e-6 && n[0] < e - 1e-6).forEach(n => ev.push([n[2] + 12, (n[0] - s) * spb, n[1] * spb * .95, .9]));
+    return { ev }; }
+  return { MEL, CH, CHORD, END, segs, chordAt, inChord, name, spec, waltz, regionPlay, smooth, rootPos, bassOf };
+})();
+
+window.FAM = (() => {
+  // ===== Understanding Piano Accompaniment: lesson only (practice: the Groove Player). Every example is generated from the chords of Hard Times (build/harmony/hardtimes.js). Engine: build/harmony/engine.js =====
+  const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const C = s => `{sym:${s}}`;
+  const SIG = { 2: -1, 5: -1, 6: -1 };   // E♭ major: letter indices (C = 0)
+  const ex = (U, o, cap) => U.fig(HT.spec(Object.assign({ from: -1, to: 16 }, o)), cap, { follow: true });
+  // a grand-staff figure of single chords: each column { t, b, lab }
+  const gfig = (H, U, cols, cap) => U.fig({ type: "grand", vf: "Eb", sig: SIG, cols: cols.map(c => Object.assign({ labNear: true }, c)) }, cap, { play: { chords: cols.map(c => (c.t || []).concat(c.b || []).map(s => H.midi(H.parse(s)))), gap: 1.3, dur: .95 } });
+
+  const lesson = { steps: [
+    { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: (H, k, U) => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
+      <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
+      <li><b>Harmony</b>: the other tones of each chord, tucked <b>under the melody</b> in the right hand (or in the middle of the keyboard).</li>
+      <li><b>Bass</b>: the lowest note, in the left hand: the chord's root, or the note after the slash in a slash chord.</li></ul>
+      <p>Here is the opening of <i>Hard Times</i> (from the <a href="lead-sheets-lesson.html">Lead Sheets</a> lesson) set that way: melody on top with two chord tones under it, and a bass note for each chord.</p>
+      ${ex(U, { pattern: "melBlock", melody: "rh" }, "Melody on top of the right hand (stems up), chord tones under it (stems down), bass in the left hand.")}
+      <p>We've moved the melody up an octave from the lead sheet. As written it sits around middle C, where there's no room under it for chord tones without crowding the left hand. When you accompany a <b>singer</b>, leave the melody out: the right hand plays only the chords (see “Keep the chords in one place”).</p>` },
+    { title: "Fitting the notes in your hands", kick: "Span, spacing and register", render: (H, k, U) => `<p>Every note you write has to be playable. A few rules of thumb:</p>
+      <ul><li><b>Each hand spans about an octave.</b> In the right hand, keep the chord tones within an octave below the melody note, so one hand can hold them all. Two chord tones under the melody is plenty; three gets thick.</li>
+      <li><b>Low notes need space.</b> Close chords low on the keyboard sound muddy. In the bass, play a single note, an octave, or an open 5th, and keep 3rds above about C3.</li>
+      <li><b>Leave a gap between the hands</b> so they don't collide, and so the chord tones don't bury the melody.</li>
+      <li><b>You don't need every chord tone.</b> The bass usually has the root; the right hand can leave out the 5th, and should avoid doubling the 3rd.</li></ul>
+      ${gfig(H, U, [{ t: ["G4", "B♭4", "E♭5"], b: ["E♭2", "G2", "B♭2"], lab: "muddy" }, { t: ["G4", "B♭4", "E♭5"], b: ["E♭2", "B♭2"], lab: "clear" }, { t: ["B♭3", "E♭4", "G4", "B♭4", "E♭5"], b: ["E♭3"], lab: "too wide" }, { t: ["E♭5", "G5", "B♭5"], b: ["E♭3"], lab: "fits" }], "E♭ major four ways. A close triad low in the bass is muddy; an open 5th is clear. A right-hand chord wider than an octave doesn't fit one hand; three notes within an octave do.")}` },
+    { title: "Keep the chords in one place", kick: "Inversions instead of leaps", render: (H, k, U) => `<p>If you play every chord in <b>root position</b>, the right hand jumps around the keyboard and the harmony sounds disjointed. Instead, choose for each chord the <b>inversion</b> closest to the one before: keep common tones, and move the others by the smallest step. The chord shapes then stay in one comfortable <b>register</b> (here, around middle C), and the bass can supply the roots.</p>
+      ${ex(U, { from: 0, pattern: "jumpy" }, "Every chord in root position: the right hand leaps.")}
+      ${ex(U, { from: 0, pattern: "block" }, "The nearest inversion each time: the same chords, in one place.")}
+      <p>This is also how a pianist accompanies a singer from a lead sheet: right-hand chords in the middle of the keyboard, left-hand bass notes, and the singer carries the melody.</p>`
+      + H.check("Why play most right-hand chords in inversions rather than root position?", "so the chords stay in one register and move smoothly", ["because root position is wrong on a lead sheet", "so the bass is always the 3rd", "to make the chords louder"], "Nearest inversions keep common tones and small steps, so the hand barely moves.") },
+    { title: "The bass doesn't need every beat", kick: "Mark the changes, then get out of the way", render: (H, k, U) => `<p>The bass note tells the listener which chord is sounding. It's strongest on <b>beat 1</b> and on <b>chord changes</b>; after that it can ring, move to another chord tone, or rest. A bass on every beat, under a chord on every beat, gets heavy fast:</p>
+      ${ex(U, { from: 0, pattern: "pound" }, "Bass and chord on every beat: a lot of sound, and no shape.")}
+      ${ex(U, { from: 0, pattern: "block" }, "Bass only on each change, chords held: calm, with space for a melody.")}
+      <ul><li>Put bass notes where the chord changes and on strong beats; let them sustain (with the pedal on an acoustic piano).</li>
+      <li>When the melody is busy, the accompaniment can be still, and when the melody holds or rests, the accompaniment can move.</li>
+      <li>On a held chord, the bass can alternate <b>root and 5th</b> to keep it moving without changing the harmony.</li></ul>` },
+    { title: "Block chords", kick: "The simplest texture", render: (H, k, U) => `<p><b>Block chords</b> play all the chord tones together. Held for each chord's whole region, they suit hymns, slow ballads and the first time you read a song. Repeated on the beats, they mark the pulse.</p>
+      ${ex(U, { pattern: "melBlock", melody: "rh" }, "Block chords under the melody, changing only when the chord symbol changes.")}
+      <p>To keep the melody on top, choose chord tones <b>below</b> the melody note at each change. When the melody drops below them later in the region, re-voice the chord or let it rest.</p>` },
+    { title: "Boom-chuck and boom-chuck-chuck", kick: "Bass on the strong beats, chords on the weak ones", render: (H, k, U) => `<p>In a <b>boom-chuck</b> pattern the left hand plays the bass (“boom”) on the strong beats and the chords answer (“chuck”) on the weak ones. In 4/4 that's bass on 1 and 3, chords on 2 and 4; in 2/4, bass on 1, chord on 2. It's the basis of marches, polkas, country, folk and ragtime.</p>
+      ${ex(U, { pattern: "boom", melody: "rh", opts: { under: true } }, "Boom-chuck in 4/4: the bass alternates root and 5th; chords under the melody on 2 and 4. Where a chord changes on a weak beat, it gets its own bass.")}
+      <p>In 3/4, <b>boom-chuck-chuck</b> is the waltz accompaniment: bass on beat 1, chords on beats 2 and 3.</p>
+      ${U.fig(HT.waltz(), "Boom-chuck-chuck in 3/4: E♭, A♭, B♭7, E♭.", { follow: true })}`
+      + H.check("In a 4/4 boom-chuck pattern, where do the chords usually go?", "beats 2 and 4", ["beats 1 and 3", "every beat", "only beat 1"], "The bass takes the strong beats (1 and 3), the chords the weak ones (2 and 4).") },
+    { title: "Stride", kick: "The left hand does both jobs", render: (H, k, U) => `<p><b>Stride</b> piano (Harlem in the 1920s: James P. Johnson, Fats Waller, Willie “The Lion” Smith) moves boom-chuck entirely into the left hand: a low bass note or octave on beats 1 and 3, then a leap up to a chord in the middle of the keyboard on 2 and 4. That frees the right hand for the melody.</p>
+      ${ex(U, { pattern: "stride", melody: "rh" }, "Stride: low octaves on 1 and 3, mid-range chords on 2 and 4, all in the left hand.")}
+      <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>` },
+    { title: "Alberti bass", kick: "Low, high, middle, high", render: (H, k, U) => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
+      ${ex(U, { pattern: "alberti", melody: "rh" }, "Alberti bass in eighth notes, with the melody alone in the right hand.")}` },
+    { title: "Broken chords", kick: "Rolling arpeggios", render: (H, k, U) => `<p><b>Broken chords</b> (arpeggios) spread a chord across a wide span: bass, 5th, octave, then the 3rd above (a 10th from the bass). They suit ballads and slow songs, and with the pedal they fill out the sound without getting thick. The right hand adds a chord tone or two under the melody on the strong beats.</p>
+      ${ex(U, { pattern: "broken", melody: "rh" }, "Broken chords in the left hand; melody with a few chord tones in the right.")}` },
+    { title: "An active bass line", kick: "Connect the chords", render: (H, k, U) => `<p>Instead of repeating roots, the left hand can play a <b>bass line</b>: the chord's bass note on each change, connected by chord tones and steps. A note a step away from the next chord's bass leads into it smoothly. Above it, the right hand plays block chords in one register.</p>
+      ${ex(U, { from: 0, pattern: "walk" }, "A moving bass line in quarter notes; block chords above in the right hand.")}
+      ${ex(U, { pattern: "walk", melody: "rh", opts: { melody: true } }, "The same bass line with the melody on top and chord tones under it.")}
+      <p>Notice how a few slash chords already sketch a line: Foster's ${C("E♭")}–${C("E♭/G")}–${C("A♭")}–${C("B♭")}–${C("E♭/B♭")} gives a rising bass E♭–G–A♭–B♭ before any extra notes are added.</p>` },
+    { title: "Choosing a pattern", kick: "Style, tempo and the melody", render: H => `${tbl("Accompaniment patterns", ["Pattern", "What it does", "Good for"], [
+        ["Block chords", "all chord tones together, held or on the beats", "hymns, slow ballads, sight-reading"],
+        ["Boom-chuck", "bass on strong beats, chords on weak beats", "marches, folk, country, polkas, upbeat songs"],
+        ["Boom-chuck-chuck", "bass on 1, chords on 2 and 3", "waltzes and other songs in 3/4"],
+        ["Stride", "left hand leaps: bass on 1 and 3, chords on 2 and 4", "ragtime, early jazz, solo piano"],
+        ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
+        ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
+        ["Active bass line", "bass moves between chord tones and steps", "jazz, pop, gospel; adding motion"]])}
+      <ul><li><b>Start simple</b>: block chords first, then add rhythm.</li>
+      <li><b>Pick one pattern for a section</b> and keep it; change pattern at a new section to mark the form.</li>
+      <li><b>Thin out under a busy melody</b>, and fill in when the melody holds or rests.</li>
+      <li><b>Practice hands separately</b>, then together at a slow tempo.</li></ul>
+      <p>To hear these patterns with any progression, try the <a href="chord-progression-lab.html"><b>Groove Player</b></a>.</p>`
+      + H.check("Which pattern puts both the bass and the chords in the left hand?", "stride", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "Stride leaps between a low bass and a middle-register chord, all in the left hand.") },
+  ] };
+  return { key: "silverapps-accomp-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
+})();
+</script>
+<script src="assets/progress.js?v=0916b76d"></script>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/mqtt.min.js?v=c6d89040"></script>
+<script src="assets/qrcode.js?v=fbb6b69b"></script>
+<script src="assets/live.js?v=4cd58c7e"></script>
+<script src="assets/site.js?v=e7608be5"></script>
+<script>var __SA_APP = {"id": "accomp", "name": "Understanding Piano Accompaniment"};</script>
+<script src="assets/shared/app-engine.f359d8ce25.js"></script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+</body>
+</html>
