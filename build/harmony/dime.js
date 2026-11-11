@@ -27,6 +27,9 @@ window.DIME = (() => {
     stride: "Piano setting: the melody in the right hand; the left hand leaps between low bass notes on beats 1 and 3 and chords on beats 2 and 4 (stride).",
     singer: "Voice and piano: the vocal line with lyrics on top; the piano's right hand plays chords on beats 2 and 4 and the left hand bass notes on beats 1 and 3.",
     pulse: "Piano setting: the melody in the right hand, left-hand chords repeated on every beat.", bassline: "Piano setting: the melody on top of the right hand with chord tones under it; an active bass line in the left hand." };
+  const AUDL = { leadsheet: "the lead sheet played: melody and chords", melody: "the melody alone", alberti: "Alberti bass setting", block: "block chords setting", stride: "stride (boom-chuck all in the piano) setting",
+    singer: "voice and piano (boom-chuck) setting", pulse: "pulsing chords setting", bassline: "melody with chords and an active bass line" };
+  const aud = id => `<audio class="dm-aud" controls preload="none" src="assets/audio/dime/${id}.mp3" aria-label="Brother, Can You Spare a Dime?: ${AUDL[id]}"></audio>`;
   const pc = (v, t) => (v / t * 100).toFixed(2) + "%";
   // a setting with its chord symbols covered; the toggle shows them and shades each chord's region
   function fig(id, cap, o = {}) {
@@ -35,7 +38,7 @@ window.DIME = (() => {
       return `<span class="dm-reg${i % 2 ? " alt" : ""}" style="left:${pc(x0 - 12, d.w)};width:${pc(nx - x0, d.w)};top:${pc(y0, d.h)};height:${pc(y1 - y0, d.h)}"></span>`; }).join("");
     const covs = d.ch.map(([s, x0, x1, y0, y1]) => `<span class="dm-cov" style="left:${pc(x0 - 8, d.w)};width:${pc(x1 - x0 + 16, d.w)};top:${pc(y0 - 6, d.h)};height:${pc(y1 - y0 + 12, d.h)}"></span>`).join("");
     return `<figure class="lfig dm-fig"><div class="dm-wrap" tabindex="0" role="region" aria-label="${ALT[id].split(":")[0]}"><div class="dm-score">${regs}<img src="assets/img/dime/${id}.png" alt="${ALT[id]} Chord symbols are hidden until you show them." width="1600" height="${Math.round(d.h * 1600 / d.w)}">${covs}</div></div>
-      <figcaption><p>${cap}</p><button type="button" class="btn dm-show" data-dmshow aria-pressed="false">Show the chords</button><span class="sr dm-list"> Chords: ${lab.join(", ")}.</span></figcaption></figure>`;
+      <figcaption><p>${cap}</p>${aud(id)}<button type="button" class="btn dm-show" data-dmshow aria-pressed="false">Show the chords</button><span class="sr dm-list"> Chords: ${lab.join(", ")}.</span></figcaption></figure>`;
   }
   if (typeof document !== "undefined") document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-dmshow]"); if (!b) return;
     const f = b.closest(".dm-fig"), on = !f.classList.contains("on"); f.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "Hide the chords" : "Show the chords"; });
@@ -48,5 +51,5 @@ window.DIME = (() => {
     MEL.filter(n => n[0] < e - 1e-6 && n[0] + n[1] > s + 1e-6).forEach(n => { const st = Math.max(n[0], s); ev.push([n[2] + 12, (st - s) * spb, (Math.min(n[0] + n[1], e) - st) * spb * .95, .9]); });
     return { ev };
   }
-  return { MEL, CH, CHORD, END, IMG, NCT, inChord, name, fig, regionPlay };
+  return { MEL, CH, CHORD, END, IMG, NCT, inChord, name, fig, aud, regionPlay };
 })();

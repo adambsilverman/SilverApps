@@ -542,3 +542,5 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .dm-fig.on .dm-reg { display: block; }
 .dm-score img { mix-blend-mode: multiply; z-index: 1; }
 .dm-fig figcaption .dm-show { margin-top: 6px; }
+.dm-aud, .ls-auds audio { display: block; width: 100%; max-width: 520px; margin: 6px auto; }
+.ls-auds p { margin: 8px 0 0; }

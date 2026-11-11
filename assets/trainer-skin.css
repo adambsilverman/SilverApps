@@ -125,3 +125,5 @@ body.lc-fs .big{font-size:clamp(4rem,9vw,7rem)}
 .kicker .kapp { color: var(--fi-red-dk, #b33a26); }
 /* long prompts that are instructions, not questions (class added by assets/site.js) */
 .q-text.q-long{font-size:1.05rem;font-weight:400;line-height:1.55;max-width:62ch;text-wrap:pretty}
+.yt-report { margin: 2px 0 10px; text-align: right; font-size: 13px; }
+.yt-report a { color: inherit; opacity: .8; }

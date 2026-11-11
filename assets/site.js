@@ -58,3 +58,28 @@
   function go() { tag(); if (window.MutationObserver) new MutationObserver(tag).observe(document.body, { childList: true, subtree: true, characterData: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
+
+// Every embedded YouTube video gets a small "Report a dead link" link under it. The address is never in the page:
+// it's assembled from character codes only when the link is clicked (keeps it away from address-harvesting bots).
+(function () {
+  var C = [97, 115, 105, 108, 118, 101, 114, 109, 97, 110, 64, 119, 99, 117, 112, 97, 46, 101, 100, 117];
+  function addr() { return C.map(function (c) { return String.fromCharCode(c); }).join(""); }
+  function vid(src) { var m = /(?:embed\/|youtu\.be\/|[?&]v=)([\w-]{11})/.exec(src || ""); return m ? m[1] : ""; }
+  function scan() {
+    document.querySelectorAll('iframe[src*="youtube"], iframe[src*="youtu.be"]').forEach(function (f) {
+      if (f.hasAttribute("data-ytrep")) return; f.setAttribute("data-ytrep", "1");
+      var box = f.closest(".lvideo, .aw-vid, .ytwrap, .video, figure") || f.parentElement, id = vid(f.getAttribute("src"));
+      var p = document.createElement("p"); p.className = "yt-report";
+      var a = document.createElement("a"); a.href = "#"; a.textContent = "Report a dead link"; a.setAttribute("data-yt", id);
+      a.setAttribute("aria-label", "Report a dead link for this video (opens your email)");
+      p.appendChild(a); box.parentNode.insertBefore(p, box.nextSibling);
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest(".yt-report a"); if (!a) return; e.preventDefault();
+    var id = a.getAttribute("data-yt"), sub = "Dead video link: " + document.title, body = "This video doesn't play:\nhttps://www.youtube.com/watch?v=" + id + "\n\nPage: " + location.href + "\n";
+    location.href = "mailto:" + addr() + "?subject=" + encodeURIComponent(sub) + "&body=" + encodeURIComponent(body);
+  });
+  function go() { scan(); if (window.MutationObserver) new MutationObserver(scan).observe(document.body, { childList: true, subtree: true }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+})();

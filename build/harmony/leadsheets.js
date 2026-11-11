@@ -1,7 +1,7 @@
 window.FAM = (() => {
   // ===== Understanding Lead Sheets: lesson only (practice: the Chord Figures and Symbols drills). Example: Brother, Can You Spare a Dime? (build/harmony/dime.js). Engine: build/harmony/engine.js =====
   const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-  const YT = (id, title, start) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ""}" title="${title} (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
+  const YT = (id, title, start, end) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0${start ? `&start=${start}` : ""}${end ? `&end=${end}` : ""}" title="${title} (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
   const C = s => `{sym:${s}}`;
   const D = DIME.IMG.leadsheet;
   const IMG = `<img src="assets/img/dime/leadsheet.png" alt="${"Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics, and chord symbols above (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign."}" width="1600" height="553">`;
@@ -23,9 +23,11 @@ window.FAM = (() => {
   const lesson = { steps: [
     { title: "What is a lead sheet?", kick: "The song on one staff", render: () => `<p>A <b>lead sheet</b> writes down a song in its most compact form: the <b>melody</b> on a single staff, the <b>lyrics</b> under it, and <b>chord symbols</b> above it. It's how songs are passed around in jazz, pop, folk, musical theater, church music and wedding bands: a <i>fake book</i> is a whole library of them. Everything else about the performance is left to the musicians.</p>
       <figure class="lfig lsfig">${IMG}<figcaption><p class="small lcite">Jay Gorney and E. Y. Harburg, <i>Brother, Can You Spare a Dime?</i> (1932), the first eight bars as a lead sheet.</p></figcaption></figure>
-      <p>Here's how Bing Crosby's 1932 recording turned a page like this into a performance, with its own introduction, orchestra and accompaniment:</p>
-      ${YT("--QXJJE-60c", "Brother, Can You Spare a Dime?, sung by Bing Crosby")}
-      <p class="small lcite">Bing Crosby, <i>Brother, Can You Spare a Dime?</i> (Brunswick, 1932).</p>` },
+      <p>Played straight from the page, a lead sheet gives you the melody, and the chords if someone plays them:</p>
+      <div class="ls-auds"><p><b>Melody alone</b></p>${DIME.aud("melody")}<p><b>Melody and chords</b></p>${DIME.aud("leadsheet")}</div>
+      <p>Here's how Bing Crosby's 1932 recording turned the same eight bars into a performance, with its own tempo, orchestra and accompaniment:</p>
+      ${YT("0I8-CbJYGMA", "Brother, Can You Spare a Dime?, sung by Bing Crosby (from 0:55)", 55, 75)}
+      <p class="small lcite">Bing Crosby, <i>Brother, Can You Spare a Dime?</i> (Brunswick, 1932), 0:55–1:15.</p>` },
     { title: "What's on the page, and what isn't", kick: "The players fill in the rest", render: H => `<p>A lead sheet tells you what makes the song <i>that</i> song. It leaves out the things that change from one performance to the next.</p>
       ${tbl("What a lead sheet includes and leaves out", ["Usually included", "Usually left out"], [
         ["the <b>melody</b>: its pitches and rhythm", "the <b>accompaniment</b>: which notes of each chord, in what rhythm and register"],
