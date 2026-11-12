@@ -179,7 +179,7 @@ APPS = [
        how=["<b>Number</b>: count letter names, including both notes (C up to E = C D E = a 3rd).",
             "<b>Quality</b>: count half steps. Major 3rd = 4, perfect 5th = 7, octave = 12.",
             "Spelling matters: a 3rd always spans three letters, so C–E♭ is a minor 3rd but C–D♯ is an augmented 2nd."]),
-  dict(src="Scales.html", drills="major-and-minor-scales.html", lesson="major-and-minor-scales-lesson.html", lesson_title="Understanding Major and Minor Scales", lesson_desc="A step-by-step lesson: half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, natural, harmonic and melodic minor and why they differ, and solfège in major and minor (do-based and la-based minor, movable and fixed do), sung in Adam Silverman's voice.", data="scales.js", title="Major and Minor Scales",
+  dict(src="Scales.html", drills="major-and-minor-scales.html", lesson="major-and-minor-scales-lesson.html", lesson_title="Understanding Major and Minor Scales", lesson_desc="A step-by-step lesson: what major and minor scales are, half and whole steps, the major scale, why we use key signatures and how to read them, the circle of fifths, natural, harmonic and melodic minor and why they differ, and solfège in major and minor (do-based and la-based minor, movable and fixed do).", data="scales.js", title="Major and Minor Scales",
        desc="Spell and identify major and minor scales, read key signatures, find relative and parallel keys, and know why each scale and key signature works the way it does.",
        modes=[("spell", "Spell the scale", "major · minor", "spell a major or minor scale"),
               ("type", "Name the scale", "on the staff", "name the kind of scale"),
