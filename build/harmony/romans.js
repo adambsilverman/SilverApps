@@ -89,19 +89,19 @@ window.FAM = (() => {
   const RS_KEYS = { major: ["C", "G", "D", "A", "E", "B", "F♯", "C♯", "F", "B♭", "E♭", "A♭", "D♭", "G♭", "C♭"], minor: ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "A♯", "D", "G", "C", "F", "B♭", "E♭", "A♭"] };
   const RS = { tonic: null, mode: null, sev: false };
   function rsChords(H) {
-    const k = H.key(RS.tonic, RS.mode), t = k.tonic, t0 = H.N(t.l, t.a, "ABab".includes(t.l) ? 3 : 4);
+    const k = H.key(RS.tonic, RS.mode), t = k.tonic, t4 = H.N(t.l, t.a, 4), t0 = H.midi(t4) >= 66 ? H.N(t.l, t.a, 3) : t4;   // tonics from F♯/G♭ up start an octave lower, so the chords stay near the staff
     return { k, ch: [1, 2, 3, 4, 5, 6, 7, 8].map(d => { const c = H.tok(k, String(d > 7 ? 1 : d) + (RS.sev ? "7" : "")), out = [];
       c.tones.forEach((x, i) => { let n = H.N(x.l, x.a, t0.o); while (H.midi(n) < (i ? H.midi(out[i - 1]) + 1 : H.midi(t0) + (d > 7 ? 12 : 0))) n = H.N(n.l, n.a, n.o + 1); out.push(n); });
       return { c, notes: out }; }) };
   }
   function rsSpec(H) { const { k, ch } = rsChords(H);
-    return { type: "score", clefs: ["treble"], time: null, vf: k.vf, sig: k.sig, bpm: 90, final: false, minBar: 60, label: `${k.label}: ${RS.sev ? "seventh chords" : "triads"} on each scale degree: ${ch.map(x => x.c.rn).join(", ")}`, bars: [{ t: [ch.map(x => ({ k: x.notes.map(H.nmO), d: "w", lab: x.c.rn }))] }] }; }
+    return { type: "score", clefs: ["treble"], time: null, vf: k.vf, sig: k.sig, bpm: 90, final: false, minBar: 60, scale: 3, label: `${k.label}: ${RS.sev ? "seventh chords" : "triads"} on each scale degree: ${ch.map(x => x.c.rn).join(", ")}`, bars: [{ t: [ch.map(x => ({ k: x.notes.map(H.nmO), d: "w", lab: x.c.rn }))] }] }; }
   const rsHTML = () => `<div class="toy" id="rsBox"><div class="toy-row">
       <div class="toy-row" role="group" aria-label="Major or minor">${["major", "minor"].map(m => `<button class="play" data-rsm="${m}" aria-pressed="${RS.mode === m}">${m}</button>`).join("")}</div>
       <label>Key <select id="rsKey">${RS_KEYS[RS.mode].map(n => `<option ${n === RS.tonic ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <div class="toy-row" role="group" aria-label="Chord size">${[[false, "Triads"], [true, "7th chords"]].map(([v, l]) => `<button class="play" data-rss="${v}" aria-pressed="${RS.sev === v}">${l}</button>`).join("")}</div>
       <button class="play" id="rsPlay">▶ Play</button></div>
-    <div class="staff" id="rsStaff"></div><p class="small" id="rsCap" aria-live="polite" style="margin:0"></p></div>`;
+    <div class="staff" id="rsStaff" style="width:100%"></div><p class="small" id="rsCap" aria-live="polite" style="margin:0"></p></div>`;
   function rsWire(root, H, k, tools) {
     const box = root.querySelector("#rsBox"); if (!box) return;
     const draw = () => { tools.drawStaff(box.querySelector("#rsStaff"), rsSpec(H)); const { k: kk, ch } = rsChords(H);
