@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Groove Player · SilverApps Interactive Music Training</title>
+<title>Groove Maker · SilverApps Interactive Music Training</title>
 <meta name="description" content="Build chord progressions from Roman numerals (diatonic, borrowed, applied and other chromatic chords), drag them into order, pick a style, meter and instruments, edit the beat on a time-unit-box grid, transpose to any key, and export audio.">
 <link rel="stylesheet" href="assets/indie.css?v=e3c3c9b0">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
@@ -83,11 +83,11 @@
 <main class="gp" id="main">
   <header>
     <h1>Groove <span>Player</span></h1>
-    <p>Build a progression from Roman numerals, drag the chords into order, then give it a groove: pick a style, a meter and separate instruments for the chords, bass and drums, and tap the boxes to change the beat. Change the key and every chord moves at once, because numerals describe chords by scale degree. Learn the labels in <a href="roman-numeral-analysis-lesson.html">Introduction to Roman Numeral Analysis</a>.</p>
+    <p>Build a progression from Roman numerals, drag the chords into order, then give it a groove: pick a style, a meter and separate instruments for the chords, bass and drums, and tap the boxes to change the beat. Choose the <b>Beatbox</b> kit (or the Beatbox style) to build the drum part from beatbox sounds, one sound per box. Change the key and every chord moves at once, because numerals describe chords by scale degree. Learn the labels in <a href="roman-numeral-analysis-lesson.html">Introduction to Roman Numeral Analysis</a>.</p>
   </header>
 
   <section class="gpbox" aria-labelledby="gpH">
-    <div class="gp-head"><h2 id="gpH">Groove Player</h2><span>tap chords · drag to reorder · tap boxes to change the beat</span></div>
+    <div class="gp-head"><h2 id="gpH">Groove Maker</h2><span>tap chords · drag to reorder · tap boxes to change the beat</span></div>
     <div class="row">
       <label class="fld" for="tonic">Tonic<select id="tonic"></select></label>
       <label class="fld" for="mode">Mode<select id="mode"><option value="major">major</option><option value="minor">minor</option></select></label>
@@ -125,6 +125,7 @@
       <label class="fld" for="vB">Bass <input type="range" id="vB" min="0" max="100" value="85"></label>
       <label class="fld" for="vD">Drums <input type="range" id="vD" min="0" max="100" value="65"></label>
       <label class="fld" for="space">Reverb <input type="range" id="space" min="0" max="100" value="20"></label>
+      <label class="fld" for="dist" id="distL" hidden>Beatbox distortion <output id="distO">0</output><input type="range" id="dist" min="0" max="100" value="0"></label>
     </div>
     <svg id="kb" viewBox="0 0 700 110" role="img" aria-label="Keyboard showing the notes of the current chord"></svg>
     <details><summary>Chord tones and voicings</summary><div class="twrap" tabindex="0" role="region" aria-label="Chords and notes"><table class="tbl" id="tbl"></table></div></details>
@@ -204,7 +205,15 @@
   const CI = { epiano: "Electric piano", piano: "Piano", pluck: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", organ: "Organ", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Rock kit", [["Kick", "k"], ["Snare", "s"], ["Hi-hat", "h"]]], pop: ["Pop kit (clap)", [["Kick", "k"], ["Clap", "c"], ["Hi-hat", "h"]]], ride: ["Ballad kit (ride)", [["Kick", "k"], ["Snare", "s"], ["Ride", "y"]]],
-    rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]] };
+    rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]],
+    beatbox: ["Beatbox (Adam)", [["Hi-hat", "bx:hihat:5"], ["Snare", "bx:snare:4"], ["Ooh", "bx:ooh:3"], ["Sweep", "bx:sweep:0"], ["Shaker", "bx:shaker:0"], ["Kick", "bx:kick:4"], ["KKhh 2", "bx:kkhh-2:0"], ["KKhh 1", "bx:kkhh-1:0"]]] };
+  // beatbox kit: eight rows (S.bx), one sound per box; built from the three-lane beats (kick, snare, hats) and back again
+  const BXK = 5, BXS = 1, BXH = 0;
+  const toBx = (lo, mid, hi) => { const bx = [[], [], [], [], [], [], [], []]; bx[BXK] = lo.slice(); bx[BXS] = mid.filter(p => !lo.includes(p)); bx[BXH] = hi.filter(p => !lo.includes(p) && !mid.includes(p)); return bx; };
+  const fromBx = bx => [uniq([...bx[5], ...bx[7]]).sort((a, b) => a - b), uniq([...bx[1], ...bx[2], ...bx[6]]).sort((a, b) => a - b), uniq([...bx[0], ...bx[3], ...bx[4]]).sort((a, b) => a - b)];
+  const isBx = () => S.kit === "beatbox";
+  const drumRows = () => isBx() ? S.bx : [S.rows[2], S.rows[3], S.rows[4]];
+  const rowArr = r => r < 2 ? S.rows[r] : drumRows()[r - 2];
   // chord rhythms: hits in the bar + how they sound (arp: up | updown | alberti)
   const RHY = {
     sustain: ["Held chords", M => ({ h: [0] })], quarters: ["Beat pulse", M => ({ h: PB(M) })], eighths: ["Eighth-note pulse", M => ({ h: rng(M.n, 2) })],
@@ -240,11 +249,12 @@
     trap: ["Trap", { ci: "pad", bi: "b808", kit: "k808", rhythm: "sustain", bass: "root", drums: "trap", voicing: "open", bpm: 140, swing: 0 }],
     synthwave: ["Synthwave", { ci: "pad", bi: "synth", kit: "k808", rhythm: "sustain", bass: "octave", drums: "four", voicing: "open", bpm: 108, swing: 0 }],
     waltz: ["Waltz", { ci: "piano", bi: "upright", kit: "ride", rhythm: "oompah", bass: "root", drums: "waltz", voicing: "close", bpm: 132, swing: 0, meter: "3/4" }],
+    beatbox: ["Beatbox", { ci: "epiano", bi: "synth", kit: "beatbox", rhythm: "sustain", bass: "pulse", drums: "hiphop", voicing: "drop2", bpm: 90, swing: 0 }],
     marimba: ["Marimba groove (6/8)", { ci: "marimba", bi: "b808", kit: "k808", rhythm: "arp", bass: "r5", drums: "four", voicing: "close", bpm: 96, swing: 0, meter: "6/8" }] };
   const PKIT = { rock: "rock", pop: "pop", four: "pop", hiphop: "rock", trap: "k808", funk: "rock", bossa: "rim", reggae: "rim", ballad: "ride", waltz: "rock", samba: "samba", chip: "chip", off: "rock" };
 
   // ---------- state ----------
-  const S = { tonic: "C", mode: "major", conv: "classical", meter: "4/4", bpm: 96, smooth: true, voicing: "close", ci: "epiano", bi: "ebass", kit: "pop", style: "", rhythm: "push", bass: "pulse", drums: "pop", arp: "", bt: "root", swing: 0, vol: { C: 70, B: 85, D: 65, R: 20 }, loop: true, ch: [], rows: [[], [], [], [], []], edited: {} };
+  const S = { tonic: "C", mode: "major", conv: "classical", meter: "4/4", bpm: 96, smooth: true, voicing: "close", ci: "epiano", bi: "ebass", kit: "pop", style: "", rhythm: "push", bass: "pulse", drums: "pop", arp: "", bt: "root", swing: 0, vol: { C: 70, B: 85, D: 65, R: 20 }, dist: 0, loop: true, ch: [], rows: [[], [], [], [], []], bx: [[], [], [], [], [], [], [], []], edited: {} };
   let sel = -1, tab = 0;
   const M = () => METERS[S.meter];
   const barBeats = () => M().n / 4;
@@ -252,7 +262,7 @@
     const m = M();
     if (which.includes("C")) { const r = RHY[S.rhythm][1](m, S.meter); S.rows[0] = r.h; S.arp = r.arp || ""; S.edited.C = 0; }
     if (which.includes("B")) { const b = BASS[S.bass][1](m); S.rows[1] = b.h; S.bt = b.t || "root"; S.edited.B = 0; }
-    if (which.includes("D")) { const d = drumLanes(S.drums, S.meter); S.rows[2] = d[0]; S.rows[3] = d[1]; S.rows[4] = d[2]; S.edited.D = 0; }
+    if (which.includes("D")) { const d = drumLanes(S.drums, S.meter); S.rows[2] = d[0]; S.rows[3] = d[1]; S.rows[4] = d[2]; S.bx = toBx(d[0], d[1], d[2]); S.edited.D = 0; }
   }
   const entry = id => { for (const [, l] of PAL[S.mode]) { const e = l.find(x => x.id === id); if (e) return e; } return null; };
   const newChord = (id, o = {}) => Object.assign({ id, ext: "triad", inv: 0, beats: barBeats(), voicing: "" }, o);
@@ -412,8 +422,18 @@
     else { const chip = osc("triangle", f, 1); os = [chip]; end = env(.002, .45, 1, 1, .02, dur * .9); }   // chiptune triangle bass
     os.forEach(o => { o.start(t); o.stop(end + .05); });
   }
+  // beatbox samples (assets/audio/beatbox/): decoded once, level-matched, played round-robin through each sound's takes
+  const BXB = {}, BXR = {}; let BXP = null, DCURVE = null, DCURVEv = -1;
+  const bxUrls = () => KITS.beatbox[1].flatMap(([, k]) => { const [, f, n] = k.split(":"); return +n ? Array.from({ length: +n }, (_, i) => `assets/audio/beatbox/${f}-${i + 1}.wav`) : [`assets/audio/beatbox/${f}.wav`]; });
+  const bxLevel = b => { const d = b.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } } const r = n ? Math.sqrt(ss / n) : .1; return Math.min(.14 / Math.max(r, 1e-4), .95 / Math.max(pk, 1e-4)); };
+  function bxLoad() { if (BXP) return BXP; const C = window.AudioContext || window.webkitAudioContext; const ctx = AC && AC.decodeAudioData && !(AC instanceof (window.OfflineAudioContext || Object)) ? AC : new C();
+    BXP = Promise.all(bxUrls().map(u => fetch(u).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(a => new Promise((ok, no) => ctx.decodeAudioData(a, ok, no))).then(b => { b._lv = bxLevel(b); BXB[u] = b; }).catch(() => {}))); return BXP; }
+  function bxCurve() { if (DCURVEv === S.dist) return DCURVE; const k = S.dist / 100 * 60, c = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; c[i] = k ? (1 + k) * x / (1 + k * Math.abs(x)) / (1 + k * .04) : x; } DCURVEv = S.dist; return DCURVE = c; }
   function drum(kind, t, v) {
     const g = AC.createGain(); g.connect(BUS.D);
+    if (kind.startsWith("bx:")) { const [, f, n] = kind.split(":"), i = BXR[f] = ((BXR[f] || 0) + 1) % (+n || 1), u = +n ? `assets/audio/beatbox/${f}-${i + 1}.wav` : `assets/audio/beatbox/${f}.wav`, b = BXB[u]; if (!b) return;
+      const src = AC.createBufferSource(); src.buffer = b; g.gain.value = b._lv * (.55 + .45 * v) * 1.3;
+      if (S.dist) { const ws = AC.createWaveShaper(); ws.curve = bxCurve(); src.connect(ws); ws.connect(g); } else src.connect(g); src.start(t); return; }
     const nz = (type, f, len, a, q) => { const n = AC.createBufferSource(), fl = AC.createBiquadFilter(), ng = AC.createGain(); n.buffer = NZ; fl.type = type; fl.frequency.value = f; if (q) fl.Q.value = q; ng.gain.setValueAtTime(a * v, t); ng.gain.exponentialRampToValueAtTime(.001, t + len); n.connect(fl); fl.connect(ng); ng.connect(g); n.start(t, Math.random() * .5); n.stop(t + len + .02); };
     const osc = (f0, f1, len, a, type) => { const o = AC.createOscillator(), og = AC.createGain(); if (type) o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len * .5); og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(a * v, t + .002); og.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(og); og.connect(g); o.start(t); o.stop(t + len + .02); };
     if (kind === "k") osc(150, 45, .42, .95);
@@ -466,7 +486,7 @@
       g0 += len;
     });
     const total = g0, lanes = KITS[S.kit][1];
-    for (let gg = 0; gg < total; gg++) { const p = gg % n; [2, 3, 4].forEach((r, li) => { if (S.rows[r].includes(p)) ev.push({ t: at(gg), w: "d", k: lanes[li][1], v: acc(p) }); }); }
+    const dr = drumRows(); for (let gg = 0; gg < total; gg++) { const p = gg % n; dr.forEach((row, li) => { if (row.includes(p)) ev.push({ t: at(gg), w: "d", k: lanes[li][1], v: acc(p) }); }); }
     return { len: total * st, ev: ev.sort((a, b) => a.t - b.t), marks, V, st };
   }
   function fire(e, t) {
@@ -479,7 +499,7 @@
   let playing = false, timer = 0, raf = 0, pass = null, passT = 0, idx = 0, cur = -1, horizon = 0;
   function startPass(t) { pass = events(); passT = t; idx = 0; }
   function refresh() { if (!playing || !pass) return; pass = events(); idx = pass.ev.findIndex(e => passT + e.t >= horizon); if (idx < 0) idx = pass.ev.length; }
-  function start() { if (!S.ch.length) { status("Add some chords first."); return; } if (!ac()) return; mix(); playing = true; $("play").textContent = "■ Stop"; startPass(AC.currentTime + .08); timer = setInterval(tick, 25); raf = requestAnimationFrame(follow); }
+  function start() { if (!S.ch.length) { status("Add some chords first."); return; } if (!ac()) return; if (isBx() && !BXP) { status("Loading the beatbox sounds…"); bxLoad().then(() => { status(""); if (!playing) start(); }); return; } mix(); playing = true; $("play").textContent = "■ Stop"; startPass(AC.currentTime + .08); timer = setInterval(tick, 25); raf = requestAnimationFrame(follow); }
   function stop() { playing = false; $("play").textContent = "▶ Play"; clearInterval(timer); cancelAnimationFrame(raf); if (AC) { const g = BUS.C, b = BUS.B, d = BUS.D; [g, b, d].forEach(x => { x.gain.cancelScheduledValues(AC.currentTime); x.gain.setTargetAtTime(0, AC.currentTime, .04); }); setTimeout(() => { if (!playing) { const nb = { C: AC.createGain(), B: AC.createGain(), D: AC.createGain() }; [g, b, d].forEach(x => x.disconnect()); BUS.C = nb.C; BUS.B = nb.B; BUS.D = nb.D; nb.C.connect(OUT); nb.B.connect(OUT); nb.D.connect(BUS.comp); mix(); } }, 300); } setCur(-1); playhead(-1); status(""); }
   function tick() {
     horizon = AC.currentTime + .2;
@@ -559,7 +579,7 @@
     const m = M(), lanes = [["Chords", "c"], ["Bass", "b"], ...KITS[S.kit][1].map(([l]) => [l, ""])];
     $("grid").style.setProperty("--n", m.n);
     $("grid").innerHTML = `<span class="gl" aria-hidden="true">Count</span>` + rng(m.n, 1).map(p => `<span class="cnt${m.beats.includes(p) ? " bt" : ""}" data-col="${p}" aria-hidden="true">${countOf(m, p)}</span>`).join("")
-      + lanes.map(([l, cl], r) => `<span class="gl${cl === "b" ? " bass" : ""}">${l}</span>` + rng(m.n, 1).map(p => `<button type="button" class="cell${cl ? " " + cl : ""}${m.felt.includes(p) ? " ft" : ""}" data-row="${r}" data-col="${p}" aria-pressed="${S.rows[r].includes(p)}" aria-label="${l}, ${m.beats.includes(p) ? "beat " + countOf(m, p) : "pulse " + (p + 1)}"></button>`).join("")).join("");
+      + lanes.map(([l, cl], r) => `<span class="gl${cl === "b" ? " bass" : ""}">${l}</span>` + rng(m.n, 1).map(p => `<button type="button" class="cell${cl ? " " + cl : ""}${m.felt.includes(p) ? " ft" : ""}" data-row="${r}" data-col="${p}" aria-pressed="${rowArr(r).includes(p)}" aria-label="${l}, ${m.beats.includes(p) ? "beat " + countOf(m, p) : "pulse " + (p + 1)}"></button>`).join("")).join("");
   }
   function syncControls() {
     $("tonic").value = S.tonic; $("mode").value = S.mode; $("conv").value = S.conv; $("meter").value = S.meter; $("bpm").value = S.bpm; $("bpmO").textContent = S.bpm;
@@ -567,6 +587,7 @@
     fillSel("rhythm", RHY, S.rhythm, S.edited.C); fillSel("bass", BASS, S.bass, S.edited.B); fillSel("drums", DR, S.drums, S.edited.D);
     $("swing").value = S.swing; $("swingO").textContent = S.swing + "%"; $("smooth").setAttribute("aria-pressed", S.smooth); $("convL").hidden = S.mode !== "minor";
     [["vC", "C"], ["vB", "B"], ["vD", "D"], ["space", "R"]].forEach(([id, k]) => $(id).value = S.vol[k]);
+    $("distL").hidden = !isBx(); $("dist").value = S.dist; $("distO").textContent = S.dist; if (isBx()) bxLoad();
     drawStyles(); drawGrid();
   }
   function setMode(m) {
@@ -587,7 +608,7 @@
     if (!playing) start();
   }
   // ---------- link state ----------
-  function hashState() { return { v: 2, t: S.tonic, m: S.mode, cv: S.conv, mt: S.meter, b: S.bpm, sm: S.smooth ? 1 : 0, vo: S.voicing, ci: S.ci, bi: S.bi, kit: S.kit, st: S.style, r: S.rhythm, bs: S.bass, d: S.drums, ar: S.arp, bt: S.bt, sw: S.swing, rw: S.rows, ed: S.edited, c: S.ch.map(c => [c.id, c.ext, c.inv, c.beats, c.voicing]) }; }
+  function hashState() { return { v: 2, t: S.tonic, m: S.mode, cv: S.conv, mt: S.meter, b: S.bpm, sm: S.smooth ? 1 : 0, vo: S.voicing, ci: S.ci, bi: S.bi, kit: S.kit, st: S.style, r: S.rhythm, bs: S.bass, d: S.drums, ar: S.arp, bt: S.bt, sw: S.swing, rw: S.rows, ...(isBx() ? { bx: S.bx, ds: S.dist } : {}), ed: S.edited, c: S.ch.map(c => [c.id, c.ext, c.inv, c.beats, c.voicing]) }; }
   function saveHash() { try { history.replaceState(null, "", "#p=" + encodeURIComponent(JSON.stringify(hashState()))); } catch (e) {} }
   function loadHash() {
     try { const m = /#p=(.*)$/.exec(location.hash); if (!m) return false; const h = JSON.parse(decodeURIComponent(m[1]));
@@ -597,6 +618,8 @@
       S.kit = KITS[h.kit] ? h.kit : PKIT[S.drums] || "rock";
       genRows();
       if (Array.isArray(h.rw) && h.rw.length === 5) { S.rows = h.rw.map(r => (r || []).filter(p => p >= 0 && p < M().n)); S.edited = h.ed || {}; if (h.ar != null) S.arp = h.ar; if (h.bt) S.bt = h.bt; }
+      if (Array.isArray(h.bx) && h.bx.length === 8) S.bx = h.bx.map(r => (r || []).filter(p => p >= 0 && p < M().n)); else S.bx = toBx(S.rows[2], S.rows[3], S.rows[4]);
+      S.dist = Math.max(0, Math.min(100, +h.ds || 0));
       S.ch = (h.c || []).map(([id, ext, inv, beats, voicing]) => ({ id, ext: ext || "triad", inv: inv || 0, beats: beats || barBeats(), voicing: voicing || "" })).filter(c => entry(c.id)); return true; } catch (e) { return false; }
   }
   function preset(k) {
@@ -618,8 +641,11 @@
   $("preset").onchange = e => { if (e.target.value) preset(e.target.value); e.target.value = ""; };
   $("styles").onclick = e => { const b = e.target.closest("[data-style]"); if (b) applyStyle(b.dataset.style); };
   $("tabs").onclick = e => { const b = e.target.closest("[data-tab]"); if (!b) return; tab = +b.dataset.tab; drawPalette(); const f = $("tabs").querySelector(`[data-tab="${tab}"]`); if (f) f.focus(); };
-  const pick = (id, key, regen) => $(id).onchange = e => { if (e.target.value === "__c") return; S[key] = e.target.value; S.style = ""; if (regen) genRows(regen); if (id === "drums") S.kit = PKIT[S.drums] || S.kit; syncControls(); drawTable(); saveHash(); refresh(); };
-  pick("voicing", "voicing"); pick("ci", "ci"); pick("bi", "bi"); pick("rhythm", "rhythm", "C"); pick("bass", "bass", "B"); pick("drums", "drums", "D"); pick("kit", "kit");
+  const pick = (id, key, regen) => $(id).onchange = e => { if (e.target.value === "__c") return; S[key] = e.target.value; S.style = ""; if (regen) genRows(regen); if (id === "drums" && !isBx()) S.kit = PKIT[S.drums] || S.kit; syncControls(); drawTable(); saveHash(); refresh(); };
+  pick("voicing", "voicing"); pick("ci", "ci"); pick("bi", "bi"); pick("rhythm", "rhythm", "C"); pick("bass", "bass", "B"); pick("drums", "drums", "D");
+  $("kit").onchange = e => { const was = isBx(); if (was) [S.rows[2], S.rows[3], S.rows[4]] = fromBx(S.bx); S.kit = e.target.value; if (isBx() && !was) S.bx = toBx(S.rows[2], S.rows[3], S.rows[4]); S.style = "";
+    syncControls(); saveHash(); if (isBx()) { if (playing) bxLoad().then(refresh); status("Beatbox: eight rows, one sound per box. Turning on a sound in a box replaces the one that was there."); } else refresh(); };
+  $("dist").oninput = e => { S.dist = +e.target.value; $("distO").textContent = S.dist; saveHash(); };
   $("swing").oninput = e => { S.swing = +e.target.value; $("swingO").textContent = S.swing + "%"; saveHash(); refresh(); };
   [["vC", "C"], ["vB", "B"], ["vD", "D"], ["space", "R"]].forEach(([id, k]) => $(id).oninput = e => { S.vol[k] = +e.target.value; mix(); });
   $("smooth").onclick = e => { S.smooth = !S.smooth; e.currentTarget.setAttribute("aria-pressed", S.smooth); drawTable(); saveHash(); refresh(); };
@@ -627,7 +653,8 @@
   $("clear").onclick = () => { S.ch = []; sel = -1; drawProg(); if (playing) stop(); };
   $("share").onclick = async () => { saveHash(); try { await navigator.clipboard.writeText(location.href); status("Link copied: it opens this groove with these settings."); } catch (e) { status("Copy the address from your browser's address bar to share this groove."); } };
   $("play").onclick = () => playing ? stop() : start();
-  $("grid").addEventListener("click", e => { const b = e.target.closest("[data-row]"); if (!b) return; const r = +b.dataset.row, p = +b.dataset.col, a = S.rows[r], j = a.indexOf(p);
+  $("grid").addEventListener("click", e => { const b = e.target.closest("[data-row]"); if (!b) return; const r = +b.dataset.row, p = +b.dataset.col, a = rowArr(r), j = a.indexOf(p);
+    if (j < 0 && r >= 2 && isBx()) S.bx.forEach((o, k) => { const q = o.indexOf(p); if (o !== a && q >= 0) { o.splice(q, 1); const x = $("grid").querySelector(`[data-row="${k + 2}"][data-col="${p}"]`); if (x) x.setAttribute("aria-pressed", "false"); } });   // beatbox: one sound per box
     if (j >= 0) a.splice(j, 1); else { a.push(p); a.sort((x, y) => x - y); } b.setAttribute("aria-pressed", j < 0);
     const g = r === 0 ? "C" : r === 1 ? "B" : "D"; if (!S.edited[g]) { S.edited[g] = 1; fillSel({ C: "rhythm", B: "bass", D: "drums" }[g], { C: RHY, B: BASS, D: DR }[g], "", 1); } S.style = ""; drawStyles(); saveHash(); refresh(); });
   $("pset").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
@@ -683,6 +710,7 @@
     const was = playing; if (playing) stop();
     const save = { AC, OUT, BUS, NZ };
     try {
+      if (isBx()) await bxLoad();
       const one = events(), dur = one.len * nPass + 2.5;
       AC = new OfflineAudioContext(2, Math.ceil(44100 * dur), 44100); build();
       for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, .05 + p * one.len + e.t); } catch (x) {} });
@@ -700,6 +728,7 @@
     const nPass = +$("expN").value, btn = $("studio"); btn.disabled = true; status("Rendering the backing track…");
     const was = playing; if (playing) stop(); const save = { AC, OUT, BUS, NZ };
     try {
+      if (isBx()) await bxLoad();
       const one = events(); AC = new OfflineAudioContext(2, Math.ceil(44100 * (one.len * nPass + 2)), 44100); build();
       for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, p * one.len + e.t); } catch (x) {} });
       const buf = await AC.startRendering();

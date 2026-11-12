@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Multitrack Studio · SilverApps Interactive Music Training</title>
-<meta name="description" content="Layer tracks over a backing track: play melodies on a synth (on-screen keys, computer keyboard or MIDI keyboard), record your voice or instrument, mix, and export audio. Works with the Groove Player.">
+<meta name="description" content="Layer tracks over a backing track: play melodies on a synth (on-screen keys, computer keyboard or MIDI keyboard), record your voice or instrument, mix, and export audio. Works with the Groove Maker.">
 <link rel="stylesheet" href="assets/indie.css?v=e3c3c9b0">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
@@ -48,7 +48,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
 <main class="tool" id="main">
   <header>
     <h1>Multitrack <span>Studio</span></h1>
-    <p>Build a song in layers. Start with a backing track (send one from the <a href="chord-progression-lab.html">Groove Player</a> or open an audio file), then add tracks: play a melody on a synth with the on-screen keys, your computer keyboard or a MIDI keyboard, or record yourself through the microphone. Mix the tracks and export the result. Everything stays on your device; export your song to keep it.</p>
+    <p>Build a song in layers. Start with a backing track (send one from the <a href="groove-maker.html">Groove Maker</a> or open an audio file), then add tracks: play a melody on a synth with the on-screen keys, your computer keyboard or a MIDI keyboard, or record yourself through the microphone. Mix the tracks and export the result. Everything stays on your device; export your song to keep it.</p>
   </header>
 
   <section class="panel2" aria-labelledby="h-tr">
@@ -229,7 +229,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       <label class="fld">Volume<input type="range" data-a="vol" min="0" max="120" value="${t.vol}"></label>
       <label class="fld">Pan<input type="range" data-a="pan" min="-100" max="100" value="${t.pan}"></label>
       <button class="tbtn sm" data-a="mute" aria-pressed="${t.mute}">Mute</button><button class="tbtn sm" data-a="solo" aria-pressed="${t.solo}">Solo</button>
-      ${t.type === "synth" ? `<button class="tbtn sm" data-a="clear">Clear notes</button>` : ""}<button class="tbtn sm" data-a="del">Delete</button></div>`).join("") || `<p class="note">No tracks yet. Add a synth track or a microphone track, open an audio file, or send a progression from the Groove Player.</p>`;
+      ${t.type === "synth" ? `<button class="tbtn sm" data-a="clear">Clear notes</button>` : ""}<button class="tbtn sm" data-a="del">Delete</button></div>`).join("") || `<p class="note">No tracks yet. Add a synth track or a microphone track, open an audio file, or send a progression from the Groove Maker.</p>`;
   }
   $("tracks").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!row) return; const i = +row.dataset.i, t = P.tracks[i];
@@ -330,7 +330,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     ({ MASTER, NZ } = keep); btn.disabled = false;
   };
 
-  // ---------- incoming backing track from the Groove Player ----------
+  // ---------- incoming backing track from the Groove Maker ----------
   const idb = (mode, fn) => new Promise((ok, no) => { const r = indexedDB.open("silverapps-studio", 1); r.onupgradeneeded = () => r.result.createObjectStore("x"); r.onerror = () => no(r.error); r.onsuccess = () => { const tx = r.result.transaction("x", mode), st = tx.objectStore("x"), q = fn(st); tx.oncomplete = () => ok(q && q.result); tx.onerror = () => no(tx.error); }; });
   async function incoming() {
     try {

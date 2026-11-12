@@ -426,7 +426,7 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pbld .pb-gl { font-size: 12px; }
 .pbld .pb-lab { font-size: 13px; }
 .pbld .pb-grid-wrap { contain: inline-size; width: 100%; }
-/* Groove Player: sharp skin */
+/* Groove Maker: sharp skin */
 .pbld { --body: "Schibsted Grotesk", system-ui, sans-serif; --fi-pill: 0; font-family: var(--body); border: 2px solid var(--ink); border-radius: 0; padding: 0 10px 8px; }
 .pbld *, .pbld .pb-cell, .pbld .pb-ch, .pbld .pb-chip { border-radius: 0 !important; }
 .pbld .pb-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 -10px 8px; padding: 6px 10px 5px; background: var(--ink); color: #fff; }

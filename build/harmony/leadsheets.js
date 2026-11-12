@@ -62,7 +62,7 @@ window.FAM = (() => {
     { title: "From lead sheet to performance", kick: "Same symbols, different accompaniments", render: () => `<p>Here the melody is sung (top staff) and a pianist accompanies from the chord symbols: right-hand chords on beats 2 and 4, left-hand bass notes on 1 and 3. The chord symbols are hidden; work out which chord each beat of the piano part spells, then show them to check, with each chord's region shaded.</p>
       ${DIME.fig("singer", "Voice and piano: the accompaniment is built entirely from the lead sheet's chord symbols.")}
       <p>The <a href="piano-accompaniment-lesson.html"><b>Piano Accompaniment</b></a> lesson shows other ways to turn the same symbols into a piano part: block chords, stride, Alberti bass and an active bass line.</p>` },
-    { title: "Practice", kick: "Reading the symbols fast", render: () => `<p>The <a href="chord-figures-and-symbols.html"><b>Chord Figures and Symbols</b></a> drills practice reading chord symbols: spelling them, naming them, and hearing them. To try accompaniments yourself, put a progression into the <a href="chord-progression-lab.html"><b>Groove Player</b></a>.</p>` },
+    { title: "Practice", kick: "Reading the symbols fast", render: () => `<p>The <a href="chord-figures-and-symbols.html"><b>Chord Figures and Symbols</b></a> drills practice reading chord symbols: spelling them, naming them, and hearing them. To try accompaniments yourself, put a progression into the <a href="groove-maker.html"><b>Groove Maker</b></a>.</p>` },
   ] };
   return { key: "silverapps-leadsheets-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
 })();

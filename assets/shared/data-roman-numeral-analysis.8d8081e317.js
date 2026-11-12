@@ -196,7 +196,7 @@ window.FAM = (() => {
   function bassNote(H, c, kind) { const b = bassM(H, c); if (kind === "8") return b + 12; if (kind === "5") { const f = pcOf(H, c.tones[(c.bass + 2) % c.tones.length]); return b + (((f - b) % 12 + 12) % 12 || 12); } return b; }
 
   const pbHTML = (mode, id, trans) => `<div class="pbld" data-pb="${mode}" id="${id}"${trans ? " data-trans" : ""} role="group" aria-labelledby="${id}h">
-    <div class="pb-head"><span class="pb-title" id="${id}h">Groove Player</span><span class="pb-sub">${trans ? "same numerals, any key" : "tap chords · drag bars to reorder · tap boxes to change the beat"}</span></div>
+    <div class="pb-head"><span class="pb-title" id="${id}h">Groove Maker</span><span class="pb-sub">${trans ? "same numerals, any key" : "tap chords · drag bars to reorder · tap boxes to change the beat"}</span></div>
     <div class="pb-row pb-styles" role="group" aria-label="Style">${Object.entries(STYLES).map(([s, x]) => `<button class="lk pb-sty" data-pbstyle="${s}" aria-pressed="false">${x.name}</button>`).join("")}</div>
     <div class="pb-row pb-sets">
       <label>Meter <select data-pbmeter>${Object.keys(METERS).map(m => `<option>${m}</option>`).join("")}</select></label>
@@ -208,7 +208,7 @@ window.FAM = (() => {
     ${trans ? `<div class="pb-row pb-keys" role="group" aria-label="Key"></div>` : `${mode === "minor" ? `<div class="pb-row pb-pals" role="group" aria-label="Chord palette">${Object.entries(PALS).map(([v, n]) => `<button class="lk pb-sty" data-pbpal="${v}" aria-pressed="${v === "min"}">${n}</button>`).join("")}</div>` : ""}<div class="pb-row" role="group" aria-label="Bass tone and 7th for the next chord"><span class="pb-lab" aria-hidden="true">Bass tone:</span>${BASSN.map((n, i) => `<button class="lk" data-pbb="${i}" aria-pressed="${i === 0}">${n}</button>`).join("")}<button class="lk" data-pbs aria-pressed="false">Add 7th</button></div>
     <div class="pb-pal" role="group" aria-label="Chords in the key (tap to add)"></div>`}
     <div class="pb-prog" role="group" aria-label="Your progression, one chord per bar"></div>
-    <div class="pb-row"><button class="play pb-go" data-pbplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg><span>Play</span></button><button class="lk" data-pbloop aria-pressed="true">Loop</button>${trans ? "" : `<button class="lk" data-pbdel>Remove last</button><button class="lk" data-pbclr>Clear</button><button class="lk" data-pbreset>Example</button>`}<a class="lk pb-full" data-pbfull href="chord-progression-lab.html">Open in the full Groove Player</a></div>
+    <div class="pb-row"><button class="play pb-go" data-pbplay><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg><span>Play</span></button><button class="lk" data-pbloop aria-pressed="true">Loop</button>${trans ? "" : `<button class="lk" data-pbdel>Remove last</button><button class="lk" data-pbclr>Clear</button><button class="lk" data-pbreset>Example</button>`}<a class="lk pb-full" data-pbfull href="groove-maker.html">Open in the full Groove Maker</a></div>
     <div class="pb-grid-wrap" tabindex="0" role="region" aria-label="One-bar pattern: tap boxes to change when chords, bass and drums play"><div class="pb-grid"></div></div>
     <p class="sr" aria-live="polite" data-pblive></p></div>`;
 
@@ -303,7 +303,7 @@ window.FAM = (() => {
       if (t.matches("[data-pbci]")) C.ci = t.value; if (t.matches("[data-pbbi]")) C.bi = t.value; if (t.matches("[data-pbkit]")) { C.kit = t.value; grid(); }
       changed(); });
     box.addEventListener("input", ev => { const t = ev.target; if (t.matches("[data-pbbpm]")) { C.bpm = +t.value; $("[data-pbbpmv]").textContent = C.bpm; } if (t.matches("[data-pblvl]")) C.bassLvl = +t.value; changed(); });
-    // hand the groove to the full Groove Player page (same link format as its "Copy link")
+    // hand the groove to the full Groove Maker page (same link format as its "Copy link")
     const fullHref = () => { const st = STYLES[C.style] || STYLES.rock, seq = st.seq.join(""), bars = METERS[C.meter].n / 4;
       const P = prog(), lm = mode === "major" || P.some(e => e.d || e.c) ? "major" : "minor";
       const CH = { "♭III": "bIII", "♭VI": "bVI", "♭VII": "bVII", "♭II": "bII", "vii°/V": "vii/V" }, MI = { III: "bIII", VI: "bVI", VII: "bVII", "vii°": "vii" };
@@ -311,7 +311,7 @@ window.FAM = (() => {
       const h = { v: 2, t: k.name, m: lm, cv: curSys() === "mj" ? "pop" : "classical", mt: C.meter, b: C.bpm, sm: 1, vo: C.ci === "dist" ? "power" : "close", ci: C.ci === "eguitar" ? "pluck" : C.ci, bi: C.bi, kit: C.kit === "off" ? "rock" : C.kit, st: C.style,
         ar: st.arp ? "up" : "", bt: seq === "b" ? "root" : !seq.includes("5") ? "oct" : "alt5", sw: 0, rw: C.kit === "off" ? [C.rows[0], C.rows[1], [], [], []] : C.rows, ed: { C: 1, B: 1, D: 1 },
         c: P.map(e => [id(e), e.s ? "7" : "triad", e.b, bars, ""]) };
-      return "chord-progression-lab.html#p=" + encodeURIComponent(JSON.stringify(h)); };
+      return "groove-maker.html#p=" + encodeURIComponent(JSON.stringify(h)); };
     box.addEventListener("pointerdown", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
     box.addEventListener("focusin", ev => { const a = ev.target.closest("[data-pbfull]"); if (a) a.href = fullHref(); });
     box._redraw = draw; sets(); grid(); draw();
@@ -356,7 +356,7 @@ window.FAM = (() => {
       <h3>Build a minor-key progression</h3>
       <p>Switch the palette between <b>Minor diatonic</b>, <b>Major diatonic</b> (the parallel major) and <b>Major + chromatic numerals</b> (borrowed chords, the Neapolitan and applied dominants) and mix them in one progression. The minor palette has both chords on the 5th degree (v and V) and both on the 7th (VII and vii°), and its labels follow the numeral system chosen above. Try {rn:v} and then {rn:V} before {rn:i} to hear what the raised 7th does, or {rn:VII} against {rn:vii°}. This progression is also used in the <b>Transposition</b> step.</p>
       ${pbHTML("minor", "pbMin")}
-      <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Groove Player lets you switch between them.</p>
+      <p>Both systems agree on i, ii°, iv, v, V and vii°. Pick one and use it consistently; the Groove Maker lets you switch between them.</p>
       <h3>Chromatic numerals</h3>
       <p>Chords with notes outside the key get numerals too. An <b>accidental before the numeral</b> shows that the root is lowered (♭) or raised (♯) from the scale it's measured against; case and quality signs work as usual. (♭ means "lowered", even in sharp keys where the actual note may carry a natural.)</p>
       <p><b>Borrowed chords</b> (mode mixture) bring chords of the minor key into its parallel major. In ${kM.label}, measured against the major scale, both systems label them the same way:</p>
@@ -423,7 +423,7 @@ window.FAM = (() => {
       <li>Songs in minor keys are often charted with the minor tonic as 6- (counting from the relative major), though some players write 1- instead. Agree on which before the session.</li>
       <li>Players add their own marks for stops, rests, key changes and section names (V for verse, C for chorus, B for bridge), so charts vary a little from studio to studio.</li></ul>`
       + H.check(`In ${k.label}, what chord is 6- in Nashville numbers?`, N["6"].sym, [N["4"].sym, N["2"].sym, N["5"].sym, H.chord(H.deg(k, 6), "M").sym], "Count up six scale degrees; the minus sign means minor.", "sym"); } },
-    { title: "Try it: the Groove Player", kick: "Build, voice and groove", render: () => `<p>The full <a href="chord-progression-lab.html"><b>Groove Player</b></a> lets you build progressions from diatonic, borrowed, applied and other chromatic numerals, choose voicings (close, open, drop 2, shell, rootless, quartal, power chords, clusters), add accompaniment patterns, a bass line and a drum beat, transpose to any key with one menu, switch between the two minor-key systems, and export audio.</p>
+    { title: "Try it: the Groove Maker", kick: "Build, voice and groove", render: () => `<p>The full <a href="groove-maker.html"><b>Groove Maker</b></a> lets you build progressions from diatonic, borrowed, applied and other chromatic numerals, choose voicings (close, open, drop 2, shell, rootless, quartal, power chords, clusters), add accompaniment patterns, a bass line and a drum beat, transpose to any key with one menu, switch between the two minor-key systems, and export audio.</p>
       <p>Try this: load a preset, then change the key. The numerals stay put while every chord symbol changes. Then swap one diatonic chord for a borrowed one (IV → iv, or vi → ♭VI) and listen to the change in color.</p>` },
     { title: "Quick check", kick: "Before the drills", render: H => [0, 2, 3, 4, 6, 9].map(i => { const [q, a, w, y] = FACTS[i]; return H.check(q, a, w, y); }).join("") },
   ] };

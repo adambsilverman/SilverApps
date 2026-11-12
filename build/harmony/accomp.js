@@ -1,5 +1,5 @@
 window.FAM = (() => {
-  // ===== Understanding Piano Accompaniment: lesson only (practice: the Groove Player). Examples: Adam's settings of Brother, Can You Spare a Dime? (build/harmony/dime.js). Engine: build/harmony/engine.js =====
+  // ===== Understanding Piano Accompaniment: lesson only (practice: the Groove Maker). Examples: Adam's settings of Brother, Can You Spare a Dime? (build/harmony/dime.js). Engine: build/harmony/engine.js =====
   const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const C = s => `{sym:${s}}`;
   const SIG = { 2: -1, 5: -1, 6: -1 };   // C minor / E♭ major: letter indices (C = 0)
@@ -79,7 +79,7 @@ window.FAM = (() => {
       <li><b>Pick one pattern for a section</b> and keep it; change pattern at a new section to mark the form.</li>
       <li><b>Thin out under a busy melody</b>, and fill in when the melody holds or rests.</li>
       <li><b>Practice hands separately</b>, then together at a slow tempo.</li></ul>
-      <p>To hear these patterns with any progression, try the <a href="chord-progression-lab.html"><b>Groove Player</b></a>.</p>`
+      <p>To hear these patterns with any progression, try the <a href="groove-maker.html"><b>Groove Maker</b></a>.</p>`
       + H.check("Which pattern puts both the bass and the chords in the left hand?", "stride", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "Stride leaps between a low bass and a middle-register chord, all in the left hand.") },
   ] };
   return { key: "silverapps-accomp-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
