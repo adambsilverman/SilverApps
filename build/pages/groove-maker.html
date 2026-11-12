@@ -196,7 +196,7 @@
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Rock kit", [["Kick", "k"], ["Snare", "s"], ["Hi-hat", "h"]]], pop: ["Pop kit (clap)", [["Kick", "k"], ["Clap", "c"], ["Hi-hat", "h"]]], ride: ["Ballad kit (ride)", [["Kick", "k"], ["Snare", "s"], ["Ride", "y"]]],
     rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]],
-    beatbox: ["Beatbox (Adam)", [["Hi-hat", "bx:hihat:5"], ["Snare", "bx:snare:4"], ["Ooh", "bx:ooh:3"], ["Sweep", "bx:sweep:0"], ["Shaker", "bx:shaker:0"], ["Kick", "bx:kick:4"], ["KKhh 2", "bx:kkhh-2:0"], ["KKhh 1", "bx:kkhh-1:0"]]] };
+    beatbox: ["Beatbox", [["Hi-hat", "bx:hihat:5"], ["Snare", "bx:snare:4"], ["Ooh", "bx:ooh:3"], ["Sweep", "bx:sweep:0"], ["Shaker", "bx:shaker:0"], ["Kick", "bx:kick:4"], ["KKhh 2", "bx:kkhh-2:0"], ["KKhh 1", "bx:kkhh-1:0"]]] };
   // beatbox kit: eight rows (S.bx), one sound per box; built from the three-lane beats (kick, snare, hats) and back again
   const BXK = 5, BXS = 1, BXH = 0;
   const toBx = (lo, mid, hi) => { const bx = [[], [], [], [], [], [], [], []]; bx[BXK] = lo.slice(); bx[BXS] = mid.filter(p => !lo.includes(p)); bx[BXH] = hi.filter(p => !lo.includes(p) && !mid.includes(p)); return bx; };
