@@ -323,7 +323,10 @@ window.FAM = (() => {
       <p><b>Major</b> and <b>minor</b> scales are the two scales most of the music around us is built from. Each uses <b>seven different letter names</b> in a row (the eighth note repeats the tonic), and the two differ in where their small steps fall. The biggest difference is the <b>third note</b>: it's higher in major and lower in minor, which gives major its brighter sound and minor its darker one.</p>`
         + U.fig(staffOf(H, M, { ly: M.map(H.nm) }), "C major: C D E F G A B C.", pl(M))
         + U.fig(staffOf(H, m, { ly: m.map(H.nm) }), "C minor (natural minor): C D E♭ F G A♭ B♭ C. Same tonic, but the 3rd, 6th and 7th notes are lower.", pl(m))
-        + `<p>What makes a scale major or minor is its pattern of <b>half steps</b> and <b>whole steps</b>, the distances between neighboring notes. The next step shows what those are.</p>`;
+        + `<p>What makes a scale major or minor is its pattern of <b>half steps</b> and <b>whole steps</b>, the distances between neighboring notes. The next step shows what those are.</p>
+      <h3>Scales in real songs</h3>
+      <figure class="lfig"><video controls preload="metadata" playsinline src="assets/video/Scales.mp4" style="width:100%;height:auto;border-radius:8px;background:#000"><track kind="captions" srclang="en" label="English" src="assets/video/scales.vtt" default></video>
+      <figcaption>Scales hide inside songs, but rarely as a tidy climb from do to do: a descending scale opens “Joy to the World,” Katy Perry's “Firework” runs from mi up past the octave to sol, and the jagged melody of Justin Bieber's “Stay” uses five notes of the D♭ major scale, with the chords filling in the rest.</figcaption></figure>`;
     } },
     { title: "Half steps and whole steps", kick: "The building blocks", render: (H, k, U) => `<p>A <b>half step</b> (semitone) is the distance from one key on the piano to the very next one, black or white. A <b>whole step</b> (tone) is two half steps. Between the white keys, E–F and B–C are half steps; all the other neighbors are whole steps.</p>`
       + U.fig(staffOf(H, ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"].map(H.parse), { ly: ["C", "D", "E", "F", "G", "A", "B", "C"] }), "The white notes from C to C: W W H W W W H (half steps E–F and B–C).", { play: { chords: [60, 62, 64, 65, 67, 69, 71, 72].map(m => [m]), gap: .4 } }) },
