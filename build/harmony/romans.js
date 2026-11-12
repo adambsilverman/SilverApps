@@ -85,6 +85,36 @@ window.FAM = (() => {
   }
 
   const sf = (H, U, k, toks, cap, o) => H.satbFig(U, k, toks, cap, o);
+  // "What Roman numerals show": a chord on every degree of the scale, numerals below; any key, major or minor, triads or 7ths
+  const RS_KEYS = { major: ["C", "G", "D", "A", "E", "B", "F♯", "C♯", "F", "B♭", "E♭", "A♭", "D♭", "G♭", "C♭"], minor: ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "A♯", "D", "G", "C", "F", "B♭", "E♭", "A♭"] };
+  const RS = { tonic: null, mode: null, sev: false };
+  function rsChords(H) {
+    const k = H.key(RS.tonic, RS.mode), t = k.tonic, t0 = H.N(t.l, t.a, "ABab".includes(t.l) ? 3 : 4);
+    return { k, ch: [1, 2, 3, 4, 5, 6, 7, 8].map(d => { const c = H.tok(k, String(d > 7 ? 1 : d) + (RS.sev ? "7" : "")), out = [];
+      c.tones.forEach((x, i) => { let n = H.N(x.l, x.a, t0.o); while (H.midi(n) < (i ? H.midi(out[i - 1]) + 1 : H.midi(t0) + (d > 7 ? 12 : 0))) n = H.N(n.l, n.a, n.o + 1); out.push(n); });
+      return { c, notes: out }; }) };
+  }
+  function rsSpec(H) { const { k, ch } = rsChords(H);
+    return { type: "score", clefs: ["treble"], time: null, vf: k.vf, sig: k.sig, bpm: 90, final: false, minBar: 60, label: `${k.label}: ${RS.sev ? "seventh chords" : "triads"} on each scale degree: ${ch.map(x => x.c.rn).join(", ")}`, bars: [{ t: [ch.map(x => ({ k: x.notes.map(H.nmO), d: "w", lab: x.c.rn }))] }] }; }
+  const rsHTML = () => `<div class="toy" id="rsBox"><div class="toy-row">
+      <div class="toy-row" role="group" aria-label="Major or minor">${["major", "minor"].map(m => `<button class="play" data-rsm="${m}" aria-pressed="${RS.mode === m}">${m}</button>`).join("")}</div>
+      <label>Key <select id="rsKey">${RS_KEYS[RS.mode].map(n => `<option ${n === RS.tonic ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <div class="toy-row" role="group" aria-label="Chord size">${[[false, "Triads"], [true, "7th chords"]].map(([v, l]) => `<button class="play" data-rss="${v}" aria-pressed="${RS.sev === v}">${l}</button>`).join("")}</div>
+      <button class="play" id="rsPlay">▶ Play</button></div>
+    <div class="staff" id="rsStaff"></div><p class="small" id="rsCap" aria-live="polite" style="margin:0"></p></div>`;
+  function rsWire(root, H, k, tools) {
+    const box = root.querySelector("#rsBox"); if (!box) return;
+    const draw = () => { tools.drawStaff(box.querySelector("#rsStaff"), rsSpec(H)); const { k: kk, ch } = rsChords(H);
+      box.querySelector("#rsCap").innerHTML = `${kk.label}, ${RS.sev ? "7th chords" : "triads"}: ${ch.slice(0, 7).map(x => H.rnHTML(x.c.rn)).join(" ")}${RS.mode === "minor" ? ". In minor, V and vii use the raised 7th (the leading tone), as in harmonic minor." : "."}`; };
+    box.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.rsm) { RS.mode = b.dataset.rsm; if (!RS_KEYS[RS.mode].includes(RS.tonic)) RS.tonic = RS.mode === "minor" ? "A" : "C"; const sel = box.querySelector("#rsKey"); sel.innerHTML = RS_KEYS[RS.mode].map(n => `<option ${n === RS.tonic ? "selected" : ""}>${n}</option>`).join(""); }
+      if (b.dataset.rss) RS.sev = b.dataset.rss === "true";
+      box.querySelectorAll("[data-rsm]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.rsm === RS.mode))); box.querySelectorAll("[data-rss]").forEach(x => x.setAttribute("aria-pressed", String((x.dataset.rss === "true") === RS.sev)));
+      if (b.id === "rsPlay") { tools.play({ chords: rsChords(H).ch.map(x => x.notes.map(H.midi)), gap: .75 }); return; }
+      draw(); });
+    box.querySelector("#rsKey").onchange = e => { RS.tonic = e.target.value; draw(); };
+    draw();
+  }
   // a Nashville chord chart: lines of bars; "4 5⁷" = split bar (underlined), "◇4" = diamond (let ring)
   function nchart(lines, head, f = x => x) {
     const bar = b => { const parts = b.split(" "), split = parts.length > 1;
@@ -326,12 +356,16 @@ window.FAM = (() => {
   const lesson = { defMode: "major", steps: [
     { title: "What Roman numerals show", kick: "Chords by scale degree", keyed: "both", render: (H, k, U) => {
       const ds = [1, 2, 3, 4, 5, 6, 7].map(d => k.mode === "minor" && d === 7 ? H.tok(k, "7") : H.tok(k, String(d)));
-      return `<p><b>Roman numeral analysis</b> labels each chord by the <b>scale degree of its root</b> in the current key. The numeral's form shows the chord's quality:</p>
+      RS.tonic = k.name; RS.mode = k.mode;
+      return `<p>Build a chord on every note of a scale, stacking thirds with notes from the key, and you get the key's family of <b>diatonic chords</b>. Each gets a <b>Roman numeral</b> for the scale degree it's built on. Try any key, major or minor, with triads or 7th chords:</p>
+      ${rsHTML()}
+      <p><b>Roman numeral analysis</b> labels each chord by the <b>scale degree of its root</b> in the current key. The numeral's form shows the chord's quality:</p>
       <ul><li><b>Uppercase</b> (I, IV, V): major triad. <b>Lowercase</b> (ii, iii, vi): minor triad.</li><li><b>°</b> (vii°): diminished triad. <b>+</b> (III+): augmented triad.</li></ul>
       ${tbl(`Triads in ${k.label}`, ["Degree", "Numeral", "Chord", "Notes"], ds.map((c, i) => [i + 1, `{rn:${c.rn}}`, `{sym:${c.sym}}`, c.tones.map(H.nm).join("–")]))}
       ${sf(H, U, k, k.mode === "major" ? ["1", "4", "2", "5", "6", "3", "4", "5", "1"] : ["1", "4", "26", "5", "6", "4", "5", "1"], "Diatonic chords in four voices", { small: false })}
       <p>In <b>major</b> keys the pattern is always I ii iii IV V vi vii°. ${k.mode === "minor" ? "In <b>minor</b> it depends on which form of the scale a chord uses; the raised 7th degree makes V major and vii° diminished, as here. (See <i>Numerals in minor</i>.)" : "Switch to minor above to see how the pattern changes."}</p>`
-      + H.check(`In ${k.label}, what is {sym:${ds[3].sym}}?`, ds[3].rn, ds.filter((_, i) => i !== 3).map(c => c.rn), "It's built on the 4th scale degree.", "rn"); } },
+      + H.check(`In ${k.label}, what is {sym:${ds[3].sym}}?`, ds[3].rn, ds.filter((_, i) => i !== 3).map(c => c.rn), "It's built on the 4th scale degree.", "rn"); },
+      after: (root, H, k, tools) => rsWire(root, H, k, tools) },
     { title: "Why numerals?", kick: "Relationships, not letter names", render: () => `<p>A chord symbol such as {sym:G7} tells a player <i>what</i> to play. A Roman numeral tells a musician <i>what the chord does</i> in the key: {sym:G7} is {rn:V7} in C major (it pulls home to C), {rn:IV7} in D major, and {rn:♭VII7} in A major. The numeral captures the relationship to the tonic, and that relationship is what we hear as <b>function</b>.</p>
       ${tbl("Three ways to write the same progression in C major", ["System", "Progression", "Used by"], [["Chord symbols", "{sym:C} – {sym:Am} – {sym:F} – {sym:G7}", "lead sheets, guitar charts"], ["Roman numerals", "{rn:I} – {rn:vi} – {rn:IV} – {rn:V7}", "analysis in every style"], ["Nashville numbers", "1 – 6- – 4 – 5⁷", "session players, especially in country music (see the next steps)"]])}
       <ul><li>Numerals make patterns visible: a cadence, a circle of fifths, or a loop looks the same in every key.</li><li>They help you hear: once you know the sound of {rn:IV}–{rn:V}–{rn:I}, you can recognize it anywhere.</li><li>They make transposing, improvising and arranging faster.</li></ul>
