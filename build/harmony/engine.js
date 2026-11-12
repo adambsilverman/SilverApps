@@ -277,7 +277,7 @@
   //         bars: [ { t: [voice, voice?], b: [voice, voice?] } ], final: true, label }
   // voice = [ note ]; note = { k: ["C5"] (or [] for a rest), d: "q" | "h" | "w" | "8" | "16" (+ "d" for each dot),
   //   tie, lab (under the lowest staff), sym (chord symbol above), tag (text above), n (number above), ly (lyric),
-  //   hl (circle the note), hlc (shade the whole column), bs: "x" (start a bracket labeled x), be (end the bracket) }
+  //   hl (circle the note), hlc (shade the whole column), bs: "x" (start a bracket labeled x), be (end the bracket), hs (half-step wedge to the next note) }
   const DURQ = { w: 4, h: 2, q: 1, "8": .5, "16": .25 };
   const durOf = d => { const m = /^(w|h|q|8|16)(d*)$/.exec(d); let b = DURQ[m[1]], add = b; for (let i = 0; i < m[2].length; i++) { add /= 2; b += add; } return b; };
   const staffIds = o => o.ids || (o.clefs || ["treble", "bass"]).map(c => c === "bass" ? "b" : "t");   // o.ids lets two staves share a clef (e.g. two percussion staves)
@@ -476,6 +476,10 @@
         if (L.n.ex) { const last = lyr[Math.max(i, j - 1)]; mk("line", { x1: x1 + 2, x2: last.x + 8, y1: L.y + 1, y2: L.y + 1, stroke: ink, "stroke-width": 1.2 }, svg); }
       }
     });
+    // half-step wedges: n.hs on a note draws a caret from its notehead to the next note's on the same staff and row
+    lyr.forEach((L, i) => { if (!L.n.hs) return; const N = lyr.slice(i + 1).find(x => x.si === L.si); if (!N || N.ri !== L.ri) return;
+      try { const y1 = Math.min(...L.sn.getYs()), y2 = Math.min(...N.sn.getYs()), top = Math.min(y1, y2) - 16;
+        mk("path", { d: `M${L.x + 2} ${y1 - 8} L${(L.x + N.x) / 2} ${top} L${N.x + 4} ${y2 - 9}`, fill: "none", stroke: ink, "stroke-width": 1.6, "stroke-linejoin": "round" }, svg); } catch (e) {} });
     const slOpen = {};
     lyr.forEach(L => { if (L.n.sls) slOpen[L.si] = { sn: L.sn, n: L.n }; if (L.n.sle && slOpen[L.si]) { try { const S0 = slOpen[L.si];
         // a slur goes on the notehead side when all stems agree, above when they're mixed; n.slStem on the first note puts it on the stem side (a "wrong" example)

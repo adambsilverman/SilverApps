@@ -19,6 +19,9 @@ window.FAM = (() => {
   const sigCount = k => { const n = k.scale.filter(x => x.a).length, sh = k.scale.some(x => x.a > 0); return { n, sh, txt: n ? `${n} ${sh ? "sharp" : "flat"}${n > 1 ? "s" : ""}` : "no sharps or flats" }; };
   const sigNames = k => { const c = sigCount(k); return (c.sh ? SHARPS : FLATS).slice(0, c.n).map(l => l + (c.sh ? "♯" : "♭")); };
   const staffOf = (H, notes, o = {}) => ({ type: "score", clefs: ["treble"], time: null, vf: o.vf || "C", sig: o.sig || {}, bpm: 150, final: false, minBar: 70, bars: (o.split ? [notes.slice(0, o.split), notes.slice(o.split)] : [notes]).map((ns, j) => ({ t: [ns.map((n, i) => Object.assign({ k: [H.nmO(n)], d: "w" }, o.ly ? { ly: o.ly[i + (j ? o.split : 0)] } : {}))] })), rowW: o.split ? 560 : undefined });
+  // mark a major scale's tetrachords (brackets over 1–4 and 5–8) and half steps (wedges over 3–4 and 7–8)
+  const tetra = sp => { const v = sp.bars[0].t[0]; Object.assign(v[0], { bs: "lower tetrachord" }); Object.assign(v[3], { be: "lower tetrachord" }); Object.assign(v[4], { bs: "upper tetrachord" }); Object.assign(v[7], { be: "upper tetrachord" });
+    v[2].hs = v[6].hs = true; return sp; };
   const sigStaff = (k, clef = "treble") => ({ type: "score", clefs: [clef], time: null, vf: k.vf, sig: k.sig, final: false, minBar: 30, scale: 1.15, bars: [{ [clef === "bass" ? "b" : "t"]: [[{ k: [], d: "w", ghost: true }]] }] });
   const steps = (H, ns) => ns.slice(1).map((n, i) => { const d = H.midi(n) - H.midi(ns[i]); return d === 1 ? "H" : d === 2 ? "W" : "W+H"; });
   const spell = (H, ns) => ns.map(H.nm).join(" ");
@@ -145,7 +148,7 @@ window.FAM = (() => {
   // counterclockwise of the top through five steps clockwise) holds the seven notes of the key at the top.
   const COF_MAJ = ["C", "G", "D", "A", "E", "B", "F♯", "D♭", "A♭", "E♭", "B♭", "F"], COF_MIN = ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "B♭", "F", "C", "G", "D"];
   const COF_SH = { 5: ["B", "G♯"], 6: ["F♯", "D♯"], 7: ["C♯", "A♯"] }, COF_FL = { 5: ["C♭", "A♭"], 6: ["G♭", "E♭"], 7: ["D♭", "B♭"] };
-  const COF = { pos: 0, flat: false, minor: false, ang: 0, raf: 0 };
+  const COF = { pos: 0, flat: false, minor: false, ang: 0, raf: 0, hot: -1, tm: [] };   // hot: the circle position of the note now sounding (Play the scale)
   const cofMajor = (p = COF.pos) => COF_SH[p] ? (COF.flat ? COF_FL : COF_SH)[p][0] : COF_MAJ[p];
   const cofFlatKey = () => COF.pos >= 7 || (COF_SH[COF.pos] && COF.flat);   // the top key's spelling side
   const cofLabel = (p, minor) => { const flatSide = cofFlatKey(); if (COF_SH[p]) return (flatSide ? COF_FL : COF_SH)[p][minor ? 1 : 0]; return minor ? COF_MIN[p] : COF_MAJ[p]; };
@@ -161,11 +164,11 @@ window.FAM = (() => {
       const top = rel(p - COF.pos) === 0, inWin = [11, 0, 1, 2, 3, 4, 5].includes(rel(p - COF.pos));
       const [x, y] = P(p, R1), [xi, yi] = P(p, R2), M = cofLabel(p, false), m = cofLabel(p, true);
       const k = H.key(M, "major"), c = sigCount(k);
-      const majOn = top && !COF.minor, minOn = top && COF.minor;
+      const majOn = top && !COF.minor, minOn = top && COF.minor, hot = p === COF.hot, HOT = "#1F5FA8";
       g += `<g class="cofk" role="button" tabindex="0" data-cof="${p}" aria-label="${H.speak ? H.speak(M) : M} major and ${H.speak ? H.speak(m) : m} minor, ${c.txt}: rotate to the top">
-        <circle cx="${x}" cy="${y}" r="24" fill="${majOn ? RED : "var(--fi-card, #fff)"}" stroke="${inWin ? "#B07A12" : "currentColor"}" stroke-opacity="${inWin ? 1 : .35}" stroke-width="${top ? 3 : 1.5}"/>
-        <text x="${x}" y="${y + 2}" text-anchor="middle" font-size="17" font-weight="700" fill="${majOn ? "#fff" : "currentColor"}">${M}</text>
-        <text x="${x}" y="${y + 16}" text-anchor="middle" font-size="10.5" fill="${majOn ? "#fff" : "currentColor"}" opacity=".85">${c.n ? c.n + (c.sh ? "♯" : "♭") : "0"}</text>
+        <circle cx="${x}" cy="${y}" r="${hot ? 27 : 24}" fill="${hot ? HOT : majOn ? RED : "var(--fi-card, #fff)"}" stroke="${hot ? HOT : inWin ? "#B07A12" : "currentColor"}" stroke-opacity="${inWin || hot ? 1 : .35}" stroke-width="${top ? 3 : 1.5}"/>
+        <text x="${x}" y="${y + 2}" text-anchor="middle" font-size="17" font-weight="700" fill="${majOn || hot ? "#fff" : "currentColor"}">${M}</text>
+        <text x="${x}" y="${y + 16}" text-anchor="middle" font-size="10.5" fill="${majOn || hot ? "#fff" : "currentColor"}" opacity=".85">${c.n ? c.n + (c.sh ? "♯" : "♭") : "0"}</text>
         <circle cx="${xi}" cy="${yi}" r="17" fill="${minOn ? RED : "var(--fi-card, #fff)"}" stroke="currentColor" stroke-opacity="${inWin ? .7 : .25}" stroke-width="${top ? 2.5 : 1}"/>
         <text x="${xi}" y="${yi + 5}" text-anchor="middle" font-size="14" font-style="italic" font-weight="700" fill="${minOn ? "#fff" : "currentColor"}">${m.toLowerCase()}</text></g>`;
     }
@@ -195,14 +198,18 @@ window.FAM = (() => {
     root.querySelector("#cofMin").setAttribute("aria-pressed", String(COF.minor));
   }
   function cofWire(root, H, k, tools) {
-    const turn = (p, anim = true) => { COF.pos = rel(p); if (!COF_SH[COF.pos]) COF.flat = false; cofDraw(root, H, tools, anim); };
+    const svgBox = root.querySelector("#cofSvg");
+    const cofHot = p => { if (p < 0) { COF.tm.forEach(clearTimeout); COF.tm = []; } COF.hot = p; if (svgBox.isConnected) svgBox.innerHTML = cofSVG(H); };
+    const turn = (p, anim = true) => { if (COF.hot >= 0 || COF.tm.length) cofHot(-1); COF.pos = rel(p); if (!COF_SH[COF.pos]) COF.flat = false; cofDraw(root, H, tools, anim); };
     root.querySelector("#cofBox").addEventListener("click", e => {
       const kb = e.target.closest("[data-cof]"); if (kb) { turn(+kb.dataset.cof); return; }
       const b = e.target.closest("button"); if (!b) return;
       if (b.id === "cofCCW") turn(COF.pos - 1); if (b.id === "cofCW") turn(COF.pos + 1);
       if (b.id === "cofMin") { COF.minor = !COF.minor; cofDraw(root, H, tools, false); }
       if (b.id === "cofSpell") { COF.flat = !COF.flat; cofDraw(root, H, tools, false); }
-      if (b.id === "cofPlay") { const kk = H.key(COF.minor ? cofLabel(COF.pos, true) : cofMajor(), COF.minor ? "minor" : "major"), ns = scale(H, kk.name, COF.minor ? "natural" : "major").notes; tools.play({ chords: ns.map(n => [H.midi(n)]), gap: .32 }); }
+      if (b.id === "cofPlay") { const kk = H.key(COF.minor ? cofLabel(COF.pos, true) : cofMajor(), COF.minor ? "minor" : "major"), ns = scale(H, kk.name, COF.minor ? "natural" : "major").notes, gap = .32; tools.play({ chords: ns.map(n => [H.midi(n)]), gap });
+        // light up each note's key on the circle as it sounds (pitch class pc sits at position pc × 7 mod 12)
+        cofHot(-1); ns.forEach((n, i) => COF.tm.push(setTimeout(() => cofHot(rel(H.midi(n) * 7)), 60 + i * gap * 1000))); COF.tm.push(setTimeout(() => cofHot(-1), 60 + ns.length * gap * 1000 + 150)); }
     });
     root.querySelector("#cofBox").addEventListener("keydown", e => { const kb = e.target.closest("[data-cof]"); if (kb && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); turn(+kb.dataset.cof); setTimeout(() => { const f = root.querySelector(`[data-cof="${kb.dataset.cof}"]`); if (f) f.focus(); }, 500); } });
     COF.ang = COF.pos; cofDraw(root, H, tools, false);
@@ -315,8 +322,8 @@ window.FAM = (() => {
     { title: "The major scale", kick: "W W H W W W H", keyed: "major", render: (H, k, U) => {
       const { notes } = scale(H, k.name, "major");
       return `<p>Every major scale has the same pattern: <b>W W H W W W H</b>, so the half steps fall between 3̂–4̂ and 7̂–8̂. Start on any note and follow the pattern, using each letter exactly once; that tells you which notes need sharps or flats.</p>`
-        + U.fig(staffOf(H, notes, { ly: ["1", "2", "3", "4", "5", "6", "7", "8"] }), `${k.label}: ${spell(H, notes)}.`, { play: { chords: notes.map(n => [H.midi(n)]), gap: .4 } })
-        + `<p>A major scale is two identical <b>tetrachords</b> (four-note groups, W W H) joined by a whole step.</p>`
+        + U.fig(tetra(staffOf(H, notes, { ly: ["1", "2", "3", "4", "5", "6", "7", "8"] })), `${k.label}: ${spell(H, notes)}. Brackets mark the two tetrachords; wedges mark the half steps, 3̂–4̂ and 7̂–8̂.`, { play: { chords: notes.map(n => [H.midi(n)]), gap: .4 } })
+        + `<p>A major scale is two identical <b>tetrachords</b> (four-note groups, W W H) joined by a whole step: the lower tetrachord is 1̂–4̂, the upper is 5̂–8̂, and the whole step between them is 4̂–5̂. Each tetrachord ends with a half step.</p>`
         + H.check(`In ${k.label}, which notes are a half step apart?`, `${H.nm(notes[2])}–${H.nm(notes[3])} and ${H.nm(notes[6])}–${H.nm(notes[7])}`, [`${H.nm(notes[1])}–${H.nm(notes[2])} and ${H.nm(notes[5])}–${H.nm(notes[6])}`, `${H.nm(notes[3])}–${H.nm(notes[4])} and ${H.nm(notes[6])}–${H.nm(notes[7])}`], "3̂–4̂ and 7̂–8̂.");
     } },
     { title: "Why key signatures?", kick: "Write it once", render: (H, k, U) => {
