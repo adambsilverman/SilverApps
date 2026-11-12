@@ -155,11 +155,13 @@ window.FAM = (() => {
   function azSVG(H) {
     const st = H.miniStaff({ notes: [{ s: AZ.s }], startX: 110, dx: 80, w: 260, label: `Treble staff with a whole note on the ${["1st line", "1st space", "2nd line", "2nd space", "3rd line", "3rd space", "4th line", "4th space", "5th line"][AZ.s]}, and a ${AZ.acc > 0 ? "sharp" : AZ.acc < 0 ? "flat" : "natural"} sign to place in front of it` }), P = H.ACCP[AZ.acc];
     const g = `<g id="azG" transform="translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})" tabindex="0" role="img" aria-label="${AZ.acc > 0 ? "sharp" : AZ.acc < 0 ? "flat" : "natural"} sign: drag it, or use the arrow keys; plus and minus change its size" style="cursor:grab"><rect class="azring" x="-.3" y="${P.top - .3}" width="${P.w + .6}" height="${P.bot - P.top + .6}" rx=".2" fill="transparent" stroke="none" stroke-width="2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/><path d="${P.d}" fill="currentColor"/></g>`;
-    return st.replace(/viewBox="0 -14 /, 'viewBox="0 -36 ').replace("</svg>", g + "</svg>");
+    // ghost: a faint copy at the target size and place (scale 1, centered on the note, just in front of the notehead)
+    const gh = AZ.ghost ? `<path class="azghost" d="${P.d}" transform="translate(${(AZX - 12 - P.w * 10).toFixed(1)} ${azY()}) scale(10)" fill="currentColor" opacity=".25" aria-hidden="true"/>` : "";
+    return st.replace(/viewBox="0 -14 /, 'viewBox="0 -36 ').replace("</svg>", gh + g + "</svg>");
   }
   function azDraw() { const box = document.getElementById("azBox"); if (!box || !HC) return; box.innerHTML = azSVG(HC); const sz = document.getElementById("azSize"); if (sz) sz.value = AZ.sc; }
   function azToy(H) { HC = H; if (AZ.acc == null || AZ.x == null) azNew(); return `<div class="toy"><div id="azBox" class="mvstaff">${azSVG(H)}</div>
-    <div class="toy-row"><label>Size <input type="range" id="azSize" min=".4" max="2.2" step=".05" value="${AZ.sc}"></label><button class="play" data-az="check">Check</button><button class="play" data-az="new">New note</button></div>
+    <div class="toy-row"><label>Size <input type="range" id="azSize" min=".4" max="2.2" step=".05" value="${AZ.sc}"></label><button class="play" data-az="check">Check</button><button class="play" data-az="new">New note</button><label><input type="checkbox" id="azGhost" ${AZ.ghost ? "checked" : ""}> Show a ghost accidental (the right size and place)</label></div>
     <p class="msinfo" id="azFb" aria-live="polite">Drag the ${AZ.acc > 0 ? "sharp" : AZ.acc < 0 ? "flat" : "natural"} into place in front of the note and make it the right size.</p></div>`; }
   function azCheck() {
     const P = HC.ACCP[AZ.acc], k = AZ.sc * 10, right = AZ.x + P.w * k, noteL = AZX - 8, dy = AZ.y - azY(), gap = noteL - right, out = [];
@@ -176,6 +178,7 @@ window.FAM = (() => {
     document.addEventListener("pointerdown", e => { const g = e.target.closest && e.target.closest("#azG"); if (!g) return; e.preventDefault(); const svg = g.ownerSVGElement, p = pt(svg, e); dr = { svg, dx: p.x - AZ.x, dy: p.y - AZ.y }; });
     document.addEventListener("pointermove", e => { if (!dr) return; const p = pt(dr.svg, e); AZ.x = p.x - dr.dx; AZ.y = p.y - dr.dy; const g = document.getElementById("azG"); if (g) g.setAttribute("transform", `translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})`); });
     document.addEventListener("pointerup", () => { if (dr) { dr = null; azDraw(); const g = document.getElementById("azG"); if (g) g.focus(); } });
+    document.addEventListener("change", e => { if (e.target.id === "azGhost") { AZ.ghost = e.target.checked; azDraw(); } });
     document.addEventListener("input", e => { if (e.target.id === "azSize") { AZ.sc = +e.target.value; const g = document.getElementById("azG"); if (g) g.setAttribute("transform", `translate(${AZ.x.toFixed(1)} ${AZ.y.toFixed(1)}) scale(${(AZ.sc * 10).toFixed(2)})`); } });
     document.addEventListener("keydown", e => { if (!e.target.closest || !e.target.closest("#azG")) return; const st = e.shiftKey ? 5 : 1, K = e.key; let hit = true;
       if (K === "ArrowLeft") AZ.x -= st; else if (K === "ArrowRight") AZ.x += st; else if (K === "ArrowUp") AZ.y -= st; else if (K === "ArrowDown") AZ.y += st; else if (K === "+" || K === "=") AZ.sc = Math.min(2.2, AZ.sc + .05); else if (K === "-") AZ.sc = Math.max(.4, AZ.sc - .05); else hit = false;
