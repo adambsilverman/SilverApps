@@ -604,10 +604,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .mvex.xs img { max-width: 440px; }
 .i2-invchart { display: flex; flex-wrap: wrap; gap: 0 18px; align-items: flex-start; }
 .i2-invchart .ltable-wrap { flex: 1 1 220px; }
-/* Chord Figures, Triads: triad keyboard (figlesson.js) */
-#trk .trkb { min-width: 520px; }
-#trk .ik.ik-r { background: #A8321F; color: #fff; } #trk .ik.ik-3 { background: #F2C14E; color: #222; } #trk .ik.ik-5 { background: #6FA8DC; color: #111; }
-#trk .ik b { font-size: 13px; margin-bottom: 4px; }
-.trk-key { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: .85rem; margin-top: 6px; }
-.trk-key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid #222; }
-.trk-key .ik-r::before { background: #A8321F; } .trk-key .ik-3::before { background: #F2C14E; } .trk-key .ik-5::before { background: #6FA8DC; }
+/* Chord Figures: triad and seventh-chord keyboards (figlesson.js) */
+.ckb .ckbd { min-width: 520px; }
+.ckb .ik.ik-r { background: #A8321F; color: #fff; } .ckb .ik.ik-3 { background: #F2C14E; color: #222; } .ckb .ik.ik-5 { background: #6FA8DC; color: #111; } .ckb .ik.ik-7 { background: #7BC47F; color: #111; }
+.ckb .ik b { font-size: 13px; margin-bottom: 4px; }
+.ck-key { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: .85rem; margin-top: 6px; }
+.ck-key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid #222; }
+.ck-key .ik-r::before { background: #A8321F; } .ck-key .ik-3::before { background: #F2C14E; } .ck-key .ik-5::before { background: #6FA8DC; } .ck-key .ik-7::before { background: #7BC47F; }
