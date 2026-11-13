@@ -141,7 +141,7 @@ window.FAM = (() => {
     { title: "Three and four phrases", kick: "Chains and double periods", render: () => `<p>In a <b>three-phrase period</b> (sometimes called a phrase chain), the phrases belong together and the last has the most conclusive cadence.</p>
       <p>Four phrases in two pairs form a <b>double period</b> when the cadence ending the first pair is weaker than the one ending the whole group. In Amy Beach's “Phantoms”: phrase 1, IAC in A major; phrase 2, IAC in C♯ minor (weaker because of the modulation); phrase 3, IAC in A; phrase 4, PAC in A.</p>
       <p>The key: the four phrases don't split into two pairs because there's no closure in the middle. For example, the second phrase ends open with a half cadence, as does the third; only the fourth closes. Alternatively, phrase 2 can end with an authentic cadence in a contrasting key (such as the relative major), which supplies the openness instead.</p>` },
-    { title: "Summary", kick: "Diagrams", render: (H) => reference(H) },
+    { title: "Phrase diagrams", kick: "Reference", render: (H) => reference(H) },
     { title: "Quick check", kick: "Before the drills", render: (H) => H.check("a (half cadence) → a′ (perfect authentic cadence):", "Parallel period", ["Contrasting period", "Parallel phrase group", "Double period"], "Open, then closed, with similar beginnings.") + [FACTS[3], FACTS[5], FACTS[8]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") },
   ] };
 

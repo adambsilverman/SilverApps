@@ -806,6 +806,28 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ag-q li { margin: 0 0 12px; }
 .ag-q li > p { margin: 0 0 6px; }
 .ag-q .ag-a { margin-top: 6px; }
+/* Harmonic Succession: progression chart (harmsucc.js chartSVG) */
+.pc-wrap { width: 100%; max-width: 760px; margin: 8px auto; }
+.pc-svg { width: 100%; height: auto; display: block; color: var(--ink, #2a211c); overflow: visible; }
+.pc-svg [role="button"] { cursor: pointer; }
+.pc-svg [role="button"]:focus { outline: none; }
+.pc-svg [role="button"]:focus-visible rect, .pc-svg [role="button"]:focus-visible circle { stroke: #1F5FA8; }
+.pc-svg .pc-chord:hover rect, .pc-svg .pc-chord:hover circle, .pc-svg .pc-slot:hover rect, .pc-svg .pc-slot:hover circle { fill: #F7E3A1; }
+.pc-svg .pc-ok { stroke: #2E7D32; fill: #E3F1E4; }
+.pc-svg .pc-no { stroke: #B3261E; fill: #FBE4E1; }
+.pc-tiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 52px; margin: 6px 0 10px; }
+.pc-tile { min-width: 64px; min-height: 48px; padding: 4px 12px; border: 2px solid currentColor; border-radius: 10px; background: var(--fi-card, #fff); font: 600 24px/1 Literata, 'Noto Music', serif; cursor: grab; color: inherit; }
+.pc-tile[aria-pressed="true"] { background: #F7E3A1; outline: 3px solid #e0a020; }
+.pc-say { min-height: 1.4em; }
+/* Chord Progressions in Real Songs (progstudy.js) */
+.ps-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
+.ps-fig audio { width: 100%; max-width: 520px; display: block; margin: 0 auto 10px; }
+.ps-chart th { white-space: nowrap; width: 7em; }
+.ps-ch { display: inline-block; min-width: 3.2em; padding: 2px 8px; margin: 2px 6px 2px 0; border: 1.5px solid var(--line, #bbb); border-radius: 8px; font: 600 18px/1.4 Literata, 'Noto Music', serif; text-align: center; }
+.ps-q h3 { margin: 14px 0 4px; }
+.ps-ans { margin: 14px 0 4px; padding: 10px 14px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
+.ps-ans summary { cursor: pointer; font-weight: 700; min-height: 32px; display: list-item; }
+.ps-ans p { margin: 8px 0; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

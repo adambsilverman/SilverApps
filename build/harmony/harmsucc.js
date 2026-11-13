@@ -112,19 +112,95 @@ window.FAM = (() => {
   }
 
   const sf = (H, U, k, toks, cap, o) => H.satbFig(U, k, toks, cap, o);
+
+  // ===== Progression chart (Adam's layout: build/… PSD "Harmonic prog chart"): boxes, arrows, the V→vi arc and the tonic circle, drawn as SVG.
+  // Minor adds a VII box at the left. Slots: c0 (minor only) c1 c2 pdT pdB dT dB t =====
+  const CHART = {
+    major: { c1: "iii", c2: "vi", pdT: "ii", pdB: "IV", dT: "V", dB: "vii°", t: "I" },
+    minor: { c0: "VII", c1: "III", c2: "VI", pdT: "ii°", pdB: "iv", dT: "V", dB: "vii°", t: "i" } };
+  const CMIDI = { major: { iii: [64, 67, 71], vi: [57, 60, 64], ii: [62, 65, 69], IV: [65, 69, 72], V: [67, 71, 74], "vii°": [59, 62, 65], I: [60, 64, 67] },
+    minor: { VII: [55, 59, 62], III: [60, 64, 67], VI: [65, 69, 72], "ii°": [59, 62, 65], iv: [62, 65, 69], V: [64, 68, 71], "vii°": [56, 59, 62], i: [57, 60, 64] } };
+  const CAP = { c0: "a 5th above III", c1: "a 5th above the next box", c2: "a 5th above ii", pd: "Pre-dominant", d: "Dominant", t: "Tonic" };
+  const SLOTPOS = { c0: "first box", c1: "box before the pre-dominants (far left)", c2: "box just before the pre-dominants", pdT: "upper middle box", pdB: "lower middle box", dT: "upper box before the tonic", dB: "lower box before the tonic", t: "the circle" };
+  function chartSVG(mode, fill, o = {}) {
+    const m = mode === "minor", X = m ? 180 : 0, W = 1000 + X, S = 136;
+    const box = { c0: [51, 189], c1: [51 + X, 189], c2: [231 + X, 190], pdT: [408 + X, 105], pdB: [408 + X, 273], dT: [591 + X, 106], dB: [591 + X, 274] };
+    const lab = (t, x, y, big) => t ? `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Literata, 'Noto Music', serif" font-size="${big ? 60 : 54}" fill="currentColor">${t.replace("°", "<tspan font-size='0.6em' dy='-0.9em'>o</tspan>")}</text>` : "";
+    const slot = (id, inner) => o.slots ? `<g class="pc-slot" data-slot="${id}" role="button" tabindex="0" aria-label="${o.aria(id)}">${inner}</g>` : o.play ? `<g class="pc-chord" data-chord="${fill[id]}" role="button" tabindex="0" aria-label="Play ${fill[id]}">${inner}</g>` : inner;
+    const st = id => o.state && o.state[id] ? ` class="pc-${o.state[id]}"` : "";
+    const sq = id => { const [x, y] = box[id]; return slot(id, `<rect${st(id)} x="${x}" y="${y}" width="${S}" height="${S}" fill="var(--fi-card, #fff)" stroke="currentColor" stroke-width="7"/>${lab(fill[id], x + S / 2, y + S / 2 + 2)}`); };
+    const arrow = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="4" marker-end="url(#pcA${o.uid})"/>`;
+    const ids = (m ? ["c0"] : []).concat(["c1", "c2", "pdT", "pdB", "dT", "dB"]);
+    const caps = o.caps ? [m ? ["c0", 51 + S / 2] : null, ["c1", 51 + X + S / 2], ["c2", 231 + X + S / 2], ["pd", 476 + X], ["d", 659 + X], ["t", 860 + X]].filter(Boolean).map(([k, x]) => `<text x="${x}" y="${k === "pd" || k === "d" ? 448 : k === "t" ? 370 : 360}" text-anchor="middle" font-size="19" font-style="italic" fill="currentColor">${k === "c1" && m ? "a 5th above VI" : k === "c1" ? "a 5th above vi" : CAP[k]}</text>`).join("") : "";
+    return `<svg class="pc-svg" viewBox="0 0 ${W} 470" role="${o.slots || o.play ? "group" : "img"}" aria-label="${o.label || ""}"><defs><marker id="pcA${o.uid}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      ${m ? arrow(187, 257, 224, 257) : ""}${arrow(187 + X, 257, 224 + X, 257)}${arrow(367 + X, 257, 402 + X, 257)}${arrow(544 + X, 257, 584 + X, 257)}${arrow(727 + X, 257, 768 + X, 257)}
+      ${arrow(476 + X, 275, 476 + X, 247)}${arrow(659 + X, 276, 659 + X, 248)}
+      <path d="M${657 + X},${104} C${610 + X},${8} ${380 + X},${-10} ${300 + X},${183}" fill="none" stroke="currentColor" stroke-width="5" marker-end="url(#pcA${o.uid})"/>
+      ${ids.map(sq).join("")}
+      ${slot("t", `<circle${st("t")} cx="${860 + X}" cy="258" r="81" fill="var(--fi-card, #fff)" stroke="currentColor" stroke-width="7"/>${lab(fill.t, 860 + X, 260, true)}`)}${caps}</svg>`;
+  }
+  const PC = { mode: "major", place: {}, sel: null, hints: 0, checked: false };
+  const pcHTML = () => `<div class="toy pc-act" id="pcAct"><div class="toy-row" role="group" aria-label="Key"><button type="button" class="play" data-pcm="major" aria-pressed="${PC.mode === "major"}">Major</button><button type="button" class="play" data-pcm="minor" aria-pressed="${PC.mode === "minor"}">Minor</button></div>
+      <div class="pc-wrap" id="pcBlank"></div>
+      <div class="pc-tiles" id="pcTiles" role="group" aria-label="Chords to place"></div>
+      <div class="toy-row"><button type="button" class="play" id="pcCheck">Check</button><button type="button" class="play" id="pcHint">Hint</button><button type="button" class="play" id="pcReset">Start over</button></div>
+      <p class="pc-say" id="pcSay" aria-live="polite">Drag each chord into a box, or tap a chord and then tap a box.</p></div>`;
+  function pcWire(root, tools) {
+    const act = root.querySelector("#pcAct"); if (!act) return;
+    const ans = () => CHART[PC.mode], say = t => { act.querySelector("#pcSay").textContent = t; };
+    const draw = () => {
+      const a = ans(), state = {};
+      if (PC.checked) Object.keys(a).forEach(id => { if (PC.place[id]) state[id] = PC.place[id] === a[id] ? "ok" : "no"; });
+      act.querySelector("#pcBlank").innerHTML = chartSVG(PC.mode, PC.place, { slots: true, uid: "b", caps: PC.hints > 0, state, label: `Blank progression chart, ${PC.mode}`, aria: id => `${SLOTPOS[id]}: ${PC.place[id] ? PC.place[id] + (state[id] === "ok" ? ", correct" : state[id] === "no" ? ", not right" : "") : "empty"}` });
+      const used = new Set(Object.values(PC.place));
+      if (!PC.order || PC.order.length !== Object.keys(a).length || PC.order.some(c => !Object.values(a).includes(c))) { PC.order = Object.values(a); for (let i = PC.order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [PC.order[i], PC.order[j]] = [PC.order[j], PC.order[i]]; } }
+      act.querySelector("#pcTiles").innerHTML = PC.order.filter(c => !used.has(c)).map(c => `<button type="button" class="pc-tile" draggable="true" data-tile="${c}" aria-pressed="${PC.sel === c}">${c.replace("°", "<sup>o</sup>")}</button>`).join("") || `<span class="small">All placed. Press Check.</span>`;
+    };
+    const put = (id, c) => { Object.keys(PC.place).forEach(k => { if (PC.place[k] === c) delete PC.place[k]; }); PC.place[id] = c; PC.sel = null; PC.checked = false; draw(); say(`${c} placed in the ${SLOTPOS[id]}.`); };
+    act.addEventListener("click", e => {
+      const m = e.target.closest("[data-pcm]"); if (m) { PC.mode = m.dataset.pcm; PC.place = {}; PC.sel = null; PC.hints = 0; PC.checked = false; act.querySelectorAll("[data-pcm]").forEach(x => x.setAttribute("aria-pressed", String(x === m))); draw(); say(`${PC.mode === "minor" ? "Minor" : "Major"}: ${Object.keys(ans()).length} chords to place.`); return; }
+      const t = e.target.closest("[data-tile]"); if (t) { PC.sel = PC.sel === t.dataset.tile ? null : t.dataset.tile; draw(); if (PC.sel) say(`${PC.sel} selected. Now tap a box.`); return; }
+      const sl = e.target.closest("[data-slot]"); if (sl) { const id = sl.dataset.slot; if (PC.sel) put(id, PC.sel); else if (PC.place[id]) { const c = PC.place[id]; delete PC.place[id]; PC.checked = false; draw(); say(`${c} taken out.`); } return; }
+      if (e.target.closest("#pcCheck")) { const a = ans(), ids = Object.keys(a), right = ids.filter(id => PC.place[id] === a[id]).length; PC.checked = true; draw();
+        say(right === ids.length ? "All correct. That's the chart." : `${right} of ${ids.length} correct${Object.keys(PC.place).length < ids.length ? ", and some boxes are still empty" : ""}. Boxes in red need another look.`); return; }
+      if (e.target.closest("#pcHint")) { const a = ans();
+        if (PC.hints === 0) { PC.hints = 1; draw(); say("Hint: the labels under the chart name each column. Start from the tonic and work right to left: each box to the left has a root a 5th higher."); return; }
+        const miss = Object.keys(a).find(id => PC.place[id] !== a[id]); if (!miss) { say("Everything is already in place."); return; }
+        PC.hints++; put(miss, a[miss]); say(`Hint: ${a[miss]} goes in the ${SLOTPOS[miss]}.`); return; }
+      if (e.target.closest("#pcReset")) { PC.order = null; PC.place = {}; PC.sel = null; PC.hints = 0; PC.checked = false; draw(); say("Cleared."); }
+    });
+    act.addEventListener("keydown", e => { const sl = e.target.closest("[data-slot]"); if (sl && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sl.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+    act.addEventListener("dragstart", e => { const t = e.target.closest("[data-tile]"); if (t) { e.dataTransfer.setData("text/plain", t.dataset.tile); e.dataTransfer.effectAllowed = "move"; } });
+    act.addEventListener("dragover", e => { if (e.target.closest("[data-slot]")) e.preventDefault(); });
+    act.addEventListener("drop", e => { const sl = e.target.closest("[data-slot]"); if (!sl) return; e.preventDefault(); const c = e.dataTransfer.getData("text/plain"); if (c) put(sl.dataset.slot, c); });
+    draw();
+  }
+  const PCREF = { mode: "major" };
+  const refHTML = () => `<div class="toy pc-ref" id="pcRef"><div class="toy-row" role="group" aria-label="Key"><button type="button" class="play" data-pcr="major" aria-pressed="${PCREF.mode === "major"}">Major</button><button type="button" class="play" data-pcr="minor" aria-pressed="${PCREF.mode === "minor"}">Minor</button><span class="small">Tap a chord to hear it (in C major or A minor).</span></div><div class="pc-wrap" id="pcRefChart"></div></div>`;
+  function refWire(root, tools) {
+    const box = root.querySelector("#pcRef"); if (!box) return;
+    const draw = () => { const f = CHART[PCREF.mode]; box.querySelector("#pcRefChart").innerHTML = chartSVG(PCREF.mode, f, { play: true, uid: "r", label: PCREF.mode === "major" ? "Progression chart in major: iii to vi to ii or IV (IV can move up to ii) to V or vii diminished (vii diminished can move up to V) to I. An arc from V back to vi." : "Progression chart in minor: VII to III to VI to ii diminished or iv (iv can move up to ii diminished) to V or vii diminished (vii diminished can move up to V) to i. An arc from V back to VI." }); };
+    box.addEventListener("click", e => { const b = e.target.closest("[data-pcr]"); if (b) { PCREF.mode = b.dataset.pcr; box.querySelectorAll("[data-pcr]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); draw(); return; }
+      const c = e.target.closest("[data-chord]"); if (c) tools.play({ chords: [CMIDI[PCREF.mode][c.dataset.chord]], gap: 1.2 }); });
+    box.addEventListener("keydown", e => { const c = e.target.closest("[data-chord]"); if (c && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); c.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+    draw();
+  }
   const lesson = { defMode: "major", steps: [
     { title: "Chord functions", kick: "Tonic, pre-dominant, dominant", keyed: "both", render: (H, k, U) => `<p>Chord <b>progression</b> (the succession from one harmony to the next) follows patterns typical of a style. In common-practice music, diatonic chords group into three <b>functions</b>:</p>
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Function</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
       <tr><td><b>Tonic (T)</b></td><td>{rn:${H.rnOf(k, 1)}} (home)</td></tr><tr><td><b>Pre-dominant (PD)</b></td><td>{rn:${H.rnOf(k, 4)}}, {rn:${H.rnOf(k, 2)}} (and {rn:${H.rnOf(k, 6)}} in {rn:${H.rnOf(k, 6)}}–{rn:V})</td></tr><tr><td><b>Dominant (D)</b></td><td>{rn:V}, {rn:vii°}</td></tr></tbody></table></div>
       <p>Chords that share two tones with the tonic ({rn:${H.rnOf(k, 6)}}, {rn:${H.rnOf(k, 3)}}) can extend the tonic area. In minor, chord qualities change to fit the mode, including the raised 6th and 7th degrees.</p>`
       + H.check(`In ${k.label}, what function does {rn:${H.rnOf(k, 2)}} have?`, "Pre-dominant", ["Tonic", "Dominant"], "ii (like IV) leads to the dominant.") },
-    { title: "The progression chart", kick: "A solar system", render: (H) => `<p>A classic diagram of common progressions in major:</p>
-      <p class="steprow" aria-label="iii to vi to IV or ii to V or vii° to I"><span>{rn:iii}</span><i>→</i><span>{rn:vi}</span><i>→</i><span>{rn:IV} / {rn:ii}</span><i>→</i><span>{rn:V} / {rn:vii°}</span><i>→</i><span class="hot">{rn:I}</span></p>
-      <p>Think of it as a solar system: the tonic is the star, and the other chords are planets whose pull toward it depends on how close they are. The farther right a chord is, the stronger its tendency to move right. The tonic can go anywhere.</p>
-      <ul><li>{rn:IV} and {rn:ii} share pre-dominant function and can substitute for each other; so can {rn:V} and {rn:vii°} (dominant function). Diminished chords are weak (no perfect 5th), so {rn:vii°} is much less common than {rn:V}.</li>
-      <li>{rn:V} usually goes to {rn:I}, but can go to {rn:vi} instead: a <b>deceptive resolution</b>.</li>
-      <li>Two common exceptions: <b>plagal motion</b> {rn:IV}–{rn:I}, and {rn:vi} used as a pre-dominant in {rn:vi}–{rn:V} (even more common: {rn:VI}–{rn:V} in minor).</li></ul>`
-      + H.check("Is V → IV a progression or a retrogression?", "Retrogression", ["Progression"], "It moves right to left on the chart.") },
+    { title: "The progression chart", kick: "Which chord goes where", render: (H) => `<p>Common progressions in major move left to right across this chart, toward the tonic:</p>
+      ${refHTML()}
+      <p>The tonic is the star, and the other chords are planets whose pull toward it depends on how close they are. The farther right a chord sits, the stronger its pull to keep moving right. The tonic can go anywhere.</p>
+      <p>Each box to the left has a root a 5th above the one it leads to: {rn:vi} is a 5th above {rn:ii}, {rn:iii} a 5th above {rn:vi}. {rn:IV} and {rn:ii} share pre-dominant function, and {rn:IV} often moves up to {rn:ii}. {rn:V} and {rn:vii°} share dominant function. Diminished chords have no perfect 5th, so {rn:vii°} is much less common than {rn:V}. The arc is the <b>deceptive resolution</b>: {rn:V} going to {rn:vi} instead of {rn:I}.</p>
+      <p>In minor the chart grows a box at the left. {rn:VII}, built on the lowered 7th degree, is a 5th above {rn:III} and leads to it the way {rn:V} leads to {rn:I}. The dominants still use the raised leading tone, so {rn:V} is major and {rn:vii°} diminished.</p>
+      <p>Two common exceptions: <b>plagal motion</b> {rn:IV}–{rn:I}, and {rn:vi} as a pre-dominant in {rn:vi}–{rn:V} (even more common: {rn:VI}–{rn:V} in minor).</p>`
+      + H.check("Is V → IV a progression or a retrogression?", "Retrogression", ["Progression"], "It moves right to left on the chart."),
+      after: (root, H, k, tools) => refWire(root, tools) },
+    { title: "Fill in the chart", kick: "Drag the chords into place", render: () => `<p>Put each chord in its box. Drag it, or tap a chord and then tap a box; tap a placed chord to take it back out. Switch to Minor for the longer chart. Hint shows labels under the columns first, then fills in one box at a time.</p>${pcHTML()}<p>For class: <a href="chord-progressions-in-real-songs.html">Chord Progressions in Real Songs</a> puts the chart to work on five songs.</p>`,
+      after: (root, H, k, tools) => pcWire(root, tools) },
     { title: "The phrase model", kick: "T → PD → D → (T)", keyed: "both", render: (H, k, U) => `<p>Common-practice phrases tend to move through “areas”: <b>tonic area (T) → pre-dominant area (PD) → dominant area (D) → (T)</b>. T can move to PD or D; PD only to D; D only to T.</p>
       <div class="lfigs">${sf(H, U, k, ["1", "4", "16", "543", "1"], "<b>Tonic expansion</b>: I – IV – I⁶ – V⁴₃ – I")}${sf(H, U, k, ["4", "2", "5"], "<b>Pre-dominant expansion</b>: IV – ii, then V")}${sf(H, U, k, ["1", "26", "164", "57", "1"], "<b>Dominant expansion</b>: the cadential ⁶₄ (I⁶₄ – V⁷)")}</div>
       <p>The tonic area can change position (I–I⁶), move to a chord sharing two tones (vi or iii), or insert ornamental chords between tonics. The pre-dominant area can include IV, ii and iii, and substitutes for them (secondary chords, augmented sixths, the Neapolitan). The dominant area most often uses the cadential ⁶₄, or V–V⁷, or vii°⁶(⁵)–V⁷.</p>` },

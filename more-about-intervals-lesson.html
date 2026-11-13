@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>More About Intervals · SilverApps Interactive Music Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="stylesheet" href="assets/shared/styles-apps.2270775a27.css">
+<link rel="stylesheet" href="assets/indie.css?v=5aeb35ca">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+<link rel="stylesheet" href="assets/trainer-skin.css?v=f9e4882a">
+</head>
+<body>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button><button class="site-btn" data-fs aria-pressed="false" type="button" aria-label="Full screen"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Full screen</span></button></header>
+
+<a class="skip" href="#lessonView">Skip to the lesson</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>More About Intervals</h1>
+      <p>Consonance and dissonance, melodic and harmonic intervals, half steps and 2nds, intervals between notes that aren't neighbors (Over the Rainbow), compound intervals and chord extensions, intervals above the tonic in major and minor scales, and inversion by the rule of nine. Use the arrow keys or the buttons to move between steps.</p>
+    </div>
+    <div class="score" style="display:none">
+      <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
+      <div aria-hidden="true"><b id="scStreak">0</b><small>streak</small></div>
+      <p class="sr" id="scoreText" aria-live="polite"></p>
+      <button class="score-reset" id="scoreReset">Reset<span class="sr"> score</span></button>
+    </div>
+  </header>
+  <p class="other-page" id="views"><a href="intervals.html">Practice: Interval drills →</a></p>
+  <section class="lesson-view" id="lessonView" aria-label="Lesson"></section>
+  <div id="drillView" hidden>
+  <nav class="modes m0" aria-label="Practice mode">
+
+  </nav>
+  <main class="card" id="practice" tabindex="-1">
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="actions">
+      <button class="btn" id="refBtn" aria-haspopup="dialog">Reference</button>
+      <button class="btn ghost" id="nextBtn">Skip</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite" aria-atomic="true"></div>
+    <div id="answerBox"></div>
+  </main>
+  <aside class="wrap-aside" aria-label="Settings and reference">
+  <details class="panel" id="settingsPanel">
+    <summary>Practice settings</summary>
+    <div class="panel-body">
+      <div class="set-row" role="group" aria-labelledby="grp1"><span id="grp1">Include</span>
+        <div class="toggles" id="topicToggles"></div>
+      </div>
+      <div class="set-row" role="group" aria-labelledby="grp3"><span id="grp3">Sound</span>
+        <div class="toggles" id="autoToggles">
+          <button class="tog" data-auto="1">Play the music after each answer</button>
+          <button class="tog" data-auto="0">Only when I tap Play</button>
+        </div>
+      </div>
+      <button class="reset" id="resetBtn">Clear the review list</button>
+    </div>
+  </details>
+  <details class="panel" id="refPanel">
+    <summary>Quick reference</summary>
+    <div class="panel-body"><div class="ref-slot"></div></div>
+  </details>
+  <details class="panel">
+    <summary>Key ideas</summary>
+    <div class="panel-body"><ol class="rules"></ol></div>
+  </details>
+  </aside>
+  </div>
+  
+</div>
+<dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">
+  <div class="dlg-head">
+    <h2 id="refTitle">Quick reference</h2>
+    <button class="btn" id="refClose">Close<span class="sr"> reference</span></button>
+  </div>
+  <div class="ref-slot"></div>
+  <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
+</dialog>
+<script src="assets/shared/vexflow.b24b3b9880.js"></script>
+<script>window.SA_PAGE = { view: "lesson", other: "intervals.html", otherName: "Interval drills", cls: true };</script>
+<script>
+window.FAM = (() => {
+  // ===== More About Intervals: lesson only (practice: the Interval drills). Follows "Intervals: What, Why and How".
+  // Consonance, melodic/harmonic, half step vs. 2nd, non-adjacent intervals (Over the Rainbow), compound intervals and extensions,
+  // intervals above the tonic in major and minor scales, interval inversion (the rule of nine). Engine: build/harmony/engine.js =====
+  const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const FU = `<p class="note lcite fair-use" data-fair-use></p>`;
+  // interval name from two spelled notes: number from letters, quality from half steps
+  const BASE = [0, 2, 4, 5, 7, 9, 11], PERF = new Set([0, 3, 4]);
+  function ivName(H, lo, hi) {
+    const [st, se] = H.ivl(lo, hi), d = se - (BASE[st % 7] + 12 * Math.floor(st / 7)), num = st + 1;
+    const q = PERF.has(st % 7) ? ({ "-2": "dd", "-1": "d", 0: "P", 1: "A", 2: "AA" })[d] : ({ "-2": "d", "-1": "m", 0: "M", 1: "A" })[d];
+    return { q: q || "?", num, short: (q || "?") + num };
+  }
+  const QW = { P: "perfect", M: "major", m: "minor", A: "augmented", d: "diminished" };
+  const ord = n => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+  const longName = iv => iv.num === 1 ? `${QW[iv.q]} unison` : iv.num === 8 && iv.q === "P" ? "octave" : `${QW[iv.q]} ${ord(iv.num)}`;
+  const score = (bars, o = {}) => ({ type: "score", clefs: [o.clef || "treble"], time: o.time || null, vf: o.vf || "C", sig: o.sig || {}, bpm: o.bpm || 90, final: !!o.final, minBar: o.minBar || 70, scale: o.scale, bars: bars.map(v => ({ t: [v] })) });
+  const N = (k, d = "w", x = {}) => Object.assign({ k: Array.isArray(k) ? k : [k], d }, x);
+
+  // step 1: consonant and dissonant intervals above C4, harmonic
+  const CONS = [["Perfect consonances", [["C5", "P8"], ["G4", "P5"], ["C4", "P1"]]], ["Imperfect consonances", [["E4", "M3"], ["E♭4", "m3"], ["A4", "M6"], ["A♭4", "m6"]]],
+    ["Dissonances", [["D♭4", "m2"], ["D4", "M2"], ["B♭4", "m7"], ["B4", "M7"], ["F♯4", "A4 (tritone)"]]]];
+  const consSpec = () => score(CONS.map(([, ivs]) => ivs.map(([t, lab]) => N(t === "C4" ? ["C4"] : ["C4", t], "w", { ly: lab }))), { minBar: 60 });
+
+  // step 4: Over the Rainbow, first phrase, in C (Harold Arlen and E. Y. Harburg, 1939); the hidden stepwise line is circled
+  const HL = { hl: true, color: "#B3261E" };
+  const RAIN = [[N("C4", "h"), N("C5", "h", HL)], [N("B4", "q", HL), N("G4", "8"), N("A4", "8"), N("B4", "q"), N("C5", "q")], [N("C4", "h"), N("A4", "h", HL)], [N("G4", "w", HL)]];
+  const rainSpec = () => score(RAIN, { time: "4/4", bpm: 80, final: false, minBar: 90 });
+
+  // step 5: simple vs compound, and a C9 chord voiced two ways
+  const compSpec = () => score([[N(["C4", "D4"], "w", { ly: "M2" })], [N(["C4", "D5"], "w", { ly: "M9" })], [N(["C4", "E5"], "w", { ly: "M10" })], [N(["C4", "G5"], "w", { ly: "P12" })]], { minBar: 70 });
+  const ninthSpec = () => score([[N(["C4", "E4", "G4", "B♭4", "D5"], "w", { ly: "stacked" })], [N(["C4", "D4", "E4", "B♭4"], "w", { ly: "close" })]], { minBar: 90 });
+
+  // step 6: intervals above the tonic in each scale
+  const SC = { tonic: "C", type: "major" }, TONICS = ["C", "G", "D", "A", "E", "F", "B♭", "E♭", "A♭"];
+  function scaleNotes(H) {
+    const k = H.key(SC.tonic, SC.type === "major" ? "major" : "minor"), s = k.scale.slice();
+    if (SC.type === "harmonic" || SC.type === "melodic") s[6] = H.up(s[6], 0, 1);
+    if (SC.type === "melodic") s[5] = H.up(s[5], 0, 1);
+    const t = s[0], base = H.midi(t) >= 72 ? -1 : 0, out = s.map(n => H.N(n.l, n.a, n.o + base)); out.push(H.N(t.l, t.a, t.o + base + 1));
+    return out;
+  }
+  const scSpec = H => { const ns = scaleNotes(H); return score([ns.map((n, i) => N(H.nmO(n), "w", { ly: i ? ivName(H, ns[0], n).short : "1", color: [1, 3, 4].includes(i) ? "#2E7D32" : [2, 5, 6].includes(i) ? "#B3261E" : undefined }))], { minBar: 480 }); };
+  const SCN = { major: "major", natural: "natural minor", harmonic: "harmonic minor", melodic: "melodic minor (ascending)" };
+  const scHTML = () => `<div class="toy" id="i2Sc"><div class="toy-row"><label>Tonic <select id="i2Ton">${TONICS.map(t => `<option ${t === SC.tonic ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <div class="toy-row" role="group" aria-label="Scale">${Object.entries(SCN).map(([v, l]) => `<button type="button" class="play" data-i2s="${v}" aria-pressed="${SC.type === v}">${l}</button>`).join("")}</div>
+      <button type="button" class="play" id="i2ScPlay">▶ Play</button></div>
+    <div class="staff" id="i2ScStaff" style="width:100%"></div><p class="small" id="i2ScSay" aria-live="polite" style="margin:0"></p></div>`;
+
+  // step 7: inversion explorer, intervals above C4
+  const INV = [["D4", "M2"], ["E♭4", "m3"], ["E4", "M3"], ["F4", "P4"], ["F♯4", "A4"], ["G4", "P5"], ["A♭4", "m6"], ["A4", "M6"], ["B♭4", "m7"], ["B4", "M7"]];
+  const IV = { i: 2 };
+  const invHTML = () => `<div class="toy" id="i2Inv"><div class="toy-row"><label>Interval above C <select id="i2InvSel">${INV.map(([t, l], i) => `<option value="${i}" ${i === IV.i ? "selected" : ""}>${l} (C–${t.slice(0, -1)})</option>`).join("")}</select></label>
+      <button type="button" class="play" id="i2InvPlay">▶ Play both</button></div>
+    <div class="staff" id="i2InvStaff" style="width:100%"></div><p class="small" id="i2InvSay" aria-live="polite" style="margin:0"></p></div>`;
+
+  const lesson = { steps: [
+    { title: "Consonant and dissonant", kick: "How an interval sounds", render: (H, k, U) => `<p>Play C and G together and the sound sits still. Play C and D♭ together and it rubs. That difference has a name: <b>consonance</b> (stable, at rest) and <b>dissonance</b> (tense, wanting to move).</p>
+      <p>The <b>perfect consonances</b> are the unison, the octave and the 5th. They blend so completely that they can sound almost like one note. The <b>imperfect consonances</b>, 3rds and 6ths, are stable too, but sweeter and fuller, which is why so much harmony is built from them. Everything else is <b>dissonant</b>: 2nds, 7ths, and the tritone (the augmented 4th or diminished 5th).</p>`
+      + U.fig(consSpec(), "Above C: perfect consonances, imperfect consonances, dissonances.", { play: { chords: CONS.flatMap(([, ivs]) => ivs.map(([t]) => t === "C4" ? [60] : [60, H.midi(H.parse(t))])), gap: 1.1 } })
+      + `<p>The perfect 4th is the odd one out. On its own it sounds open and consonant, but in common-practice harmony a 4th above the bass is treated as a dissonance. That's why a ⁶₄ chord usually resolves.</p>
+      <p>Dissonant doesn't mean wrong. It means unstable. A dominant 7th chord is full of dissonance, and that's exactly what pushes it toward home.</p>`
+      + H.check("Which of these is a dissonance?", "a major 7th", ["a perfect 5th", "a minor 6th", "a major 3rd"], "2nds, 7ths and the tritone are dissonant; 3rds and 6ths are imperfect consonances.")
+      + H.check("Which pair are both imperfect consonances?", "a minor 3rd and a major 6th", ["a perfect 5th and an octave", "a major 2nd and a minor 7th", "a perfect 4th and a tritone"], "3rds and 6ths, major or minor.") },
+
+    { title: "Melodic and harmonic", kick: "One after the other, or together", render: (H, k, U) => `<p>The same two notes can be heard two ways. Sung one after the other, C then E is a <b>melodic</b> interval. Played at once, it's a <b>harmonic</b> interval. The name doesn't change: it's a major 3rd either way.</p>`
+      + U.fig(score([[N("C4", "h", { ly: "melodic" }), N("E4", "h")], [N(["C4", "E4"], "w", { ly: "harmonic" })]], { minBar: 90 }), "A major 3rd, melodic (one note at a time), then harmonic (together).", { play: { chords: [[60], [64], [60, 64]], gap: .8 } })
+      + `<p>What changes is how strongly you feel consonance and dissonance. A melodic 2nd is just a step, the most ordinary move a tune can make. A harmonic 2nd is a clash. Melody uses intervals as motion; harmony uses them as color.</p>`
+      + H.check("A singer moves from G up to B. That's…", "a melodic interval", ["a harmonic interval", "a compound interval", "an inversion"], "One note after the other.") },
+
+    { title: "Half steps, whole steps and 2nds", kick: "Two ways of naming a step", render: (H, k, U) => `<p>“Half step” and “whole step” measure distance on the keyboard: 1 key and 2 keys. “Minor 2nd” and “major 2nd” name spelled intervals, so they also count letters.</p>
+      <p>Most of the time they match. E up to F is a half step and a minor 2nd; C up to D is a whole step and a major 2nd. But a half step can also be spelled with one letter: C to C♯ is an <b>augmented unison</b>. And a whole step can be spelled across three letters: C to E𝄫 is a <b>diminished 3rd</b>.</p>`
+      + U.fig(score([[N("E4", "h", { ly: "m2" }), N("F4", "h")], [N("C4", "h", { ly: "A1" }), N("C♯4", "h")], [N("C4", "h", { ly: "M2" }), N("D4", "h")], [N("C4", "h", { ly: "d3" }), N("E𝄫4", "h")]], { minBar: 80 }), "Two half steps (a minor 2nd and an augmented unison), then two whole steps (a major 2nd and a diminished 3rd).", { play: { chords: [[64], [65], [60], [61], [60], [62], [60], [62]], gap: .55 } })
+      + `<p>So every minor 2nd is a half step, but not every half step is a minor 2nd. In a scale, where each letter is used once, the steps are always 2nds, so “half step” and “minor 2nd” can be used interchangeably there.</p>`
+      + H.check("C up to C♯ is a half step. What is the interval called?", "an augmented unison", ["a minor 2nd", "a diminished 2nd", "a major 2nd"], "Same letter, one half step apart: an augmented unison. A minor 2nd needs two letters (C–D♭).") },
+
+    { title: "Intervals across a melody", kick: "Notes that aren't next to each other", render: (H, k, U) => `<p>“Somewhere over the rainbow” opens with an octave leap, from C up to C (shown here in C). Then the tune drifts down to G and climbs back up to C before leaping from the same low C to A.</p>`
+      + U.fig(rainSpec(), "Harold Arlen and E. Y. Harburg, “Over the Rainbow” (1939), the opening phrase, shown in C. Circled: the notes that make a hidden stepwise line.", { play: { chords: [[60], [72], [71], [67], [69], [71], [72], [60], [69], [67]], gap: .42 } })
+      + `<p>The ear doesn't only connect notes that sit side by side. It hears intervals across a gap, too.</p>
+      <p>Compare the two leaps. Both start on the same low C: the first goes up an octave, the second only a 6th. The second reach falls short of the first, and that's part of why the phrase sounds like it's settling.</p>
+      <p>Now follow the high points: C, then B, then A, then G at the end. Spread across four bars, the peaks walk down a scale, step by step. Nobody sings that line as a line, but you hear it. It gives the phrase its direction under all the leaping.</p>`
+      + FU },
+
+    { title: "Simple and compound intervals", kick: "Bigger than an octave", render: (H, k, U) => `<p>An interval an octave or smaller is <b>simple</b>. Anything larger is <b>compound</b>: a 9th is a 2nd plus an octave, a 10th a 3rd plus an octave. To find the simple interval inside a compound one, subtract 7. Not 8: the octave's two notes share one count.</p>`
+      + U.fig(compSpec(), "A major 2nd, then the same notes an octave apart (a major 9th); a major 10th; a perfect 12th.", { play: { chords: [[60, 62], [60, 74], [60, 76], [60, 79]], gap: 1.1 } })
+      + tbl("Compound intervals and their simple equivalents", ["Compound", "Simple", "In chord symbols"], [["9th", "2nd", "9 (C9, Cadd9)"], ["10th", "3rd", "(the 3rd itself)"], ["11th", "4th", "11 (C11, Cm11)"], ["12th", "5th", "(the 5th itself)"], ["13th", "6th", "13 (C13)"]])
+      + `<p>Chord extensions are named this way. Stack 3rds above a 7th chord and the next notes are the 9th, 11th and 13th. In a C9 chord the D is the 9th, and it stays the 9th wherever the pianist puts it. Played right next to the C, it's a 2nd on the page and still a 9th in the chord.</p>`
+      + U.fig(ninthSpec(), "C9 two ways: stacked in 3rds (C E G B♭ D), and in close position with the D just above the C (and no G).", { play: { chords: [[60, 64, 67, 70, 74], [60, 62, 64, 70]], gap: 1.6 } })
+      + H.check("What is the simple form of a compound 11th?", "a 4th", ["a 3rd", "a 5th", "a 2nd"], "11 − 7 = 4.")
+      + H.check("In a C9 chord the D is played just above the C. What is it called in the chord?", "the 9th", ["the 2nd", "the 11th", "an added tone"], "Extensions keep their names in any octave.") },
+
+    { title: "Intervals in scales", kick: "Measured from the tonic", render: () => `<p>A major or minor scale has seven notes, one on each letter, starting from the tonic. Measure each note against the tonic and a pattern shows up. Three intervals never change: every major and minor scale has a <b>major 2nd</b>, a <b>perfect 4th</b> and a <b>perfect 5th</b> above the tonic (green below). The 3rd, 6th and 7th (red) are where the scales differ.</p>
+      ${scHTML()}
+      ${tbl("Intervals above the tonic", ["Scale", "3rd", "6th", "7th"], [["Major", "M3", "M6", "M7"], ["Natural minor", "m3", "m6", "m7"], ["Harmonic minor", "m3", "m6", "M7"], ["Melodic minor, ascending", "m3", "M6", "M7"]])}
+      <p>The 3rd decides major or minor. The 6th and 7th move around inside minor, depending on which form is used. The <a href="major-and-minor-scales-lesson.html">Major and Minor Scales</a> lesson builds each one step by step.</p>`,
+      after: (root, H, k, tools) => {
+        const box = root.querySelector("#i2Sc"); if (!box) return;
+        const draw = () => { tools.drawStaff(box.querySelector("#i2ScStaff"), scSpec(H)); const ns = scaleNotes(H);
+          box.querySelector("#i2ScSay").textContent = `${SC.tonic} ${SCN[SC.type]}: ` + ns.slice(1, 7).map(n => `${H.nm(n)} ${ivName(H, ns[0], n).short}`).join(", ") + "."; };
+        box.addEventListener("click", e => { const b = e.target.closest("[data-i2s]"); if (b) { SC.type = b.dataset.i2s; box.querySelectorAll("[data-i2s]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); draw(); }
+          if (e.target.closest("#i2ScPlay")) tools.play({ chords: scaleNotes(H).map(n => [H.midi(n)]), gap: .4 }); });
+        box.querySelector("#i2Ton").onchange = e => { SC.tonic = e.target.value; draw(); };
+        draw();
+      } },
+
+    { title: "Inverting intervals", kick: "The rule of nine", render: H => `<p>Take C up to E, a 3rd, and move the C up an octave. Now it's E up to C: a 6th. That's <b>inversion</b>: the lower note goes above the upper one (or the upper below the lower).</p>
+      <p>The two numbers always add up to <b>nine</b>. A 2nd inverts to a 7th, a 3rd to a 6th, a 4th to a 5th, a unison to an octave. The quality flips too: major becomes minor, augmented becomes diminished, and perfect stays perfect. The half steps add up to 12, since the two intervals together fill one octave.</p>
+      ${invHTML()}
+      ${tbl("Inversion", ["Interval", "Inverts to", "Check"], [["M3 (4 half steps)", "m6 (8)", "3 + 6 = 9"], ["m7 (10)", "M2 (2)", "7 + 2 = 9"], ["P4 (5)", "P5 (7)", "4 + 5 = 9"], ["A4 (6)", "d5 (6)", "4 + 5 = 9"]])}
+      <p>This saves work. A 6th or a 7th is hard to count; its inversion, a 3rd or a 2nd, is easy. Name the small one, then flip it: C up to B♭? B♭ up to C is a major 2nd, so C up to B♭ is a minor 7th.</p>`
+      + H.check("What does a minor 3rd invert to?", "a major 6th", ["a minor 6th", "a major 7th", "a perfect 5th"], "3 + 6 = 9, and minor becomes major.")
+      + H.check("What does an augmented 4th invert to?", "a diminished 5th", ["an augmented 5th", "a perfect 5th", "a diminished 4th"], "4 + 5 = 9, and augmented becomes diminished. Both are tritones.")
+      + H.check("A perfect 5th inverts to…", "a perfect 4th", ["a perfect 5th", "a major 4th", "a diminished 4th"], "Perfect stays perfect; 5 + 4 = 9."),
+      after: (root, H, k, tools) => {
+        const box = root.querySelector("#i2Inv"); if (!box) return;
+        const cur = () => { const [t] = INV[IV.i], lo = H.parse("C4"), hi = H.parse(t), up8 = H.N(lo.l, lo.a, lo.o + 1); return { lo, hi, up8, a: ivName(H, lo, hi), b: ivName(H, hi, up8) }; };
+        const draw = () => { const c = cur();
+          tools.drawStaff(box.querySelector("#i2InvStaff"), score([[N(["C4", H.nmO(c.hi)], "w", { ly: c.a.short })], [N([H.nmO(c.hi), "C5"], "w", { ly: c.b.short })]], { minBar: 110 }));
+          const an = iv => (/^[aeiou]/.test(longName(iv)) ? "an " : "a ") + longName(iv);
+          box.querySelector("#i2InvSay").textContent = `C up to ${H.nm(c.hi)} is ${an(c.a)}. Inverted, ${H.nm(c.hi)} up to C is ${an(c.b)}: ${c.a.num} + ${c.b.num} = 9.`; };
+        box.querySelector("#i2InvSel").onchange = e => { IV.i = +e.target.value; draw(); };
+        box.querySelector("#i2InvPlay").onclick = () => { const c = cur(); tools.play({ chords: [[60, H.midi(c.hi)], [H.midi(c.hi), 72]], gap: 1.2 }); };
+        draw();
+      } },
+
+    { title: "Practice", kick: "Naming and writing intervals", render: () => `<p>The <a href="intervals.html"><b>Interval drills</b></a> practice naming intervals, writing a note a given interval above or below, and counting half steps. For the basics of size and quality, go back to <a href="intervals-what-why-how.html">Intervals: What, Why and How</a>.</p>` },
+  ] };
+  return { key: "silverapps-intervals2-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
+})();
+</script>
+<script src="assets/progress.js?v=0916b76d"></script>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/mqtt.min.js?v=c6d89040"></script>
+<script src="assets/qrcode.js?v=fbb6b69b"></script>
+<script src="assets/live.js?v=4cd58c7e"></script>
+<script src="assets/site.js?v=9c437edd"></script>
+<script>var __SA_APP = {"id": "intervals2", "name": "More About Intervals"};</script>
+<script src="assets/shared/app-engine.ef5d72b4b7.js"></script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders.</p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+</body>
+</html>

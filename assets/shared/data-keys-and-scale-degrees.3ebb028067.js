@@ -185,7 +185,7 @@ window.FAM = (() => {
       <h3>Hearing a key arrive</h3>
       <figure class="lfig"><video controls preload="metadata" playsinline src="assets/video/Key%20Determination.mp4" style="width:100%;height:auto;border-radius:8px;background:#000"><track kind="captions" srclang="en" label="English" src="assets/video/key-determination.vtt" default></video>
       <figcaption>Two pieces that reveal their key gradually: Beethoven's Symphony No. 1 in C major begins with a C7 chord (pointing to F), then G7–Am, then D7–G, and only later cadences firmly in C; the Beatles' “She Loves You” tries out Em, A7 and C under the same melodic fragment before landing on the tonic, G, in bar 7.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>
-      <p>Determining a key is interpretive, not mechanical: weigh harmonic function, melodic emphasis, voice leading, cadences, and sometimes text or form. The best interpretation makes the most musical sense of all the evidence.</p>` },
+      <p>No single test settles a key. Weigh harmonic function, melodic emphasis, voice leading, cadences, and sometimes text or form. Sometimes the evidence points two ways, and the honest answer names both keys.</p>` },
     { title: "Quick check", kick: "Before the drills", render: (H) => [FACTS[0], FACTS[1], FACTS[5]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") + H.check("What pitch is the leading tone in E minor?", "D♯", ["D", "C♯", "F♯"], "Raised 7̂ of E minor: D♯.") + H.check("What pitch is the subtonic in F minor?", "E♭", ["E", "D♭", "C"], "7̂ as in the key signature.") },
   ] };
 

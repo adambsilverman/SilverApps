@@ -113,7 +113,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 
   <section class="slide" data-title="What is an interval?">
     <p class="kick">1 · What</p><h2>What is an interval?</h2>
-    <p>In music, an interval is simply the <b>distance between two notes</b>. We measure space in inches or centimeters; musicians measure sound in intervals. The smallest step on a keyboard, from one key to the very next, is a <b>half step</b>.</p>
+    <p>C up to the next C is an octave. C up to G is a 5th. An <b>interval</b> is the distance between two notes, and the smallest one on a keyboard, from one key to the very next, is a <b>half step</b>.</p>
     <div class="fig">
       <div class="tape" id="tape" aria-hidden="true"><div class="band"></div><div class="lab"></div></div>
       <div class="kb" id="kb" role="group" aria-label="Keyboard from C4 to B5. Choose two keys to measure the interval between them."></div>
@@ -139,7 +139,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   </section>
 
   <section class="slide" data-title="Stretch and squeeze" hidden>
-    <p class="kick">3 · How: qualities</p><h2>Stretching and squeezing an interval</h2>
+    <p class="kick">3 · How: qualities</p><h2>Changing an interval's quality</h2>
     <p>Change one of the notes by a half step and the <b>size stays the same</b> (the letters don't change) but the <b>quality</b> changes. There are two families:</p>
     <ul class="fam"><li><b>Perfect family</b> (unisons, 4ths, 5ths, octaves): one half step smaller than perfect is <b>diminished</b>; one larger is <b>augmented</b>. There is no major or minor.</li>
       <li><b>Major/minor family</b> (2nds, 3rds, 6ths, 7ths): major made a half step smaller is <b>minor</b>; minor made smaller is <b>diminished</b>; major made larger is <b>augmented</b>. Here, minor becomes diminished by raising the <b>bottom</b> note (C♯–E♭), which reads more easily than lowering the top note again (C–E𝄫).</li></ul>
@@ -175,14 +175,14 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 
   <section class="slide" data-title="Melodies" hidden>
     <p class="kick">5 · Why: melody</p><h2>A melody is a chain of intervals</h2>
-    <p>At its simplest, a melody is a sequence of intervals: the basic ups and downs of a tune. Watch the ball bounce from note to note; the numbers show how many half steps each hop moves.</p>
+    <p>Strip a melody down and it's a list of intervals: up 2, down 1, up 5. Watch the ball bounce from note to note; the numbers show how many half steps each hop moves.</p>
     <div class="fig"><svg id="melSvg" viewBox="0 0 640 260" role="img" aria-labelledby="melDesc"><desc id="melDesc"></desc></svg></div>
     <div class="row"><button class="lbtn primary" data-play-mel="mel" type="button">▶ Play and bounce</button></div>
   </section>
 
   <section class="slide" data-title="Transposition" hidden>
     <p class="kick">6 · Why: transposition</p><h2>Same intervals, new key</h2>
-    <p>Move a song higher or lower to fit a singer's voice and every note changes, but the <b>intervals stay exactly the same</b>. That's why your brain still recognizes the song instantly.</p>
+    <p>Move a song higher or lower to fit a singer's voice and every note changes, but the <b>intervals stay exactly the same</b>. That's why you still recognize the song.</p>
     <div class="fig"><svg id="trSvg" viewBox="0 0 640 300" role="img" aria-labelledby="trDesc"><desc id="trDesc"></desc></svg></div>
     <div class="row">
       <label class="sl" for="trKey">Move the song: <span id="trOut">0 half steps</span><input id="trKey" type="range" min="-5" max="7" step="1" value="0"></label>
@@ -191,15 +191,15 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   </section>
 
   <section class="slide" data-title="Inversion" hidden>
-    <p class="kick">7 · How composers use them</p><h2>Flip it: interval inversion</h2>
-    <p>Keep the interval sizes but flip their direction: every “up” becomes a “down,” every “down” an “up.” The result is a fresh variation that still feels connected to the original. Here a motif leaps <b>up a 5th</b>; its inversion leaps <b>down a 5th</b>.</p>
+    <p class="kick">7 · How composers use them</p><h2>Melodic inversion</h2>
+    <p>Keep the interval sizes but turn their direction around: every “up” becomes a “down,” every “down” an “up.” The new line is clearly related to the old one, and it doesn't repeat it. Here a motif leaps <b>up a 5th</b>; its inversion leaps <b>down a 5th</b>. (Inverting a single interval, so that a 3rd becomes a 6th, is something else; see <a href="more-about-intervals-lesson.html">More About Intervals</a>.)</p>
     <div class="fig"><svg id="invSvg" viewBox="0 0 640 300" role="img" aria-labelledby="invDesc"><desc id="invDesc">The original motif rises a fifth then steps down; a mirror line runs across the middle; the inversion below falls a fifth then steps up, the exact mirror image.</desc></svg></div>
     <div class="row"><button class="lbtn primary" data-play-mel="orig" type="button">▶ Original</button><button class="lbtn" data-play-mel="inv" type="button">▶ Inversion</button></div>
   </section>
 
   <section class="slide" data-title="Singing" hidden>
     <p class="kick">8 · Why: singing</p><h2>Steps are easy, leaps are dramatic</h2>
-    <p>Interval size matters to singers. Small steps and skips are a smooth, comfortable path for the voice; big leaps are like jumping a canyon: exciting, but much harder to land accurately.</p>
+    <p>Ask any singer. Steps and small skips sit easily in the voice. A big leap is harder to tune, and it gets noticed, which is often the point.</p>
     <div class="fig"><svg id="singSvg" viewBox="0 0 640 230" role="img" aria-labelledby="singDesc"><desc id="singDesc"></desc></svg></div>
     <div class="row">
       <label class="sl" for="singIv">Interval size: <span id="singOut"></span><input id="singIv" type="range" min="1" max="12" step="1" value="2"></label>
@@ -209,7 +209,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 
   <section class="slide" data-title="Tension" hidden>
     <p class="kick">9 · Why: tension</p><h2>Stretch, then resolve</h2>
-    <p>Big leaps create emotional tension. A classic rule of thumb: after a wide leap <b>upward</b>, a melody feels stretched and wants to come back the other way, usually by step. Here is an original tune that shows the idea: a breathtaking octave leap up, then intervals that get smaller and smaller as the tune cascades down toward the home note.</p>
+    <p>A wide leap <b>upward</b> leaves a melody stretched, and it usually comes back the other way, by step. That's an old rule of thumb, and most tunes follow it. This one (written for this lesson) leaps up an octave, then falls back toward the home note by smaller and smaller intervals.</p>
     <div class="fig"><svg id="tenSvg" viewBox="0 0 640 280" role="img" aria-labelledby="tenDesc"><desc id="tenDesc">A line graph: a huge leap up of an octave, drawn as a stretched elastic band, then smaller and smaller steps down: a fourth, a minor third, then whole steps back to the home note. The band relaxes as the line comes home.</desc></svg></div>
     <div class="row"><button class="lbtn primary" data-play-mel="ten" type="button">▶ Play the shape</button></div>
   </section>
@@ -226,15 +226,15 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
 
   <section class="slide" data-title="Distance from home" hidden>
     <p class="kick">11 · Why: navigating a key</p><h2>How far from home?</h2>
-    <p>Intervals tell us where we are in a key by measuring the distance from the <b>tonic</b>, the home base. Knowing whether a note is the 3rd, 5th or 7th above home helps musicians find their way through a song. Tap a scale degree to hear it against home.</p>
+    <p>Every note in a key sits some interval above the <b>tonic</b>. A musician who hears that a note is the 3rd, or the 5th, or the 7th above home knows where they are in the song. Tap a scale degree to hear it against home.</p>
     <div class="fig"><svg id="homeSvg" viewBox="0 0 640 220" role="img" aria-labelledby="homeDesc"><desc id="homeDesc">A road of eight scale degrees in C major, starting at a house labeled 1 (home). Flags mark the 3rd, 5th and 7th.</desc></svg></div>
     <div class="row" id="degBtns" role="group" aria-label="Scale degrees"></div>
     <div class="readout" id="degRead" aria-live="polite"></div>
   </section>
 
   <section class="slide" data-title="Atonal music" hidden>
-    <p class="kick">12 · Beyond keys</p><h2>Intervals as building blocks</h2>
-    <p>In the 20th century, atonal composers broke free of traditional keys. Instead of scales, they used <b>intervals themselves</b> as the building blocks of new chords and whole compositional systems. On this pitch circle, each shape is built from one kind of interval.</p>
+    <p class="kick">12 · Beyond keys</p><h2>Intervals without a key</h2>
+    <p>Some 20th-century composers dropped keys altogether. Without a scale to organize the notes, they built chords and whole pieces from <b>intervals</b>: stacks of 4ths, clusters of half steps, rows that use all twelve notes. On this pitch circle, each shape is built from one kind of interval.</p>
     <div class="fig"><svg id="atSvg" viewBox="0 0 640 320" role="img" aria-labelledby="atDesc"><desc id="atDesc"></desc></svg></div>
     <div class="row" role="group" aria-label="Interval shapes">
       <button class="lbtn" data-at="4ths" aria-pressed="true" type="button">Stack of 4ths</button>
@@ -245,16 +245,15 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     </div>
   </section>
 
-  <section class="slide" data-title="Summary" hidden>
-    <p class="kick">13 · Summary</p><h2>The universal language</h2>
-    <p>Whether you're humming a lullaby, moving a song into your key, or analyzing modern music, intervals connect every note.</p>
-    <div class="cards3"><div class="c4" style="background:#FFF3C4"><b>Naming</b>size from letters, quality from half steps; spelling counts</div><div class="c1"><b>Melody</b>ups and downs, transposition and inversion</div><div class="c2"><b>Harmony</b>chords built from stacked intervals</div><div class="c3"><b>Structure</b>distance from home, tension and release</div></div>
+  <section class="slide" data-title="Check" hidden>
+    <p class="kick">13 · Check</p><h2>Before the drills</h2>
     <div id="quiz"></div>
   </section>
   <section class="slide" data-title="Practice" hidden>
     <p class="kick">14 · Practice</p><h2>On to the drills</h2>
-    <p>You've finished the lesson. Now practice what you learned in the <b>Interval drills</b>:</p><ul><li>Name intervals on the staff</li><li>Write the note an interval above</li><li>Write the note an interval below</li><li>Count half steps</li></ul>
+    <p>The <b>Interval drills</b> practice four things:</p><ul><li>Name intervals on the staff</li><li>Write the note an interval above</li><li>Write the note an interval below</li><li>Count half steps</li></ul>
     <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
+    <p>Next: <a href="more-about-intervals-lesson.html"><b>More About Intervals</b></a> covers consonance and dissonance, compound intervals, intervals in scales, and how to invert an interval.</p>
   </section>
   </div>
   <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
@@ -407,7 +406,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     fig(left - 30, ground - 8); fig(right + 30, ground - rise - 8);
     const lvl = n <= 2 ? "Step: smooth and easy" : n <= 4 ? "Skip: comfortable" : n <= 7 ? "Leap: takes aim" : "Big leap: dramatic and tricky";
     el("text", { x: 320, y: 30, "text-anchor": "middle", "font-size": 24, "font-family": "League Gothic, sans-serif", fill: css("--fi-ink") }, svg).textContent = lvl;
-    $("singDesc").textContent = `${IV[n]}: ${lvl}. A singer must jump a gap ${n <= 2 ? "small enough to step across on stones" : "like a canyon"} to reach the next note.`;
+    $("singDesc").textContent = `${IV[n]}: ${lvl}. ${n <= 2 ? "The drawing shows stepping stones across a small gap." : "The drawing shows a gap too wide to step across; the singer has to jump."}`;
   }
   $("singIv").oninput = drawSing; SL("Singing").onshow = drawSing;
   $("singPlay").onclick = () => { const n = +$("singIv").value; seq([62, 62 + n], .6); };
@@ -672,7 +671,7 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     ["Lowering the middle note of a major triad a half step makes it…", ["minor", "augmented", "an octave"], 0, "Major 3rd + minor 3rd becomes minor 3rd + major 3rd."],
     ["After a big upward leap, a melody usually…", ["comes back down, often by step", "leaps up again", "stops"], 0, "The stretch wants to resolve in the opposite direction."],
   ];
-  $("quiz").innerHTML = `<h3 class="readout" style="margin:6px 0 0">Quick check</h3>` + QZ.map((q, i) => `<div class="q" role="group" aria-labelledby="qz${i}"><p id="qz${i}"><b>${i + 1}.</b> ${q[0]}</p><div class="opts">${q[1].map((o, j) => ({ o, j })).sort((a, b) => ((a.j * 7 + i * 3) % 5) - ((b.j * 7 + i * 3) % 5)).map(({ o, j }) => `<button class="opt" type="button" data-q="${i}" data-o="${j}">${o}</button>`).join("")}</div><p class="fbk" id="qf${i}" aria-live="polite"></p></div>`).join("");
+  $("quiz").innerHTML = QZ.map((q, i) => `<div class="q" role="group" aria-labelledby="qz${i}"><p id="qz${i}"><b>${i + 1}.</b> ${q[0]}</p><div class="opts">${q[1].map((o, j) => ({ o, j })).sort((a, b) => ((a.j * 7 + i * 3) % 5) - ((b.j * 7 + i * 3) % 5)).map(({ o, j }) => `<button class="opt" type="button" data-q="${i}" data-o="${j}">${o}</button>`).join("")}</div><p class="fbk" id="qf${i}" aria-live="polite"></p></div>`).join("");
   $("quiz").onclick = e => {
     const b = e.target.closest(".opt"); if (!b || b.disabled) return; const i = +b.dataset.q, j = +b.dataset.o, q = QZ[i], ok = j === q[2];
     b.parentNode.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (+x.dataset.o === q[2]) x.classList.add("right"); });

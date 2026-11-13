@@ -63,6 +63,12 @@
           "class": true
         },
         {
+          "name": "More About Intervals",
+          "topic": "Intervals",
+          "blurb": "Consonance and dissonance, half steps vs. 2nds, compound intervals and extensions, intervals in scales, and inversion by the rule of nine. Example: Over the Rainbow.",
+          "lesson": "more-about-intervals-lesson.html"
+        },
+        {
           "name": "Major and Minor Scales",
           "topic": "Scales & modes",
           "blurb": "Major and minor scales, key signatures and why we use them, relative and parallel keys.",
@@ -153,6 +159,12 @@
           "lesson": "harmonic-succession-lesson.html",
           "drills": "harmonic-succession.html",
           "class": true
+        },
+        {
+          "name": "Chord Progressions in Real Songs",
+          "topic": "Progression",
+          "blurb": "An in-class study: Betty, Wild World, In Bloom, Fast Car and Prelude to a Kiss. Listen, discuss, then open each analysis.",
+          "lesson": "chord-progressions-in-real-songs.html"
         },
         {
           "name": "Secondary Function Chords",

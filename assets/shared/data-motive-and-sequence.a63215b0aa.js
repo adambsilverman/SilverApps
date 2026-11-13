@@ -147,11 +147,10 @@ window.FAM = (() => {
   // revealed one group at a time (assets/img/motive/ash-grove*.png); Play = melody with a simple waltz accompaniment =====
   const AG = (() => {
     const G = [
-      ["x", "Listen to the opening. Motive x has two parts. How is part 2 related to part 1?", "<b>x</b>: part 1 rises (E–A–C♯); part 2 is its <b>inversion</b>, falling (E–D–C♯–A)."],
-      ["xp", "Where does x come back in the first strain, changed?", "<b>x′</b>, twice: adapted to new harmony (B minor to E7), then adapted to tonic harmony (A/C♯ to D)."],
-      ["y", "A closing gesture ends each third of the tune. Can you find it?", "<b>y</b>, a cadence figure: it closes the first section (on A) and the middle section (on E), and comes back in the last line (unlabeled, since that line repeats the end of the first section) to close the song on A."],
-      ["z", "The middle section introduces a new idea and repeats it at lower and lower pitch levels. What's that called?", "<b>z</b>, repeated <b>sequentially</b> (three statements, each a step lower). Its last four beats resemble an inversion of x′."],
-      ["same", "How does the final section begin?", "<b>The same as the beginning</b>: x returns, rounding off the song."]];
+      ["x", "Listen to the opening. Motive x has two parts. How is part 2 related to part 1? Where else does x appear?", "<b>x</b>: part 1 rises (E–A–C♯); part 2 is its <b>inversion</b>, falling (E–D–C♯–A). It comes back to begin the last section."],
+      ["xp", "Where does x come back changed, to fit new chords?", "<b>x′</b>, adapted to new harmony (B minor to E7) and to tonic harmony (A/C♯ to D): twice in the first section and twice again in the last."],
+      ["y", "A closing gesture ends each third of the tune. Can you find it?", "<b>y</b>, a cadence figure: it closes the first section (on A), the middle section (on E), and the last section (on A)."],
+      ["z", "The middle section introduces a new idea and repeats it at lower and lower pitch levels. What's that called?", "<b>z</b>, repeated <b>sequentially</b> (three statements, each a step lower). Its last four beats resemble an inversion of x′."]];
     // melody [midi, beats] and chords per bar [bass, [chord]] x 3 beats; A major, 3/4
     const MEL = [[64,1],[69,1],[73,1],[76,.5],[74,.5],[73,1],[69,1],[69,1],[71,1],[74,.5],[73,.5],[71,.5],[69,.5],[68,1],[64,1],[64,1],
       [69,1],[73,.5],[71,.5],[69,.5],[68,.5],[66,1],[62,1],[66,1],[64,1],[69,1],[68,1],[69,2],[73,.5],[74,.5],
@@ -170,8 +169,8 @@ window.FAM = (() => {
       return ev;
     }
     const html = () => `<p>“The Ash Grove,” a traditional Welsh tune, is built almost entirely from a few motives, transformed. Listen, then work through the questions: each answer reveals its labels and brackets on the score.</p>
-      <figure class="lfig mvex ag"><div class="ag-wrap"><img src="assets/img/motive/ash-grove.png" width="1800" height="1809" alt="The Ash Grove in A major, 3/4, six lines of melody with chord symbols and lyrics: a first section of eight bars (the second half repeated, with two verses of words), a middle section of eight bars, and a final section of eight bars that repeats the first. Motive labels appear as each answer below is revealed." loading="lazy">
-        ${G.map(([g]) => `<img class="ag-l" data-ag="${g}" src="assets/img/motive/ash-grove-${g}.png" width="1800" height="1809" alt="" hidden>`).join("")}</div>
+      <figure class="lfig mvex ag"><div class="ag-wrap"><img src="assets/img/motive/ash-grove.png" width="1800" height="2090" alt="The Ash Grove in A major, 3/4, six lines of melody with chord symbols and lyrics: a first section of eight bars (the second half repeated, with two verses of words), a middle section of eight bars, and a final section of eight bars that repeats the first. Motive labels appear as each answer below is revealed." loading="lazy">
+        ${G.map(([g]) => `<img class="ag-l" data-ag="${g}" src="assets/img/motive/ash-grove-${g}.png" width="1800" height="2090" alt="" hidden>`).join("")}</div>
         <figcaption><p>“The Ash Grove” (traditional Welsh; English words by John Oxenford), typeset and analyzed by Adam Silverman. Colors: <b class="ag-c-x">x and x′</b>, <b class="ag-c-y">y</b>, <b class="ag-c-z">z</b>.</p>
         <div class="toy-row"><button type="button" class="play" id="agPlay">▶ Play the tune</button><button type="button" class="play" id="agAll" aria-pressed="false">Show all labels</button></div></figcaption></figure>
       <ol class="ag-q">${G.map(([g, q, a], i) => `<li><p>${q}</p><button type="button" class="play" data-agr="${g}" aria-expanded="false" aria-controls="agA${i}">Reveal</button><p class="ag-a" id="agA${i}" hidden>${a}</p></li>`).join("")}</ol>`;
@@ -187,7 +186,7 @@ window.FAM = (() => {
   })();
   const lesson = { defMode: "major", steps: [
     { title: "What is a motive?", kick: "The smallest idea", render: () => `<p>A <b>motive</b> (or motif; the terms are interchangeable) is a short musical idea: melodic, harmonic, rhythmic, or any combination. It's usually thought of as the shortest part of a theme or phrase that still keeps its identity as an idea. (After William Drabkin, “Motif,” <i>Grove Music Online</i>.)</p>`
-        + EX("ash-grove-motive-x", 1165, 448, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored in <b>The Ash Grove</b>, near the end of this lesson.")
+        + EX("ash-grove-motive-x", 1165, 480, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored in <b>The Ash Grove</b>, near the end of this lesson.")
         + `<ul><li><b>Motives are small</b> (a few notes) and <b>distinctive</b>. A long gesture may be a phrase or sub-phrase; a nondescript one (like an undeveloped ostinato) isn't of much analytical interest.</li>
         <li><b>Motives are usually in the foreground.</b> In the accompaniment, they usually imitate the melody.</li>
         <li>Label motives with lowercase letters from the end of the alphabet: <b>x, y, z</b>. A changed version can take a prime: <b>x′</b>.</li>

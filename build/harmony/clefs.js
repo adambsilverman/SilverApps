@@ -258,7 +258,7 @@ window.FAM = (() => {
       + `<p><b>Landmarks:</b> learn a few notes cold and read the rest by step or skip from them: treble G (the clef's curl), bass F (between the dots), middle C, high G (the space above the treble staff) and low G (the bass staff's bottom line).</p>` },
     { title: "The great staff", kick: "Eleven lines", render: (H, k, U) => {
       const lines = ["G2", "B2", "D3", "F3", "A3"].map(s => ({ t: rest, b: { k: [s], ly: s.slice(0, -1) } })).concat([{ t: { k: ["C4"], ly: "C" }, b: rest }]).concat(["E4", "G4", "B4", "D5", "F5"].map(s => ({ t: { k: [s], ly: s.slice(0, -1) }, b: rest })));
-      return `<p>Here's the secret connecting all the clefs. The bass staff's lines, middle C's ledger line, and the treble staff's lines are one continuous ladder of lines a 3rd apart: <b>G B D F A C E G B D F</b>. Think of it as an eleven-line <b>great staff</b>, with the two clefs as windows onto it.</p>`
+      return `<p>The bass staff's lines, middle C's ledger line and the treble staff's lines make one continuous ladder of lines a 3rd apart: <b>G B D F A C E G B D F</b>. Together that's an eleven-line <b>great staff</b>, and each clef shows five of its lines.</p>`
         + U.fig(grand(lines), "Every line of the grand staff, bottom to top: every other letter, all the way up.")
         + `<p>Every clef is just a window of five lines onto this great staff, labeled by the pitch it points to: the G clef marks G4, the F clef F3, and the C clef middle C.</p>`;
     } },

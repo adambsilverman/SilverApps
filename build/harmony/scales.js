@@ -328,7 +328,7 @@ window.FAM = (() => {
       <figure class="lfig"><video controls preload="metadata" playsinline src="assets/video/Scales.mp4" style="width:100%;height:auto;border-radius:8px;background:#000"><track kind="captions" srclang="en" label="English" src="assets/video/scales.vtt" default></video>
       <figcaption>Scales hide inside songs, but rarely as a tidy climb from do to do: a descending scale opens “Joy to the World,” Katy Perry's “Firework” runs from mi up past the octave to sol, and the jagged melody of Justin Bieber's “Stay” uses five notes of the D♭ major scale, with the chords filling in the rest.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>`;
     } },
-    { title: "Half steps and whole steps", kick: "The building blocks", render: (H, k, U) => `<p>A <b>half step</b> (semitone) is the distance from one key on the piano to the very next one, black or white. A <b>whole step</b> (tone) is two half steps. Between the white keys, E–F and B–C are half steps; all the other neighbors are whole steps.</p>`
+    { title: "Half steps and whole steps", kick: "The two step sizes", render: (H, k, U) => `<p>A <b>half step</b> (semitone) is the distance from one key on the piano to the very next one, black or white. A <b>whole step</b> (tone) is two half steps. Between the white keys, E–F and B–C are half steps; all the other neighbors are whole steps.</p>`
       + U.fig(staffOf(H, ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"].map(H.parse), { ly: ["C", "D", "E", "F", "G", "A", "B", "C"] }), "The white notes from C to C: W W H W W W H (half steps E–F and B–C).", { play: { chords: [60, 62, 64, 65, 67, 69, 71, 72].map(m => [m]), gap: .4 } }) },
     { title: "The major scale", kick: "W W H W W W H", keyed: "major", render: (H, k, U) => {
       const { notes } = scale(H, k.name, "major");
@@ -379,6 +379,21 @@ window.FAM = (() => {
         <p>The key signature shows the <b>natural</b> minor. The raised 6th and 7th are written as accidentals in the music, which is why minor-key music so often has the same accidental (the leading tone) throughout.</p>`
         + H.check(`In ${k.label}, what is the leading tone?`, H.nm(h[6]), [H.nm(nat[6]), H.nm(nat[5]), H.nm(m[5])], "The raised 7th degree.");
     }, after: (root, H, k, tools) => hmWire(root, H, k, tools) },
+    { title: "Intervals above the tonic", kick: "What stays and what changes", keyed: "both", render: (H, k, U) => {
+      const BASE = [0, 2, 4, 5, 7, 9, 11], PERF = new Set([0, 3, 4]);
+      const iv = (lo, hi) => { const [st, se] = H.ivl(lo, hi), d = se - (BASE[st % 7] + 12 * Math.floor(st / 7)); return (PERF.has(st % 7) ? { "-1": "d", 0: "P", 1: "A" } : { "-2": "d", "-1": "m", 0: "M", 1: "A" })[d] + (st + 1); };
+      const types = k.mode === "major" ? [["major", "Major"]] : [["natural", "Natural minor"], ["harmonic", "Harmonic minor"], ["melodic", "Melodic minor, ascending"]];
+      const figs = types.map(([t, lab]) => { const ns = scale(H, k.name, t).notes;
+        return U.fig(staffOf(H, ns, { vf: k.vf, sig: k.sig, ly: ns.map((n, i) => i ? iv(ns[0], n) : "1") }), `${k.name} ${lab.toLowerCase()}: intervals above ${k.name}.`, { play: { chords: ns.map(n => [H.midi(n)]), gap: .35 } }); }).join("");
+      return `<p>Measure every note of a scale from the tonic. A major 2nd, a perfect 4th and a perfect 5th turn up every time, in every major scale and every form of minor. The other three intervals are where the scales part ways.</p>
+        ${figs}
+        <div class="ltable-wrap" tabindex="0" role="region" aria-label="Intervals above the tonic"><table class="ltable"><caption>3rd, 6th and 7th above the tonic</caption><thead><tr><th scope="col">Scale</th><th scope="col">3rd</th><th scope="col">6th</th><th scope="col">7th</th></tr></thead><tbody>
+          <tr><td>Major</td><td>M3</td><td>M6</td><td>M7</td></tr><tr><td>Natural minor</td><td>m3</td><td>m6</td><td>m7</td></tr><tr><td>Harmonic minor</td><td>m3</td><td>m6</td><td>M7</td></tr><tr><td>Melodic minor, ascending</td><td>m3</td><td>M6</td><td>M7</td></tr></tbody></table></div>
+        <p>Major has all major intervals. Natural minor has all minor ones. The two altered forms of minor raise the 7th, and melodic minor the 6th as well, but the 3rd stays minor in all three. That one interval is what makes a scale minor.</p>
+        <p>Switch between ${k.mode === "major" ? "a major and a minor key" : "a minor and a major key"} with the key buttons to compare. For more on naming intervals, see <a href="more-about-intervals-lesson.html">More About Intervals</a>.</p>`
+        + H.check("Which interval above the tonic is the same in major and in every form of minor?", "the perfect 5th", ["the 3rd", "the 6th", "the 7th"], "The 2nd, 4th and 5th never change; the 3rd, 6th and 7th do.")
+        + H.check("Which interval above the tonic do all three forms of minor share?", "a minor 3rd", ["a minor 7th", "a major 6th", "a minor 6th"], "The minor 3rd is what makes them minor.");
+    } },
     { title: "Solfège in major", kick: "Do re mi", keyed: "major", render: (H, k, U) => {
       const { notes } = scale(H, k.name, "major"), down = notes.slice().reverse();
       const up = SOLMAJ, CH = [["di", 0, 1], ["ri", 1, 1], ["fi", 3, 1], ["si", 4, 1], ["li", 5, 1]], CL = [["ra", 1, -1], ["me", 2, -1], ["se", 4, -1], ["le", 5, -1], ["te", 6, -1]];
