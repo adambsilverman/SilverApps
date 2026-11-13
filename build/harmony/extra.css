@@ -598,3 +598,7 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 /* Extended chords: Armageddon (extlesson.js) */
 .ext-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
 #armInfo p { margin: 6px 0; }
+/* More About Intervals: drag-to-invert staff */
+.i2-drag { touch-action: none; user-select: none; -webkit-user-select: none; }
+#armX [data-armc] { font-family: Literata, "Noto Music", serif !important; font-weight: 700; text-transform: none !important; letter-spacing: 0 !important; font-size: 16px; gap: 0 !important; }
+.mvex.xs img { max-width: 440px; }

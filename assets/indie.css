@@ -79,6 +79,7 @@ body{color:var(--fi-ink);font-family:var(--fi-serif)}
 .fi-credit a b{color:#fff;font-family:var(--fi-display);font-weight:400;font-size:18px;letter-spacing:.03em;text-transform:uppercase}
 .fi-credit a .mk{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--fi-red);color:#000;font-size:12px}
 .fi-credit a:hover b,.fi-credit a:focus-visible b{text-decoration:underline}
+.fi-credit .fi-fair a{display:inline;background:none;color:inherit;padding:0;border-radius:0;font:inherit;text-decoration:underline}
 .fi-credit a:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:3px}
 .fi-filmstrip{height:14px;background:var(--fi-ink) radial-gradient(circle,var(--fi-paper) 0 3px,transparent 3.5px) 0 50%/18px 14px repeat-x}
 

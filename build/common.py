@@ -22,7 +22,7 @@ def strip_html(full_screen=True, sound=False):
 
 CREDIT = ('<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener">'
           '<span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a>'
-          '<p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders.</p></footer>'
+          '<p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer>'
           '<div class="fi-filmstrip" aria-hidden="true"></div>')
 
 # ---- Visitor statistics: city, state/region, country and visits per app (no names, emails or cookies) ----

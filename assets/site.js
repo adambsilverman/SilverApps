@@ -63,7 +63,7 @@
 // images, recordings, videos) gets the same wording, kept here so it reads identically across all apps.
 (function () {
   var T = "Short excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders.";
-  function fill() { document.querySelectorAll("[data-fair-use]").forEach(function (p) { if (!p.textContent) p.textContent = T; }); }
+  function fill() { document.querySelectorAll("[data-fair-use]").forEach(function (p) { if (!p.textContent) { p.textContent = T + " "; var a = document.createElement("a"); a.href = "about-this-site.html"; a.textContent = "More about this"; p.appendChild(a); } }); }
   function go() { fill(); if (window.MutationObserver) new MutationObserver(fill).observe(document.body, { childList: true, subtree: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();

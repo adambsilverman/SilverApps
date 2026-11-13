@@ -227,6 +227,8 @@
       const NS = "http://www.w3.org/2000/svg";
       const mk = (tag, at, parent, first) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); first ? parent.insertBefore(e, parent.firstChild) : parent.appendChild(e); return e; };
       const yTop = tr.getYForLine(0), yBot = bs.getYForLine(4);
+      // bar lines run through both staves of the grand staff (BarNotes only draw within their own stave)
+      if (voices.length) voices[0].v.getTickables().filter(t => t instanceof VF.BarNote).forEach(b => mk("rect", { x: b.getAbsoluteX(), y: yTop, width: 1, height: yBot - yTop, fill: ink }, svg));
       const yLow = Math.max(yBot, ...notesAt.flat().filter(x => x.getYs && !(x instanceof VF.GhostNote)).flatMap(x => x.getYs().map(y => y + (x.getStemDirection && x.getStemDirection() === -1 ? 30 : 6))));
       cols.forEach((c, i) => {
         const sn = notesAt[i].find(x => x.getAbsoluteX && !(x instanceof VF.GhostNote)) || notesAt[i][0], x = sn.getAbsoluteX() + 6;

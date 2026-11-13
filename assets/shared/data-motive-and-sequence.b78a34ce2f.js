@@ -143,7 +143,7 @@ window.FAM = (() => {
       <figcaption><p>${cap}</p>${audio ? `<audio controls preload="none" src="assets/audio/motive/${audio}.mp3" aria-label="${audLabel}">Your browser can't play this audio clip.</audio>` : ""}${PD.has(img) ? "" : FU}</figcaption></figure>`; };
   const YT = (id, title, start) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0${start ? `&start=${start}` : ""}" title="${title} (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
 
-  // ===== The Ash Grove (traditional Welsh; Adam's typesetting): labels and brackets are separate transparent layers over a clean score,
+  // ===== The Ash Grove (traditional Welsh): labels and brackets are separate transparent layers over a clean score,
   // revealed one group at a time (assets/img/motive/ash-grove*.png); Play = melody with a simple waltz accompaniment =====
   const AG = (() => {
     const G = [
@@ -171,7 +171,7 @@ window.FAM = (() => {
     const html = () => `<p>“The Ash Grove,” a traditional Welsh tune, is built almost entirely from a few motives, transformed. Listen, then work through the questions: each answer reveals its labels and brackets on the score.</p>
       <figure class="lfig mvex ag"><div class="ag-wrap"><img src="assets/img/motive/ash-grove.png" width="1800" height="2090" alt="The Ash Grove in A major, 3/4, six lines of melody with chord symbols and lyrics: a first section of eight bars (the second half repeated, with two verses of words), a middle section of eight bars, and a final section of eight bars that repeats the first. Motive labels appear as each answer below is revealed." loading="lazy">
         ${G.map(([g]) => `<img class="ag-l" data-ag="${g}" src="assets/img/motive/ash-grove-${g}.png" width="1800" height="2090" alt="" hidden>`).join("")}</div>
-        <figcaption><p>“The Ash Grove” (traditional Welsh; English words by John Oxenford), typeset and analyzed by Adam Silverman. Colors: <b class="ag-c-x">x and x′</b>, <b class="ag-c-y">y</b>, <b class="ag-c-z">z</b>.</p>
+        <figcaption><p>“The Ash Grove” (traditional Welsh; English words by John Oxenford). Colors: <b class="ag-c-x">x and x′</b>, <b class="ag-c-y">y</b>, <b class="ag-c-z">z</b>.</p>
         <div class="toy-row"><button type="button" class="play" id="agPlay">▶ Play the tune</button><button type="button" class="play" id="agAll" aria-pressed="false">Show all labels</button></div></figcaption></figure>
       <ol class="ag-q">${G.map(([g, q, a], i) => `<li><p>${q}</p><button type="button" class="play" data-agr="${g}" aria-expanded="false" aria-controls="agA${i}">Reveal</button><p class="ag-a" id="agA${i}" hidden>${a}</p></li>`).join("")}</ol>`;
     function wire(root, tools) {
@@ -186,7 +186,7 @@ window.FAM = (() => {
   })();
   const lesson = { defMode: "major", steps: [
     { title: "What is a motive?", kick: "The smallest idea", render: () => `<p>A <b>motive</b> (or motif; the terms are interchangeable) is a short musical idea: melodic, harmonic, rhythmic, or any combination. It's usually thought of as the shortest part of a theme or phrase that still keeps its identity as an idea. (After William Drabkin, “Motif,” <i>Grove Music Online</i>.)</p>`
-        + EX("ash-grove-motive-x", 1165, 480, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored in <b>The Ash Grove</b>, near the end of this lesson.")
+        + EX("ash-grove-motive-x xs", 1165, 480, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored in <b>The Ash Grove</b>, near the end of this lesson.")
         + `<ul><li><b>Motives are small</b> (a few notes) and <b>distinctive</b>. A long gesture may be a phrase or sub-phrase; a nondescript one (like an undeveloped ostinato) isn't of much analytical interest.</li>
         <li><b>Motives are usually in the foreground.</b> In the accompaniment, they usually imitate the melody.</li>
         <li>Label motives with lowercase letters from the end of the alphabet: <b>x, y, z</b>. A changed version can take a prime: <b>x′</b>.</li>

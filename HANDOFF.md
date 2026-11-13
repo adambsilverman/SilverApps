@@ -427,3 +427,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z143 — Extended chords: Wayne Shorter, "Armageddon"
 - extlesson.js: four steps before Quick check — "Wayne Shorter, “Armageddon”" (YouTube 0nXqhfry8KQ, Adam's lead sheet assets/img/extended/shorter-armageddon.png with fair-use note, chord explorer #armX: grand-staff voicing + spelling + explanation per chord, ARM array), "Sliding dominants" (E7♭5–E♭7–D♭7♯11), "A slash chord and an altered cadence" (G♭/C–F7♯5–B♭m7 as V/V–V–i), "The vamp" (B♭m7 ↔ G♭13). Old "Reading a jazz chord chart" table removed from "Extended chords and inversion". extra.css .ext-fig, #armInfo. assemble.py description updated.
+
+## z144 — About this site; Armageddon fixes; motive image
+- New build/pages/about-this-site.html (who makes it, notation, recordings, fair-use basis, license, privacy). Linked from the footer (common.py CREDIT, styled plain in indie.css .fi-fair a) and from every [data-fair-use] note (site.js adds "More about this").
+- motive.js: removed "typeset and analyzed by Adam Silverman" from the Ash Grove caption; ash-grove-motive-x shown smaller (.mvex.xs, 440px).
+- extlesson.js: jazz voicings, bass aligned with treble (no center), alterations in parentheses, chord buttons in Literata (extra.css #armX [data-armc]).
