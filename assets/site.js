@@ -59,6 +59,15 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
 
+// Fair-use notice: every [data-fair-use] element (placed under each hosted excerpt of someone else's music: score
+// images, recordings, videos) gets the same wording, kept here so it reads identically across all apps.
+(function () {
+  var T = "Short excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders.";
+  function fill() { document.querySelectorAll("[data-fair-use]").forEach(function (p) { if (!p.textContent) p.textContent = T; }); }
+  function go() { fill(); if (window.MutationObserver) new MutationObserver(fill).observe(document.body, { childList: true, subtree: true }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+})();
+
 // Every embedded YouTube video gets a small "Report a dead link" link under it. The address is never in the page:
 // it's assembled from character codes only when the link is clicked (keeps it away from address-harvesting bots).
 (function () {

@@ -38,7 +38,7 @@ window.DIME = (() => {
       return `<span class="dm-reg${i % 2 ? " alt" : ""}" style="left:${pc(x0 - 12, d.w)};width:${pc(nx - x0, d.w)};top:${pc(y0, d.h)};height:${pc(y1 - y0, d.h)}"></span>`; }).join("");
     const covs = d.ch.map(([s, x0, x1, y0, y1]) => `<span class="dm-cov" style="left:${pc(x0 - 8, d.w)};width:${pc(x1 - x0 + 16, d.w)};top:${pc(y0 - 6, d.h)};height:${pc(y1 - y0 + 12, d.h)}"></span>`).join("");
     return `<figure class="lfig dm-fig"><div class="dm-wrap" tabindex="0" role="region" aria-label="${ALT[id].split(":")[0]}"><div class="dm-score">${regs}<img src="assets/img/dime/${id}.png" alt="${ALT[id]} Chord symbols are hidden until you show them." width="1600" height="${Math.round(d.h * 1600 / d.w)}">${covs}</div></div>
-      <figcaption><p>${cap}</p>${aud(id)}<button type="button" class="btn dm-show" data-dmshow aria-pressed="false">Show the chords</button><span class="sr dm-list"> Chords: ${lab.join(", ")}.</span></figcaption></figure>`;
+      <figcaption><p>${cap}</p>${aud(id)}<button type="button" class="btn dm-show" data-dmshow aria-pressed="false">Show the chords</button><span class="sr dm-list"> Chords: ${lab.join(", ")}.</span><p class="note lcite fair-use" data-fair-use></p></figcaption></figure>`;
   }
   if (typeof document !== "undefined") document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-dmshow]"); if (!b) return;
     const f = b.closest(".dm-fig"), on = !f.classList.contains("on"); f.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "Hide the chords" : "Show the chords"; });

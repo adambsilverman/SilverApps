@@ -22,7 +22,7 @@ window.FAM = (() => {
 
   const lesson = { steps: [
     { title: "What is a lead sheet?", kick: "The song on one staff", render: () => `<p>A <b>lead sheet</b> writes down a song in its most compact form: the <b>melody</b> on a single staff, the <b>lyrics</b> under it, and <b>chord symbols</b> above it. It's how songs are passed around in jazz, pop, folk, musical theater, church music and wedding bands: a <i>fake book</i> is a whole library of them. Everything else about the performance is left to the musicians.</p>
-      <figure class="lfig lsfig">${IMG}<figcaption><p class="small lcite">Jay Gorney and E. Y. Harburg, <i>Brother, Can You Spare a Dime?</i> (1932), the first eight bars as a lead sheet.</p></figcaption></figure>
+      <figure class="lfig lsfig">${IMG}<figcaption><p class="small lcite">Jay Gorney and E. Y. Harburg, <i>Brother, Can You Spare a Dime?</i> (1932), the first eight bars as a lead sheet.</p><p class="note lcite fair-use" data-fair-use></p></figcaption></figure>
       <p>Played straight from the page, a lead sheet gives you the melody, and the chords if someone plays them:</p>
       <div class="ls-auds"><p><b>Melody alone</b></p>${DIME.aud("melody")}<p><b>Melody and chords</b></p>${DIME.aud("leadsheet")}</div>
       <p>Here's how Bing Crosby's 1932 recording turned the same eight bars into a performance, with its own tempo, orchestra and accompaniment:</p>

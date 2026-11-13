@@ -207,7 +207,7 @@ window.FAM = (() => {
   const YT = (id, title, start) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ""}" title="${title} (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
   const AUD = f => `<audio controls preload="none" src="assets/audio/texture/${f}.mp3" style="width:100%;margin-top:8px"></audio>`;
   const IMG = (f, alt) => `<img src="assets/img/texture/${f}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">`;
-  const EXF = (cap, ...parts) => `<figure class="lfig txex">${parts.join("")}<figcaption>${cap}</figcaption></figure>`;
+  const EXF = (cap, ...parts) => `<figure class="lfig txex">${parts.join("")}<figcaption>${cap}${/<audio\b/.test(parts.join("")) ? `<p class="note lcite fair-use" data-fair-use></p>` : ""}</figcaption></figure>`;   // fair-use note when someone else's recording is hosted here
   const SCORE = (f, label = "score (PDF)") => ` [<a href="assets/scores/texture/${f}.pdf" target="_blank" rel="noopener">${label}</a>]`;
   const lesson = { steps: [
     { title: "What is texture?", kick: "The weave of the music", render: H => `<p><b>Texture</b> is how the layers of a piece fit together: how many there are, what each one does, and how they relate. Like the weave of a fabric, a texture can be thin or thick, transparent or dense, and it can change from moment to moment.</p>
