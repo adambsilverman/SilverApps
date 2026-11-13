@@ -432,3 +432,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - New build/pages/about-this-site.html (who makes it, notation, recordings, fair-use basis, license, privacy). Linked from the footer (common.py CREDIT, styled plain in indie.css .fi-fair a) and from every [data-fair-use] note (site.js adds "More about this").
 - motive.js: removed "typeset and analyzed by Adam Silverman" from the Ash Grove caption; ash-grove-motive-x shown smaller (.mvex.xs, 440px).
 - extlesson.js: jazz voicings, bass aligned with treble (no center), alterations in parentheses, chord buttons in Literata (extra.css #armX [data-armc]).
+
+## z145 — More About Intervals edits; grand-staff bar lines
+- intervals2.js: P1 drawn as two whole notes side by side; Over the Rainbow plays the score in rhythm (no play override); "Intervals in scales" points ahead to the scales unit; "Inverting intervals" is a drag toy (drag a notehead from bar 1 into bar 2; buttons do the same; labels via sym above the staff); the d3 (C–E𝄫) example removed from "Half steps, whole steps and 2nds". extra.css .i2-drag.
+- engine.js (cols grand-staff renderer): bar lines drawn through both staves.
