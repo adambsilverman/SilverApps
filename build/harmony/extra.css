@@ -602,3 +602,12 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .i2-drag { touch-action: none; user-select: none; -webkit-user-select: none; }
 #armX [data-armc] { font-family: Literata, "Noto Music", serif !important; font-weight: 700; text-transform: none !important; letter-spacing: 0 !important; font-size: 16px; gap: 0 !important; }
 .mvex.xs img { max-width: 440px; }
+.i2-invchart { display: flex; flex-wrap: wrap; gap: 0 18px; align-items: flex-start; }
+.i2-invchart .ltable-wrap { flex: 1 1 220px; }
+/* Chord Figures, Triads: triad keyboard (figlesson.js) */
+#trk .trkb { min-width: 520px; }
+#trk .ik.ik-r { background: #A8321F; color: #fff; } #trk .ik.ik-3 { background: #F2C14E; color: #222; } #trk .ik.ik-5 { background: #6FA8DC; color: #111; }
+#trk .ik b { font-size: 13px; margin-bottom: 4px; }
+.trk-key { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: .85rem; margin-top: 6px; }
+.trk-key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid #222; }
+.trk-key .ik-r::before { background: #A8321F; } .trk-key .ik-3::before { background: #F2C14E; } .trk-key .ik-5::before { background: #6FA8DC; }

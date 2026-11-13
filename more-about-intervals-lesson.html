@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="stylesheet" href="assets/shared/styles-apps.d0af302e0a.css">
+<link rel="stylesheet" href="assets/shared/styles-apps.3056f028d1.css">
 <link rel="stylesheet" href="assets/indie.css?v=f97d23f8">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 <link rel="stylesheet" href="assets/trainer-skin.css?v=f9e4882a">
@@ -133,10 +133,10 @@ window.FAM = (() => {
       <button type="button" class="play" id="i2ScPlay">▶ Play</button></div>
     <div class="staff" id="i2ScStaff" style="width:100%"></div><p class="small" id="i2ScSay" aria-live="polite" style="margin:0"></p></div>`;
 
-  // step 7: inversion explorer, intervals above C4
-  const INV = [["D4", "M2"], ["E♭4", "m3"], ["E4", "M3"], ["F4", "P4"], ["F♯4", "A4"], ["G4", "P5"], ["A♭4", "m6"], ["A4", "M6"], ["B♭4", "m7"], ["B4", "M7"]];
+  // step 7: inversion explorer, intervals above F4
+  const INV = [["G4", "M2"], ["A♭4", "m3"], ["A4", "M3"], ["B♭4", "P4"], ["B4", "A4"], ["C5", "P5"], ["D♭5", "m6"], ["D5", "M6"], ["E♭5", "m7"], ["E5", "M7"]];   // above F4, so both inversions sit on the staff
   const IV = { i: 2 };
-  const invHTML = () => `<div class="toy" id="i2Inv"><div class="toy-row"><label>Interval above C <select id="i2InvSel">${INV.map(([t, l], i) => `<option value="${i}" ${i === IV.i ? "selected" : ""}>${l} (C–${t.slice(0, -1)})</option>`).join("")}</select></label>
+  const invHTML = () => `<div class="toy" id="i2Inv"><div class="toy-row"><label>Interval above F <select id="i2InvSel">${INV.map(([t, l], i) => `<option value="${i}" ${i === IV.i ? "selected" : ""}>${l} (F–${t.slice(0, -1)})</option>`).join("")}</select></label>
       <button type="button" class="play" id="i2InvPlay">▶ Play</button></div>
     <p class="small" style="margin:6px 0 0">Drag either note into the empty bar. The lower note goes up an octave; the upper note goes down one.</p>
     <div class="staff i2-drag" id="i2InvStaff" style="width:100%"></div>
@@ -193,8 +193,11 @@ window.FAM = (() => {
       } },
 
     { title: "Inverting intervals", kick: "The rule of nine", render: H => `<p>Take C up to E, a 3rd, and move the C up an octave. Now it's E up to C: a 6th. That's <b>inversion</b>: the lower note goes above the upper one (or the upper below the lower).</p>
-      <p>The two numbers always add up to <b>nine</b>. A 2nd inverts to a 7th, a 3rd to a 6th, a 4th to a 5th, a unison to an octave. The quality flips too: major becomes minor, augmented becomes diminished, and perfect stays perfect. The half steps add up to 12, since the two intervals together fill one octave.</p>
+      <div class="i2-invchart">${tbl("Numbers", ["Interval", "Inverts to"], [["unison", "octave"], ["2nd", "7th"], ["3rd", "6th"], ["4th", "5th"], ["5th", "4th"], ["6th", "3rd"], ["7th", "2nd"], ["octave", "unison"]])}
+      ${tbl("Qualities", ["Interval", "Inverts to"], [["major", "minor"], ["minor", "major"], ["perfect", "perfect"], ["augmented", "diminished"], ["diminished", "augmented"]])}</div>
       ${invHTML()}
+      <h3>The rule of nine</h3>
+      <p>The two numbers always add up to <b>nine</b>. A 2nd inverts to a 7th, a 3rd to a 6th, a 4th to a 5th, a unison to an octave. The quality flips too: major becomes minor, augmented becomes diminished, and perfect stays perfect. The half steps add up to 12, since the two intervals together fill one octave.</p>
       ${tbl("Inversion", ["Interval", "Inverts to", "Check"], [["M3 (4 half steps)", "m6 (8)", "3 + 6 = 9"], ["m7 (10)", "M2 (2)", "7 + 2 = 9"], ["P4 (5)", "P5 (7)", "4 + 5 = 9"], ["A4 (6)", "d5 (6)", "4 + 5 = 9"]])}
       <p>This saves work. A 6th or a 7th is hard to count; its inversion, a 3rd or a 2nd, is easy. Name the small one, then flip it: C up to B♭? B♭ up to C is a major 2nd, so C up to B♭ is a minor 7th.</p>`
       + H.check("What does a minor 3rd invert to?", "a major 6th", ["a minor 6th", "a major 7th", "a perfect 5th"], "3 + 6 = 9, and minor becomes major.")
@@ -205,17 +208,17 @@ window.FAM = (() => {
         const staff = box.querySelector("#i2InvStaff");
         const an = iv => (/^[aeiou]/.test(longName(iv)) ? "an " : "a ") + longName(iv);
         // IV.mv: null (nothing moved yet), "lo" (C taken up an octave) or "hi" (the upper note taken down an octave)
-        const cur = () => { const lo = H.parse("C4"), hi = H.parse(INV[IV.i][0]);
+        const cur = () => { const lo = H.parse("F4"), hi = H.parse(INV[IV.i][0]);
           const inv = IV.mv === "lo" ? [hi, H.N(lo.l, lo.a, lo.o + 1)] : IV.mv === "hi" ? [H.N(hi.l, hi.a, hi.o - 1), lo] : null;
           return { lo, hi, a: ivName(H, lo, hi), inv, b: inv && ivName(H, inv[0], inv[1]) }; };
         const draw = () => { const c = cur();
-          tools.drawStaff(staff, score([[N(["C4", H.nmO(c.hi)], "w", { sym: c.a.short })], [c.inv ? N(c.inv.map(H.nmO), "w", { sym: c.b.short, color: "#B3261E" }) : N([], "w")]], { minBar: 130 }));
+          tools.drawStaff(staff, score([[N(["F4", H.nmO(c.hi)], "w", { sym: c.a.short })], [c.inv ? N(c.inv.map(H.nmO), "w", { sym: c.b.short, color: "#B3261E" }) : N([], "w")]], { minBar: 130 }));
           const hn = H.nm(c.hi);
-          box.querySelector("#i2InvLo").textContent = `Move C up an octave`; box.querySelector("#i2InvHi").textContent = `Move ${hn} down an octave`;
-          box.querySelector("#i2InvSay").innerHTML = !c.inv ? `C up to ${hn} is <b>${an(c.a)}</b>. Move one of the notes to invert it.`
-            : `C up to ${hn} is <b>${an(c.a)}</b>. ${H.nm(c.inv[0])} up to ${H.nm(c.inv[1])} is <b>${an(c.b)}</b>. ${c.a.num} + ${c.b.num} = 9.`;
+          box.querySelector("#i2InvLo").textContent = `Move F up an octave`; box.querySelector("#i2InvHi").textContent = `Move ${hn} down an octave`;
+          box.querySelector("#i2InvSay").innerHTML = !c.inv ? `F up to ${hn} is <b>${an(c.a)}</b>. Move one of the notes to invert it.`
+            : `F up to ${hn} is <b>${an(c.a)}</b>. ${H.nm(c.inv[0])} up to ${H.nm(c.inv[1])} is <b>${an(c.b)}</b>. ${c.a.num} + ${c.b.num} = 9.`;
           const f1 = staff.querySelector(".vf-stavenote"); if (f1) f1.querySelectorAll(".vf-notehead").forEach(h => h.style.cursor = "grab"); };
-        const playIt = () => { const c = cur(), ch = [[60, H.midi(c.hi)]]; if (c.inv) ch.push(c.inv.map(n => H.midi(n))); tools.play({ chords: ch, gap: 1.2 }); };
+        const playIt = () => { const c = cur(), ch = [[65, H.midi(c.hi)]]; if (c.inv) ch.push(c.inv.map(n => H.midi(n))); tools.play({ chords: ch, gap: 1.2 }); };
         const move = w => { IV.mv = w; draw(); playIt(); };
         box.querySelector("#i2InvSel").onchange = e => { IV.i = +e.target.value; IV.mv = null; draw(); };
         box.querySelector("#i2InvPlay").onclick = playIt;
