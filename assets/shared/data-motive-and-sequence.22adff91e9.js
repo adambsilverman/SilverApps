@@ -149,7 +149,7 @@ window.FAM = (() => {
     const G = [
       ["x", "Listen to the opening. Motive x has two parts. How is part 2 related to part 1?", "<b>x</b>: part 1 rises (E–A–C♯); part 2 is its <b>inversion</b>, falling (E–D–C♯–A)."],
       ["xp", "Where does x come back in the first strain, changed?", "<b>x′</b>, twice: adapted to new harmony (B minor to E7), then adapted to tonic harmony (A/C♯ to D)."],
-      ["y", "Both halves of the tune end with the same closing gesture. Can you find it?", "<b>y</b>, a cadence figure: closing on A in the first strain, then on E in the middle section."],
+      ["y", "A closing gesture ends each third of the tune. Can you find it?", "<b>y</b>, a cadence figure: it closes the first section (on A) and the middle section (on E), and comes back in the last line (unlabeled, since that line repeats the end of the first section) to close the song on A."],
       ["z", "The middle section introduces a new idea and repeats it at lower and lower pitch levels. What's that called?", "<b>z</b>, repeated <b>sequentially</b> (three statements, each a step lower). Its last four beats resemble an inversion of x′."],
       ["same", "How does the final section begin?", "<b>The same as the beginning</b>: x returns, rounding off the song."]];
     // melody [midi, beats] and chords per bar [bass, [chord]] x 3 beats; A major, 3/4
@@ -170,8 +170,8 @@ window.FAM = (() => {
       return ev;
     }
     const html = () => `<p>“The Ash Grove,” a traditional Welsh tune, is built almost entirely from a few motives, transformed. Listen, then work through the questions: each answer reveals its labels and brackets on the score.</p>
-      <figure class="lfig mvex ag"><div class="ag-wrap"><img src="assets/img/motive/ash-grove.png" width="1800" height="1743" alt="The Ash Grove in A major, 3/4, five lines of melody with chord symbols and lyrics: a first strain of eight bars with a repeat (two verses), a middle section of eight bars, and the return of the opening. Motive labels appear as each answer below is revealed." loading="lazy">
-        ${G.map(([g]) => `<img class="ag-l" data-ag="${g}" src="assets/img/motive/ash-grove-${g}.png" width="1800" height="1743" alt="" hidden>`).join("")}</div>
+      <figure class="lfig mvex ag"><div class="ag-wrap"><img src="assets/img/motive/ash-grove.png" width="1800" height="1809" alt="The Ash Grove in A major, 3/4, six lines of melody with chord symbols and lyrics: a first section of eight bars (the second half repeated, with two verses of words), a middle section of eight bars, and a final section of eight bars that repeats the first. Motive labels appear as each answer below is revealed." loading="lazy">
+        ${G.map(([g]) => `<img class="ag-l" data-ag="${g}" src="assets/img/motive/ash-grove-${g}.png" width="1800" height="1809" alt="" hidden>`).join("")}</div>
         <figcaption><p>“The Ash Grove” (traditional Welsh; English words by John Oxenford), typeset and analyzed by Adam Silverman. Colors: <b class="ag-c-x">x and x′</b>, <b class="ag-c-y">y</b>, <b class="ag-c-z">z</b>.</p>
         <div class="toy-row"><button type="button" class="play" id="agPlay">▶ Play the tune</button><button type="button" class="play" id="agAll" aria-pressed="false">Show all labels</button></div></figcaption></figure>
       <ol class="ag-q">${G.map(([g, q, a], i) => `<li><p>${q}</p><button type="button" class="play" data-agr="${g}" aria-expanded="false" aria-controls="agA${i}">Reveal</button><p class="ag-a" id="agA${i}" hidden>${a}</p></li>`).join("")}</ol>`;
@@ -187,7 +187,7 @@ window.FAM = (() => {
   })();
   const lesson = { defMode: "major", steps: [
     { title: "What is a motive?", kick: "The smallest idea", render: () => `<p>A <b>motive</b> (or motif; the terms are interchangeable) is a short musical idea: melodic, harmonic, rhythmic, or any combination. It's usually thought of as the shortest part of a theme or phrase that still keeps its identity as an idea. (After William Drabkin, “Motif,” <i>Grove Music Online</i>.)</p>`
-        + EX("ash-grove-motive-x", 1190, 468, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored step by step in <b>The Ash Grove</b>, later in this lesson.")
+        + EX("ash-grove-motive-x", 1165, 448, "The first two bars of The Ash Grove in A major, 3/4, with chord symbols A and F-sharp minor. A bracket labels motive x; under it, x part 1 (a rising pickup figure, E, A, C-sharp) and x part 2, an inversion of part 1 (falling, E, D, C-sharp, A).", "The opening of “The Ash Grove” (traditional Welsh): motive x, whose second part inverts the first. The whole tune is explored in <b>The Ash Grove</b>, near the end of this lesson.")
         + `<ul><li><b>Motives are small</b> (a few notes) and <b>distinctive</b>. A long gesture may be a phrase or sub-phrase; a nondescript one (like an undeveloped ostinato) isn't of much analytical interest.</li>
         <li><b>Motives are usually in the foreground.</b> In the accompaniment, they usually imitate the melody.</li>
         <li>Label motives with lowercase letters from the end of the alphabet: <b>x, y, z</b>. A changed version can take a prime: <b>x′</b>.</li>
@@ -213,7 +213,6 @@ window.FAM = (() => {
         <li><b>Change of length</b>: <b>fragmentation</b> (breaking off part of a motive and developing it), or adding and removing notes through extension or ornamentation. In the Eagles' fight song, z starts as a fragment of y and then gains independence.</li></ul>`
       + H.check("A motive comes back with every note longer. That's…", "augmentation", ["diminution", "fragmentation", "retrograde"], "Longer values: augmentation.")
       + H.check("Only the first few notes of a motive are repeated and developed. That's…", "fragmentation", ["augmentation", "inversion", "real transposition"], "A fragment of the motive takes on a life of its own.") },
-    { title: "The Ash Grove", kick: "Putting it together", render: () => AG.html(), after: (root, H, k, tools) => AG.wire(root, tools) },
     { title: "Sequence", kick: "Tonal, real and modified", render: () => `<p>A <b>sequence</b> is the more or less exact repetition of a melody at another level, higher or lower (<i>Oxford Companion to Music</i>). If only the melody repeats, with changed harmony, it's a <b>melodic sequence</b>; if the harmony follows the pattern too, a <b>harmonic sequence</b>.</p>
       <ul><li><b>Tonal sequence</b>: the repetitions stay in the key, so some intervals get larger or smaller by a half step.</li>
         <li><b>Real sequence</b>: exact intervals are kept, so the key changes (or accidentals appear).</li>
@@ -240,6 +239,7 @@ window.FAM = (() => {
       ${EX("allentown", 886, 375, "Lead sheet in D major with chord symbols: E minor 7, A7 sus, D; then A minor 7, D7 sus, G, the same melody a fourth higher; then E minor 7, A, B minor, F-sharp minor over A, E minor over G, D over F-sharp, A7 sus as the phrase continues.", "Billy Joel, “Allentown” (1982): a gesture transposed up a 4th, chords and all.")}
       ${YT("BHnJp0oyOxs", "Billy Joel, Allentown", 17)}
       <p>Is that a sequence, or just transposition? Adam Silverman's view: there's a “spirit” of sequence missing there. A true sequence, rooted in Baroque practice, uses transposed motives and chord patterns to move a phrase along its path to the cadence. That song uses transposed gestures as the beginning of a musical <i>sentence</i> instead. Common usage often applies “sequence” to any transposition (even in descriptions of the sentence on openmusictheory.com), but that colloquial usage misses the majesty of a true sequence.</p>` },
+    { title: "The Ash Grove", kick: "Putting it together", render: () => AG.html(), after: (root, H, k, tools) => AG.wire(root, tools) },
     { title: "Quick check", kick: "Before the drills", render: (H) => [FACTS[4], FACTS[6], FACTS[8], FACTS[12]].map(([q, a, w, y]) => H.check(q, a, w, y)).join("") },
   ] };
 
