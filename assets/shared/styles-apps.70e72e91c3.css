@@ -796,6 +796,16 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .mvex img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
 .mvex audio { width: 100%; max-width: 520px; display: block; margin: 8px auto 0; }
 .fair-use { margin: 6px 0 0; font-size: 12px !important; font-style: italic; }
+.mvex.sm img { max-width: 520px; }
+.ag-wrap { position: relative; max-width: 900px; margin: 0 auto; }
+.ag-wrap img { width: 100%; height: auto; display: block; }
+.ag-wrap .ag-l { position: absolute; inset: 0; background: transparent !important; }
+.ag-wrap .ag-l[hidden] { display: none; }
+.ag-c-x { color: #B3261E; } .ag-c-y { color: #1F5FA8; } .ag-c-z { color: #2E7D32; }
+.ag-q { padding-left: 1.4em; }
+.ag-q li { margin: 0 0 12px; }
+.ag-q li > p { margin: 0 0 6px; }
+.ag-q .ag-a { margin-top: 6px; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
