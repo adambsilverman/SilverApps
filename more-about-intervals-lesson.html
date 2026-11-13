@@ -217,7 +217,28 @@ window.FAM = (() => {
           box.querySelector("#i2InvLo").textContent = `Move F up an octave`; box.querySelector("#i2InvHi").textContent = `Move ${hn} down an octave`;
           box.querySelector("#i2InvSay").innerHTML = !c.inv ? `F up to ${hn} is <b>${an(c.a)}</b>. Move one of the notes to invert it.`
             : `F up to ${hn} is <b>${an(c.a)}</b>. ${H.nm(c.inv[0])} up to ${H.nm(c.inv[1])} is <b>${an(c.b)}</b>. ${c.a.num} + ${c.b.num} = 9.`;
-          const f1 = staff.querySelector(".vf-stavenote"); if (f1) f1.querySelectorAll(".vf-notehead").forEach(h => h.style.cursor = "grab"); };
+          const f1 = staff.querySelector(".vf-stavenote"); if (f1) f1.querySelectorAll(".vf-notehead").forEach(h => h.style.cursor = "grab"); if (c.inv) arrows(); };
+        // arrows from bar 1 to bar 2: grey for the note that stays, red for the note that jumps an octave
+        const arrows = () => {
+          const svg = staff.querySelector("svg"), sn = staff.querySelectorAll(".vf-stavenote"); if (!svg || sn.length < 2) return;
+          const heads = el => [...el.querySelectorAll(".vf-notehead")].map(h => h.getBBox()).sort((p, q) => q.y - p.y);   // bottom first
+          const [a, b] = [heads(sn[0]), heads(sn[1])]; if (a.length < 2 || b.length < 2) return;
+          const NS = "http://www.w3.org/2000/svg", mk = (t, at, par) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); (par || svg).appendChild(e); return e; };
+          const g = mk("g", { "pointer-events": "none", "aria-hidden": "true" }), defs = mk("defs", {}, g);
+          const col = { stay: "#6B6B6B", jump: "#B3261E" };
+          Object.entries(col).forEach(([k, v]) => { const m = mk("marker", { id: "i2ah-" + k, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 5, markerHeight: 5, orient: "auto-start-reverse" }, defs); mk("path", { d: "M0 0 L10 5 L0 10 z", fill: v }, m); });
+          const cy = r => r.y + r.height / 2;
+          // IV.mv "lo": bottom note of bar 1 jumps to the top of bar 2; top note stays (bottom of bar 2). "hi": the reverse.
+          const [jFrom, jTo, sFrom, sTo] = IV.mv === "lo" ? [a[0], b[1], a[1], b[0]] : [a[1], b[0], a[0], b[1]];
+          const nb = [sn[0].getBBox(), sn[1].getBBox()], x1 = () => nb[0].x + nb[0].width + 6, x2 = () => nb[1].x - 6;   // whole chord boxes, so arrows clear accidentals and offset 2nds
+          mk("path", { d: `M${x1(sFrom)} ${cy(sFrom)} L${x2(sTo)} ${cy(sTo)}`, stroke: col.stay, "stroke-width": 1.6, "stroke-dasharray": "5 4", fill: "none", "marker-end": "url(#i2ah-stay)" }, g);
+          const mx = (x1(jFrom) + x2(jTo)) / 2, bend = IV.mv === "lo" ? Math.min(cy(jFrom), cy(jTo)) - 14 : Math.max(cy(jFrom), cy(jTo)) + 14;
+          mk("path", { d: `M${x1(jFrom)} ${cy(jFrom)} Q${mx} ${bend} ${x2(jTo)} ${cy(jTo)}`, stroke: col.jump, "stroke-width": 2, fill: "none", "marker-end": "url(#i2ah-jump)" }, g);
+          const lab = (x, y, t, c, anchor) => { const e = mk("text", { x, y, "text-anchor": anchor || "middle", "font-size": 12, "font-family": "'Barlow Condensed', sans-serif", "font-weight": 700, fill: c }, g); e.textContent = t; };
+          lab(mx, IV.mv === "lo" ? bend - 2 : bend + 12, IV.mv === "lo" ? "up an octave" : "down an octave", col.jump);
+          lab(x2() - 24, cy(sFrom) + (IV.mv === "lo" ? 15 : -6), "stays", col.stay, "end");
+          try { const bb = svg.getBBox(); svg.setAttribute("viewBox", `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}`); } catch (e) {}
+        };
         const playIt = () => { const c = cur(), ch = [[65, H.midi(c.hi)]]; if (c.inv) ch.push(c.inv.map(n => H.midi(n))); tools.play({ chords: ch, gap: 1.2 }); };
         const move = w => { IV.mv = w; draw(); playIt(); };
         box.querySelector("#i2InvSel").onchange = e => { IV.i = +e.target.value; IV.mv = null; draw(); };
