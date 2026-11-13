@@ -1,0 +1,1147 @@
+
+(() => {
+  "use strict";
+  // ---------- Rhythm model ----------
+  // Durations are counted in 32nd notes: quarter = 8, dotted quarter = 12, whole = 32.
+  // An event is { d: duration, r: rest?, t: tied to the next note?, b: beam-group id or null, full: whole-bar rest? }.
+  const DUR = {
+    48: ["w", 1, "dotted whole"], 32: ["w", 0, "whole"], 28: ["h", 2, "double-dotted half"], 24: ["h", 1, "dotted half"],
+    16: ["h", 0, "half"], 14: ["q", 2, "double-dotted quarter"], 12: ["q", 1, "dotted quarter"], 8: ["q", 0, "quarter"],
+    7: ["8", 2, "double-dotted eighth"], 6: ["8", 1, "dotted eighth"], 4: ["8", 0, "eighth"], 3: ["16", 1, "dotted sixteenth"],
+    2: ["16", 0, "sixteenth"], 1: ["32", 0, "thirty-second"],
+  };
+  const isVal = d => Object.prototype.hasOwnProperty.call(DUR, d);
+  const flag = e => !e.r && e.d < 8;
+  const M = {};
+  [["2/4", 2, 4], ["3/4", 3, 4], ["4/4", 4, 4], ["6/8", 6, 8], ["9/8", 9, 8], ["12/8", 12, 8]].forEach(([id, num, den]) => {
+    const comp = den === 8, beat = comp ? 12 : 8, n = comp ? num / 3 : num;
+    M[id] = { id, num, den, comp, beat, n, bar: beat * n };
+  });
+  const ALL_M = Object.keys(M);
+  const KIND = m => (m.comp ? "compound " : "simple ") + ["", "", "duple", "triple", "quadruple"][m.n];
+  const beatName = m => m.comp ? "dotted-quarter" : "quarter-note";
+
+  const rnd = n => Math.floor(Math.random() * n);
+  const pickOne = a => a[rnd(a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const clone = x => JSON.parse(JSON.stringify(x));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const tokLen = t => parseInt(String(t).replace(/[r~]/g, ""), 10);
+  const T = t => { const s = String(t); return { d: tokLen(s), r: s[0] === "r", t: s.endsWith("~"), b: null }; };
+  const starts = ev => { let p = 0; return ev.map(e => { const a = p; p += e.d; return a; }); };
+  const total = ev => ev.reduce((s, e) => s + e.d, 0);
+  const sig = ev => ev.map(e => (e.r ? "r" : "") + e.d + (e.t ? "~" : "") + (e.b != null ? "b" + e.b : "")).join(" ");
+
+  const FR = { 0.25: "¼", 0.5: "½", 0.75: "¾" };
+  function frac(x) { const w = Math.floor(x), f = +(x - w).toFixed(3); return ((w ? String(w) : "") + (f ? (FR[f] || f.toFixed(2).slice(1)) : "")) || "0"; }
+  function fmtLen(m, len) {
+    if (!m.comp) { const b = len / 8; return `${frac(b)} beat${b <= 1 ? "" : "s"}`; }
+    const e = len / 4;
+    if (len % 12 === 0) { const b = len / 12; return `${b} beat${b > 1 ? "s" : ""} (${e} eighths)`; }
+    return `${frac(e)} eighth${e <= 1 ? "" : "s"}`;
+  }
+  const eighths = len => `${frac(len / 4)} eighth notes' worth`;
+  function posName(m, p) {
+    const B = m.beat, k = Math.floor(p / B) + 1, r = p % B;
+    if (!r) return `beat ${k}`;
+    if (!m.comp) {
+      if (r === 4) return `the “and” of beat ${k}`;
+      if (r === 2) return `the second sixteenth of beat ${k}`;
+      if (r === 6) return `the last sixteenth of beat ${k}`;
+      return `partway through beat ${k}`;
+    }
+    if (r % 4 === 0) return `the ${r === 4 ? "second" : "third"} eighth of beat ${k}`;
+    if (r % 2 === 0) return `the ${["", "second", "", "fourth", "", "sixth"][r / 2]} sixteenth of beat ${k}`;
+    return `partway through beat ${k}`;
+  }
+
+  // Metric weight of a position: downbeat > middle of a 4-beat bar > other beats > divisions > subdivisions.
+  function weight(m, p) {
+    if (p === 0) return 10;
+    if (p % m.beat === 0) return (m.n === 4 && p === m.bar / 2) ? 5 : 4;
+    if (p % 4 === 0) return 3;
+    if (p % 2 === 0) return 2;
+    return 1;
+  }
+
+  function beamGroups(ev) {
+    const out = [];
+    for (let i = 0; i < ev.length;) {
+      if (ev[i].b == null) { i++; continue; }
+      let j = i; while (j + 1 < ev.length && ev[j + 1].b === ev[i].b) j++;
+      if (j > i) out.push(Array.from({ length: j - i + 1 }, (_, k) => i + k));
+      i = j + 1;
+    }
+    return out;
+  }
+  // Beam by chunk: consecutive flagged notes in the same chunk share a beam. chunk 0 = no beams at all.
+  function beamBy(m, ev, chunk, offset = 0) {
+    const st = starts(ev).map(a => a + offset); let g = 0;
+    ev.forEach(e => { e.b = null; });
+    if (!chunk) return ev;
+    for (let i = 0; i < ev.length;) {
+      if (!flag(ev[i])) { i++; continue; }
+      let j = i;
+      while (j + 1 < ev.length && flag(ev[j + 1]) && Math.floor(st[j + 1] / chunk) === Math.floor(st[i] / chunk)) j++;
+      if (j > i) { g++; for (let k = i; k <= j; k++) ev[k].b = g; }
+      i = j + 1;
+    }
+    return ev;
+  }
+  function autoBeam(m, ev, wide, offset = 0) {
+    beamBy(m, ev, m.beat, offset);
+    if (wide && !m.comp) {
+      const st = starts(ev).map(a => a + offset);
+      const spans = m.n === 4 ? [[0, 16], [16, 32]] : [[0, m.bar]];
+      let g = 100;
+      spans.forEach(([a, z]) => {
+        const idx = ev.map((_, i) => i).filter(i => st[i] >= a && st[i] < z);
+        if (idx.length >= 3 && idx.every(i => !ev[i].r && ev[i].d === 4) && idx.reduce((s, i) => s + ev[i].d, 0) === z - a) { g++; idx.forEach(i => { ev[i].b = g; }); }
+      });
+    }
+    return ev;
+  }
+
+  // ---------- Notation checker ----------
+  // Returns a list of issues. kind "gray" marks spellings that style guides disagree on; they are never used as answers or distractors.
+  function check(m, ev) {
+    const iss = [], B = m.beat, BAR = m.bar, st = starts(ev), tot = total(ev);
+    if (tot !== BAR) iss.push({ kind: "total", idx: [], msg: tot < BAR ? `The bar adds up to ${fmtLen(m, tot)}, ${fmtLen(m, BAR - tot)} short of a full bar of ${m.id}.` : `The bar adds up to ${fmtLen(m, tot)}, ${fmtLen(m, tot - BAR)} more than a full bar of ${m.id}.` });
+    ev.forEach((e, i) => {
+      const a = st[i], z = a + e.d, nb = (Math.floor(a / B) + 1) * B;
+      if (nb >= z || a >= BAR) return;
+      const bn = nb / B + 1, name = isVal(e.d) ? DUR[e.d][2] : "long", A = /^[aeiou]/.test(name) ? "An" : "A";
+      if (e.r) {
+        if (e.full && a === 0 && z === BAR) return;
+        if (!m.comp && m.n === 4 && e.d === 16 && (a === 0 || a === 16)) return;
+        iss.push({ kind: "rest", idx: [i], msg: `${A} ${name} rest on ${posName(m, a)} runs across beat ${bn}. Rests should show each beat, so a new rest should start on beat ${bn}.` });
+        return;
+      }
+      if (a % B) { iss.push({ kind: "cross", idx: [i], msg: `${A} ${name} note starts on ${posName(m, a)} and is held through beat ${bn}, which hides where beat ${bn} falls. Split it at beat ${bn} and tie the two parts.` }); return; }
+      if (z % B === 0) {
+        if (m.n === 4 && a < BAR / 2 && z > BAR / 2 && a !== 0 && !(a === B && z === 3 * B))
+          iss.push({ kind: "middle", idx: [i], msg: `${A} ${name} note starts on beat ${a / B + 1} and runs across the middle of the bar. In ${m.id}, show beat 3: split the note there and tie.` });
+        return;
+      }
+      if (!m.comp) {
+        if (DUR[e.d] && DUR[e.d][1] > 0 && (a === 0 || (m.n === 4 && a === BAR / 2))) return;
+        if (m.n === 3 && a === B && e.d === 12) { iss.push({ kind: "gray", idx: [i], msg: "" }); return; }
+        iss.push({ kind: "cross", idx: [i], msg: `${A} ${name} note on beat ${a / B + 1} ends partway through beat ${bn}, hiding where beat ${bn} falls. Dotted values belong on strong beats; here, split the note at beat ${bn} and tie.` });
+      } else {
+        iss.push({ kind: "cross", idx: [i], msg: `${A} ${name} note on beat ${a / B + 1} ends partway through beat ${bn}. In compound time a note can run past a beat only when it fills whole beats, so split it at beat ${bn} and tie.` });
+      }
+    });
+    beamGroups(ev).forEach(g => {
+      const a = st[g[0]], last = g[g.length - 1], z = st[last] + ev[last].d;
+      if (Math.floor(a / B) === Math.floor((z - 1) / B)) return;
+      if (!m.comp && g.every(i => ev[i].d === 4) && (m.n === 4 ? ((a === 0 && z === 16) || (a === 16 && z === 32)) : (a === 0 && z === BAR))) return;
+      const b1 = Math.floor(a / B) + 1, b2 = Math.floor((z - 1) / B) + 1;
+      iss.push({ kind: "beam", idx: g, msg: m.comp
+        ? `A beam runs from beat ${b1} into beat ${b2}. In ${m.id}, each dotted-quarter beat gets its own beam, so the eighths group in threes.`
+        : `A beam runs from beat ${b1} into beat ${b2}. In ${m.id}, beam each quarter-note beat separately${m.n === 4 ? " (plain eighths may share a beam across beats 1–2 or 3–4, never across the middle)" : ""}.` });
+    });
+    for (let i = 0; i + 1 < ev.length; i++) {
+      const e = ev[i], f = ev[i + 1];
+      if (!flag(e) || !flag(f)) continue;
+      if (Math.floor(st[i] / B) !== Math.floor(st[i + 1] / B)) continue;
+      if (e.b != null && e.b === f.b) continue;
+      iss.push({ kind: "unbeamed", idx: [i, i + 1], msg: `Flagged notes inside beat ${Math.floor(st[i] / B) + 1} aren't beamed together. Notes that share a beat should share a beam, so the beat reads as one group.` });
+    }
+    const seen = new Set();
+    return iss.filter(x => { const k = x.kind + x.msg; if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+  const isClean = iss => iss.length === 0;
+  const isWrong = iss => iss.some(x => x.kind !== "gray");
+
+  function sounding(ev, offset = 0) {
+    const st = starts(ev), out = [];
+    for (let i = 0; i < ev.length; i++) {
+      if (ev[i].r) continue;
+      let j = i, z = st[i] + ev[i].d;
+      while (ev[j].t && j + 1 < ev.length && !ev[j + 1].r) { j++; z = st[j] + ev[j].d; }
+      out.push({ a: st[i] + offset, z: z + offset, i, j });
+      i = j;
+    }
+    return out;
+  }
+  // Notes that begin on a weaker position and are held through a stronger one.
+  function syncNotes(m, ev) {
+    return sounding(ev).map(n => {
+      const w = weight(m, n.a); let best = -1, bw = w;
+      for (let p = n.a + 1; p < n.z && p < m.bar; p++) if (weight(m, p) > bw) { bw = weight(m, p); best = p; }
+      return best >= 0 ? Object.assign(n, { through: best }) : null;
+    }).filter(Boolean);
+  }
+
+  // Canonical rests from p to end: finish the current beat with small rests, then one rest per beat.
+  function restFill(m, p, end) {
+    const out = [], B = m.beat;
+    if (p === 0 && end === m.bar) return [{ d: m.bar, r: true, t: false, b: null, full: true }];
+    while (p < end) {
+      const beatEnd = (Math.floor(p / B) + 1) * B;
+      let d;
+      if (p % B === 0 && end - p >= B) d = (!m.comp && m.n === 4 && (p === 0 || p === 16) && end - p >= 16) ? 16 : B;
+      else d = [4, 2, 1].find(u => p % u === 0 && p + u <= Math.min(beatEnd, end));
+      out.push({ d, r: true, t: false, b: null });
+      p += d;
+    }
+    return out;
+  }
+
+  // ---------- Pattern library ----------
+  // One-beat patterns: [tokens, weight, level]. Level 1 adds sixteenths. "r" = rest, "~" = tied to the next note.
+  const PAT = {
+    s: [[[8], 5, 0], [[4, 4], 6, 0], [["r4", 4], 1, 0], [[4, "r4"], 1, 0], [["r8"], 1, 0],
+      [[6, 2], 2, 1], [[2, 2, 4], 2, 1], [[4, 2, 2], 2, 1], [[2, 2, 2, 2], 2, 1], [[2, 6], 1, 1], [[2, 4, 2], 1, 1]],
+    c: [[[12], 4, 0], [[8, 4], 4, 0], [[4, 4, 4], 6, 0], [[4, 8], 1, 0], [["r4", 4, 4], 1, 0], [[8, "r4"], 1, 0], [["r12"], 1, 0],
+      [[6, 2, 4], 2, 1], [[4, 2, 2, 4], 1, 1], [[2, 2, 4, 4], 1, 1], [[4, 4, 2, 2], 1, 1], [[2, 2, 2, 2, 2, 2], 1, 1]],
+  };
+  // Figures longer than a beat: [tokens, weight, level, allowed start (m, a)].
+  const LONG = {
+    s: [[[16], 3, 0, (m, a) => m.n === 3 || a % 16 === 0], [[24], 2, 0, (m, a) => a === 0 && m.n >= 3], [[32], 1, 0, (m, a) => a === 0 && m.n === 4],
+      [[12, 4], 3, 0, (m, a) => a === 0 || (m.n === 4 && a === 16)], [[12, 2, 2], 1, 1, (m, a) => a === 0 || (m.n === 4 && a === 16)],
+      [[28, 4], 1, 1, (m, a) => a === 0 && m.n === 4], [[14, 2], 1, 1, (m, a) => a === 0 || (m.n === 4 && a === 16)]],
+    c: [[[24], 3, 0, (m, a) => m.n !== 4 || a % 24 === 0], [[48], 1, 0, (m, a) => a === 0 && m.n === 4]],
+  };
+  // Two-beat syncopations, written with ties across the beat.
+  const SYNC = {
+    s: [[[4, "4~", 4, 4], 3, 0], [[4, "4~", 8], 2, 0], [["r4", "4~", 4, 4], 1, 0], [[2, 4, "2~", 2, 2, 4], 1, 1], [[4, "4~", 2, 2, 4], 1, 1]],
+    c: [[[8, "4~", 4, 8], 3, 0], [[4, 4, "4~", 12], 2, 0], [[4, "8~", 4, 4, 4], 2, 0], [[8, "4~", 4, 4, 4], 2, 0]],
+  };
+  function wpick(arr) { const tot = arr.reduce((s, x) => s + x[1], 0); let r = Math.random() * tot; for (const x of arr) { r -= x[1]; if (r < 0) return x; } return arr[arr.length - 1]; }
+
+  // o: { lvl, sync: 1 require / -1 forbid, long: false, rests: false, flaggy, wide, test(ev) }
+  function genBar(m, o = {}) {
+    const k = m.comp ? "c" : "s", lvl = o.lvl ?? S.settings.lvl;
+    for (let t = 0; t < 400; t++) {
+      const ev = []; let a = 0;
+      const syncAt = o.sync === 1 ? rnd(m.n - 1) * m.beat : -1;
+      while (a < m.bar) {
+        let toks = null;
+        if (a === syncAt) toks = (!m.comp && m.n === 4 && a === 0 && Math.random() < .25) ? [8, 16, 8] : wpick(SYNC[k].filter(x => x[2] <= lvl))[0];
+        else if (o.long !== false && Math.random() < .22) {
+          const pool = LONG[k].filter(x => x[2] <= lvl && x[3](m, a) && a + x[0].reduce((s, q) => s + tokLen(q), 0) <= m.bar && (syncAt < a || a + x[0].reduce((s, q) => s + tokLen(q), 0) <= syncAt));
+          if (pool.length) toks = wpick(pool)[0];
+        }
+        if (!toks) {
+          let pool = PAT[k].filter(x => x[2] <= lvl);
+          if (o.rests === false) pool = pool.filter(x => !x[0].some(q => String(q)[0] === "r"));
+          if (o.flaggy) pool = pool.filter(x => x[0].filter(q => String(q)[0] !== "r" && tokLen(q) < 8).length >= 2);
+          toks = wpick(pool)[0];
+        }
+        toks.forEach(q => ev.push(T(q)));
+        a += toks.reduce((s, q) => s + tokLen(q), 0);
+      }
+      if (a !== m.bar || ev[ev.length - 1].t) continue;
+      autoBeam(m, ev, o.wide && Math.random() < .5);
+      if (!isClean(check(m, ev))) continue;
+      const sy = syncNotes(m, ev).length > 0;
+      if (o.sync === 1 && !sy) continue;
+      if (o.sync === -1 && sy) continue;
+      if (o.test && !o.test(ev)) continue;
+      return ev;
+    }
+    return null;
+  }
+
+  function enabledMeters() {
+    const out = [];
+    if (S.settings.simple) out.push(...["2/4", "3/4", "4/4"]);
+    if (S.settings.compound) out.push(...["6/8", "9/8", "12/8"]);
+    return out.length ? out : ALL_M;
+  }
+  const newSig = () => Math.random().toString(36).slice(2, 10);
+
+  // ---------- Question builders ----------
+  function optsFrom(correct, wrongs) {
+    const all = shuffle([Object.assign({ ok: true }, correct), ...wrongs.map(w => Object.assign({ ok: false }, w))]);
+    return { opts: all, ans: all.findIndex(o => o.ok) };
+  }
+
+  function makeComplete() {
+    const m = M[pickOne(enabledMeters())];
+    if (Math.random() < .3) { const q = makeRestComplete(m); if (q) return q; }
+    for (let t = 0; t < 200; t++) {
+      const ev = genBar(m, { sync: Math.random() < .25 ? 1 : 0 }); if (!ev) continue;
+      const st = starts(ev), cands = [];
+      for (let i = 0; i < ev.length; i++) for (let j = i + 1; j <= Math.min(ev.length, i + 3); j++) {
+        const seg = ev.slice(i, j);
+        if (seg.some(e => e.r) || (i > 0 && ev[i - 1].t) || seg.some(e => e.t)) continue;
+        if (i > 0 && ev[i].b != null && ev[i - 1].b === ev[i].b) continue;
+        if (j < ev.length && ev[j].b != null && ev[j - 1].b === ev[j].b) continue;
+        if (total(seg) < 4 || total(seg) > 24) continue;
+        cands.push([i, j]);
+      }
+      if (!cands.length) continue;
+      const [i, j] = pickOne(cands), seg = clone(ev.slice(i, j)), len = total(seg);
+      const pre = ev.slice(0, i), post = ev.slice(j);
+      const inCtx = alt => { const full = clone([...pre, ...alt, ...post]); autoBeam(m, full); return { full, alt: full.slice(i, i + alt.length) }; };
+      const wrongs = [], seen = new Set([sig(seg)]);
+      const add = (alt, why) => { const c = inCtx(alt); const s = sig(c.alt); if (seen.has(s)) return; seen.add(s); wrongs.push({ ev: c.alt, why }); };
+      // Same length, but notated so it hides the beat.
+      if (seg.length > 1 && isVal(len)) {
+        const c = inCtx([{ d: len, r: false, t: false, b: null }]); const iss = check(m, c.full);
+        if (isWrong(iss) && !iss.some(x => x.kind === "total")) add([{ d: len, r: false, t: false, b: null }], `It fills the right amount of time, but it hides the beat. ${iss.find(x => x.kind !== "gray").msg}`);
+      }
+      const notation = wrongs.length;
+      // Wrong length.
+      const vals = shuffle([len * 2, len / 2, len * 1.5, len * 2 / 3, len * 1.75, len + 4, len - 4, len + 2, len - 2]).filter(v => isVal(v) && v !== len && v >= 2 && v <= 32);
+      const singles = vals.map(v => ({ alt: [{ d: v, r: false, t: false, b: null }], why: `That lasts ${fmtLen(m, v)}, but the gap holds ${fmtLen(m, len)}.` }));
+      const multis = [];
+      if (seg.length > 1) seg.forEach((e, k) => [e.d * 2, e.d / 2, e.d * 1.5].forEach(v => {
+        if (!isVal(v) || v === e.d) return; const alt = clone(seg); alt[k].d = v;
+        multis.push({ alt, why: `Those values add up to ${fmtLen(m, total(alt))}, but the gap holds ${fmtLen(m, len)}.` });
+      }));
+      shuffle([...shuffle(multis).slice(0, 2), ...singles]).forEach(x => { if (wrongs.length < 3) add(x.alt, x.why); });
+      if (wrongs.length < 3) continue;
+      const gapStart = st[i];
+      const o = optsFrom({ ev: seg, why: "" }, wrongs.slice(0, 3));
+      return { mode: "complete", type: "notes", m: m.id, bar: ev, gap: { at: i, n: j - i, start: gapStart, len }, ...o, notation: notation > 0,
+        hint: `A bar of ${m.id} holds ${eighths(m.bar)}: ${m.n} ${beatName(m)} beats. The gap begins on ${posName(m, gapStart)}.` };
+    }
+    return null;
+  }
+
+  function makeRestComplete(m) {
+    for (let t = 0; t < 200; t++) {
+      const ev = genBar(m, { sync: -1 }); if (!ev) continue;
+      const st = starts(ev);
+      const cuts = ev.map((_, c) => c).filter(c => c > 0 && !ev[c - 1].t && !ev[c - 1].r && m.bar - st[c] >= 4 && st[c] >= 4);
+      if (!cuts.length) continue;
+      const c = pickOne(cuts), p = st[c];
+      const pre = clone(ev.slice(0, c)); autoBeam(m, pre);
+      const fill = restFill(m, p, m.bar), L = m.bar - p;
+      if (!isClean(check(m, [...pre, ...fill]))) continue;
+      const wrongs = [], seen = new Set([sig(fill)]);
+      const add = (alt, why) => { const s = sig(alt); if (seen.has(s)) return; seen.add(s); wrongs.push({ ev: alt, why }); };
+      const tryWrong = alt => { const iss = check(m, [...pre, ...alt]); if (isWrong(iss) && !iss.some(x => x.kind === "total")) add(alt, `The total is right, but the rests hide the beat. ${iss.find(x => x.kind !== "gray").msg}`); };
+      if (fill.length > 1 && isVal(L)) tryWrong([{ d: L, r: true, t: false, b: null }]);
+      if (fill.length > 1) tryWrong(clone(fill).reverse());
+      const vals = shuffle([L * 2, L / 2, L * 1.5, L * 2 / 3, L + 4, L - 4, L + 8, L - 8]).filter(v => isVal(v) && v !== L && v >= 2 && v <= 24);
+      const alts = vals.map(v => [{ d: v, r: true, t: false, b: null }]);
+      if (fill.length > 1) fill.forEach((e, k) => [e.d * 2, e.d / 2].forEach(v => { if (isVal(v) && v <= 16) { const a = clone(fill); a[k].d = v; alts.push(a); } }));
+      shuffle(alts).forEach(a => { if (wrongs.length < 3) add(a, `Those rests add up to ${fmtLen(m, total(a))}, but the gap holds ${fmtLen(m, L)}.`); });
+      if (wrongs.length < 3) continue;
+      const o = optsFrom({ ev: fill, why: "" }, wrongs.slice(0, 3));
+      return { mode: "complete", type: "rests", m: m.id, bar: [...pre, ...fill], gap: { at: c, n: fill.length, start: p, len: L }, ...o,
+        hint: `A bar of ${m.id} holds ${eighths(m.bar)}. The gap begins on ${posName(m, p)}. Finish that beat with small rests first, then give each remaining beat its own rest${!m.comp && m.n === 4 ? " (a half rest may cover beats 1–2 or 3–4)" : ""}.` };
+    }
+    return null;
+  }
+
+  function makeMeter() {
+    const m = M[pickOne(enabledMeters())];
+    for (let t = 0; t < 200; t++) {
+      const bars = [genBar(m, { wide: true }), genBar(m, { wide: true, long: Math.random() < .5 })];
+      if (!bars[0] || !bars[1]) continue;
+      const others = ALL_M.filter(x => x !== m.id);
+      const twins = others.filter(x => M[x].bar === m.bar);
+      const chosen = [m.id, ...twins, ...shuffle(others.filter(x => !twins.includes(x)))].slice(0, 4);
+      let okAll = true; const opts = [];
+      for (const id of chosen) {
+        const o = M[id];
+        if (id === m.id) { opts.push({ ts: id, ok: true, why: "" }); continue; }
+        if (o.bar !== m.bar) { opts.push({ ts: id, ok: false, why: `A bar of ${id} holds ${eighths(o.bar)}, but each of these bars holds ${eighths(m.bar)}.` }); continue; }
+        const k = bars.findIndex(b => isWrong(check(o, b)));
+        if (k < 0) { okAll = false; break; }
+        const msg = check(o, bars[k]).find(x => x.kind !== "gray").msg;
+        opts.push({ ts: id, ok: false, why: `The length fits ${id}, but the notation doesn't. Read as ${id}, bar ${k + 1} has a problem: ${msg}` });
+      }
+      if (!okAll) continue;
+      const all = shuffle(opts);
+      return { mode: "meter", type: "meter", m: m.id, bars, opts: all, ans: all.findIndex(o => o.ok),
+        hint: `First count: each bar holds ${eighths(m.bar)}. Then read the grouping. Beams and ties in twos (quarter-note beats) point to simple meter; groups of three eighths (dotted-quarter beats) point to compound meter.` };
+    }
+    return null;
+  }
+
+  function makeBeamFix() {
+    const m = M[pickOne(enabledMeters())];
+    for (let t = 0; t < 200; t++) {
+      const sol = genBar(m, { flaggy: true, long: false, rests: Math.random() < .3 });
+      if (!sol || sol.filter(flag).length < 5) continue;
+      const chunks = shuffle(m.comp ? [8, 16, m.bar, 0] : [12, 16, m.bar, 0, 24].filter(c => c !== m.beat));
+      for (const c of chunks) {
+        const w = beamBy(m, clone(sol), c);
+        if (sig(w) === sig(sol) || !isWrong(check(m, w))) continue;
+        const st = starts(sol);
+        const beatNotes = []; for (let b = 0; b < m.n; b++) { const i = st.indexOf(b * m.beat); if (i >= 0) beatNotes.push(i + 1); }
+        return { mode: "fix", type: "beam", m: m.id, ev: w, start: clone(w), sol,
+          hint: `In ${m.id} there are ${m.n} ${beatName(m)} beats. Beats begin at note${beatNotes.length > 1 ? "s" : ""} ${beatNotes.join(", ")}. Join the flagged notes inside each beat, and break the beam wherever a new beat begins.` };
+      }
+    }
+    return null;
+  }
+
+  function mergeTies(ev) {
+    const out = [];
+    for (let i = 0; i < ev.length; i++) {
+      const e = clone(ev[i]);
+      let j = i, d = e.d;
+      while (ev[j].t && j + 1 < ev.length && isVal(d + ev[j + 1].d)) { j++; d += ev[j].d; }
+      if (j > i) { e.d = d; e.t = ev[j].t; }
+      out.push(e); i = j;
+    }
+    return out;
+  }
+  function makeFixChoose() {
+    const m = M[pickOne(enabledMeters())];
+    for (let t = 0; t < 200; t++) {
+      const ev = genBar(m, { sync: 1 }); if (!ev) continue;
+      const cands = [];
+      const merged = mergeTies(ev); autoBeam(m, merged);
+      if (merged.length !== ev.length && isWrong(check(m, merged))) cands.push({ ev: merged, kind: "tie" });
+      shuffle(m.comp ? [8, 16, m.bar, 0] : [12, 16, m.bar, 0]).forEach(c => { const w = beamBy(m, clone(ev), c); if (isWrong(check(m, w))) cands.push({ ev: w, kind: "beam" }); });
+      const mb = beamBy(m, clone(merged), m.comp ? 8 : 12);
+      if (isWrong(check(m, mb))) cands.push({ ev: mb, kind: "both" });
+      const seen = new Set([sig(ev)]), wrongs = [];
+      const tie = cands.find(c => c.kind === "tie");
+      [tie, ...shuffle(cands.filter(c => c !== tie))].filter(Boolean).forEach(c => { const s = sig(c.ev); if (seen.has(s) || wrongs.length >= 3) return; seen.add(s); wrongs.push({ ev: c.ev, why: "" }); });
+      if (wrongs.length < 2 || !tie) continue;
+      const o = optsFrom({ ev, why: "" }, wrongs);
+      return { mode: "fix", type: "choose", m: m.id, ...o,
+        hint: "All the choices sound the same. Look for a note that starts between beats and runs through the next beat without a tie, or a beam that crosses a beat." };
+    }
+    return null;
+  }
+
+  const OPTS_BARS = n => Array.from({ length: n }, (_, i) => ({ label: `Bar ${i + 1}` }));
+  function makeFindSync() {
+    const m = M[pickOne(enabledMeters())];
+    for (let t = 0; t < 50; t++) {
+      const k = rnd(4), bars = [];
+      for (let i = 0; i < 4; i++) bars.push(genBar(m, { sync: i === k ? 1 : -1 }));
+      if (bars.some(b => !b)) continue;
+      const sn = syncNotes(m, bars[k])[0];
+      const opts = OPTS_BARS(4).map((o, i) => Object.assign(o, { ok: i === k, why: i === k ? "" : `Every note in bar ${i + 1} starts at least as strongly as anything it is held through, so nothing is syncopated there.` }));
+      return { mode: "find", type: "sync", m: m.id, bars, barNums: true, opts, ans: k,
+        explain: `In bar ${k + 1}, the note that starts on ${posName(m, sn.a)} is held through ${posName(m, sn.through)}, a stronger point in the bar. That's a syncopation${bars[k][sn.i].t ? ", written with a tie so the beat stays visible" : ""}.`,
+        hint: "A syncopation begins on a weak part of the beat or bar and is held into a stronger part. Look for a note that starts off the beat and keeps sounding (often through a tie) into the next beat." };
+    }
+    return null;
+  }
+  function makeFindHemiola() {
+    const ms = []; if (S.settings.simple) ms.push("3/4"); if (S.settings.compound) ms.push("6/8");
+    const m = M[pickOne(ms.length ? ms : ["3/4", "6/8"])];
+    for (let t = 0; t < 50; t++) {
+      if (m.id === "3/4") {
+        const k = rnd(3), bars = [];
+        for (let i = 0; i < 4; i++) bars.push(i === k ? [T(16), T("8~")] : i === k + 1 ? [T(8), T(16)] : genBar(m, { sync: -1, test: ev => !ev.some(e => e.d === 16) && ev.length > 1 }));
+        if (bars.some(b => !b)) continue;
+        const opts = [0, 1, 2].map(i => ({ label: `Bars ${i + 1}–${i + 2}`, ok: i === k, why: i === k ? "" : `Bars ${i + 1}–${i + 2} keep the bar's three quarter-note beats.` }));
+        return { mode: "find", type: "hemiola", m: m.id, bars, barNums: true, opts, ans: k,
+          explain: `Across bars ${k + 1}–${k + 2}, three half notes fill two bars of 3/4. Instead of two groups of three quarter-note beats, you hear three groups of two: a hemiola.`,
+          hint: "A hemiola regroups the beats against the meter. In 3/4, look for two bars that move in twos (three long notes across two bars) rather than in threes." };
+      }
+      const k = rnd(4), bars = [];
+      for (let i = 0; i < 4; i++) bars.push(i === k ? [T(8), T(8), T(8)] : genBar(m, { sync: -1 }));
+      if (bars.some(b => !b)) continue;
+      const opts = OPTS_BARS(4).map((o, i) => Object.assign(o, { ok: i === k, why: i === k ? "" : `Bar ${i + 1} groups its eighths in two sets of three, the normal grouping for 6/8.` }));
+      return { mode: "find", type: "hemiola", m: m.id, bars, barNums: true, opts, ans: k,
+        explain: `In bar ${k + 1}, three quarter notes regroup the six eighths as 2 + 2 + 2, the feel of 3/4, instead of 6/8's 3 + 3. Three notes take the place of two beats: a hemiola. (This is the one place a quarter note is deliberately written across the middle of a 6/8 bar.)`,
+        hint: "A hemiola regroups the beats against the meter. In 6/8, look for a bar that moves in three equal notes instead of two dotted-quarter beats." };
+    }
+    return null;
+  }
+  function makeFindPickup() {
+    const m = M[pickOne(enabledMeters())];
+    const lens = (m.comp ? [4, 8, 12, 24] : [4, 8, 12, 16, 24]).filter(L => L < m.bar);
+    const variant = Math.random() < .7 ? "len" : "final";
+    for (let t = 0; t < 200; t++) {
+      const L = variant === "len" && Math.random() < .2 ? 0 : pickOne(lens);
+      let pickup = null;
+      if (L) {
+        const full = genBar(m, { sync: -1 }); if (!full) continue;
+        const st = starts(full), idx = st.indexOf(m.bar - L);
+        if (idx <= 0 || full[idx - 1].t || full[idx].r) continue;
+        if (full[idx].b != null && full[idx - 1].b === full[idx].b) continue;
+        pickup = clone(full.slice(idx)); if (pickup.some(e => e.r)) continue;   // a pickup is notes only
+      }
+      const body = [genBar(m, { sync: -1 }), genBar(m, { sync: -1 })];
+      if (body.some(b => !b)) continue;
+      const bars = pickup ? [pickup, ...body] : body;
+      if (variant === "len") {
+        const others = shuffle(lens.filter(x => x !== L)).slice(0, L ? 2 : 3);
+        const choices = shuffle([L, ...others]).map(x => ({ L: x }));
+        if (L) choices.push({ L: 0 }); else choices.unshift();
+        const opts = choices.map(c => ({ label: c.L ? fmtLen(m, c.L) : "No anacrusis", ok: c.L === L,
+          why: c.L === L ? "" : !L ? "The first bar is complete, so the excerpt starts right on a downbeat." : c.L ? `The pickup holds ${fmtLen(m, L)}, not ${fmtLen(m, c.L)}.` : "The first bar is shorter than a full bar of " + m.id + ", so it's a pickup." }));
+        const finalOpts = opts.filter(o => o.label === "No anacrusis"); const rest = opts.filter(o => o.label !== "No anacrusis");
+        const ordered = [...finalOpts, ...rest];
+        return { mode: "find", type: "pickup", m: m.id, bars, pickup: !!L, opts: ordered, ans: ordered.findIndex(o => o.ok),
+          q: "How long is the anacrusis at the start of this excerpt?",
+          explain: L ? `The first bar holds only ${fmtLen(m, L)} of a ${m.id} bar (${eighths(m.bar)}), so it is an anacrusis leading to the downbeat of the first full bar. A piece that starts this way often ends with a final bar of ${fmtLen(m, m.bar - L)}, so the two together make one full bar.` : `The first bar is a full bar of ${m.id}, so the music begins right on the downbeat. There is no anacrusis.`,
+          hint: `Count the first bar and compare it with a full bar of ${m.id}, which holds ${eighths(m.bar)}.` };
+      }
+      if (!L) continue;
+      const finals = [m.bar - L, ...shuffle(lens.filter(x => x !== L).map(x => m.bar - x)).slice(0, 2), m.bar].filter((v, i, a) => v > 0 && a.indexOf(v) === i);
+      const opts = shuffle(finals).map(v => ({ label: v === m.bar ? `A full bar (${fmtLen(m, v)})` : fmtLen(m, v), ok: v === m.bar - L,
+        why: v === m.bar - L ? "" : `The pickup holds ${fmtLen(m, L)}. The final bar takes what's left of a full bar: ${fmtLen(m, m.bar)} − ${fmtLen(m, L)} = ${fmtLen(m, m.bar - L)}.` }));
+      return { mode: "find", type: "final", m: m.id, bars, pickup: true, opts, ans: opts.findIndex(o => o.ok),
+        q: "This piece opens with the anacrusis shown. If its final bar is shortened to balance the pickup, how long should the final bar be?",
+        explain: `The pickup holds ${fmtLen(m, L)}, so the final bar holds the rest of one ${m.id} bar: ${fmtLen(m, m.bar - L)}. Together they make one complete bar.`,
+        hint: "The anacrusis and the shortened final bar add up to exactly one full bar." };
+    }
+    return null;
+  }
+
+  // ---------- Terminology ----------
+  const TERMS = [
+    ["anac", "An “upbeat” of one or more notes that comes before the first downbeat of a phrase is called…", ["an anacrusis", "a syncopation", "a hemiola", "a downbeat"], "An anacrusis (pickup) anticipates the start of a bar: it leads into the first downbeat."],
+    ["sync", "Beginning a note on an unaccented part of the bar and sustaining it into the normally accented part is…", ["syncopation", "anacrusis", "hemiola", "metric modulation"], "That is the definition of syncopation: the note begins weak and is held through a stronger point."],
+    ["hem", "A figure that shifts the feel of the meter, typically three notes in the place of two (or the reverse), is…", ["a hemiola", "a syncopation", "a polymeter", "an anacrusis"], "Hemiola asserts three in the time of two (or two in the time of three), as when three half notes span two bars of 3/4."],
+    ["stress2", "What is the basic stress pattern of a duple meter?", ["strong–weak", "strong–weak–weak", "weak–strong", "strong–strong"], "Duple meters alternate strong–weak; triple meters run strong–weak–weak."],
+    ["stress3", "What is the basic stress pattern of a triple meter?", ["strong–weak–weak", "strong–weak", "strong–weak–strong", "weak–weak–strong"], "Triple meters run strong–weak–weak."],
+    ["asym", "Music in 5/8 grouped strong–weak + strong–weak–weak is an example of…", ["asymmetrical meter", "mixed meter", "polymeter", "compound meter"], "Asymmetrical meter has uneven groups of beats in a bar, such as 2 + 3 eighths in 5/8."],
+    ["mixed", "Time signatures that change consistently as the music goes on (not one change that lasts a whole section) are called…", ["mixed meter", "asymmetrical meter", "polymeter", "metric modulation"], "Mixed meter means the beat pattern keeps changing; a single change for a whole section isn't called mixed meter."],
+    ["poly", "Two or more contrasting rhythms that don't share the same subdivision of the beat, heard at once (as in 3 against 2), are…", ["a polyrhythm", "a polymeter", "a hemiola", "a mixed meter"], "Polyrhythm layers rhythms with different subdivisions, like three evenly spaced notes against two."],
+    ["polym", "One instrument plays in 4/4 while another plays in 3/4 at the same tempo. This is…", ["polymeter", "polyrhythm", "mixed meter", "hemiola"], "Polymeter: each part keeps its own meter, so the bar lengths differ."],
+    ["polym12", "One part in 4/4 and another in 3/4 share a tempo. How often do their barlines line up?", ["every 12 beats", "every 7 beats", "every 4 beats", "never"], "4 and 3 share a common multiple of 12, so the barlines meet every 12 beats."],
+    ["metmod", "Changing tempo by reinterpreting a rhythmic value from the old tempo as a different value in the new one is…", ["metric modulation", "mixed meter", "hemiola", "notes inégales"], "Metric modulation shows an equation such as “old half note = new whole bar” to make a precise tempo change."],
+    ["workit", "In a metric modulation from 4/4 to 3/4 where half a bar of 4/4 becomes a whole bar of 3/4, which value stays constant?", ["the half note", "the quarter note", "the eighth note", "the whole bar"], "The half note stays the same, moving from half a bar of 4/4 to a full bar of 3/4."],
+    ["inegal", "Playing written even eighths as long–short pairs in Baroque music is called…", ["notes inégales", "swing", "shuffle", "hemiola"], "Notes inégales goes back to the 16th century and is common in Baroque performance."],
+    ["swing", "Which long–short eighth-note practice is associated with jazz and varies the most in interpretation?", ["swing", "shuffle", "notes inégales", "syncopation"], "Swing (jazz) varies more than shuffle, sometimes approaching a dotted eighth and sixteenth."],
+    ["unmeas", "Stemless noteheads, with open heads held longer than closed ones, are one way to notate…", ["unmeasured rhythm", "polymeter", "swing", "hemiola"], "Without stems, the notes have no exact durations: the rhythm is unmeasured."],
+    ["dd", "A half note with two dots lasts as long as…", ["a half + a quarter + an eighth", "a half + two quarters", "a half + a quarter", "a whole note"], "The first dot adds half the note (a quarter); the second adds half of that (an eighth). In 4/4 that's 3½ beats."],
+    ["trip", "A quarter-note triplet takes up the time of…", ["two quarter notes", "three quarter notes", "one quarter note", "three eighth notes"], "Three triplet quarters occupy the time of two ordinary quarters (two beats in 3/4 or 4/4)."],
+    ["gould1", "In compound time, a note may be written across the beat only when…", ["it fills whole beats", "it starts on the second eighth", "it's a dotted value", "the tempo is slow"], "Gould: in compound time, no note-value is written across the beat except combined whole beats."],
+    ["gould2", "According to Gould, three-beat meters must show…", ["two of the three beats", "all three beats", "only the downbeat", "the middle of the bar"], "Gould: three-beat meters must show two out of three beats."],
+    ["gould3", "A long note that starts on the beat…", ["may be written as a single note-value", "must always be split into tied quarters", "must be dotted", "may never cross a beat"], "Gould: a long duration that starts on the beat may be written as a single note-value."],
+    ["gould4", "As the rhythms in a bar become more complex, the notation should…", ["reveal more of the beat", "use fewer ties", "use longer beams", "hide the weak beats"], "Gould: the more complex the division, the more of the beat the notation must reveal."],
+    ["knecht1", "Kurt Knecht's rule of thumb for dotted notes is that they should go…", ["on strong beats", "on weak beats", "only at the end of a bar", "only in compound meters"], "A dotted note on a weak beat obscures the next strong beat; keep dots on the front side of strong beats."],
+    ["knecht2", "In 4/4, why is 8th–quarter–quarter–dotted quarter–eighth hard to read?", ["it hides beat 3 and implies a 3+3+2 grouping", "it has too many beats", "it should be in 6/8", "it needs a triplet"], "The dotted note across the middle obscures beat 3 and suggests 3+3+2, a different meter."],
+    ["beam19", "19th-century vocal music broke beams to match syllables. Today we…", ["beam by the beat, even under text", "still break beams for each syllable", "use only flags in vocal music", "beam whole bars together"], "Broken beams hide the beat; modern vocal notation beams by the beat."],
+    ["tie1", "A tie connects…", ["two notes of the same pitch, played as one sustained note", "notes of different pitches played smoothly", "the stems of two notes", "a note and a rest"], "A tie joins two noteheads of the same pitch into one longer sound."],
+    ["tie2", "When the stems point downward, ties are placed…", ["above the noteheads", "below the noteheads", "on the stems", "through the noteheads"], "Ties and slurs curve on the notehead side, opposite the stem."],
+    ["slur1", "If any stem in a slurred group points upward, the slur goes…", ["above the staff", "below the staff", "through the noteheads", "on the stem side of each note"], "If any stem points up, the slur goes above; only when all stems point down does it go below."],
+    ["slur2", "If the last note under a slur is tied to further notes, the slur…", ["continues through the whole tie chain", "ends at the first tied note", "is replaced by the tie", "stops before the tie"], "Slurs extend to the last note of the unbroken figure, including any tied notes."],
+    ["slur3", "A slur, unlike a tie, connects…", ["two or more notes of different pitches", "two notes of the same pitch", "two rests", "only notes in the same beat"], "A slur joins different pitches that should be played unbroken; for strings and winds it shows bowing or articulation."],
+    ["ts1", "Unlike the clef and key signature, a time signature appears…", ["only at the start, unless the meter changes", "at the start of every system", "at the start of every bar", "only at the end of a piece"], "Time signatures appear once at the beginning and again only where the meter changes."],
+    ["ts2", "When the meter changes at the start of a new system, what appears at the end of the previous system?", ["a cautionary time signature", "a double barline", "a repeat sign", "a new key signature"], "A cautionary time signature at the end of the system warns the player before the line break."],
+    ["bar1", "Barlines should appear at the end of each system…", ["except in rare cases with incomplete bars", "only in keyboard music", "never", "only when the meter changes"], "Barlines end each system for clarity, except rarely when a bar is too long to fit on one line."],
+    ["beam34", "Six eighths beamed 3 + 3 point to which meter?", ["6/8", "3/4", "2/4", "4/4"], "Groups of three eighths show dotted-quarter beats: compound duple 6/8. In 3/4 the eighths would be beamed in twos (or all six together)."],
+    ["div68", "In 6/8, the eighth note is…", ["the division of the beat", "the beat", "the whole bar", "a subdivision of the division"], "6/8 has two dotted-quarter beats; each divides into three eighths."],
+  ];
+  function makeTerm() {
+    if (Math.random() < .35) {
+      const m = M[pickOne(enabledMeters())];
+      const kind = pickOne(["kind", "beats", "unit"]);
+      if (kind === "kind") {
+        const correct = KIND(m);
+        const pool = ["simple duple", "simple triple", "simple quadruple", "compound duple", "compound triple", "compound quadruple"].filter(x => x !== correct);
+        const twin = (m.comp ? "simple " : "compound ") + correct.split(" ")[1];
+        const ch = [correct, twin, ...shuffle(pool.filter(x => x !== twin)).slice(0, 2)];
+        return termQ("g-kind-" + m.id, `What kind of meter is ${m.id}?`, ch, `${m.id} has ${m.n} ${beatName(m)} beats that each divide in ${m.comp ? "three" : "two"}, so it is ${correct}.`);
+      }
+      if (kind === "beats") {
+        const ch = [...new Set([m.n, m.num, m.comp ? m.n * 2 : m.n * 2, m.n + 1, m.n === 2 ? 3 : m.n - 1])].slice(0, 4).map(String);
+        return termQ("g-beats-" + m.id, `How many beats are in a bar of ${m.id}?`, ch, m.comp ? `${m.id} has ${m.n} dotted-quarter beats. The eighth is the division, not the beat, so it isn't ${m.num}.` : `${m.id} has ${m.n} quarter-note beats.`);
+      }
+      const ch = m.comp ? ["dotted quarter", "eighth", "quarter", "dotted half"] : ["quarter", "eighth", "dotted quarter", "half"];
+      return termQ("g-unit-" + m.id, `Which note value gets the beat in ${m.id}?`, ch, m.comp ? `In compound meters with 8 on the bottom, the beat is a dotted quarter (three eighths).` : `In simple meters with 4 on the bottom, the quarter note gets the beat.`);
+    }
+    const prev = Q.terms && Q.terms.id;
+    let tq; do { tq = pickOne(TERMS); } while (tq[0] === prev && TERMS.length > 1);
+    return termQ(tq[0], tq[1], tq[2], tq[3]);
+  }
+  function termQ(id, q, choices, ex) {
+    const opts = shuffle(choices.map((c, i) => ({ label: c, ok: i === 0, why: "" })));
+    return { mode: "terms", type: "term", id, q, opts, ans: opts.findIndex(o => o.ok), explain: ex };
+  }
+
+  const BUILD = {
+    complete: () => makeComplete(),
+    meter: () => makeMeter(),
+    fix: () => (Math.random() < .5 ? makeBeamFix() : makeFixChoose()) || makeBeamFix(),
+    find: () => { const r = Math.random(); return (r < .4 ? makeFindSync() : r < .7 ? makeFindHemiola() : makeFindPickup()) || makeFindSync(); },
+    terms: () => makeTerm(),
+  };
+
+  // ---------- Notation (VexFlow) ----------
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function evW(e) { const base = e.full ? 60 : e.d >= 16 ? 36 : e.d >= 8 ? 32 : e.d >= 4 ? 27 : e.d >= 2 ? 23 : 20; return base + (isVal(e.d) ? DUR[e.d][1] * 7 : 0) + (e.t ? 4 : 0); }
+  function evName(e) { if (e.full) return "whole-bar rest"; return (isVal(e.d) ? DUR[e.d][2] : "note") + (e.r ? " rest" : ""); }
+  function describe(ev) {
+    const inG = {};
+    beamGroups(ev).forEach(g => g.forEach((i, k) => { inG[i] = [k, g.length]; }));
+    return ev.map((e, i) => {
+      let s = evName(e);
+      if (inG[i] && inG[i][0] === 0) s = `[beamed ${inG[i][1]}: ` + s;
+      if (inG[i] && inG[i][0] === inG[i][1] - 1) s += "]";
+      if (e.t) s += ", tied to";
+      return s;
+    }).join(", ").replace(/tied to, /g, "tied to ");
+  }
+  function describeSpec(spec) {
+    const m = M[spec.m];
+    const ts = spec.ts === "ask" ? "Time signature hidden. " : spec.ts === "hide" ? "" : `Time signature ${m.num} ${m.den}. `;
+    return ts + spec.bars.map((ev, i) => {
+      const g = spec.gap && spec.gap.bar === i ? spec.gap : null;
+      let parts = ev.map(e => e);
+      let txt;
+      if (g) txt = describe(ev.slice(0, g.at)) + (g.at ? ", " : "") + "[gap]" + (g.at < ev.length ? ", " + describe(ev.slice(g.at)) : "");
+      else txt = describe(parts);
+      const lab = spec.pickup && i === 0 ? "First bar (incomplete)" : spec.bars.length > 1 ? `Bar ${spec.pickup ? i : i + 1}` : "";
+      return (lab ? lab + ": " : "") + txt + ".";
+    }).join(" ");
+  }
+
+  function vfNote(VF, e) {
+    const [c, dots] = isVal(e.d) ? DUR[e.d] : ["q", 0];
+    const whole = e.r && (e.full || c === "w");
+    const n = new VF.StaveNote({ keys: [whole ? "d/5" : "b/4"], duration: (e.full ? "w" : c) + (e.r ? "r" : ""), dots: e.full ? 0 : dots, stem_direction: VF.Stem.UP, align_center: !!e.full });
+    if (!e.full) for (let k = 0; k < dots; k++) VF.Dot.buildAndAttach([n], { all: true });
+    return n;
+  }
+  const P2 = { 32: "w", 16: "h", 8: "q", 4: "8", 2: "16", 1: "32" };
+  function svgEl(svg, tag, attrs, text) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+    if (text != null) el.textContent = text;
+    svg.appendChild(el); return el;
+  }
+
+  // spec: { m, bars, ts: "show"|"hide"|"ask", pickup, gap: {bar, at, len}, barNums, nums, hl: [bars], mark: {bar: [event idx]}, snippet, label }
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); tot = Math.max(tot, t); });   // the bar's own length, so a pickup ends right after its last note
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
+   function drawMusic(el, spec) {
+    el._spec = spec;
+    el.innerHTML = "";
+    if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Check your connection and reload the page.</p>'; return null; }
+    const VF = Vex.Flow, ink = cssVar("--ink"), bad = cssVar("--bad"), muted = cssVar("--muted");
+    const m = M[spec.m], bars = spec.bars, ts = spec.ts || "show";
+    const avail = spec.snippet ? 9999 : Math.max(260, Math.floor(el.clientWidth || 640));
+    const natural = bars.map((ev, i) => (spec.snippet ? 10 : 30) + ev.reduce((s, e) => s + evW(e), 0) + (spec.gap && spec.gap.bar === i ? Math.max(56, spec.gap.len * 3.2) : 0) + (i === 0 && ts !== "hide" ? 34 : 0));
+    // an incomplete bar (a pickup) gets a width in proportion to its length, measured against the complete bars
+    { const dur = ev => ev.reduce((s, e) => s + (e.full ? m.bar : e.d), 0), fullI = bars.map((ev, i) => i).filter(i => dur(bars[i]) >= m.bar && !(spec.gap && spec.gap.bar === i));
+      if (fullI.length) { const per = fullI.reduce((s, i) => s + natural[i] - (i === 0 && ts !== "hide" ? 34 : 0), 0) / (fullI.length * m.bar);
+        bars.forEach((ev, i) => { const d = dur(ev); if (d < m.bar && !(spec.gap && spec.gap.bar === i)) natural[i] = Math.min(natural[i], Math.max((spec.snippet ? 10 : 30) + ev.reduce((s, e) => s + evW(e), 0) * .8, per * d + (i === 0 && ts !== "hide" ? 34 : 0))); }); } }
+    const rows = []; let cur = [], w = 0;
+    bars.forEach((_, i) => {
+      if (cur.length && (w + natural[i] > avail - 12 || cur.length >= 4)) { rows.push(cur); cur = []; w = 0; }
+      cur.push(i); w += natural[i];
+    });
+    if (cur.length) rows.push(cur);
+    // Balance the bars across rows (e.g. 2 + 2 rather than 3 + 1) when they still fit.
+    if (rows.length > 1) {
+      const per = Math.ceil(bars.length / rows.length), bal = [];
+      for (let i = 0; i < bars.length; i += per) bal.push(bars.map((_, k) => k).slice(i, i + per));
+      if (bal.every(r => r.reduce((s, i) => s + natural[i], 0) <= avail - 12)) { rows.length = 0; rows.push(...bal); }
+    }
+    const rowH = 100 + (spec.nums ? 16 : 0);
+    let W = spec.snippet ? natural.reduce((a, b) => a + b, 0) + 8 : avail;
+    rows.forEach(r => { const need = r.reduce((s, i) => s + natural[i], 0) + 12; if (need > W) W = need; });
+    const H = rows.length * rowH + 20;
+    const ren = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    ren.resize(W, H);
+    const ctx = ren.getContext();
+    ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const info = { staves: [], notes: [], rowOf: [], ghosts: [] };
+    rows.forEach((r, ri) => {
+      const sum = r.reduce((s, i) => s + natural[i], 0);
+      let stretch = spec.snippet ? 1 : (W - 12) / sum;
+      if (ri === rows.length - 1 && rows.length > 1 && r.length < rows[0].length) stretch = Math.min(stretch, 1.3);
+      if (r.length === 1 && rows.length === 1 && !spec.snippet && !spec.fill) stretch = Math.min(stretch, 2.2);
+      let x = 6;
+      r.forEach(bi => {
+        const sw = natural[bi] * stretch, y = ri * rowH + 18 + (spec.nums ? 0 : 0);
+        const stave = new VF.Stave(x, y, sw);
+        stave.setBegBarType(VF.Barline.type.NONE);
+        if (bi === 0 && ts === "show") stave.addTimeSignature(m.id);
+        if (bi === bars.length - 1 && !spec.snippet) stave.setEndBarType(VF.Barline.type.END);
+        if (spec.snippet) stave.setEndBarType(VF.Barline.type.NONE);
+        if (bi === 0 && ts === "ask") stave.setNoteStartX(stave.getNoteStartX() + 30);
+        stave.setStyle({ fillStyle: ink, strokeStyle: ink });
+        stave.setContext(ctx);
+        if (!spec.snippet) stave.draw();
+        const ev = bars[bi], gap = spec.gap && spec.gap.bar === bi ? spec.gap : null;
+        const tick = [], map = [], ghosts = [];
+        const pushGhosts = () => {
+          let L = gap.len;
+          for (const u of [32, 16, 8, 4, 2, 1]) while (L >= u) { const g = new VF.GhostNote({ duration: P2[u] }); tick.push(g); ghosts.push(g); L -= u; }
+        };
+        const marks = (spec.mark && spec.mark[bi]) || [];
+        ev.forEach((e, i) => {
+          if (gap && gap.at === i) pushGhosts();
+          const n = vfNote(VF, e);
+          const c = marks.includes(i) ? bad : ink;
+          n.setStyle({ fillStyle: c, strokeStyle: c });
+          tick.push(n); map.push(n);
+        });
+        if (gap && gap.at === ev.length) pushGhosts();
+        const beams = beamGroups(ev).map(g => {
+          const b = new VF.Beam(g.map(i => map[i]));
+          if (g.some(i => marks.includes(i))) b.setStyle({ fillStyle: bad, strokeStyle: bad });
+          return b;
+        });
+        const voice = new VF.Voice({ num_beats: m.num, beat_value: m.den }).setMode(VF.Voice.Mode.SOFT);
+        voice.addTickables(tick);
+        const fw = Math.max(20, stave.getNoteEndX() - stave.getNoteStartX() - (spec.snippet ? 4 : 16));
+        { const fm = new VF.Formatter().joinVoices([voice]); justifyW(VF, fm, [voice], fw); }
+        voice.draw(ctx, stave);
+        beams.forEach(b => b.setContext(ctx).draw());
+        info.staves[bi] = stave; info.notes[bi] = map; info.rowOf[bi] = ri; info.ghosts[bi] = ghosts;
+        x += sw;
+      });
+    });
+    // Ties, including across barlines and line breaks.
+    bars.forEach((ev, bi) => ev.forEach((e, i) => {
+      if (!e.t) return;
+      const n1 = info.notes[bi][i];
+      let n2 = null, b2 = bi;
+      if (i + 1 < ev.length) n2 = info.notes[bi][i + 1];
+      else if (bi + 1 < bars.length) { b2 = bi + 1; n2 = info.notes[b2][0]; }
+      const tieStyle = t => { t.setStyle && t.setStyle({ fillStyle: ink, strokeStyle: ink }); return t; };
+      if (n2 && info.rowOf[b2] === info.rowOf[bi]) tieStyle(new VF.StaveTie({ first_note: n1, last_note: n2, first_indices: [0], last_indices: [0] })).setContext(ctx).draw();
+      else {
+        tieStyle(new VF.StaveTie({ first_note: n1, first_indices: [0] })).setContext(ctx).draw();
+        if (n2) tieStyle(new VF.StaveTie({ last_note: n2, last_indices: [0] })).setContext(ctx).draw();
+      }
+    }));
+    const svg = el.querySelector("svg");
+    if (!svg) return info;
+    // Overlays: highlights (behind), gap box, hidden time signature, bar and note numbers.
+    const behind = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.insertBefore(behind, svg.firstChild);
+    (spec.hl || []).forEach(bi => {
+      const s = info.staves[bi]; if (!s) return;
+      svgEl(behind, "rect", { x: s.getX() + 2, y: s.getYForLine(0) - 34, width: s.getWidth() - 4, height: s.getYForLine(4) - s.getYForLine(0) + 58, rx: 8, fill: cssVar("--brass-soft") });
+    });
+    if (spec.gap) {
+      const bi = spec.gap.bar, s = info.staves[bi], gs = info.ghosts[bi];
+      if (s && gs.length) {
+        const x0 = Math.max(s.getNoteStartX() - 2, gs[0].getAbsoluteX() - 8);
+        const nxt = info.notes[bi][spec.gap.at];
+        const x1 = nxt ? nxt.getAbsoluteX() - 8 : s.getNoteEndX() - 6;
+        const y0 = s.getYForLine(0) - 26, y1 = s.getYForLine(4) + 14;
+        svgEl(svg, "rect", { x: x0, y: y0, width: Math.max(30, x1 - x0), height: y1 - y0, rx: 6, fill: cssVar("--brass-soft"), stroke: cssVar("--brass"), "stroke-width": 2, "stroke-dasharray": "5 4", opacity: .9 });
+        svgEl(svg, "text", { x: x0 + Math.max(30, x1 - x0) / 2, y: (y0 + y1) / 2 + 9, "text-anchor": "middle", "font-family": "Big Shoulders Display, Impact, sans-serif", "font-weight": 800, "font-size": 28, fill: cssVar("--brass") }, "?");
+      }
+    }
+    if (ts === "ask" && info.staves[0]) {
+      const s = info.staves[0];
+      svgEl(svg, "text", { x: s.getX() + 18, y: s.getYForLine(2) + 12, "text-anchor": "middle", "font-family": "Big Shoulders Display, Impact, sans-serif", "font-weight": 800, "font-size": 34, fill: cssVar("--brass") }, "?");
+    }
+    if (spec.barNums) bars.forEach((_, bi) => {
+      const s = info.staves[bi];
+      svgEl(svg, "text", { x: s.getX() + (bi === 0 && ts === "show" ? 2 : 4), y: s.getYForLine(0) - 22, "font-family": "JetBrains Mono, monospace", "font-size": 12, fill: muted }, String(spec.pickup ? bi : bi + 1));
+    });
+    if (spec.nums) bars.forEach((ev, bi) => ev.forEach((e, i) => {
+      const n = info.notes[bi][i], s = info.staves[bi];
+      const cx = n.getAbsoluteX() + (n.getGlyphWidth ? n.getGlyphWidth() / 2 : 5);
+      svgEl(svg, "text", { x: cx, y: s.getYForLine(4) + 30, "text-anchor": "middle", "font-family": "JetBrains Mono, monospace", "font-size": 13, fill: (spec.mark && (spec.mark[bi] || []).includes(i)) ? bad : muted }, String(i + 1));
+    }));
+    let vb = `0 0 ${W} ${H}`;
+    try { const bb = svg.getBBox(); if (bb.width) vb = spec.snippet ? `${bb.x - 4} ${bb.y - 6} ${bb.width + 8} ${bb.height + 12}` : `0 ${bb.y - 8} ${W} ${bb.height + 16}`; } catch (e) {}
+    svg.setAttribute("viewBox", vb);
+    const vw = +vb.split(" ")[2], vh = +vb.split(" ")[3];
+    svg.removeAttribute("width"); svg.removeAttribute("height");
+    if (spec.snippet) { svg.style.width = Math.round(vw * 0.85) + "px"; svg.style.maxWidth = "100%"; svg.style.height = "auto"; }
+    else if (W > avail && avail / W < .62) { svg.style.width = W + "px"; svg.style.height = "auto"; }
+    else { svg.style.width = "100%"; svg.style.height = "auto"; }
+    svg.style.aspectRatio = `${vw} / ${vh}`;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", spec.label || describeSpec(spec));
+    return info;
+  }
+  function redrawAll() { document.querySelectorAll(".mus").forEach(el => { if (el._spec) drawMusic(el, el._spec); }); }
+
+  // ---------- Playback (Web Audio, no samples) ----------
+  let AC = null, live = [];
+  function audio() {
+    if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+  function stopAll() { live.forEach(n => { try { n.stop(); } catch (e) {} }); live = []; }
+  function tone(a, t, dur, freq, vol) {
+    const o = a.createOscillator(), g = a.createGain(), o2 = a.createOscillator(), g2 = a.createGain();
+    o.type = "triangle"; o.frequency.value = freq; o2.type = "sine"; o2.frequency.value = freq * 2; g2.gain.value = .25;
+    const hold = Math.max(t + .03, t + dur - .03);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + .006);
+    g.gain.exponentialRampToValueAtTime(vol * .4, Math.min(hold, t + Math.max(.03, Math.min(.18, dur * .6))));
+    g.gain.setValueAtTime(vol * .4, hold);
+    g.gain.linearRampToValueAtTime(0.0001, hold + .03);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(a.destination);
+    o.start(t); o2.start(t); o.stop(hold + .05); o2.stop(hold + .05); live.push(o, o2);
+  }
+  function click(a, t, strong) {
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "square"; o.frequency.value = strong ? 1500 : 1100;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(strong ? .07 : .045, t + .002); g.gain.exponentialRampToValueAtTime(0.0001, t + .04);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + .05); live.push(o);
+  }
+  // Plays the excerpt after a one-bar count-in. Gaps are silent.
+  function playSpec(spec, btn) {
+    const a = audio(); if (!a) return;
+    stopAll();
+    const m = M[spec.m], u = m.comp ? 60 / 66 / 12 : 60 / 100 / 8;
+    const seq = [];
+    spec.bars.forEach((ev, bi) => {
+      const g = spec.gap && spec.gap.bar === bi ? spec.gap : null;
+      ev.forEach((e, i) => { if (g && g.at === i) seq.push({ d: g.len, r: true }); seq.push(e); });
+      if (g && g.at === ev.length) seq.push({ d: g.len, r: true });
+    });
+    const lead = spec.pickup ? m.bar - total(spec.bars[0]) : 0;
+    const t0 = a.currentTime + .12, start = t0 + (m.bar + lead) * u;
+    const endPos = m.bar + lead + total(seq);
+    for (let p = 0; p < endPos; p += m.beat) if (p < m.bar || S.settings.clicks) click(a, t0 + p * u, p % m.bar === 0);
+    sounding(seq).forEach(n => tone(a, start + n.a * u, (n.z - n.a) * u, 659.25, .22));
+    if (btn) { btn.classList.add("on"); clearTimeout(btn._t); btn._t = setTimeout(() => btn.classList.remove("on"), (endPos * u + .2) * 1000); }
+  }
+  const PLAY_ICON = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
+  const playBtn = (id, label = "Play") => `<button class="play" data-play="${id}">${PLAY_ICON}${label}</button>`;
+
+  // ---------- State ----------
+  const STORE = "rhythm-notation-trainer";
+  const DEFAULTS = { simple: true, compound: true, lvl: 1, clicks: true };
+  let S = { mode: "complete", settings: Object.assign({}, DEFAULTS), right: 0, total: 0, streak: 0, misses: [] };
+  try { const saved = JSON.parse(localStorage.getItem(STORE) || "null"); if (saved) S = Object.assign(S, saved, { settings: Object.assign({}, DEFAULTS, saved.settings) }); } catch (e) {}
+  if (!Array.isArray(S.misses)) S.misses = [];
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
+  const Q = {};
+  const freshState = q => Object.assign(q, { tries: 0, done: false, revealed: false, hinted: false, wrongs: [] });
+
+  function newQuestion(mode) {
+    const prev = Q[mode];
+    const review = S.misses.filter(x => x.mode === mode && (!prev || x.q.sig !== prev.sig));
+    if (review.length && Math.random() < .35) {
+      const r = clone(pickOne(review).q);
+      if (r.m == null || enabledMeters().includes(r.m) || mode === "terms") { freshState(r); r.review = true; if (r.type === "beam") r.ev = clone(r.start); return r; }
+    }
+    let q = null;
+    for (let i = 0; i < 5 && !q; i++) q = BUILD[mode]();
+    if (!q) q = makeTerm();
+    q.sig = newSig();
+    return freshState(q);
+  }
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const promptEl = $("prompt"), work = $("work"), hintBox = $("hintBox"), fb = $("feedback");
+  const checkBtn = $("checkBtn"), hintBtn = $("hintBtn"), showBtn = $("showBtn"), nextBtn = $("nextBtn");
+  const LETTERS = "ABCD";
+  const specs = {};
+
+  function renderScore() {
+    $("scRight").textContent = S.right; $("scTotal").textContent = S.total; $("scStreak").textContent = S.streak;
+    $("scoreText").textContent = `Score: ${S.right} correct out of ${S.total} answered. Streak: ${S.streak}.`;
+  }
+  function msg(cls, label, text) { return `<div class="verdict"><span class="pill ${cls}">${label}</span><span>${text}</span></div>`; }
+
+  const KICK = {
+    notes: "Complete the bar", rests: "Complete the bar with rests", meter: "Name the meter", beam: "Fix the beaming", choose: "Pick the correct notation",
+    sync: "Find the syncopation", hemiola: "Find the hemiola", pickup: "Measure the anacrusis", final: "Balance the anacrusis", term: "Terminology",
+  };
+  function questionText(q) {
+    switch (q.type) {
+      case "notes": return `Which choice fills the gap with correctly notated ${q.m}?`;
+      case "rests": return `Which rests complete this bar of ${q.m} correctly?`;
+      case "meter": return "Which time signature fits these bars, beaming and all?";
+      case "beam": return `These beams don't show the beats of ${q.m}. Tap the links between notes to join or split beams, then Check.`;
+      case "choose": return `All four sound the same. Which one is notated correctly for ${q.m}?`.replace("All four", q.opts.length === 3 ? "All three" : "All four");
+      case "sync": return "Which bar contains a syncopation?";
+      case "hemiola": return "Where is the hemiola?";
+      default: return q.q;
+    }
+  }
+
+  function mainSpec(q) {
+    if (q.type === "notes" || q.type === "rests") {
+      const ev = q.bar.slice(0, q.gap.at).concat(q.bar.slice(q.gap.at + q.gap.n));
+      const pre = clone(q.bar.slice(0, q.gap.at)), post = clone(q.bar.slice(q.gap.at + q.gap.n));
+      // Beams stay within each side of the gap.
+      const fixB = (arr) => { const gs = beamGroups(arr); arr.forEach(e => { e.b = null; }); gs.forEach((g, k) => g.forEach(i => { arr[i].b = 900 + k; })); return arr; };
+      fixB(pre); fixB(post);
+      void ev;
+      return { m: q.m, bars: [pre.concat(post.map(e => Object.assign(e, { b: e.b != null ? e.b + 50 : null })))], gap: { bar: 0, at: q.gap.at, len: q.gap.len } };
+    }
+    if (q.type === "meter") return { m: q.m, bars: q.bars, ts: "ask" };
+    if (q.type === "beam") return { m: q.m, bars: [q.ev], nums: true, mark: q.mark ? { 0: q.mark } : null };
+    if (q.type === "choose" || q.type === "term") return null;
+    return { m: q.m, bars: q.bars, pickup: q.pickup, barNums: q.barNums, hl: q.hl };
+  }
+
+  function render() {
+    const q = Q[S.mode];
+    document.querySelectorAll(".modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === S.mode));
+    const tag = q.review ? '<span class="pill warn">review</span>' : "";
+    const kick = `<div class="kicker">${KICK[q.type]}${q.m && q.type !== "term" ? ` <span aria-hidden="true">·</span> ${q.type === "meter" ? "?" : q.m}` : ""} ${tag}</div>`;
+    const spec = mainSpec(q);
+    promptEl.classList.toggle("nomus", !spec);
+    promptEl.innerHTML = kick + (spec ? '<div class="mus" id="mainMus"></div>' : "") + (spec && q.type !== "beam" ? `<div class="play-row">${playBtn("main")}</div>` : "") + `<p class="qtext${q.type === "term" ? " big" : ""}">${esc(questionText(q))}</p>`;
+    specs.main = spec;
+    if (spec) drawMusic($("mainMus"), spec);
+    renderWork(q);
+    hintBox.hidden = !q.hinted;
+    if (q.hinted) hintBox.textContent = q.hint;
+    const over = q.done || q.revealed;
+    checkBtn.hidden = q.type !== "beam" || over;
+    hintBtn.hidden = over || q.hinted || !q.hint;
+    showBtn.hidden = !(q.tries > 0 && !over);
+    nextBtn.textContent = over ? "Next" : "Skip";
+    nextBtn.classList.toggle("primary", over);
+  }
+
+  function renderWork(q) {
+    const over = q.done || q.revealed;
+    if (q.type === "beam") {
+      const ev = q.ev; let h = "";
+      ev.forEach((e, i) => {
+        h += `<span class="tok${e.r ? " rest" : ""}" aria-hidden="true">${i + 1}</span>`;
+        if (i + 1 < ev.length) {
+          if (flag(e) && flag(ev[i + 1])) {
+            const on = e.b != null && e.b === ev[i + 1].b;
+            h += `<button class="link" data-link="${i}" aria-pressed="${on}" ${over ? "disabled" : ""}><span aria-hidden="true">${on ? "beam" : "· ·"}</span><span class="sr">Beam note ${i + 1} to note ${i + 2}</span></button>`;
+          } else h += '<span class="nolink" aria-hidden="true"></span>';
+        }
+      });
+      work.innerHTML = `<div class="strip" role="group" aria-label="Beam links between notes">${h}</div><p class="strip-help">Numbers match the notes on the staff. A highlighted link means the two notes share a beam.</p>`;
+      return;
+    }
+    const cls = q.type === "meter" ? "opts ts" : q.type === "choose" ? "opts wide" : (q.type === "notes" || q.type === "rests") ? "opts" : "opts text";
+    const btns = q.opts.map((o, i) => {
+      const state = (over && i === q.ans) || (q.done && i === q.ans) ? " right" : q.wrongs.includes(i) ? " wrong" : over ? " dim" : "";
+      const dis = over || q.wrongs.includes(i) ? "disabled" : "";
+      let body;
+      if (q.type === "meter") { const mm = M[o.ts]; body = `<span class="tsig" aria-hidden="true"><b>${mm.num}</b><b>${mm.den}</b></span><span class="sr">${mm.num} ${mm.den} time</span>`; }
+      else if (o.ev) body = `<span class="mus" id="opt${i}"></span><span class="sr">${esc(describe(o.ev))}</span>`;
+      else body = `<span class="otext">${esc(o.label)}</span>`;
+      return `<button class="opt${state}" data-opt="${i}" ${dis}><span class="tag"><span>${LETTERS[i]}</span></span>${body}</button>`;
+    }).join("");
+    work.innerHTML = `<div class="${cls}" role="group" aria-label="Answer choices">${btns}</div>`;
+    q.opts.forEach((o, i) => {
+      if (!o.ev) return;
+      const el = $("opt" + i);
+      if (q.type === "choose") drawMusic(el, { m: q.m, bars: [o.ev], fill: true, mark: q.wrongs.includes(i) || (over && !o.ok && q.showMarks) ? { 0: markIdx(q, o) } : null, label: describe(o.ev) });
+      else {
+        const off = q.gap.start;
+        drawMusic(el, { m: q.m, bars: [o.ev], snippet: true, ts: "hide", label: describe(o.ev), offset: off });
+      }
+      el.setAttribute("aria-hidden", "true");
+    });
+  }
+  function markIdx(q, o) { return [...new Set(check(M[q.m], o.ev).flatMap(x => x.idx))]; }
+
+  function score(q, correct) {
+    if (!(window.LiveClass && LiveClass.active)) { if (window.SFX) SFX.play(correct); if (window.SAprogress && q.tries === 0 && !q.revealed) SAprogress.record(__saLabel(S.mode), correct); }
+    if (window.LiveClass && LiveClass.active && LiveClass.answered(correct)) return;
+    if (q.tries > 0 || q.revealed) return;
+    S.total++;
+    if (correct) { S.right++; S.streak++; S.misses = S.misses.filter(x => x.q.sig !== q.sig); }
+    else {
+      S.streak = 0;
+      if (!S.misses.some(x => x.q.sig === q.sig)) {
+        const keep = clone(q); ["tries", "done", "revealed", "hinted", "wrongs", "review", "mark", "showMarks"].forEach(k => delete keep[k]);
+        S.misses.push({ mode: q.mode, q: keep });
+      }
+    }
+    save(); renderScore();
+  }
+
+  function answerBlock(q) {
+    if (q.type === "notes" || q.type === "rests") {
+      specs.ans = { m: q.m, bars: [q.bar], hl: [], label: "Completed bar. " + describeSpec({ m: q.m, bars: [q.bar] }) };
+      return `<div class="answer"><div class="kicker">The completed bar</div><div class="mus" id="ansMus"></div><div class="play-row">${playBtn("ans")}</div></div>`;
+    }
+    if (q.type === "beam") return "";
+    if (q.type === "sync" || q.type === "hemiola" || q.type === "pickup" || q.type === "final") return "";
+    if (q.type === "meter") {
+      specs.ans = { m: q.m, bars: q.bars };
+      return `<div class="answer"><div class="kicker">With its time signature</div><div class="mus" id="ansMus"></div><div class="play-row">${playBtn("ans")}</div></div>`;
+    }
+    return "";
+  }
+  function explainFor(q) {
+    if (q.type === "notes") return `The gap holds ${fmtLen(M[q.m], q.gap.len)}, and this choice keeps every beat of ${q.m} visible.`;
+    if (q.type === "rests") return `The gap holds ${fmtLen(M[q.m], q.gap.len)}. The rests finish the current beat first, then give each beat its own rest.`;
+    if (q.type === "meter") { const m = M[q.m]; return `Each bar holds ${eighths(m.bar)}, grouped as ${m.n} ${beatName(m)} beats: ${KIND(m)}.`; }
+    if (q.type === "choose") return `This version shows every beat of ${q.m}: notes that cross a beat are tied, and each beam stays inside its beat.`;
+    return q.explain || "";
+  }
+  function afterAnswer() { const el = $("ansMus"); if (el && specs.ans) drawMusic(el, specs.ans); }
+
+  function pickOpt(i) {
+    const q = Q[S.mode];
+    if (q.done || q.revealed || q.wrongs.includes(i)) return;
+    const o = q.opts[i];
+    if (o.ok) {
+      score(q, true); q.tries++; q.done = true;
+      fb.innerHTML = msg("good", "Correct", esc(explainFor(q))) + answerBlock(q);
+      if (q.type === "sync" || q.type === "hemiola") q.hl = hlFor(q);
+      render(); afterAnswer();
+      return;
+    }
+    score(q, false); q.tries++; q.wrongs.push(i);
+    let why = o.why;
+    let list = "";
+    if (q.type === "choose") {
+      const iss = check(M[q.m], o.ev).filter(x => x.kind !== "gray");
+      why = "That version hides the beat. The problem notes are marked in red:";
+      list = `<ul class="issues">${iss.map(x => `<li>${esc(x.msg)}</li>`).join("")}</ul>`;
+    }
+    fb.innerHTML = msg("bad", "Not yet", esc(why)) + list;
+    render();
+  }
+  function hlFor(q) { return q.type === "hemiola" && q.m === "3/4" ? [q.ans, q.ans + 1] : [q.ans]; }
+
+  function checkBeam() {
+    const q = Q.fix, m = M[q.m];
+    const iss = check(m, q.ev).filter(x => x.kind !== "gray");
+    if (!iss.length) {
+      score(q, true); q.tries++; q.done = true; q.mark = null;
+      fb.innerHTML = msg("good", "Correct", `Every beam now stays inside one ${beatName(m)} beat, so the ${m.n} beats of ${q.m} are easy to see.`);
+      render(); return;
+    }
+    score(q, false); q.tries++;
+    q.mark = [...new Set(iss.flatMap(x => x.idx))];
+    fb.innerHTML = msg("bad", "Not yet", "The notes marked in red still hide the beat:") + `<ul class="issues">${iss.map(x => `<li>${esc(x.msg)}</li>`).join("")}</ul>`;
+    render();
+  }
+
+  function reveal() {
+    const q = Q[S.mode];
+    if (q.type === "beam") {
+      q.revealed = true; q.ev = clone(q.sol); q.mark = null;
+      fb.innerHTML = msg("warn", "Answer", `Beamed by the ${beatName(M[q.m])} beat. This one will come back for review.`);
+      render(); return;
+    }
+    q.revealed = true; q.showMarks = true;
+    if (q.type === "sync" || q.type === "hemiola") q.hl = hlFor(q);
+    fb.innerHTML = msg("warn", "Answer", `${LETTERS[q.ans]} is correct. ${esc(explainFor(q))} This one will come back for review.`) + answerBlock(q);
+    render(); afterAnswer();
+  }
+
+  function next() {
+    stopAll();
+    Q[S.mode] = newQuestion(S.mode);
+    fb.innerHTML = "";
+    render();
+  }
+  function setMode(mode) {
+    if (S.mode === mode) return;
+    stopAll();
+    S.mode = mode; save();
+    fb.innerHTML = "";
+    if (!Q[mode]) Q[mode] = newQuestion(mode);
+    render();
+  }
+
+  // ---------- Events ----------
+  document.querySelectorAll(".modes button").forEach(b => { b.onclick = () => setMode(b.dataset.mode); });
+  checkBtn.onclick = checkBeam;
+  hintBtn.onclick = () => { Q[S.mode].hinted = true; render(); };
+  showBtn.onclick = reveal;
+  nextBtn.onclick = next;
+  work.addEventListener("click", e => {
+    const o = e.target.closest("[data-opt]");
+    if (o) { pickOpt(+o.dataset.opt); return; }
+    const l = e.target.closest("[data-link]");
+    if (l) {
+      const q = Q.fix; if (q.done || q.revealed) return;
+      const i = +l.dataset.link, ev = q.ev;
+      const linked = ev.map((e2, k) => k + 1 < ev.length && e2.b != null && e2.b === ev[k + 1].b);
+      linked[i] = !linked[i];
+      let g = 0; ev.forEach(e2 => { e2.b = null; });
+      for (let k = 0; k < ev.length; k++) if (linked[k]) { if (k === 0 || !linked[k - 1]) g++; ev[k].b = g; ev[k + 1].b = g; }
+      q.mark = null; fb.innerHTML = "";
+      render();
+      const again = work.querySelector(`[data-link="${i}"]`); if (again) again.focus();
+    }
+  });
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-play]"); if (!b) return;
+    const spec = specs[b.dataset.play]; if (spec) playSpec(spec, b);
+  });
+  document.addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input, textarea")) return;
+    const q = Q[S.mode];
+    if (e.key === "Enter" && (e.target === document.body) && (q.done || q.revealed)) { next(); return; }
+    if (/^[1-4]$/.test(e.key) && q.opts && !e.metaKey && !e.ctrlKey && !e.altKey) { const i = +e.key - 1; if (i < q.opts.length) pickOpt(i); }
+  });
+
+  // Settings
+  function renderSettings() {
+    document.querySelectorAll("[data-fam]").forEach(b => b.setAttribute("aria-pressed", !!S.settings[b.dataset.fam]));
+    document.querySelectorAll("[data-lvl]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.lvl) === b.dataset.lvl));
+    document.querySelectorAll("[data-click]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.clicks ? 1 : 0) === b.dataset.click));
+  }
+  function settingsChanged() { save(); renderSettings(); Object.keys(Q).forEach(k => delete Q[k]); Q[S.mode] = newQuestion(S.mode); fb.innerHTML = ""; render(); }
+  $("meterToggles").onclick = e => {
+    const b = e.target.closest("[data-fam]"); if (!b) return;
+    const f = b.dataset.fam, on = !S.settings[f];
+    if (!on && !S.settings[f === "simple" ? "compound" : "simple"]) return;
+    S.settings[f] = on; settingsChanged();
+  };
+  $("lvlToggles").onclick = e => { const b = e.target.closest("[data-lvl]"); if (b) { S.settings.lvl = +b.dataset.lvl; settingsChanged(); } };
+  $("clickToggles").onclick = e => { const b = e.target.closest("[data-click]"); if (b) { S.settings.clicks = b.dataset.click === "1"; save(); renderSettings(); } };
+  $("resetBtn").onclick = () => { S.misses = []; save(); $("resetBtn").textContent = "Review list cleared"; };
+  let armTimer = null;
+  $("scoreReset").onclick = () => {
+    const b = $("scoreReset");
+    if (!b.classList.contains("armed")) {
+      b.classList.add("armed"); b.textContent = "Tap again to reset";
+      armTimer = setTimeout(() => { b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>'; }, 3000);
+      return;
+    }
+    clearTimeout(armTimer);
+    S.right = 0; S.total = 0; S.streak = 0; save(); renderScore();
+    b.classList.remove("armed"); b.innerHTML = 'Reset<span class="sr"> score</span>';
+  };
+
+  // Redraw notation when the theme or the width changes.
+  let rT = null, lastW = window.innerWidth;
+  window.addEventListener("resize", () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(rT); rT = setTimeout(redrawAll, 150); });
+  if (window.matchMedia) { const mq = matchMedia("(prefers-color-scheme: dark)"); (mq.addEventListener ? mq.addEventListener("change", redrawAll) : mq.addListener(redrawAll)); }
+  new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+
+  // Test hook (no effect on students).
+  window.__rt = { M, check, genBar, restFill, syncNotes, BUILD, newQuestion, Q, S, render, pickOpt, describe, sig };
+
+  if (!Q[S.mode]) Q[S.mode] = newQuestion(S.mode);
+  renderSettings(); renderScore(); render();
+
+  // ===== SilverApps bridge (added by build/build_trainers.py) =====
+  // the app's name tops every question heading (pages built on the harmony engine add it themselves)
+  (function () { const tag = () => { const h = document.getElementById("qHead"); if (h && !h.querySelector(".kapp") && __SA_APP && __SA_APP.name) h.insertAdjacentHTML("afterbegin", '<span class="kapp">' + __SA_APP.name.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])) + '</span><span class="ksep" aria-hidden="true"> · </span>'); };
+    const w = document.getElementById("work") || document.body; tag(); new MutationObserver(tag).observe(w, { childList: true, subtree: true }); })();
+  function __saLabel(m) { const b = document.querySelector(`.modes [data-mode="${m}"] b`); return b ? b.textContent.trim() : m; }
+  if (window.SAprogress) SAprogress.init({ id: __SA_APP.id, name: __SA_APP.name, before: ".wrap-aside",
+    onReset: () => { S.right = 0; S.total = 0; S.streak = 0; S.misses = []; save(); renderScore(); } });
+  if (window.LiveClass) (function () {
+    const clone = o => JSON.parse(JSON.stringify(o));
+    const relabel = () => { const p = document.querySelector("#feedback .verdict .pill"); if (p) { p.className = "pill warn"; p.textContent = "Answer"; } };
+    const tidy = () => document.querySelectorAll("#feedback .verdict span:last-child").forEach(n => { n.innerHTML = n.innerHTML.replace(/\s*(Study it, then try the next one\.\s*)?Th(is|ese) [\w-]+ will come back for review\./, "").trim() || "Here's the answer."; });
+    LiveClass.register({
+      id: __SA_APP.id, name: __SA_APP.name,
+      mount: document.querySelector("nav.modes"),
+      card: document.querySelector("main.card"),
+      getConfig: () => ({ mode: S.mode, settings: clone(S.settings) }),
+      label: cfg => __saLabel(cfg.mode),
+      load(cfg) {
+        stopAll();
+        const keep = S.misses; S.misses = [];
+        S.settings = clone(cfg.settings);
+        if (LiveClass.role === "student" && "auto" in S.settings) S.settings.auto = false;
+        S.mode = cfg.mode; Q[cfg.mode] = null; Q[cfg.mode] = newQuestion(cfg.mode); S.misses = keep;
+        fb.innerHTML = ""; renderSettings(); render();
+      },
+      showAnswer() { const q = Q[S.mode]; if (!q || q.done || q.revealed) return; reveal(); tidy(); }
+    });
+  })();
+})();

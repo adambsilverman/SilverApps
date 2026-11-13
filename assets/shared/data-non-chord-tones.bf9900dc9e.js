@@ -417,7 +417,7 @@ window.FAM = (() => {
   const tbl = (cap, head, rows) => `<div class="ltable-wrap"><table class="ltable"><caption class="sr">${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const IMG = (f, alt) => `<img src="assets/img/nct-intro/${f}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">`;
   const AUD = (f, label) => `<audio controls preload="none" src="assets/audio/nct-intro/${f}.mp3" aria-label="${label}" style="width:100%"></audio>`;
-  const FIG = (inner, cap) => `<figure class="lfig nci-fig">${inner}<figcaption>${cap}</figcaption></figure>`;
+  const FIG = (inner, cap) => `<figure class="lfig nci-fig">${inner}<figcaption>${cap}${/<audio\b|atgb-|beatles-/.test(inner) ? `<p class="note lcite fair-use" data-fair-use></p>` : ""}</figcaption></figure>`;
   const ANYKEY = `<h3 class="nci-any">Compare them in any key</h3><p class="note">Generated examples: use the key buttons at the top of this step, and press Play.</p>`;
   // Dooley Wilson as Sam in Casablanca (1942): "Sing it, Sam" through "a sigh is just a sigh"
   const ATGB = `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/Do2olZ49M54?start=26&amp;end=44" title="As Time Goes By, from Casablanca (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;

@@ -1,0 +1,1340 @@
+
+"use strict";
+/* =====================================================================
+   THEORY ENGINE
+   A note is {l: letter index 0-6 (C..B), a: accidental -2..2, o: octave}
+   ===================================================================== */
+const L = 'CDEFGAB', NAT = [0,2,4,5,7,9,11];
+const ACC_TXT = {'-2':'♭♭','-1':'♭','0':'','1':'♯','2':'x'};
+const nm = n => L[n.l] + ACC_TXT[n.a];
+const midi = n => 12*(n.o+1) + NAT[n.l] + n.a;
+const up = (n, steps, semis) => {
+  const l2 = n.l + steps, l = ((l2 % 7) + 7) % 7, oo = Math.floor(l2 / 7);
+  return { l, a: NAT[n.l] + n.a + semis - (NAT[l] + 12*oo), o: n.o + oo };
+};
+const rnd = n => Math.floor(Math.random()*n);
+const pick = arr => arr[rnd(arr.length)];
+const shuffle = arr => { const a = arr.slice(); for (let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; };
+const aAn = w => (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w;
+const escRaw = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Escape text AND typeset music symbols tightly (no fallback-font gaps around ♭ ♯ ♮ △ ° ø) */
+const MUS_CLS = {'♭':'mf','♯':'ms','♮':'mn','△':'mt','°':'md','ø':'mo'};
+const MUS_SAY = {'♭':'flat','♯':'sharp','♮':'natural','△':'major','°':'diminished','ø':'half-diminished'};
+const esc = s => { const t = escRaw(s); if (!/[♭♯♮△°ø]/.test(t)) return t; return '<span class="mtx">' + t.replace(/[♭♯♮△°ø]/g, c => `<span class="mu ${MUS_CLS[c]}" role="img" aria-label=" ${MUS_SAY[c]} ">${c}</span>`) + '</span>'; };
+/* Spoken forms for screen readers */
+const sayNote = n => n.replace(/^([A-G])(♭|♯|♮)?/, (m, l, a) => l + (a ? ' ' + MUS_SAY[a] : ''));
+const QUAL_SAY = {'':'major','m':'minor','°':'diminished','+':'augmented','sus4':'suspended fourth','7':'dominant seventh','△7':'major seventh','m7':'minor seventh',
+  'm(△7)':'minor major seventh','m7(♭5)':'half-diminished seventh','°7':'diminished seventh','+7':'augmented seventh','+△7':'augmented major seventh'};
+function sayChord(sym){
+  const m = String(sym).match(/^([A-G][♭♯]?)(.*?)(?:\/([A-G][♭♯]?))?$/); if (!m) return sym;
+  const q = QUAL_SAY[m[2]] != null ? QUAL_SAY[m[2]] : m[2];
+  return `${sayNote(m[1])} ${q}${m[3] ? ', over ' + sayNote(m[3]) : ''}`;
+}
+const sayAnswer = t => String(t).split(', figure ').map((p,i) => i ? 'figure ' + p.replace('/', ' ') : (/ – /.test(p) ? p.split(' – ').map(sayNote).join(', ') : sayChord(p))).join(', ');
+
+const TYPES = {
+  maj:    {sym:'',       name:'major triad',            iv:[[2,4],[4,7]],        fam:3, form:'a major 3rd and a perfect 5th above the root'},
+  min:    {sym:'m',      name:'minor triad',            iv:[[2,3],[4,7]],        fam:3, form:'a minor 3rd and a perfect 5th above the root'},
+  dim:    {sym:'°',      name:'diminished triad',       iv:[[2,3],[4,6]],        fam:3, form:'a minor 3rd and a diminished 5th above the root'},
+  aug:    {sym:'+',      name:'augmented triad',        iv:[[2,4],[4,8]],        fam:3, form:'a major 3rd and an augmented 5th above the root'},
+  sus4:   {sym:'sus4',   name:'suspended-4th chord',    iv:[[3,5],[4,7]],        fam:3, form:'a perfect 4th and a perfect 5th above the root (the 4th replaces the 3rd)'},
+  dom7:   {sym:'7',      name:'dominant seventh',       iv:[[2,4],[4,7],[6,10]], fam:7, form:'a major triad plus a minor 7th'},
+  maj7:   {sym:'△7',     name:'major seventh',          iv:[[2,4],[4,7],[6,11]], fam:7, form:'a major triad plus a major 7th'},
+  min7:   {sym:'m7',     name:'minor seventh',          iv:[[2,3],[4,7],[6,10]], fam:7, form:'a minor triad plus a minor 7th'},
+  mmaj7:  {sym:'m(△7)',  name:'minor-major seventh',    iv:[[2,3],[4,7],[6,11]], fam:7, form:'a minor triad plus a major 7th'},
+  hdim7:  {sym:'m7(♭5)', name:'half-diminished seventh',iv:[[2,3],[4,6],[6,10]], fam:7, form:'a diminished triad plus a minor 7th'},
+  dim7:   {sym:'°7',     name:'fully diminished seventh',iv:[[2,3],[4,6],[6,9]], fam:7, form:'a diminished triad plus a diminished 7th (stacked minor 3rds)'},
+  aug7:   {sym:'+7',     name:'augmented seventh',      iv:[[2,4],[4,8],[6,10]], fam:7, form:'an augmented triad plus a minor 7th'},
+  augmaj7:{sym:'+△7',    name:'augmented major seventh',iv:[[2,4],[4,8],[6,11]], fam:7, form:'an augmented triad plus a major 7th'},
+};
+const TRIADS = ['maj','min','dim','aug','sus4'];
+const SEVENTHS = ['dom7','maj7','min7','mmaj7','hdim7','dim7','aug7','augmaj7'];
+const chordTones = (root, type) => [root, ...TYPES[type].iv.map(([s,t]) => up(root, s, t))];
+const symOf = (root, type) => nm(root) + TYPES[type].sym;
+function classify(tones){
+  const r = tones[0];
+  const sig = tones.slice(1).map(t => { const s = ((t.l - r.l)+7)%7; return [s, ((midi({...t,o:4}) - midi({...r,o:4}))%12+12)%12 + (s===0?0:0)]; });
+  for (const [k,T] of Object.entries(TYPES)){
+    if (T.iv.length !== sig.length) continue;
+    if (T.iv.every(([s,t],i) => sig[i][0]===s && sig[i][1]===t)) return k;
+  }
+  return null;
+}
+
+const ROOTS_NAT = [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]];
+const ROOTS_ALL = ROOTS_NAT.concat([[6,-1],[2,-1],[5,-1],[1,-1],[4,-1],[3,1],[0,1],[4,1]]);
+function goodRoot(type, pool){
+  // never use double flats/sharps; favour natural roots (~65%) but keep ♭/♯ roots in the mix
+  const ok = ([l,a]) => chordTones({l,a,o:4}, type).every(t => Math.abs(t.a) < 2);
+  const valid = pool.filter(ok);
+  const nat = valid.filter(([,a]) => a === 0), acc = valid.filter(([,a]) => a !== 0);
+  const src = (nat.length && (!acc.length || Math.random() < 0.65)) ? nat : (acc.length ? acc : nat);
+  const [l,a] = pick(src.length ? src : [[0,0]]);
+  return {l,a,o:4};
+}
+
+/* ---- keys ---- */
+const KEYS = [
+  {t:[0,0],m:'maj',vf:'C'},{t:[4,0],m:'maj',vf:'G'},{t:[1,0],m:'maj',vf:'D'},{t:[5,0],m:'maj',vf:'A'},
+  {t:[3,0],m:'maj',vf:'F'},{t:[6,-1],m:'maj',vf:'Bb'},{t:[2,-1],m:'maj',vf:'Eb'},
+  {t:[5,0],m:'min',vf:'Am'},{t:[2,0],m:'min',vf:'Em'},{t:[1,0],m:'min',vf:'Dm'},{t:[4,0],m:'min',vf:'Gm'},
+  {t:[6,0],m:'min',vf:'Bm'},{t:[0,0],m:'min',vf:'Cm'},
+];
+const keyName = k => nm({l:k.t[0],a:k.t[1]}) + (k.m==='maj' ? ' major' : ' minor');
+const STEPS = {maj:[0,2,4,5,7,9,11], min:[0,2,3,5,7,8,10], harm:[0,2,3,5,7,8,11]};
+function scaleOf(k, harmonic){
+  const tonic = {l:k.t[0], a:k.t[1], o:4};
+  const st = k.m==='maj' ? STEPS.maj : (harmonic ? STEPS.harm : STEPS.min);
+  return st.map((s,i) => up(tonic, i, s));
+}
+function keySigMap(vf){
+  const m = [0,0,0,0,0,0,0];
+  if (!vf) return m;
+  const k = KEYS.find(x => x.vf === vf);
+  scaleOf(k, false).forEach(n => m[n.l] = n.a);
+  return m;
+}
+const degOf = (k, n) => ((n.l - k.t[0]) + 7) % 7;
+function diatonic(k, deg, seventh){
+  const harm = k.m==='min' && (deg===4 || deg===6);
+  const sc = scaleOf(k, harm);
+  const idx = seventh ? [0,2,4,6] : [0,2,4];
+  const tones = idx.map(i => ({...sc[(deg+i)%7], o:4}));
+  return {deg, tones, root:tones[0], type:classify(tones), harm};
+}
+const INV_FIG = {3:['','6','6/4'], 7:['7','6/5','4/3','4/2']};
+
+/* ---- figured bass ---- */
+const FIGS = {'53':[5,3],'6':[6],'64':[6,4],'7':[7],'65':[6,5],'43':[4,3],'42':[4,2]};
+const FIG_ORDER = ['53','6','64','7','65','43','42'];
+const invToFig = (fam, inv) => fam===3 ? ['53','6','64'][inv] : ['7','65','43','42'][inv];
+function figRowsFor(k, chord, inv){
+  const fam = TYPES[chord.type].fam;
+  const fid = invToFig(fam, inv);
+  const base = fid === '53' ? [] : FIGS[fid];
+  const rows = base.map(n => ({n, acc:null, slash:false}));
+  const bass = chord.tones[inv];
+  const ks = keySigMap(k.vf);
+  let altered = false, notes = [];
+  chord.tones.forEach((t,i) => {
+    if (i === inv || t.a === ks[t.l]) return;
+    altered = true;
+    const num = ((t.l - bass.l) + 7) % 7 + 1;
+    const raise = t.a > ks[t.l];
+    const accS = t.a === 0 ? '♮' : ACC_TXT[t.a];
+    const slashable = raise && (num === 6 || num === 4);
+    let row = rows.find(r => r.n === num);
+    if (row){ if (slashable) row.slash = true; else row.acc = accS; }
+    else if (num === 3){ rows.push({n:null, acc:accS, slash:false}); }
+    else { rows.push({n:num, acc: slashable?null:accS, slash:slashable}); }
+    notes.push({num, accS, slashable, alone: !row && num===3, tone:t});
+  });
+  rows.sort((a,b) => (b.n||3) - (a.n||3));
+  return {rows, altered, notes, fid};
+}
+function figHTML(rows, cls=''){
+  if (!rows.length) return `<span class="fig blank ${cls}">(no figure)</span>`;
+  return `<span class="fig ${cls}">${rows.map(r => `<span class="${r.slash?'sl':''}">${r.acc?esc(r.acc):''}${r.n||''}</span>`).join('')}</span>`;
+}
+/* Figures laid out by category: triads on top, 7th chords below, inversions aligned in columns */
+function figGrid(cell){
+  const rows = [['Triads', ['53','6','64',null]], ['7th chords', ['7','65','43','42']]];
+  return `<div class="figgrid"><span></span>${['Root position','1st inversion','2nd inversion','3rd inversion'].map(h => `<span class="fh">${h}</span>`).join('')}
+    ${rows.map(([lab, fs]) => `<span class="fr">${lab}</span>` + fs.map(f => f ? cell(f) : '<span class="fx"></span>').join('')).join('')}</div>`;
+}
+const figRowsPlain = fid => fid==='53' ? [{n:5},{n:3}] : FIGS[fid].map(n => ({n}));
+
+/* ---- voicing ---- */
+function placeLow(n){ for (const o of [2,3]){ const m = midi({...n,o}); if (m>=43 && m<=55) return {...n,o}; } return {...n,o:3}; }
+function closeAbove(list, minMidi){
+  const out = []; let prev = minMidi - 1;
+  for (const n of list){ let o = 2; while (midi({...n,o}) <= prev) o++; const x = {...n,o}; out.push(x); prev = midi(x); }
+  return out;
+}
+
+/* =====================================================================
+   QUESTION GENERATORS
+   ===================================================================== */
+const DRILLS = {
+  1:{title:'Spell the chord', short:'Spelling', desc:'Spell the notes of triads and seventh chords from a chord symbol.'},
+  2:{title:'Name the chord on the staff', short:'Staff reading', desc:'Build the symbol (root, quality, slash bass) for triads, sus4 and all seventh-chord types on the grand staff.'},
+  3:{title:'Figured bass → symbol', short:'Figured bass', desc:'Turn a bass note plus figures into a chord symbol.'},
+  4:{title:'Figure + symbol', short:'Analysis', desc:'In a key, choose the inversion figure and the chord symbol for a 4-note chord.'},
+};
+/* Chord focus: all chords, triads only, seventh chords only, or inversions only (chosen at setup or with the focus chips) */
+let FOCUS = 'all';
+const FOCI = [['all','All chords'],['triads','Triads'],['sevenths','Seventh chords'],['inversions','Inversions']];
+const focusType = (triP, noSus) => { const T = noSus ? TRIADS.filter(t => t !== 'sus4') : TRIADS; return FOCUS==='triads' ? pick(T) : FOCUS==='sevenths' ? pick(SEVENTHS) : (Math.random() < triP ? pick(FOCUS==='inversions' ? TRIADS.filter(t => t !== 'sus4') : T) : pick(SEVENTHS)); };
+const focusSeventh = p => FOCUS==='triads' ? false : FOCUS==='sevenths' ? true : Math.random() < p;
+let qCounter = 0;
+const mkId = () => Date.now().toString(36) + '-' + (qCounter++);
+
+function genDrill1(opt){
+  const type = focusType(0.42, FOCUS==='inversions');
+  const root = goodRoot(type, opt.roots);
+  const tones0 = chordTones(root, type), s0 = symOf(root, type);
+  if (FOCUS === 'inversions'){
+    const fam = TYPES[type].fam, inv = 1 + rnd(fam === 3 ? 2 : 3);
+    const tones = tones0.slice(inv).concat(tones0.slice(0, inv)), names = tones.map(nm), s = s0 + '/' + nm(tones0[inv]);
+    return { id:mkId(), drill:1, kind:'spell', bassFirst:true, slots:tones.length,
+      prompt:`Spell <span class="sym" role="img" aria-label="${escRaw(sayChord(s))}">${esc(s)}</span>`, sub:`${nm(root)} ${TYPES[type].name}, ${['','1st','2nd','3rd'][inv]} inversion — tap the notes from the bass up`,
+      answer:names, answerText:names.join(' – '),
+      explain:`${s0} is ${tones0.map(nm).join(' – ')}. The slash puts ${nm(tones0[inv])} (the ${['root','3rd','5th','7th'][inv]}) in the bass, so from the bass up: ${names.join(' – ')} (${['','1st','2nd','3rd'][inv]} inversion).` };
+  }
+  const tones = tones0, s = s0, names = tones.map(nm);
+  return { id:mkId(), drill:1, kind:'spell', slots:tones.length,
+    prompt:`Spell <span class="sym" role="img" aria-label="${escRaw(sayChord(s))}">${esc(s)}</span>`, sub:`${nm(root)} ${TYPES[type].name} — tap the notes, root first`,
+    answer:names, answerText:names.join(' – '),
+    explain:`${s} is ${aAn(TYPES[type].name)}: ${TYPES[type].form}. Count letters first (every other letter: ${names.map(x=>x[0]).join('-')}), then adjust accidentals to get the right qualities.` };
+}
+
+function genDrill2(opt){
+  const type = focusType(0.45, FOCUS==='inversions');
+  const root = goodRoot(type, opt.roots);
+  const tones = chordTones(root, type);
+  const fam = TYPES[type].fam;
+  // about 40% inverted (never sus4), so students decide whether a slash is needed; always inverted in the Inversions focus
+  const inv = (type !== 'sus4' && (FOCUS==='inversions' || Math.random() < 0.4)) ? 1 + rnd(fam === 3 ? 2 : 3) : 0;
+  const bassTone = tones[inv];
+  const upper = fam === 7 ? tones.filter((_,i) => i !== inv) : tones.slice();   // 7ths: bass note not repeated in the treble
+  const treble = closeAbove(upper, fam === 7 ? 62 : 60);
+  const staff = {kind:'grand', key:null, treble, bass:[placeLow(bassTone)]};
+  const s = symOf(root, type), names = tones.map(nm);
+  const slash = inv ? '/' + nm(bassTone) : '';
+  const full = s + slash;
+  return { id:mkId(), drill:2, kind:'build', staff,
+    prompt:'What chord is this?', sub:'Build the symbol: root, then quality, then bass.',
+    answer:{root:nm(root), qual:type, slash}, answerText:full,
+    explain:`Stacked in 3rds: ${names.join(' – ')} — ${TYPES[type].form}, so it's ${aAn(TYPES[type].name)}: ${s}. ` +
+      (inv ? `The lowest note is ${nm(bassTone)}, the ${['root','3rd','5th','7th'][inv]}, so the symbol shows it: ${full}.` : `The root is in the bass, so no slash: ${full}.`) };
+}
+
+function slashSym(ch, inv){ return symOf(ch.root, ch.type) + (inv ? '/' + nm(ch.tones[inv]) : ''); }
+function fillOptions(correct, cands, n=4, fallback, must=[]){
+  const set = [correct];
+  for (const c of must) if (c && !set.includes(c) && set.length < n) set.push(c);
+  for (const c of shuffle(cands)) if (c && !set.includes(c) && set.length < n) set.push(c);
+  let guard = 0;
+  while (set.length < n && guard++ < 50){ const c = fallback(); if (c && !set.includes(c)) set.push(c); }
+  return shuffle(set);
+}
+
+function genDrill3(opt){
+  const wantAlt = Math.random() < 0.3;
+  for (let tries=0; tries<400; tries++){
+    const k = wantAlt ? pick(KEYS.filter(x => x.m==='min')) : (Math.random()<0.7 ? pick(KEYS.filter(x=>x.m==='maj')) : pick(KEYS.filter(x=>x.m==='min')));
+    const seventh = focusSeventh(0.45);
+    let deg = rnd(7);
+    if (wantAlt && Math.random() < 0.8) deg = pick([4,6]);
+    if (k.m==='maj' && seventh && deg===6 && Math.random()<0.5) continue;
+    const ch = diatonic(k, deg, seventh);
+    if (!ch.type || ch.type === 'aug' ) continue;
+    const fam = TYPES[ch.type].fam;
+    const inv = FOCUS==='inversions' ? 1 + rnd(fam===3 ? 2 : 3) : fam===3 ? pick([0,1,1,2]) : rnd(4);
+    const fr = figRowsFor(k, ch, inv);
+    if (fr.altered !== wantAlt && tries < 300) continue;
+    const bass = ch.tones[inv];
+    const ans = slashSym(ch, inv);
+    // distractors
+    const cands = [];
+    const onBass = diatonic(k, degOf(k, bass), seventh); if (onBass.type) cands.push(slashSym(onBass, 0));
+    const invTwin = inv ? slashSym(ch, 0) : slashSym(ch, 1 + rnd(fam===3 ? 2 : 3)); // same chord, wrong inversion shown
+    for (let j=0;j<(fam===3?3:4);j++){ if (j===inv) continue;
+      const altRoot = diatonic(k, (degOf(k,bass) - [0,2,4,6][j] + 14) % 7, seventh);
+      if (altRoot.type) cands.push(slashSym(altRoot, j));
+    }
+    if (ch.harm){ const nat = {...k, m:'min'}; const sc = scaleOf(nat,false); const tones = (seventh?[0,2,4,6]:[0,2,4]).map(i => ({...sc[(deg+i)%7],o:4})); const t = classify(tones); if (t) cands.push(nm(tones[0]) + TYPES[t].sym + (inv ? '/' + nm(tones[inv]) : '')); }
+    const sameRootOther = shuffle((fam===3?['maj','min','dim']:['dom7','maj7','min7','hdim7','dim7']).filter(t => t!==ch.type))[0];
+    cands.push(nm(ch.root) + TYPES[sameRootOther].sym + (inv ? '/' + nm(bass) : ''));
+    const options = fillOptions(ans, cands, 4, () => { const d = diatonic(k, rnd(7), seventh); return d.type ? slashSym(d, rnd(fam===3?3:4)) : null; }, [invTwin]);
+
+    const above = ch.tones.filter((_,i)=>i!==inv).map(nm);
+    let altNote = '';
+    if (fr.altered){
+      altNote = ' ' + fr.notes.map(x => x.alone ? `The ${x.accS} by itself means "alter the 3rd above the bass" → ${nm(x.tone)}.`
+        : x.slashable ? `The slash through the ${x.num} means "raise the ${x.num}th above the bass" → ${nm(x.tone)}.`
+        : `The ${x.accS}${x.num} means the ${x.num}th above the bass is ${nm(x.tone)}.`).join(' ');
+    }
+    const figWords = fr.fid==='53' ? 'no figure (= 5/3, root position)' : `figure ${FIGS[fr.fid].join('/')}`;
+    return { id:mkId(), drill:3, kind:'build', keyLabel:keyName(k),
+      staff:{kind:'bass', key:k.vf, bass:[placeLow(bass)], figure:fr.rows},
+      prompt:'Write the chord symbol', sub:`Key: ${keyName(k)}. Build the symbol: root, then quality, then bass.`,
+      answer:{root:nm(ch.root), qual:ch.type, slash: inv ? '/' + nm(bass) : ''}, answerText:ans,
+      explain:`Bass ${nm(bass)} with ${figWords}: above the bass are ${above.join(', ')}.${altNote} Stacked in 3rds that's ${ch.tones.map(nm).join('–')} = ${symOf(ch.root,ch.type)}${inv?` with the ${['root','3rd','5th','7th'][inv]} in the bass, so the symbol shows the bass note: ${ans}`:` in root position, so no slash is needed: ${ans}`}.` };
+  }
+  return genDrill3(opt);
+}
+
+function genDrill4(opt){
+  for (let tries=0; tries<300; tries++){
+    const k = pick(KEYS);
+    const seventh = focusSeventh(0.5);
+    const deg = rnd(7);
+    const ch = diatonic(k, deg, seventh);
+    if (!ch.type || ch.type==='aug') continue;
+    const fam = TYPES[ch.type].fam;
+    const inv = FOCUS==='inversions' ? 1 + rnd(fam===3 ? 2 : 3) : rnd(fam===3 ? 3 : 4);
+    const bassN = placeLow(ch.tones[inv]);
+    let upper = fam===3 ? ch.tones.slice() : ch.tones.filter((_,i)=>i!==inv);
+    const rot = rnd(upper.length); upper = upper.slice(rot).concat(upper.slice(0,rot));
+    const treble = closeAbove(upper, 62 + rnd(5));
+    if (midi(treble[treble.length-1]) > 81) continue;
+    const s = symOf(ch.root, ch.type);
+    const fid = invToFig(fam, inv);
+    const cands = [];
+    const onBass = diatonic(k, degOf(k, ch.tones[inv]), seventh); if (onBass.type) cands.push(symOf(onBass.root, onBass.type));
+    const other = diatonic(k, degOf(k, treble[treble.length-1]), seventh); if (other.type) cands.push(symOf(other.root, other.type));
+    const alt = shuffle((fam===3?['maj','min','dim']:['dom7','maj7','min7','hdim7','dim7']).filter(t=>t!==ch.type))[0];
+    cands.push(symOf(ch.root, alt));
+    const symOptions = fillOptions(s, cands, 4, () => { const d = diatonic(k, rnd(7), seventh); return d.type ? symOf(d.root, d.type) : null; });
+    const bassName = nm(ch.tones[inv]);
+    const slash = inv ? '/' + bassName : '';
+    // slash choices: the real bass plus other notes visible on the staff — same kind of menu whether or not the chord is inverted
+    const pool = [...new Set([bassName, ...ch.tones.map(nm), ...treble.map(nm)])];
+    const letters = [bassName, ...shuffle(pool.filter(x => x !== bassName))].slice(0, 3);
+    const slashOptions = ['', ...letters.sort((a,b) => 'CDEFGAB'.indexOf(a[0]) - 'CDEFGAB'.indexOf(b[0])).map(x => '/' + x)];
+    const full = s + slash;
+    return { id:mkId(), drill:4, kind:'fig', keyLabel:keyName(k),
+      staff:{kind:'grand', key:k.vf, treble, bass:[bassN], boxes:true},
+      prompt:'Figure & chord symbol', sub:`Key: ${keyName(k)}. Choose the figure (below the bass), then build the chord symbol: root, quality, bass.`,
+      figOptions:FIG_ORDER, symOptions, slashOptions, answer:{fig:fid, sym:s, slash, root:nm(ch.root), qual:ch.type}, answerText:`${full}, figure ${fid==='53'?'5/3':FIGS[fid].join('/')}`,
+      explain:`Stack the notes in 3rds: ${ch.tones.map(nm).join('–')} → ${s} (${TYPES[ch.type].name}). The bass is ${nm(ch.tones[inv])}, the ${['root','3rd','5th','7th'][inv]}, so the figure is ${fid==='53'?'5/3 (root position)':FIGS[fid].join('/')} and ${inv ? `the symbol shows that bass note: ${full}` : `the symbol needs no slash: ${full}`}.` };
+  }
+  return genDrill4(opt);
+}
+const GEN = {1:genDrill1, 2:genDrill2, 3:genDrill3, 4:genDrill4};
+function buildSet(drills, count, roots){
+  const opt = {roots: roots==='nat' ? ROOTS_NAT : ROOTS_ALL};
+  const ds = drills.slice().sort();
+  const per = ds.map((d,i) => Math.floor(count/ds.length) + (i < count % ds.length ? 1 : 0));
+  const out = [];
+  ds.forEach((d,i) => { const seen = new Set(); for (let j=0;j<per[i];j++){ let q, g=0; do { q = GEN[d](opt); } while (seen.has(q.answerText) && g++ < 20); seen.add(q.answerText); out.push(q); } });
+  return out;
+}
+function genOne(active, roots, seen, rot){
+  const ds = active.slice().sort();
+  const d = ds[rot % ds.length];
+  const opt = {roots: roots==='nat' ? ROOTS_NAT : ROOTS_ALL};
+  let q, g = 0; do { q = GEN[d](opt); } while (seen && seen.has(q.answerText) && g++ < 25);
+  if (seen) seen.add(q.answerText);
+  return q;
+}
+/* Category chips: toggle which kinds of challenge come next */
+function chipsHTML(active, label){
+  return `<div class="cats"><div class="label">Chords</div><div class="chips" role="group" aria-label="Chord focus">${FOCI.map(([v,t]) =>
+    `<button class="chip fchip ${FOCUS===v?'on':''}" data-focus="${v}" aria-pressed="${FOCUS===v}">${t}</button>`).join('')}</div>
+    <div class="label" style="margin-top:10px">${label}</div><div class="chips">${Object.entries(DRILLS).map(([k,d]) =>
+    `<button class="chip ${active.includes(+k)?'on':''}" data-cat="${k}" aria-pressed="${active.includes(+k)}"><span class="num">${k}</span>${esc(d.short)}</button>`).join('')}</div></div>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-focus]'); if (!b) return; FOCUS = b.dataset.focus;
+  document.querySelectorAll('[data-focus]').forEach(x => { const on = x.dataset.focus === FOCUS; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); });
+function bindChips(root, getActive, setActive){
+  root.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
+    const k = +b.dataset.cat; let a = getActive().slice();
+    if (a.includes(k)){ if (a.length === 1) return; a = a.filter(x => x !== k); } else a.push(k);
+    setActive(a.sort());
+    root.querySelectorAll('[data-cat]').forEach(x => { const on = a.includes(+x.dataset.cat); x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
+  });
+}
+/* Parse typed note names: "Eb G Bb", "f#, a, c#", "EbGBb" */
+const TYPED_ACC = {'':0,'b':-1,'♭':-1,'#':1,'♯':1,'n':0,'♮':0};
+function parseNotes(str){
+  const out = [], bad = [];
+  const one = t => { const m = t.match(/^([a-gA-G])(♭|♯|♮|b|#|n)?$/); return m ? {l:L.indexOf(m[1].toUpperCase()), a:TYPED_ACC[m[2]||''], o:4} : null; };
+  for (const t of str.trim().split(/[\s,;\/–—-]+/).filter(Boolean)){
+    const n = one(t); if (n){ out.push(n); continue; }
+    const parts = t.match(/[A-G](?:♭|♯|♮|b|#|n)?/g);           // run-together, capital letters: EbGBb
+    if (parts && parts.join('') === t) parts.forEach(p => out.push(one(p))); else bad.push(t);
+  }
+  return {out, bad};
+}
+const typedName = n => L[n.l] + ({'-1':'b','0':'','1':'#'}[n.a] ?? '');
+const SPELL = {active:null};   // the spelling answer box that keyboard typing should go to
+const spellLive = () => { const a = SPELL.active; return a && a.typeIn.isConnected && !a.typeIn.disabled && !a.typeIn.closest('[hidden]') ? a : null; };
+document.addEventListener('keydown', e => {
+  const a = spellLive(); if (!a) return;
+  const t = e.target; if (t && t.matches && t.matches('input,select,textarea')) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if ((e.key.length === 1 && /[a-gA-G#♭♯nN ,]/.test(e.key)) || e.key === 'Backspace'){
+    a.typeIn.focus({preventScroll:true});                 // the keystroke now lands in the box
+    const n = a.typeIn.value.length; try { a.typeIn.setSelectionRange(n, n); } catch(err){}
+  } else if (e.key === 'Enter'){ const g = a.go; if (g && !g.disabled){ g.click(); e.preventDefault(); } }
+}, true);
+const SMOOTH = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth';
+const finePointer = () => window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches;
+const publicQ = q => { const {answer, explain, answerText, ...rest} = q; return rest; };
+
+/* ---- grading ---- */
+const partsHTML = g => g && g.parts && !g.ok ? `<p class="small" style="margin:.2em 0">${Object.entries(g.parts).map(([k,v]) => `${k}: ${v?'✓':'✗'}`).join(' · ')}</p>` : '';
+const buildSym = a => (a.root || '?') + (a.qual != null ? TYPES[a.qual].sym : '') + (a.slash || '');
+function grade(q, ans){
+  if (ans == null) return {ok:false};
+  if (q.kind === 'mc') return {ok: ans === q.answer};
+  if (q.kind === 'spell'){
+    if (!Array.isArray(ans) || ans.length !== q.answer.length) return {ok:false};
+    const A = ans.slice().sort().join(','), B = q.answer.slice().sort().join(',');
+    return {ok: A === B && (!q.bassFirst || ans[0] === q.answer[0])};
+  }
+  if (q.kind === 'fig'){
+    const f = ans.fig === q.answer.fig, base = ans.root != null ? (ans.root === q.answer.root && ans.qual === q.answer.qual) : ans.sym === q.answer.sym, sl = (ans.slash || '') === (q.answer.slash || '');
+    return {ok: f && base && sl, fig:f, sym: base && sl, base, slash:sl, parts:{'Figure':f, 'Chord':base, 'Slash bass':sl}};
+  }
+  if (q.kind === 'build'){
+    const r = ans.root === q.answer.root, t = ans.qual === q.answer.qual, sl = (ans.slash || '') === (q.answer.slash || '');
+    return {ok: r && t && sl, parts:{'Root':r, 'Quality':t, 'Slash bass':sl}};
+  }
+  return {ok:false};
+}
+
+/* =====================================================================
+   NOTATION (VexFlow)
+   ===================================================================== */
+const VF = Vex.Flow;
+const VF_ACC = {'-2':'bb','-1':'b','0':'n','1':'#','2':'##'};
+function makeNote(clef, notes, ks){
+  const sorted = notes.slice().sort((a,b) => (a.o*7+a.l) - (b.o*7+b.l));
+  const sn = new VF.StaveNote({clef, keys: sorted.map(n => L[n.l].toLowerCase() + '/' + n.o), duration:'w'});
+  sorted.forEach((n,i) => { if (n.a !== ks[n.l]) sn.addModifier(new VF.Accidental(VF_ACC[n.a]), i); });
+  return sn;
+}
+function svgEl(svg, tag, attrs, text){
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  svg.appendChild(e); return e;
+}
+function describeStaff(spec){
+  const ks = keySigMap(spec.key), nAcc = ks.filter(x => x).length, sign = ks.find(x => x) || 0;
+  const key = nAcc ? `Key signature: ${nAcc} ${sign < 0 ? 'flat' : 'sharp'}${nAcc>1?'s':''}.` : 'No key signature.';
+  const accWord = a => a < 0 ? ' flat' : a > 0 ? ' sharp' : '';
+  const list = ns => ns.slice().sort((a,b) => midi(a) - midi(b)).map(n => `${L[n.l]}${n.a !== ks[n.l] && n.a === 0 ? ' natural' : accWord(n.a)} ${n.o}`).join(', ');
+  const parts = [spec.kind === 'grand' ? 'Grand staff.' : 'Bass staff.', key];
+  if (spec.treble && spec.treble.length) parts.push(`Treble clef, whole notes from low to high: ${list(spec.treble)}.`);
+  if (spec.bass && spec.bass.length) parts.push(`Bass clef: ${list(spec.bass)}.`);
+  if (spec.figure){ parts.push(spec.figure.length ? 'Figures below the bass, top to bottom: ' + spec.figure.map(r => `${r.slash ? 'slashed ' : ''}${r.acc ? MUS_SAY[r.acc] + ' ' : ''}${r.n || (r.acc ? 'alone, meaning the 3rd' : '')}`.trim()).join('; ') + '.' : 'No figures below the bass.'); }
+  if (spec.boxes) parts.push('Blank answer boxes above the staff and below the bass.');
+  return parts.join(' ');
+}
+function drawStaff(el, spec){
+  el.innerHTML = '';
+  const ks = keySigMap(spec.key);
+  const div = document.createElement('div'); el.appendChild(div);
+  const r = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+  const ctx = r.getContext();
+  const X = 18, TOP = spec.boxes ? 46 : 18;
+  const grand = spec.kind === 'grand';
+  const tmpW = 400;
+  r.resize(tmpW, 400);
+  let ts=null, bs;
+  if (grand){ ts = new VF.Stave(X, TOP, 200).addClef('treble'); if (spec.key) ts.addKeySignature(spec.key); }
+  bs = new VF.Stave(X, grand ? TOP + 100 : TOP, 200).addClef('bass'); if (spec.key) bs.addKeySignature(spec.key);
+  const sx = Math.max(bs.getNoteStartX(), ts ? ts.getNoteStartX() : 0);
+  const noteArea = 110;
+  const w = (sx - X) + noteArea;
+  [ts,bs].forEach(s => { if (!s) return; s.setWidth(w); s.setNoteStartX(sx); });
+  const W = X + w + 14;
+  const figRows = spec.figure ? Math.max(spec.figure.length,1) : (spec.boxes ? 1 : 0);
+  const bassBottom = grand ? TOP + 100 + 80 : TOP + 80;
+  const H = bassBottom + (figRows ? 30 + figRows*24 : 26);
+  r.resize(W, H);
+  if (ts) ts.setContext(ctx).draw();
+  bs.setContext(ctx).draw();
+  if (ts){
+    new VF.StaveConnector(ts,bs).setType('brace').setContext(ctx).draw();
+    new VF.StaveConnector(ts,bs).setType('singleLeft').setContext(ctx).draw();
+    new VF.StaveConnector(ts,bs).setType('singleRight').setContext(ctx).draw();
+  }
+  const voices = [], staves = [];
+  let bn = null;
+  if (ts && spec.treble && spec.treble.length){ const n = makeNote('treble', spec.treble, ks); const v = new VF.Voice({num_beats:4, beat_value:4}).setMode(VF.Voice.Mode.SOFT).addTickables([n]); voices.push(v); staves.push(ts); }
+  if (spec.bass && spec.bass.length){ bn = makeNote('bass', spec.bass, ks); const v = new VF.Voice({num_beats:4, beat_value:4}).setMode(VF.Voice.Mode.SOFT).addTickables([bn]); voices.push(v); staves.push(bs); }
+  const fm = new VF.Formatter(); voices.forEach(v => fm.joinVoices([v]));
+  fm.format(voices, noteArea - 50);
+  voices.forEach((v,i) => v.draw(ctx, staves[i]));
+  const svg = div.querySelector('svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.removeAttribute('width'); svg.removeAttribute('height');
+  svg.setAttribute('role','img');
+  svg.setAttribute('aria-label', describeStaff(spec));
+  const cx = bn ? bn.getAbsoluteX() + 8 : sx + 40;
+  const FONT = '"SA Accidentals", "League Gothic", "Arial Narrow", Impact, sans-serif';
+  if (spec.figure){
+    let y = bassBottom + 30;
+    spec.figure.forEach(row => {
+      const t = svgEl(svg, 'text', {x:cx, y, 'text-anchor':'middle', 'font-family':FONT, 'font-size':21, 'font-weight':700, fill:'#111'});
+      if (row.acc) svgEl(t, 'tspan', {'font-size':27, 'font-family':'"Segoe UI Symbol","Apple Symbols","DejaVu Sans",sans-serif', 'font-weight':400}, row.acc);
+      if (row.n) svgEl(t, 'tspan', {}, String(row.n));
+      if (row.slash) svgEl(svg, 'line', {x1:cx-7, y1:y+2, x2:cx+8, y2:y-17, stroke:'#111', 'stroke-width':2.2});
+      y += 24;
+    });
+  }
+  if (spec.boxes){
+    const box = (y, label) => { svgEl(svg,'rect',{x:cx-30,y,width:60,height:30,rx:6,fill:'#f3efff',stroke:'#3445b4','stroke-dasharray':'4 3','stroke-width':1.5});
+      svgEl(svg,'text',{x:cx,y:y+21,'text-anchor':'middle','font-family':FONT,'font-size':18,'font-weight':700,fill:'#3445b4'}, label); };
+    box(6, '?');
+    box(bassBottom + 18, '?');
+  }
+  return svg;
+}
+
+/* =====================================================================
+   FEEDBACK TEXT
+   ===================================================================== */
+const PRAISE = ['Nailed it!','Yes — exactly right!','Spot on. Nice work!','Correct! Your theory muscles are showing.','That’s it — keep that streak going!','Beautiful. Right answer!'];
+const ENCOURAGE = ['Not quite — and that’s how learning sticks. Compare with the answer below.','Close! Look at how the answer is built, then try the next one.','Good try. Every miss now is a hit on the exam.','No worries — this one trips up lots of musicians.','Almost! Take a look at how the answer is built.','That’s okay — mistakes are part of practice. You’ve got the next one.'];
+/* Display % without rounding to 100 (or 0) unless it truly is */
+const pctR = p => p >= 100 ? 100 : p <= 0 ? 0 : Math.min(99, Math.max(1, Math.round(p)));
+function classMsg(pct, n){
+  if (!n) return 'No answers came in this time — that’s okay. Let’s look at it together.';
+  if (pct >= 100) return 'Everyone got it — excellent work!';
+  if (pct >= 85) return 'Almost everyone got it — great work.';
+  if (pct >= 60) return 'Most of the class has this. Let’s look at it together.';
+  if (pct >= 35) return 'A split decision — a perfect one to talk through.';
+  return 'A tricky one! That’s exactly why we practice — let’s unpack it.';
+}
+function endMsg(pct){
+  if (pct >= 100) return 'A perfect session — every answer correct!';
+  if (pct >= 85) return 'Outstanding work, everyone!';
+  if (pct >= 65) return 'Solid session — you’re really getting this.';
+  if (pct >= 45) return 'Good progress! A few more reps and these will feel automatic.';
+  return 'Great effort. Tough material — every round makes it easier.';
+}
+
+/* =====================================================================
+   SHARED UI: question display & answer inputs
+   ===================================================================== */
+const $ = (s, r=document) => r.querySelector(s);
+const app = $('#app');
+function setTop(html){ $('#topmeta').innerHTML = html || ''; const hb = $('#homebtn'); if (hb) hb.hidden = !html; }
+function qHeader(q, n, total){
+  return `<div class="qhead"><span class="qapp">Chord Figures and Symbols</span><span class="tag d${q.drill}">Drill ${q.drill} · ${esc(DRILLS[q.drill].short)}</span>${n?`<span class="muted small">Question ${n}${total?` of ${total}`:''}</span>`:''}</div>
+  ${total?`<div class="progress"><i style="width:${(n-1)/total*100}%"></i></div>`:''}
+  <div class="prompt">${q.prompt}</div><p class="sub">${esc(q.sub)}</p>
+  ${q.staff ? '<div class="staffwrap" data-staff></div>' : ''}`;
+}
+function mountStaff(root, q){ const el = root.querySelector('[data-staff]'); if (el && q.staff) drawStaff(el, q.staff); }
+
+/* Interactive answer widget. Calls onSubmit(answer). Returns {showResult(answer, correctAnswer)} */
+function answerWidget(host, q, onSubmit, opts={}){
+  if (q.kind === 'build') return buildWidget(host, q, onSubmit);
+  if (q.kind === 'mc'){
+    let sel = null;
+    host.innerHTML = `<div class="opts">${q.options.map((o,i) => `<button class="opt" data-i="${i}" aria-label="${'ABCD'[i]}: ${escRaw(sayChord(o))}"><span class="k" aria-hidden="true">${'ABCD'[i]}</span>${esc(o)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:14px"><button class="btn primary big" data-go disabled style="flex:1">Lock in answer</button></div>`;
+    host.querySelectorAll('.opt').forEach(b => b.onclick = () => { sel = q.options[+b.dataset.i]; host.querySelectorAll('.opt').forEach(x => x.classList.toggle('sel', x===b)); host.querySelector('[data-go]').disabled = false; });
+    host.querySelector('[data-go]').onclick = () => { if (sel==null) return; lock(); onSubmit(sel); };
+    const onKey = e => {
+      if (!host.isConnected){ document.removeEventListener('keydown', onKey); return; }
+      if (e.target.matches && e.target.matches('input,select,textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key.toLowerCase(); const i = '1234'.indexOf(k) >= 0 ? '1234'.indexOf(k) : 'abcd'.indexOf(k);
+      if (i >= 0 && i < q.options.length){ const b = host.querySelector(`[data-i="${i}"]`); if (b && !b.disabled){ b.click(); e.preventDefault(); } }
+      else if (e.key === 'Enter'){ const g = host.querySelector('[data-go]'); if (g && !g.disabled){ g.click(); e.preventDefault(); } }
+    };
+    if (!opts.quiet) document.addEventListener('keydown', onKey);
+    const lock = () => { document.removeEventListener('keydown', onKey); host.querySelectorAll('button').forEach(b => b.disabled = true); host.querySelector('[data-go]').textContent = 'Answer locked in ✓'; };
+    return { lock, mark(correct){ host.querySelectorAll('.opt').forEach((b) => { const v = q.options[+b.dataset.i]; if (v===correct) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); }); },
+      preset(v){ sel=v; host.querySelectorAll('.opt').forEach(b => b.classList.toggle('sel', q.options[+b.dataset.i]===v)); lock(); } };
+  }
+  if (q.kind === 'spell'){
+    const notes = Array(q.slots).fill(null); let cur = 0;
+    host.innerHTML = `<div class="slots">${notes.map((_,i)=>`<div class="slot" data-s="${i}"></div>`).join('')}</div>
+      <div class="typewrap"><input class="typein" data-type type="text" placeholder="…or type notes, e.g.  Eb G Bb" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type the notes"><span class="typemsg" data-typemsg></span></div>
+      <div class="keys">${[...L].map((c,i)=>`<button data-l="${i}">${c}</button>`).join('')}</div>
+      <div class="accs">${[-1,0,1].map(a=>`<button data-a="${a}" title="${['flat','natural','sharp'][a+1]}">${esc(['♭','♮','♯'][a+1])}</button>`).join('')}<button data-del title="delete">⌫</button></div>
+      <p class="small muted center" style="margin:8px 0 0">Tap a letter, then an accidental — or type with your keyboard: <b>b</b> = ♭, <b>#</b> = ♯, spaces between notes, Enter to lock in.</p>
+      <div class="row" style="margin-top:12px"><button class="btn primary big" data-go disabled style="flex:1">Lock in answer</button></div>`;
+    const typeIn = host.querySelector('[data-type]'), typeMsg = host.querySelector('[data-typemsg]');
+    let typing = false;
+    const paint = () => {
+      if (!typing && typeIn) typeIn.value = notes.filter(Boolean).map(typedName).join(' ');
+      host.querySelectorAll('.slot').forEach((s,i) => { s.innerHTML = notes[i] ? esc(nm(notes[i])) : ''; s.classList.toggle('filled', !!notes[i]); s.classList.toggle('cur', i===cur && !locked); });
+      host.querySelector('[data-go]').disabled = notes.some(n => !n) || locked;
+      const ai = last!=null ? last : cur; host.querySelectorAll('[data-a]').forEach(b => b.classList.toggle('on', !!notes[ai] && notes[ai].a === +b.dataset.a));
+    };
+    let locked = false, last = null;
+    host.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+      if (locked) return;
+      notes[cur] = {l:+b.dataset.l, a:0, o:4}; last = cur;
+      const nxt = notes.findIndex((n,i) => !n && i > cur), any = notes.findIndex(n => !n);
+      cur = nxt >= 0 ? nxt : (any >= 0 ? any : cur);
+      paint();
+    });
+    host.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+      if (locked) return; const i = last != null ? last : cur;
+      if (notes[i]) notes[i].a = +b.dataset.a; paint();
+    });
+    host.querySelectorAll('.slot').forEach((s,i) => s.onclick = () => { if (locked) return; cur = i; last = notes[i] ? i : null; paint(); });
+    host.querySelector('[data-del]').onclick = () => {
+      if (locked) return;
+      const i = last != null && notes[last] ? last : (notes[cur] ? cur : Math.max(0, cur-1));
+      notes[i] = null; cur = i; last = null; paint();
+    };
+    host.querySelector('[data-go]').onclick = () => { if (notes.some(n=>!n)) return; lock(); onSubmit(notes.map(nm)); };
+    typeIn.addEventListener('beforeinput', e => {
+      if (me.justTapped && e.data && /^[a-gA-G]$/.test(e.data) && e.data !== 'b' && typeIn.value && !/\s$/.test(typeIn.value)){
+        e.preventDefault(); typeIn.value += ' ' + e.data; typeIn.dispatchEvent(new Event('input'));
+      }
+      me.justTapped = false;
+    });
+    typeIn.addEventListener('input', () => {
+      if (locked) return;
+      const {out, bad} = parseNotes(typeIn.value);
+      for (let i=0;i<q.slots;i++) notes[i] = out[i] || null;
+      const empty = notes.findIndex(n => !n);
+      cur = empty >= 0 ? empty : q.slots - 1; last = out.length ? Math.min(out.length, q.slots) - 1 : null;
+      typeMsg.textContent = bad.length ? `Didn’t recognize “${bad[0]}” — try e.g. Eb, F#, Bb` : out.length > q.slots ? `Only ${q.slots} notes needed` : '';
+      typing = true; paint(); typing = false;
+    });
+    const me = {typeIn, go: host.querySelector('[data-go]'), justTapped:false};
+    host.addEventListener('pointerdown', () => { SPELL.active = me; }, true);
+    if (!opts.quiet) SPELL.active = me;
+    const refocus = () => { if (finePointer() && !locked){ typeIn.focus({preventScroll:true}); const n = typeIn.value.length; try { typeIn.setSelectionRange(n,n); } catch(e){} } };
+    host.querySelectorAll('[data-l]').forEach(b => b.addEventListener('click', () => { me.justTapped = true; refocus(); }));
+    host.querySelectorAll('[data-a],[data-del],.slot').forEach(b => b.addEventListener('click', () => { me.justTapped = false; refocus(); }));
+    typeIn.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); host.querySelector('[data-go]').click(); } });
+    typeIn.addEventListener('blur', () => { if (!typeMsg.textContent) paint(); });
+    if (!opts.quiet && finePointer()) setTimeout(() => { try { typeIn.focus({preventScroll:true}); } catch(e){} }, 50);
+    const lock = () => { locked = true; typeIn.disabled = true; host.querySelectorAll('button').forEach(b => b.disabled = true); host.querySelector('[data-go]').textContent = 'Answer locked in ✓'; paint(); };
+    paint();
+    return { lock, mark(correct){ const set = correct.slice(); host.querySelectorAll('.slot').forEach((s,i) => { const v = notes[i] && nm(notes[i]); const k = set.indexOf(v); if (k>=0){ s.classList.add('right'); set.splice(k,1);} else s.classList.add('wrong'); }); },
+      preset(v){ v.forEach((x,i) => { const l = L.indexOf(x[0]); const a = {'':0,'♯':1,'♭':-1,'♭♭':-2,'x':2}[x.slice(1)]; notes[i] = {l, a, o:4}; }); lock(); } };
+  }
+  if (q.kind === 'fig'){
+    // choose a figure, then build any chord symbol (root, quality, bass): no multiple-choice chord list
+    let fig = null, qual = null;
+    host.innerHTML = `<div class="label" style="margin-top:6px">Figure (inversion)</div>
+      ${figGrid(f => `<button class="opt" data-f="${f}" aria-label="figure ${f==='53'?'5 3':f.split('').join(' ')}">${figHTML(figRowsPlain(f))}</button>`)}
+      <div class="bstep" style="margin-top:12px"><div class="label"><span class="sn">1</span> Root</div>${pitchPad('root', false)}</div>
+      <div class="bstep"><div class="label"><span class="sn">2</span> Quality</div>
+        <div class="qgrid">${QUAL_ROWS.map(([lab, ts]) => `<span class="fr">${lab}</span><div class="qrow">${ts.map(t => `<button class="opt" data-q="${t}" aria-label="${QUAL_SAY[TYPES[t].sym]}">${qualLabel(t)}</button>`).join('')}</div>`).join('')}</div></div>
+      <div class="bstep"><div class="label"><span class="sn">3</span> Bass</div>${pitchPad('slash', true)}</div>
+      <div class="built" data-built><span class="muted">Your symbol:</span> <b data-bsym aria-live="polite">—</b></div>
+      <div class="row" style="margin-top:12px"><button class="btn primary big" data-go disabled style="flex:1">Lock in answer</button></div>`;
+    const upd = () => {
+      const r = rootP.value, sl = slashP.value;
+      host.querySelector('[data-bsym]').innerHTML = (r || qual || sl) ? esc((r || '?') + (qual ? TYPES[qual].sym : '') + (sl ? '/' + sl : '')) : '—';
+      host.querySelector('[data-go]').disabled = !(fig && r && qual && sl != null);
+    };
+    const rootP = bindPitch(host.querySelector('[data-pp="root"]'), upd);
+    const slashP = bindPitch(host.querySelector('[data-pp="slash"]'), upd);
+    host.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fig = b.dataset.f; host.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
+    host.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { qual = b.dataset.q; host.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
+    const value = () => ({fig, root: rootP.value, qual, sym: (rootP.value || '') + (qual ? TYPES[qual].sym : ''), slash: slashP.value ? '/' + slashP.value : ''});
+    host.querySelector('[data-go]').onclick = () => { if (host.querySelector('[data-go]').disabled) return; lock(); onSubmit(value()); };
+    const lock = () => { host.querySelectorAll('button').forEach(b => b.disabled = true); host.querySelector('[data-go]').textContent = 'Answer locked in ✓'; };
+    upd();
+    return { lock,
+      mark(c){
+        host.querySelectorAll('[data-f]').forEach(b => { if (b.dataset.f === c.fig) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); });
+        if (c.root) rootP.mark(c.root); slashP.mark(c.slash ? c.slash.slice(1) : '');
+        host.querySelectorAll('[data-q]').forEach(b => { if (b.dataset.q === c.qual) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); }); },
+      preset(v){ fig = v.fig; host.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('sel', b.dataset.f===fig));
+        if (v.root) rootP.set(v.root); slashP.set(v.slash ? v.slash.slice(1) : ''); qual = v.qual || null; host.querySelectorAll('[data-q]').forEach(b => b.classList.toggle('sel', b.dataset.q === qual)); upd(); lock(); } };
+  }
+}
+
+/* Root -> quality -> slash-bass builder (drill 3) */
+const QUAL_ROWS = [['Triads', ['maj','min','dim','aug','sus4']], ['7th chords', ['dom7','maj7','min7','mmaj7','hdim7','dim7','aug7','augmaj7']]];
+const qualLabel = t => t === 'maj' ? '<span class="qmaj">major</span>' : esc(TYPES[t].sym);
+function pitchPad(id, withNone){
+  return `<div class="ppad" data-pp="${id}">${withNone ? '<button class="opt pnone" data-none>No slash</button>' : ''}
+    <div class="plet">${[...L].map((c,i) => `<button class="opt" data-pl="${i}" aria-label="${withNone ? 'bass ' : 'root '}${c}">${withNone ? '/' : ''}${c}</button>`).join('')}</div>
+    <div class="pacc">${[-1,0,1].map(a => `<button class="opt" data-pa="${a}" title="${['flat','natural','sharp'][a+1]}" aria-label="${withNone ? 'bass ' : 'root '}${['flat','natural','sharp'][a+1]}">${esc(['♭','♮','♯'][a+1])}</button>`).join('')}</div></div>`;
+}
+function bindPitch(root, onChange){
+  const st = {l:null, a:0, none:false};
+  const paint = () => {
+    root.querySelectorAll('[data-pl]').forEach(b => b.classList.toggle('sel', !st.none && +b.dataset.pl === st.l));
+    root.querySelectorAll('[data-pa]').forEach(b => b.classList.toggle('sel', !st.none && st.l != null && +b.dataset.pa === st.a));
+    const nb = root.querySelector('[data-none]'); if (nb) nb.classList.toggle('sel', st.none);
+  };
+  root.querySelectorAll('[data-pl]').forEach(b => b.onclick = () => { st.l = +b.dataset.pl; st.none = false; paint(); onChange(); });
+  root.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => { st.a = +b.dataset.pa; if (st.l == null) st.l = null; paint(); onChange(); });
+  const nb = root.querySelector('[data-none]'); if (nb) nb.onclick = () => { st.none = true; st.l = null; st.a = 0; paint(); onChange(); };
+  return { get value(){ return st.none ? '' : (st.l == null ? null : nm({l:st.l, a:st.a})); },
+           set(v){ if (v === '' ){ st.none = true; st.l = null; } else { st.none = false; st.l = L.indexOf(v[0]); st.a = {'':0,'♭':-1,'♯':1}[v.slice(1)] ?? 0; } paint(); },
+           mark(correct){ // correct: '' or note name
+             const ok = b => correct === '' ? b.hasAttribute('data-none') : (b.dataset.pl != null ? +b.dataset.pl === L.indexOf(correct[0]) : b.dataset.pa != null ? +b.dataset.pa === ({'':0,'♭':-1,'♯':1}[correct.slice(1)] ?? 0) : false);
+             root.querySelectorAll('button').forEach(b => { if (ok(b) && !(correct === '' && b.dataset.pa != null)) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); }); } };
+}
+function buildWidget(host, q, onSubmit){
+  host.innerHTML = `<div class="bstep"><div class="label"><span class="sn">1</span> Root</div>${pitchPad('root', false)}</div>
+    <div class="bstep"><div class="label"><span class="sn">2</span> Quality</div>
+      <div class="qgrid">${QUAL_ROWS.map(([lab, ts]) => `<span class="fr">${lab}</span><div class="qrow">${ts.map(t => `<button class="opt" data-q="${t}" aria-label="${QUAL_SAY[TYPES[t].sym]}">${qualLabel(t)}</button>`).join('')}</div>`).join('')}</div></div>
+    <div class="bstep"><div class="label"><span class="sn">3</span> Bass</div>${pitchPad('slash', true)}</div>
+    <div class="built"><span class="muted">Your symbol:</span> <b data-bsym aria-live="polite">—</b></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary big" data-go disabled style="flex:1">Lock in answer</button></div>`;
+  let qual = null;
+  const upd = () => {
+    const r = rootP.value, sl = slashP.value;
+    host.querySelector('[data-bsym]').innerHTML = (r || qual || sl) ? esc((r || '?') + (qual ? TYPES[qual].sym : '') + (sl ? '/' + sl : '')) : '—';
+    host.querySelector('[data-go]').disabled = !(r && qual && sl != null);
+  };
+  const rootP = bindPitch(host.querySelector('[data-pp="root"]'), upd);
+  const slashP = bindPitch(host.querySelector('[data-pp="slash"]'), upd);
+  host.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { qual = b.dataset.q; host.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('sel', x===b)); upd(); });
+  const value = () => ({root: rootP.value, qual, slash: slashP.value ? '/' + slashP.value : ''});
+  host.querySelector('[data-go]').onclick = () => { if (host.querySelector('[data-go]').disabled) return; lock(); onSubmit(value()); };
+  const lock = () => { host.querySelectorAll('button').forEach(b => b.disabled = true); host.querySelector('[data-go]').textContent = 'Answer locked in ✓'; };
+  upd();
+  return { lock,
+    mark(c){ rootP.mark(c.root); slashP.mark(c.slash ? c.slash.slice(1) : '');
+      host.querySelectorAll('[data-q]').forEach(b => { if (b.dataset.q === c.qual) b.classList.add('right'); else if (b.classList.contains('sel')) b.classList.add('wrong'); }); },
+    preset(v){ rootP.set(v.root); slashP.set(v.slash ? v.slash.slice(1) : ''); qual = v.qual; host.querySelectorAll('[data-q]').forEach(b => b.classList.toggle('sel', b.dataset.q === qual)); upd(); lock(); } };
+}
+
+/* Read-only option display for the projector */
+function hostOptions(q, reveal){
+  if (q.kind === 'mc') return `<div class="opts">${q.options.map((o,i) => `<div class="opt ${reveal && o===reveal.answer?'right':''}"><span class="k">${'ABCD'[i]}</span>${esc(o)}</div>`).join('')}</div>`;
+  if (q.kind === 'fig') return `<div class="label" style="margin-top:6px">Figure (inversion)</div>${figGrid(f => `<div class="opt ${reveal && f===reveal.answer.fig?'right':''}">${figHTML(figRowsPlain(f))}</div>`)}
+    <div class="buildhost" style="margin-top:12px">
+      <div><div class="label"><span class="sn">1</span> Root</div><div class="bh">C D E F G A B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div>
+      <div><div class="label"><span class="sn">2</span> Quality</div><div class="qchips">${[...QUAL_ROWS[0][1], ...QUAL_ROWS[1][1]].map(t => `<span class="qchip ${reveal && reveal.answer.qual===t?'right':''}">${qualLabel(t)}</span>`).join('')}</div></div>
+      <div><div class="label"><span class="sn">3</span> Bass</div><div class="bh">No slash &nbsp;or&nbsp; /C /D /E /F /G /A /B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div></div>`;
+  if (q.kind === 'build') return `<div class="buildhost">
+      <div><div class="label"><span class="sn">1</span> Root</div><div class="bh">C D E F G A B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div>
+      <div><div class="label"><span class="sn">2</span> Quality</div><div class="qchips">${[...QUAL_ROWS[0][1], ...QUAL_ROWS[1][1]].map(t => `<span class="qchip ${reveal && reveal.answer.qual===t?'right':''}">${qualLabel(t)}</span>`).join('')}</div></div>
+      <div><div class="label"><span class="sn">3</span> Bass</div><div class="bh">No slash &nbsp;or&nbsp; /C /D /E /F /G /A /B &nbsp;+&nbsp; ${esc('♭ ♮ ♯')}</div></div></div>
+      ${reveal ? '' : '<p class="center muted small">Students build the symbol on their devices.</p>'}`;
+  if (q.kind === 'spell') return `<div class="slots">${Array(q.slots).fill(0).map((_,i)=>`<div class="slot ${reveal?'right filled':''}">${reveal?esc(reveal.answer[i]):''}</div>`).join('')}</div><p class="center muted small">Students spell the ${q.slots} notes on their phones.</p>`;
+  return '';
+}
+function barHTML(pct, n){
+  if (!n) return `<div class="bar empty"></div>`;
+  const g = pctR(pct);
+  return `<div class="bar">${g?`<div class="g" style="width:${Math.max(g,8)}%;${g===100?'flex:1':''}">${g}%</div>`:''}${g<100?`<div class="b">${100-g}%</div>`:''}</div>`;
+}
+function legendHTML(){
+  return `<details class="legend" style="margin-top:14px"><summary>Chord-symbol key</summary>
+  <p><code>C</code> major · <code>Cm</code> minor · <code>C°</code> diminished · <code>C+</code> augmented · <code>Csus4</code> suspended 4th<br>
+  <code>C7</code> dominant 7 · <code>C△7</code> major 7 · <code>Cm7</code> minor 7 · <code>Cm(△7)</code> minor-major 7 · <code>Cm7(♭5)</code> half-diminished 7 · <code>C°7</code> fully diminished 7 · <code>C+7</code> augmented 7 · <code>C+△7</code> augmented major 7<br>
+  Slash chords show the bass note: <code>C/E</code> = C major with E in the bass. In figured bass, an accidental alone alters the 3rd above the bass; a slash through a number raises that interval.</p></details>`;
+}
+
+/* =====================================================================
+   NETWORK (MQTT over secure WebSocket — no accounts, no server to set up)
+   ===================================================================== */
+const PARAMS = new URLSearchParams(location.search);
+const HASH = new URLSearchParams(location.hash.slice(1));
+const BROKER_OVERRIDE = PARAMS.get('broker') || HASH.get('broker');
+const BROKERS = BROKER_OVERRIDE ? [BROKER_OVERRIDE] : ['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const TOPIC = code => `chordlab-live/v1/${code}`;
+const brokerFor = code => BROKERS[ALPH.indexOf(code[0]) % BROKERS.length];
+const randId = (n=10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => ALPH[b % 32]).join('');
+function connectTo(url, extra={}){
+  return new Promise((res, rej) => {
+    let done = false;
+    const c = mqtt.connect(url, {clientId:'cl_' + randId(12), keepalive:30, reconnectPeriod:2500, connectTimeout:8000, clean:true, ...extra});
+    const t = setTimeout(() => { if (!done){ done = true; c.end(true); rej(new Error('timeout')); } }, 9000);
+    c.once('connect', () => { if (!done){ done = true; clearTimeout(t); res(c); } });
+    c.on('error', e => { if (!done){ done = true; clearTimeout(t); c.end(true); rej(e); } });
+  });
+}
+
+/* =====================================================================
+   SCREENS
+   ===================================================================== */
+/* Leave whatever mode we're in and return to the main screen */
+function leaveMode(){
+  if (H){
+    if (!confirm('End this class game and go back to the main screen?\nStudents will see that the session has ended.')) return false;
+    try { H.client.publish(TOPIC(H.code)+'/down', JSON.stringify({phase:'closed'}), {retain:true, qos:1}); const c = H.client; setTimeout(() => c.end(true), 500); } catch(e){}
+    (H.timers||[]).forEach(clearInterval); H = null;
+  }
+  if (S){
+    if (!confirm('Leave this game and go back to the main screen?')) return false;
+    try { S.client.end(true); } catch(e){}
+    (S.timers||[]).forEach(clearInterval); S = null;
+  }
+  return true;
+}
+function goHome(){
+  if (!leaveMode()) return;
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  home(); window.scrollTo(0,0);
+}
+$('#homebtn').onclick = goHome;
+
+function home(){
+  const pe = $('#practice'); if (pe) pe.remove();
+  const tt = $('#toast'); if (tt) tt.classList.remove('show');
+  setTop('');
+  app.className = '';
+  app.innerHTML = `
+  <section style="margin:10px 0 22px"><h1>Chord Figures and Symbols</h1>
+  <p class="lede">Four drills for triads, seventh chords, figured bass and grand-staff analysis. Run it live with a whole class on student devices (answers are anonymous), or practice on your own.</p></section>
+  <div class="grid3">
+    <button class="mode" data-go="host"><span class="ic">📽</span><b>Host a class game</b><span>For the instructor. Everyone plays the same question together on student devices. You run the clock, stop it, and reveal the answer with the class’s % correct.</span></button>
+    <button class="mode" data-go="join"><span class="ic">📱</span><b>Join a game</b><span>For students. Enter the room code on your phone. No name needed — answers are anonymous.</span></button>
+    <button class="mode" data-go="solo"><span class="ic">🎧</span><b>Practice solo</b><span>Work through the drills at your own pace with instant, step-by-step feedback.</span></button>
+  </div>
+  
+  <div class="card" style="margin-top:18px">
+    <h3>The four drills</h3>
+    <ol class="steps">${Object.entries(DRILLS).map(([k,d]) => `<li><b>${esc(d.title)}</b> — <span class="muted">${esc(d.desc)}</span></li>`).join('')}</ol>
+    ${legendHTML()}
+  </div>`;
+  app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => ({host:hostSetup, join:joinScreen, solo:soloSetup})[b.dataset.go]());
+}
+
+function setupForm(title, cta, live){
+  return `<div class="card"><h2>${title}</h2>
+    <fieldset class="field focusset"><legend class="label">What do you want to drill?</legend><div class="focus-row">
+      ${FOCI.map(([v,t]) => `<label class="focus-opt"><input type="radio" name="focus" value="${v}" ${v===FOCUS?'checked':''}><span>${t}</span></label>`).join('')}
+    </div><p class="small muted" style="margin:6px 0 0">Triads: 3-note chords only. Seventh chords: 4-note chords only. Inversions: every chord has a note other than the root in the bass.</p></fieldset>
+    <div class="field"><span class="label">${live ? 'Starting categories (you can switch any time during the game)' : 'Categories (you can switch while practicing)'}</span><div class="checks">
+      ${Object.entries(DRILLS).map(([k,d]) => `<label class="check"><input type="checkbox" name="drill" value="${k}" checked><span><b>${k}. ${esc(d.title)}</b><small>${esc(d.desc)}</small></span></label>`).join('')}
+    </div></div>
+    <div class="row">
+      ${live ? '' : `<div class="field"><label for="cnt">Questions</label><select id="cnt">${[4,8,12,16,20].map(n=>`<option ${n===12?'selected':''}>${n}</option>`).join('')}</select></div>`}
+      <div class="field"><label for="roots">Chord roots (drills 1–2)</label><select id="roots"><option value="all">Mostly natural roots, some ♭/♯</option><option value="nat">Natural roots only (easier)</option></select></div>
+    </div>
+    ${live ? `<div class="row">
+      <div class="field"><label for="secs">Time per question</label><select id="secs">${[[20,'20 seconds'],[30,'30 seconds'],[45,'45 seconds'],[60,'1 minute'],[90,'90 seconds'],[0,'No timer (you stop it)']].map(([v,t])=>`<option value="${v}" ${v===45?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="field"><label for="goal">Class goal</label><select id="goal">${[60,70,80,90].map(v=>`<option value="${v}" ${v===70?'selected':''}>${v}% class average</option>`).join('')}</select></div>
+    </div><p class="small muted" style="margin-top:0">Everyone answers the same question at the same time. You can stop the clock early or add time, and the answer is revealed to the whole class at once.</p>` : ''}
+    <div class="row"><button class="btn ghost" data-back>← Back</button><span class="spacer"></span><button class="btn primary big" data-start>${cta}</button></div>
+    <p class="small muted" data-msg></p></div>`;
+}
+function readSetup(){
+  const drills = [...app.querySelectorAll('input[name=drill]:checked')].map(i => +i.value);
+  const f = app.querySelector('input[name=focus]:checked'); FOCUS = f ? f.value : 'all';
+  return {drills, count: $('#cnt') ? +$('#cnt').value : 0, roots: $('#roots').value, secs: $('#secs') ? +$('#secs').value : 0, goal: $('#goal') ? +$('#goal').value : 70};
+}
+
+/* ---------------- SOLO ---------------- */
+function soloSetup(){
+  app.className = 'narrow'; setTop('<span class="pill">Solo practice</span>');
+  app.innerHTML = setupForm('Practice solo', 'Start practicing');
+  $('[data-back]').onclick = home;
+  $('[data-start]').onclick = () => { const s = readSetup(); if (!s.drills.length){ $('[data-msg]').textContent = 'Pick at least one drill.'; return; } runSolo(s); };
+}
+function runSolo(setup){
+  let i = 0, score = 0, streak = 0, rot = 0; const log = [], qs = [], seen = new Set();
+  let active = setup.drills.slice();
+  const show = () => {
+    if (!qs[i]) qs[i] = genOne(active, setup.roots, seen, rot++);
+    const q = qs[i];
+    qs.length = setup.count;
+    setTop(`<span class="pill">Score ${score}/${i}</span>${streak>=2?`<span class="pill">${streak} in a row</span>`:''}`);
+    app.innerHTML = `<div class="card">${qHeader(q, i+1, qs.length)}<div data-ans></div><div data-res></div></div>
+      <div class="card" style="margin-top:14px" data-chips>${chipsHTML(active, 'Next questions from')}<p class="small muted" style="margin:8px 0 0">Tap to switch categories — takes effect on the next question.</p></div>${legendHTML()}`;
+    bindChips($('[data-chips]'), () => active, a => { active = a; for (let k=i+1;k<qs.length;k++) qs[k] = undefined; });
+    mountStaff(app, q);
+    const w = answerWidget($('[data-ans]'), q, ans => {
+      const g = grade(q, ans); log.push(g.ok); window.SFX && SFX.play(g.ok); window.SAprogress && SAprogress.record(DRILLS[q.drill].short, g.ok);
+      if (g.ok){ score++; streak++; } else streak = 0;
+      w.mark(q.answer);
+      const partial = partsHTML(g);
+      $('[data-res]').innerHTML = `<div class="result ${g.ok?'good':'bad'}"><h3>${esc(g.ok ? pick(PRAISE) : pick(ENCOURAGE))}</h3>
+        ${g.ok?'':`<p style="margin:.2em 0">Answer: <span class="answer" aria-label="${escRaw(sayAnswer(q.answerText))}">${esc(q.answerText)}</span></p>`}${partial}
+        <p style="margin:.4em 0 0">${esc(q.explain)}</p>
+        <div class="row" style="margin-top:12px"><span class="spacer"></span><button class="btn primary big" data-next>${i+1<qs.length?'Next question →':'See results'}</button></div></div>`;
+      setTop(`<span class="pill">Score ${score}/${i+1}</span>${streak>=2?`<span class="pill">${streak} in a row</span>`:''}`);
+      $('[data-next]').onclick = () => { i++; i < qs.length ? show() : end(); };
+      $('[data-next]').scrollIntoView({behavior:SMOOTH, block:'center'});
+    });
+  };
+  const end = () => {
+    const pct = Math.round(score/qs.length*100);
+    setTop('<span class="pill">Solo practice</span>');
+    const byDrill = {}; qs.forEach((q,k) => { (byDrill[q.drill] ||= [0,0]); byDrill[q.drill][1]++; if (log[k]) byDrill[q.drill][0]++; });
+    app.innerHTML = `<div class="card center"><h2>${esc(endMsg(pct))}</h2><div class="bigpct" style="justify-content:center"><div><div class="n g">${score}/${qs.length}</div><div class="muted">correct (${pct}%)</div></div></div>
+      <div class="minibars" style="max-width:420px;margin:18px auto 0;text-align:left">${Object.entries(byDrill).map(([d,[c,t]]) => `<span>${esc(DRILLS[d].short)}</span><div class="minibar"><i style="width:${c/t*100}%"></i></div><span>${c}/${t}</span>`).join('')}</div>
+      <div class="row" style="justify-content:center;margin-top:20px"><button class="btn" data-home>Home</button><button class="btn primary big" data-again>Practice again</button></div></div>`;
+    $('[data-home]').onclick = home;
+    $('[data-again]').onclick = () => runSolo({...setup, drills: active});
+  };
+  show();
+}
+
+/* ---------------- HOST ---------------- */
+let H = null;
+function hostSetup(){
+  app.className = 'narrow'; setTop('<span class="pill">Instructor</span>');
+  app.innerHTML = setupForm('Host a class game', 'Create room', true);
+  $('[data-back]').onclick = home;
+  $('[data-start]').onclick = async () => {
+    const s = readSetup(); const msg = $('[data-msg]');
+    if (!s.drills.length){ msg.textContent = 'Pick at least one drill.'; return; }
+    $('[data-start]').disabled = true; msg.textContent = 'Opening a room…';
+    let client = null, bi = -1;
+    for (let k=0; k<BROKERS.length && !client; k++){
+      try { msg.textContent = `Opening a room… (server ${k+1} of ${BROKERS.length})`; client = await connectTo(BROKERS[k]); bi = k; } catch(e){ }
+    }
+    if (!client){ msg.innerHTML = '<span class="notice err" style="display:block">Couldn’t reach a live server from this network. You can still use <b>Practice solo</b>, or try another network (e.g., a phone hotspot).</span>'; $('[data-start]').disabled = false; return; }
+    let code; do { code = randId(5); } while (ALPH.indexOf(code[0]) % BROKERS.length !== bi);
+    startHost(client, code, s);
+  };
+}
+function startHost(client, code, setup){
+  H = { client, code, setup, qs: [], active: setup.drills.slice(), rot:0, seenQ:new Set(), idx:-1, phase:'lobby', seen:new Map(), answers:new Map(), results:[], deadline:null, limit:setup.secs*1000 };
+  const T = TOPIC(code);
+  client.subscribe(T + '/up', {qos:1});
+  client.on('message', (topic, buf) => {
+    if (topic !== T + '/up') return;
+    let m; try { m = JSON.parse(buf.toString()); } catch(e){ return; }
+    if (!m || typeof m.id !== 'string') return;
+    H.seen.set(m.id, Date.now());
+    if (m.t === 'ans' && H.phase === 'q' && m.qid === H.qs[H.idx].id && !H.answers.has(m.id)) H.answers.set(m.id, m.ans);
+    if (m.t === 'hi') publishState();
+    hostCounts();
+  });
+  client.on('connect', () => publishState()); // republish after reconnects
+  H.timers = [
+    setInterval(hostCounts, 3000),
+    setInterval(hostTick, 250),
+    setInterval(() => { if (H && H.phase === 'q') H.client.publish(TOPIC(H.code) + '/tick', JSON.stringify(tickPayload()), {qos:0}); }, 2000)];
+  window.addEventListener('beforeunload', () => { try { client.publish(T + '/down', '', {retain:true, qos:0}); } catch(e){} });
+  publishState(); hostLobby();
+}
+function activeCount(){ const now = Date.now(); let n = 0; H.seen.forEach(t => { if (now - t < 50000) n++; }); return n; }
+function publishState(){
+  if (!H) return;
+  const st = {phase:H.phase, total:null, n:H.idx+1, ts:Date.now(), secs:H.setup.secs, goal:H.setup.goal};
+  if (H.phase === 'q' || H.phase === 'reveal'){ st.q = publicQ(H.qs[H.idx]); }
+  if (H.phase === 'q'){ Object.assign(st, tickPayload()); }
+  st.cls = classStats();
+  if (H.phase === 'reveal'){ const r = H.results[H.idx]; const q = H.qs[H.idx]; st.reveal = {answer:q.answer, answerText:q.answerText, explain:q.explain, timeUp:!!H.timeUp, ...r}; }
+  if (H.phase === 'end'){ st.recap = H.results.map((r,k) => ({drill:H.qs[k].drill, pct:r?r.pct:0, n:r?r.n:0})); }
+  H.client.publish(TOPIC(H.code) + '/down', JSON.stringify(st), {retain:true, qos:1});
+}
+function tickPayload(){ return {left: H.deadline ? Math.max(0, H.deadline - Date.now()) : null, limit: H.limit || null, answered: H.answers.size, joined: Math.max(activeCount(), H.answers.size)}; }
+function classStats(){
+  const rs = H.results.filter(r => r && r.n);
+  const avg = rs.length ? rs.reduce((a,r)=>a+r.pct,0)/rs.length : null;
+  return {avg, done: rs.length, goal: H.setup.goal};
+}
+const fmtT = ms => { const t = Math.ceil(ms/1000); return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0'); };
+function goalHTML(cs){
+  if (!cs || cs.avg == null) return `<div class="goal small"><b>Class goal: ${cs?cs.goal:70}%</b> <span class="muted">— we’re all in this together. Every answer counts toward the class average.</span></div>`;
+  const a = Math.round(cs.avg), met = a >= cs.goal;
+  return `<div class="goal small"><div class="row" style="gap:6px"><b>Class average: ${a}%</b><span class="spacer"></span><span class="muted">Goal <span class="num">${cs.goal}%</span> ${met?'✓ on track!':''}</span></div>
+    <div class="tbar"><i style="width:${a}%"></i><span class="mark" style="left:${cs.goal}%"></span></div>
+    <span class="muted">${met ? 'The class is above the goal — keep it going!' : 'Keep going together — every question is a fresh chance.'} (${cs.done} question${cs.done===1?'':'s'} so far)</span></div>`;
+}
+function hostTick(){
+  if (!H || H.phase !== 'q' || !H.deadline) return;
+  const left = H.deadline - Date.now();
+  const el = $('[data-timer]'); if (el){ el.textContent = left <= 0 ? 'Time’s up' : fmtT(left); el.classList.toggle('low', left <= 5000); }
+  const b = $('[data-tbar]'); if (b){ b.style.width = Math.max(0, left / H.limit * 100) + '%'; b.parentNode.classList.toggle('low', left <= 5000); }
+  if (left <= 0 && !H.timeUpQ){   // time's up: students can no longer answer; the professor clicks to show the answer
+    H.timeUpQ = true;
+    const more = $('[data-more]'); if (more) more.hidden = true;
+    const rv = $('[data-reveal]'); if (rv){ rv.textContent = 'Show answer'; rv.onclick = () => hostReveal(true); rv.focus({preventScroll:true}); }
+  }
+}
+function joinURL(){
+  if (!/^https?:/.test(location.protocol)) return null;
+  const u = new URL(location.href); u.hash = 'join=' + H.code + (BROKER_OVERRIDE ? '&broker=' + encodeURIComponent(BROKER_OVERRIDE) : '');
+  return u.toString();
+}
+function hostTop(){ setTop(`<span class="pill">Room <b style="font-family:var(--mono);letter-spacing:.1em">${H.code}</b></span><span class="pill">👥 <b data-joined>${activeCount()}</b> joined</span>`); }
+function hostCounts(){
+  if (!H) return;
+  const j = $('[data-joined]'); if (j) j.textContent = activeCount();
+  const lj = $('[data-ljoined]'); if (lj) lj.textContent = activeCount();
+  const a = $('[data-answered]'); if (a){ const n = H.answers.size, tot = Math.max(activeCount(), n); a.textContent = n; const of = $('[data-of]'); if (of) of.textContent = tot;
+    const ring = $('[data-ring]'); if (ring){ const p = tot ? n/tot : 0; ring.setAttribute('stroke-dasharray', `${p*301.6} 301.6`); }
+    const all = $('[data-allin]'); if (all) all.style.visibility = (tot && n >= tot) ? 'visible' : 'hidden'; }
+}
+function hostLobby(){
+  app.className = 'host'; hostTop();
+  const url = joinURL();
+  let qrSvg = '';
+  if (url){ try { const qr = qrcode(0, 'M'); qr.addData(url); qr.make(); qrSvg = qr.createSvgTag({cellSize:4, margin:2, scalable:true}); } catch(e){} }
+  app.innerHTML = `<div class="card"><div class="lobby"><div>
+      <div class="label">Join code</div><div class="code">${H.code}</div>
+      <ol class="steps" style="margin-top:14px;font-size:18px">
+        <li>On your phone, open this page${url?' — or scan the QR code':''}.</li>
+        <li>Tap <b>Join a game</b> and enter <b style="font-family:var(--mono)">${H.code}</b>.</li>
+        <li>No names — your answers are anonymous.</li></ol>
+      <div class="counter" style="margin-top:16px"><div class="n" data-ljoined>${activeCount()}</div><div class="muted">students joined</div></div>
+    </div><div class="center">${qrSvg ? `<div class="qr">${qrSvg}</div><p class="small muted">Scan to join</p>` : `<p class="notice">QR code appears when the game is opened from a web address.</p>`}</div></div>
+    <div data-chips>${chipsHTML(H.active, 'Challenge categories — toggle any time during the game')}</div>
+    <div class="row" style="margin-top:16px"><span class="muted">${H.setup.secs ? H.setup.secs + ' s per question' : 'No timer'} · class goal ${H.setup.goal}%</span><span class="spacer"></span><button class="btn primary big" data-begin>Start game →</button></div></div>`;
+  hostChips();
+  $('[data-begin]').onclick = () => hostIntro();
+}
+/* "How it works" — shown on the projector and on every phone before question 1 */
+function howToHTML(secs, goal, student){
+  const items = [
+    ['Same question, same time', 'Each question appears on the big screen and on your phone at the same moment.'],
+    ['Answer on your phone', 'Tap your answer, then <b>Lock in answer</b>. For spelling you can also type notes — e.g. <b>Eb G Bb</b> — and press Enter.'],
+    ['Watch the clock', secs ? `You have <b>${secs} seconds</b> per question. When time runs out — or your instructor stops the clock — answers lock.` : 'Your instructor decides when to stop answering, so keep an eye on the screen.'],
+    ['See how the class did', 'The correct answer appears for everyone, with the percent of the class that got it right and a quick explanation.'],
+    ['Anonymous', 'No names. Nobody sees your answers — only you see your own score.'],
+    ['Finished early? Work ahead', `Once you’ve locked in, scroll down to <b>Work ahead on your own</b> to practice any of the drills privately while the class finishes. When the next class question starts, your phone jumps back to it.`],
+    ['A class goal', `We’re working together toward a <b>${goal}% class average</b>.`],
+  ];
+  return `<div class="howto ${student?'stu':''}"><div class="label">How it works</div><h2>${student ? 'Here’s how the game works' : 'How the game works'}</h2>
+    <ol class="howlist">${items.map(([t,d],i) => `<li><span class="hn">${i+1}</span><div><b class="ht">${t}</b><span class="hd">${d}</span></div></li>`).join('')}</ol></div>`;
+}
+function hostIntro(){
+  H.phase = 'intro'; publishState();
+  app.className = 'host'; hostTop();
+  app.innerHTML = `<div class="card">${howToHTML(H.setup.secs, H.setup.goal, false)}
+    <div class="row" style="margin-top:18px"><span class="muted">Room <b style="font-family:var(--mono);letter-spacing:.08em">${H.code}</b> · <span data-ljoined>${activeCount()}</span> joined — late arrivals can still join.</span><span class="spacer"></span>
+    <button class="btn ghost" data-backlobby>← Back to join code</button><button class="btn primary big" data-first>Start first question →</button></div></div>`;
+  $('[data-first]').onclick = () => hostNext();
+  $('[data-backlobby]').onclick = () => { H.phase = 'lobby'; publishState(); hostLobby(); };
+}
+function hostChips(){ const c = $('[data-chips]'); if (c) bindChips(c, () => H.active, a => { H.active = a; }); }
+function hostNext(){
+  H.idx++;
+  if (!H.qs[H.idx]) H.qs[H.idx] = genOne(H.active, H.setup.roots, H.seenQ, H.rot++);
+  H.phase = 'q'; H.timeUpQ = false; H.answers = new Map(); H.deadline = H.limit ? Date.now() + H.limit : null; publishState(); hostQuestion();
+}
+function hostQuestion(reveal){
+  const q = H.qs[H.idx];
+  app.className = 'host'; hostTop();
+  const banner = reveal ? `<div class="ansbanner"><span class="lbl">${reveal.timeUp?'Time’s up! · ':''}Correct answer</span><span class="answer" aria-label="${escRaw(sayAnswer(q.answerText))}">${esc(q.answerText)}</span></div>` : '';
+  app.innerHTML = `<div class="hostgrid"><div class="card">${qHeader(q, H.idx+1, null)}${banner}${hostOptions(q, reveal)}</div>
+    <div class="card" data-side></div></div>`;
+  mountStaff(app, q);
+  const side = $('[data-side]');
+  if (!reveal){
+    side.innerHTML = `${H.deadline ? `<div class="label">Time left</div><div class="timer" data-timer>${fmtT(H.deadline-Date.now())}</div><div class="tbar"><i data-tbar style="width:100%"></i></div>` : `<div class="label">No time limit</div><p class="small muted" style="margin:4px 0 10px">Stop answering whenever the class is ready.</p>`}
+      <div class="label" style="margin-top:14px">Answers in</div>
+      <div class="counter" style="margin:10px 0"><svg class="ring" viewBox="0 0 110 110"><circle cx="55" cy="55" r="48" fill="none" stroke="#ece5d6" stroke-width="10"/><circle data-ring cx="55" cy="55" r="48" fill="none" stroke="#7c5ce6" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 301.6" transform="rotate(-90 55 55)"/></svg>
+      <div><div class="n"><span data-answered>0</span><span class="muted" style="font-size:24px"> / <span data-of>0</span></span></div><div class="muted small">answered</div></div></div>
+      <p class="small" data-allin style="visibility:hidden;color:var(--good);font-weight:700">Everyone’s in! ✓</p>
+      <div class="btnrow">${H.deadline ? '<button class="btn" data-more title="Add 15 seconds">+15 s</button>' : '<span></span>'}<button class="btn primary big" data-reveal>Stop & show answer</button></div>
+      ${goalHTML(classStats())}
+      <div data-chips>${chipsHTML(H.active, 'Next question from')}</div>`;
+    hostChips();
+    $('[data-reveal]').onclick = () => hostReveal(false);
+    const more = $('[data-more]'); if (more) more.onclick = () => { H.deadline = Math.max(H.deadline, Date.now()) + 15000; H.limit = Math.max(H.limit, H.deadline - Date.now()); publishState(); hostTick(); };
+    hostCounts();
+  } else {
+    const r = reveal; const g = pctR(r.pct);
+    side.innerHTML = `<div class="label">Class results</div>
+      ${r.n ? `<div class="bigpct" style="margin-top:8px"><div><div class="n g">${g}%</div><div class="muted small">got it</div></div><div><div class="n b">${100-g}%</div><div class="muted small">not yet</div></div></div>${barHTML(r.pct, r.n)}<div class="muted small">${r.n} answer${r.n===1?'':'s'}</div>` : ''}
+      ${r.parts && r.n ? `<div class="minibars">${Object.entries(r.parts).map(([k,v]) => `<span>${k}</span><div class="minibar"><i style="width:${v}%"></i></div><span>${pctR(v)}%</span>`).join('')}</div>` : ''}
+      <div class="result neutral"><h3>${esc(classMsg(r.pct, r.n))}</h3><p style="margin:.2em 0">Answer: <span class="answer" aria-label="${escRaw(sayAnswer(q.answerText))}">${esc(q.answerText)}</span></p><p class="small" style="margin:.4em 0 0">${esc(q.explain)}</p></div>
+      ${goalHTML(classStats())}
+      <div data-chips>${chipsHTML(H.active, 'Next question from')}</div>
+      <div class="btnrow"><button class="btn" data-finish>Finish & recap</button><button class="btn primary big" data-next>Next question →</button></div>`;
+    hostChips();
+    $('[data-next]').onclick = hostNext;
+    $('[data-finish]').onclick = () => { H.qs.length = H.idx + 1; H.phase = 'end'; publishState(); hostEnd(); };
+  }
+}
+function hostReveal(timeUp){
+  if (!H || H.phase !== 'q') return;
+  const q = H.qs[H.idx]; H.deadline = null; H.limit = H.setup.secs*1000; H.timeUp = !!timeUp; let c = 0; const n = H.answers.size; const pc = {};
+  H.answers.forEach(a => { const g = grade(q, a); if (g.ok) c++; if (g.parts) for (const [k,v] of Object.entries(g.parts)) pc[k] = (pc[k]||0) + (v?1:0); });
+  const parts = Object.keys(pc).length ? Object.fromEntries(Object.entries(pc).map(([k,v]) => [k, v/n*100])) : null;
+  H.results[H.idx] = {pct: n ? c/n*100 : 0, n, parts};
+  H.phase = 'reveal'; publishState();
+  hostQuestion({...H.results[H.idx], answer:q.answer, timeUp:H.timeUp});
+}
+function hostEnd(){
+  app.className = 'host'; hostTop();
+  const rs = H.results.filter(r => r && r.n);
+  const avg = rs.length ? rs.reduce((a,r)=>a+r.pct,0)/rs.length : 0;
+  app.innerHTML = `<div class="card"><h2>${esc(endMsg(avg))}</h2>
+    <div class="bigpct"><div><div class="n g">${Math.round(avg)}%</div><div class="muted small">class average</div></div><div><div class="n" style="color:var(--accent)">${H.setup.goal}%</div><div class="muted small">class goal ${avg>=H.setup.goal?'— reached!':'— next time!'}</div></div></div>
+    <div class="recap" style="margin-top:18px">${H.qs.map((q,k) => { const r = H.results[k] || {pct:0,n:0}; return `<div class="r"><b>${k+1}</b><span class="muted">${esc(DRILLS[q.drill].short)} · ${esc(q.answerText)}</span><div class="minibar"><i style="width:${r.pct}%"></i></div><span>${r.n?pctR(r.pct)+'%':'—'}</span></div>`; }).join('')}</div>
+    <div class="row" style="margin-top:18px"><button class="btn" data-home>End session</button><span class="spacer"></span><button class="btn primary big" data-again>Play another round (same room)</button></div></div>`;
+  $('[data-again]').onclick = () => { H.qs = []; H.seenQ = new Set(); H.idx = -1; H.results = []; H.phase = 'lobby'; H.deadline = null; H.limit = H.setup.secs*1000; publishState(); hostLobby(); };
+  $('[data-home]').onclick = goHome;
+}
+
+/* ---------------- WORK-AHEAD PRACTICE (student phones, private) ---------------- */
+const P = {open:false, active:[1,2,3,4], rot:0, seen:new Set(), score:0, n:0, q:null, answered:false};
+function practiceEl(){
+  let el = $('#practice');
+  if (!el){ el = document.createElement('section'); el.id = 'practice'; app.after(el); }
+  return el;
+}
+function practiceRender(){
+  const el = practiceEl();
+  el.innerHTML = `<div class="card practice">
+    <div class="phead"><div><div class="label">While you wait</div><h3>Work ahead on your own</h3>
+      <p class="small muted" style="margin:0">Private practice — nothing here is sent to the class.</p></div>
+      <span class="pill" data-pscore ${P.n?'':'hidden'}>${P.score}/${P.n}</span></div>
+    ${P.open ? `${chipsHTML(P.active, 'Practice from')}<div data-pq class="pq"></div>
+      <button class="btn ghost small" data-pclose style="margin-top:10px;width:100%">Hide practice</button>`
+      : `<button class="btn primary big" data-popen style="width:100%;margin-top:12px">Start practicing →</button>`}</div>`;
+  if (!P.open){ el.querySelector('[data-popen]').onclick = () => { P.open = true; practiceRender(); }; return; }
+  el.querySelector('[data-pclose]').onclick = () => { P.open = false; practiceRender(); };
+  bindChips(el, () => P.active, a => { P.active = a; if (!P.answered){ P.q = null; practiceQ(); } });
+  practiceQ();
+}
+function practiceQ(next){
+  const el = $('#practice'); if (!el) return;
+  const box = el.querySelector('[data-pq]'); if (!box) return;
+  if (!P.q || next){ P.q = genOne(P.active, 'all', P.seen, P.rot++); P.answered = false; }
+  const q = P.q;
+  box.innerHTML = `${qHeader(q, 0, 0)}<div data-pans></div><div data-pres></div>`;
+  mountStaff(box, q);
+  const w = answerWidget(box.querySelector('[data-pans]'), q, ans => {
+    const g = grade(q, ans); P.n++; if (g.ok) P.score++; window.SFX && SFX.play(g.ok); window.SAprogress && SAprogress.record(DRILLS[q.drill].short, g.ok); P.answered = true; P.last = {ans, g};
+    showPracticeResult(box, q, g, w);
+  }, {quiet:true});
+  if (P.answered && P.last){ w.preset(P.last.ans); showPracticeResult(box, q, P.last.g, w); }
+}
+function showPracticeResult(box, q, g, w){
+  w.mark(q.answer);
+  const partial = partsHTML(g);
+  box.querySelector('[data-pres]').innerHTML = `<div class="result ${g.ok?'good':'bad'}"><h3>${esc(g.ok ? pick(PRAISE) : pick(ENCOURAGE))}</h3>
+    ${g.ok ? '' : `<p style="margin:.2em 0">Answer: <span class="answer" aria-label="${escRaw(sayAnswer(q.answerText))}">${esc(q.answerText)}</span></p>`}${partial}
+    <p class="small" style="margin:.4em 0 0">${esc(q.explain)}</p>
+    <button class="btn primary" data-pnext style="width:100%;margin-top:12px">Another practice question →</button></div>`;
+  box.querySelector('[data-pnext]').onclick = () => { practiceQ(true); box.scrollIntoView({behavior:SMOOTH, block:'start'}); };
+  const sc = $('[data-pscore]'); if (sc){ sc.hidden = false; sc.textContent = `${P.score}/${P.n}`; }
+}
+/* Show the box whenever the student isn't facing an unanswered class question */
+function practiceVis(){
+  const el = $('#practice'); if (!el || !S) return;
+  let show = true; const k = S.curKey || '';
+  if (k.endsWith(':q')){ const qid = k.split(':')[0]; if (S.myAns[qid] == null && !S.timedOut) show = false; }
+  if (k === 'closed') show = false;
+  el.hidden = !show;
+}
+const inPractice = () => { const el = $('#practice'); return el && !el.hidden && el.getBoundingClientRect().top < window.innerHeight * 0.5; };
+function stuToast(text){
+  let t = $('#toast'); if (!t){ t = document.createElement('button'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.innerHTML = text; t.classList.add('show');
+  t.onclick = () => { window.scrollTo({top:0, behavior:SMOOTH}); t.classList.remove('show'); };
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 7000);
+}
+
+/* ---------------- STUDENT ---------------- */
+let S = null;
+function joinScreen(prefill){
+  app.className = 'narrow'; setTop('<span class="pill">Student</span>');
+  app.innerHTML = `<div class="card"><h2>Join a game</h2><p class="muted">Enter the code on the projector screen. No name needed — your answers are anonymous.</p>
+    <input class="codein" id="code" aria-label="Room code" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="•••••" value="${escRaw(prefill||'')}">
+    <div class="row" style="margin-top:14px"><button class="btn ghost" data-back>← Back</button><span class="spacer"></span><button class="btn primary big" data-join>Join</button></div><p data-msg class="small"></p></div>`;
+  const inp = $('#code');
+  inp.oninput = () => { inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/[IO01]/g, c => ({I:'1',O:'0'}[c]||c)).slice(0,5); };
+  $('[data-back]').onclick = home;
+  const go = async () => {
+    const code = inp.value.toUpperCase();
+    if (code.length !== 5 || [...code].some(c => !ALPH.includes(c))){ $('[data-msg]').textContent = 'Codes are 5 characters — check the screen.'; return; }
+    $('[data-join]').disabled = true; $('[data-msg]').textContent = 'Connecting…';
+    try { const c = await connectTo(brokerFor(code)); startStudent(c, code); }
+    catch(e){ $('[data-msg]').innerHTML = '<span class="notice err" style="display:block">Couldn’t connect. Check your internet connection (try switching Wi-Fi ↔ cellular) and tap Join again.</span>'; $('[data-join]').disabled = false; }
+  };
+  $('[data-join]').onclick = go;
+  inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+  if (prefill && prefill.length === 5) go();
+}
+function startStudent(client, code){
+  let id; try { id = sessionStorage.getItem('cl_id_'+code); } catch(e){}
+  if (!id){ id = randId(12); try { sessionStorage.setItem('cl_id_'+code, id); } catch(e){} }
+  S = { client, code, id, mine:{}, myAns:{}, curKey:null, gotState:false, widget:null };
+  const T = TOPIC(code);
+  const send = m => client.publish(T + '/up', JSON.stringify({...m, id}), {qos:1});
+  S.send = send;
+  client.subscribe(T + '/down', {qos:1});
+  client.subscribe(T + '/tick', {qos:0});
+  client.on('connect', () => send({t:'hi'}));
+  client.on('message', (topic, buf) => {
+    if (!S || S.client !== client) return;
+    if (topic === T + '/tick'){ try { stuTick(JSON.parse(buf.toString())); } catch(e){} return; }
+    if (topic !== T + '/down') return;
+    const s = buf.toString(); if (!s){ stuWait('The host’s screen disconnected — hang tight, it may reconnect.'); return; }
+    let st; try { st = JSON.parse(s); } catch(e){ return; }
+    S.gotState = true; stuState(st);
+  });
+  send({t:'hi'});
+  S.timers = [setInterval(() => send({t:'hb'}), 15000), setInterval(stuClock, 250)];
+  stuWait('You’re in! Watch the main screen — the first question is coming.');
+  practiceRender(); practiceVis();
+  setTimeout(() => { if (S && !S.gotState) stuWait(`Waiting for room <b>${esc(code)}</b>… If nothing happens, double-check the code on the screen.`, true); }, 6000);
+}
+function stuTick(t){
+  if (!S || !S.curKey || !S.curKey.endsWith(':q')) return;
+  S.deadline = t.left != null ? Date.now() + t.left : null; S.limit = t.limit;
+  const c = $('[data-crowd]'); if (c && t.joined) c.textContent = `${t.answered} of ${t.joined} classmates have answered`;
+  stuClock();
+}
+function stuClock(){
+  if (!S || !S.curKey || !S.curKey.endsWith(':q')) return;
+  const el = $('[data-stimer]'); if (!el) return;
+  if (!S.deadline){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  const left = Math.max(0, S.deadline - Date.now());
+  el.querySelector('b').textContent = fmtT(left);
+  el.querySelector('i').style.width = (S.limit ? left / S.limit * 100 : 0) + '%';
+  el.querySelector('.tbar').classList.toggle('low', left <= 5000); el.style.color = left <= 5000 ? 'var(--bad)' : '';
+  if (left <= 0 && !S.timedOut){
+    S.timedOut = true; setTimeout(practiceVis, 0);
+    const qid = S.curKey.split(':')[0];
+    if (S.myAns[qid] == null && S.widget){ S.widget.lock(); const g = $('[data-go]'); if (g) g.textContent = 'Time’s up'; 
+      $('[data-res]').innerHTML = `<div class="result neutral center"><p class="timesup">Time’s up!</p><p class="muted small" style="margin:0">No worries — watch the screen, the answer is coming.</p></div>`; }
+  }
+}
+function stuTop(st){ const done = Object.keys(S.mine).length, right = Object.values(S.mine).filter(Boolean).length;
+  setTop(`<span class="pill">Room ${esc(S.code)}</span>${done?`<span class="pill">You: ${right}/${done}</span>`:''}`); }
+function stuWait(msg, html){
+  S && (S.curKey = 'wait');
+  app.className = 'narrow';
+  app.innerHTML = `<div class="wait"><div class="pulse"></div><h2>${html ? msg : esc(msg)}</h2><p class="muted small">Your answers are anonymous.</p></div>`;
+}
+function stuState(st){
+  const before = S.curKey;
+  stuStateInner(st);
+  if (S.curKey !== before && st.phase === 'q' && S.curKey.endsWith(':q')){
+    const t = $('#toast'); if (t) t.classList.remove('show');
+    window.scrollTo({top:0, behavior:SMOOTH});
+  }
+  practiceVis();
+}
+function stuStateInner(st){
+  stuTop(st);
+  if (st.phase === 'closed'){ S.curKey='closed'; setTimeout(() => { const d = $('[data-donehome]'); if (d) d.onclick = () => { try { S.client.end(true); } catch(e){} (S.timers||[]).forEach(clearInterval); S = null; goHome(); }; }, 0); app.innerHTML = `<div class="wait"><h2>Session ended — thanks for playing!</h2><button class="btn primary" data-donehome>Back to main screen</button></div>`; return; }
+  if (st.phase === 'lobby' || st.phase === 'intro'){
+    const key = st.phase;
+    if (S.curKey !== key){
+      S.curKey = key; app.className = 'narrow';
+      app.innerHTML = `<div class="card"><div class="joined"><span class="pulse"></span><b>You’re in!</b> <span class="muted">${st.phase==='intro' ? 'The first question is coming up.' : 'The game will start soon.'}</span></div>
+        ${howToHTML(st.secs, st.goal || 70, true)}<p class="small muted center" style="margin:10px 0 0">Want to warm up? Try the practice box below.</p></div>`;
+    }
+    return;
+  }
+  if (st.phase === 'end'){
+    if (S.curKey === 'end') return; S.curKey = 'end';
+    const done = Object.keys(S.mine).length, right = Object.values(S.mine).filter(Boolean).length;
+    const rs = (st.recap||[]).filter(r=>r.n); const avg = rs.length ? rs.reduce((a,r)=>a+r.pct,0)/rs.length : 0;
+    app.className = 'narrow';
+    app.innerHTML = `<div class="card center"><h2>${esc(endMsg(done ? right/done*100 : 0))}</h2>
+      <div class="bigpct" style="justify-content:center"><div><div class="n g">${right}/${done||st.total}</div><div class="muted small">you got right</div></div><div><div class="n" style="color:var(--accent)">${Math.round(avg)}%</div><div class="muted small">class average</div></div></div>
+      ${st.cls && st.cls.avg!=null ? `<p><b>${st.cls.avg >= st.cls.goal ? `The class reached its ${st.cls.goal}% goal together!` : `Class goal was ${st.cls.goal}% — we’ll get there together next time.`}</b></p>` : ''}
+      <p class="muted">Only you can see your own score. Keep it up!</p></div>`;
+    return;
+  }
+  const q = st.q; if (!q) return;
+  const key = q.id + ':' + st.phase;
+  if (st.phase === 'q'){
+    if (S.curKey === key) return; S.curKey = key;
+    app.className = 'narrow';
+    S.deadline = st.left != null ? Date.now() + st.left : null; S.limit = st.limit; S.timedOut = false;
+    app.innerHTML = `<div class="card"><div class="stu-timer" data-stimer><span>⏱</span><div class="tbar"><i style="width:100%"></i></div><b>0:00</b></div>${qHeader(q, st.n, st.total)}<div data-ans></div><div data-res></div>
+      <p class="small muted center" data-crowd style="margin:10px 0 0">${st.joined ? `${st.answered||0} of ${st.joined} classmates have answered` : ''}</p></div>`;
+    mountStaff(app, q);
+    S.widget = answerWidget($('[data-ans]'), q, ans => {
+      S.myAns[q.id] = ans; S.send({t:'ans', qid:q.id, ans}); practiceVis();
+      $('[data-res]').innerHTML = `<div class="result neutral center"><h3>Answer locked in ✓</h3><p class="muted small" style="margin:0">Waiting for the rest of the class… the answer appears on everyone’s screen at the same time.</p></div>`;
+    });
+    if (S.myAns[q.id] != null){ S.widget.preset(S.myAns[q.id]); $('[data-res]').innerHTML = `<div class="result neutral center"><h3>Answer locked in ✓</h3></div>`; }
+    stuClock();
+    return;
+  }
+  if (st.phase === 'reveal'){
+    if (S.curKey === key) return;
+    const wasShowing = S.curKey === q.id + ':q';
+    S.curKey = key;
+    if (!wasShowing){
+      app.className = 'narrow';
+      app.innerHTML = `<div class="card">${qHeader(q, st.n, st.total)}<div data-ans></div><div data-res></div></div>`;
+      mountStaff(app, q);
+      S.widget = answerWidget($('[data-ans]'), q, ()=>{});
+      if (S.myAns[q.id] != null) S.widget.preset(S.myAns[q.id]); else S.widget.lock();
+    }
+    const r = st.reveal, mine = S.myAns[q.id];
+    const fullQ = {...q, answer:r.answer};
+    const g = mine != null ? grade(fullQ, mine) : null;
+    if (g) { S.mine[q.id] = g.ok; window.SFX && SFX.play(g.ok); window.SAprogress && SAprogress.record('Class game · ' + DRILLS[q.drill].short, g.ok); }
+    S.widget.mark(r.answer);
+    stuTop(st);
+    const head = g == null ? (r.timeUp ? 'Time ran out — no problem! Here’s the answer.' : 'No answer this time — no problem!') : g.ok ? pick(PRAISE) : pick(ENCOURAGE);
+    const partial = partsHTML(g);
+    const crowd = $('[data-crowd]'); if (crowd) crowd.remove(); const tm = $('[data-stimer]'); if (tm) tm.remove();
+    $('[data-res]').innerHTML = `<div class="result ${g==null?'neutral':g.ok?'good':'bad'}">${r.timeUp?'<p class="timesup" style="font-size:16px">Time’s up!</p>':''}<h3>${esc(head)}</h3>
+      <p style="margin:.2em 0">Correct answer: <span class="answer" aria-label="${escRaw(sayAnswer(r.answerText))}">${esc(r.answerText)}</span></p>${partial}
+      <p class="small" style="margin:.4em 0 0">${esc(r.explain)}</p>
+      <div style="margin-top:12px"><div class="label">Class</div>${r.n?`${barHTML(r.pct, r.n)}<div class="small muted">${pctR(r.pct)}% of the class got this one · ${esc(classMsg(r.pct,r.n))}</div>`:`<div class="small muted">${esc(classMsg(0,0))}</div>`}${goalHTML(st.cls)}</div></div>`;
+    if (inPractice()) stuToast(`Class answer is in — tap to see`); else $('[data-res]').scrollIntoView({behavior:SMOOTH, block:'start'});
+  }
+}
+
+/* ---------------- full screen ---------------- */
+function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || document.body.classList.contains('fauxfs'); }
+function syncFs(){
+  const on = isFs();
+  document.body.classList.toggle('fs', on);
+  const b = $('#fsbtn'); b.querySelector('span').textContent = on ? 'Exit full screen' : 'Full screen';
+  b.querySelector('path').setAttribute('d', on ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+  // re-draw staves so they fill the larger stage
+  document.querySelectorAll('[data-staff]').forEach(el => el.style.removeProperty('opacity'));
+}
+function toggleFs(){
+  const d = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  if (document.body.classList.contains('fauxfs')){ document.body.classList.remove('fauxfs'); syncFs(); return; }
+  const req = d.requestFullscreen || d.webkitRequestFullscreen;
+  const fallback = () => { document.body.classList.add('fauxfs'); syncFs(); };
+  if (req && (document.fullscreenEnabled || document.webkitFullscreenEnabled)){ try { const p = req.call(d); if (p && p.catch) p.catch(fallback); } catch(e){ fallback(); } }
+  else fallback();   // e.g. inside a frame that blocks full screen: fill the frame instead
+}
+$('#fsbtn').onclick = toggleFs;
+document.addEventListener('fullscreenchange', syncFs);
+document.addEventListener('webkitfullscreenchange', syncFs);
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input,select,textarea')) return;
+  if ((e.key === 'f' || e.key === 'F') && !spellLive()) toggleFs();
+  if (e.key === 'Escape' && document.body.classList.contains('fauxfs')) { document.body.classList.remove('fauxfs'); syncFs(); }
+});
+
+/* ---------------- accessibility layer ---------------- */
+function announce(text, urgent){
+  const el = $(urgent ? '#sr-alert' : '#sr-live'); if (!el || !text) return;
+  el.textContent = ''; setTimeout(() => { el.textContent = text; }, 60);
+}
+/* Text as a screen reader would speak it: music symbols by name, blocks separated, ✓/✗ as words */
+function plain(el){
+  if (!el) return '';
+  const out = [];
+  (function walk(n){
+    if (n.nodeType === 3){ out.push(n.nodeValue); return; }
+    if (n.nodeType !== 1 || n.classList.contains('sr-state') && false) return;
+    if (n.getAttribute('aria-hidden') === 'true') return;
+    if (n.getAttribute('role') === 'img' && n.hasAttribute('aria-label')){ out.push(' ' + n.getAttribute('aria-label').trim() + ' '); return; }
+    if (n.classList.contains('answer') && n.hasAttribute('aria-label')){ out.push(' ' + n.getAttribute('aria-label') + '. '); return; }
+    const block = /^(P|H\d|DIV|LI|BUTTON)$/.test(n.tagName);
+    n.childNodes.forEach(walk);
+    if (block) out.push('. ');
+  })(el);
+  return out.join('').replace(/✓/g, ' correct').replace(/[✗✕]/g, ' wrong').replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/([.?!])\s*\.+/g, '$1').replace(/\s+/g, ' ').replace(/^[.\s]+/, '').trim();
+}
+function syncState(el){
+  if (!el.classList || !el.classList.contains('opt')) return;
+  if (el.tagName === 'BUTTON') el.setAttribute('aria-pressed', el.classList.contains('sel') ? 'true' : 'false');
+  let tag = el.querySelector(':scope > .sr-state');
+  const txt = el.classList.contains('right') ? ' (correct answer)' : el.classList.contains('wrong') ? ' (your answer, incorrect)' : '';
+  if (el.hasAttribute('aria-label') && el.dataset.baseLabel == null) el.dataset.baseLabel = el.getAttribute('aria-label');
+  if (txt){ if (!tag){ tag = document.createElement('span'); tag.className = 'sr-only sr-state'; el.appendChild(tag); } tag.textContent = txt; }
+  else if (tag) tag.remove();
+  if (el.dataset.baseLabel != null){ const want = el.dataset.baseLabel + txt; if (el.getAttribute('aria-label') !== want) el.setAttribute('aria-label', want); }
+}
+new MutationObserver(muts => {
+  for (const m of muts){
+    if (m.type === 'attributes'){ syncState(m.target); continue; }
+    m.addedNodes.forEach(n => {
+      if (n.nodeType !== 1) return;
+      if (n.querySelectorAll) n.querySelectorAll('.opt').forEach(syncState);
+      syncState(n);
+      const pr = n.matches && n.matches('.card') && n.closest('#app') ? n.querySelector('.prompt') : null;
+      if (pr){ const sub = n.querySelector('.sub'); const qn = n.querySelector('.qhead .muted');
+        announce(`${plain(qn)}. ${plain(pr)} ${plain(sub)}`.replace(/\.\s*\./g,'.')); }
+      const res = n.matches && (n.matches('.result') ? n : (n.querySelector && n.querySelector('.result')));
+      if (res) announce(plain(res).slice(0, 400));
+    });
+  }
+}).observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:['class']});
+let lastWarn = null;
+setInterval(() => {
+  const t = $('[data-stimer] b') || $('[data-timer]'); if (!t){ lastWarn = null; return; }
+  const v = t.textContent.trim();
+  if ((v === '0:10' || v === '0:05') && lastWarn !== v){ lastWarn = v; announce(`${v === '0:10' ? '10' : '5'} seconds left`, true); }
+}, 300);
+
+/* ---------------- boot ---------------- */
+if (HASH.get('join') != null) joinScreen((HASH.get('join')||'').toUpperCase()); else home();
+window.ChordLab = {buildSet, grade, chordTones, symOf, TYPES, KEYS, diatonic, figRowsFor, nm, classify};

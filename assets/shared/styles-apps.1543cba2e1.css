@@ -792,6 +792,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .rg-b.big { font-weight: 800 !important; font-size: 18px !important; }
 .rg-b.now { outline: 3px solid #e0a020; outline-offset: 1px; }
 @media (max-width: 480px) { .rg-b { min-width: 32px; } }
+/* Motive and Sequence lesson: real-music examples (motive.js EX) */
+.mvex img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
+.mvex audio { width: 100%; max-width: 520px; display: block; margin: 8px auto 0; }
+.fair-use { margin: 6px 0 0; font-size: 12px !important; font-style: italic; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
