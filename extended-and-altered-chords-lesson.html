@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="stylesheet" href="assets/shared/styles-apps.2270775a27.css">
+<link rel="stylesheet" href="assets/shared/styles-apps.808e4cc589.css">
 <link rel="stylesheet" href="assets/indie.css?v=5aeb35ca">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 <link rel="stylesheet" href="assets/trainer-skin.css?v=f9e4882a">
@@ -20,7 +20,7 @@
   <header class="top">
     <div class="brand">
       <h1><span class="h1-pre">Understanding</span> Extended and Altered Chords</h1>
-      <p>A step-by-step lesson: seventh chords, added-tone and sus chords, 9ths, 11ths and 13ths, altered tones, how to write a chord symbol, omissions and N.C., with notated chords to hear.</p>
+      <p>A step-by-step lesson: seventh chords, added-tone and sus chords, 9ths, 11ths and 13ths, altered tones, how to write a chord symbol, omissions and N.C., with notated chords to hear, and a chord-by-chord look at the intro of Wayne Shorter's Armageddon.</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -94,6 +94,33 @@ window.FAM = (() => {
   const I = { r: [0, 0], 3: [2, 4], m3: [2, 3], 5: [4, 7], b5: [4, 6], s5: [4, 8], 7: [6, 10], M7: [6, 11], o7: [6, 9], 9: [8, 14], b9: [8, 13], s9: [8, 15], 11: [10, 17], s11: [10, 18], 13: [12, 21], b13: [12, 20], 6: [5, 9], 2: [1, 2], 4: [3, 5] };
   const S = (H, r, names) => stack(H, H.parse(r + "4"), names.map(n => I[n]));
   const tbl = (head, rows) => `<div class="ltable-wrap"><table class="ltable"><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+
+  // ===== Wayne Shorter, "Armageddon" (Night Dreamer, 1964), the intro: Adam's lead sheet (assets/img/extended/shorter-armageddon.png),
+  // the recording on YouTube, and a chord explorer: grand-staff voicing, tones named from the root, function in B♭ minor =====
+  const FU = `<p class="note lcite fair-use" data-fair-use></p>`;
+  const YT = (id, title) => `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0" title="${title} (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
+  const ARM = [
+    ["E7♭5", "E3", ["G♯4", "B♭4", "D5"], "E (root), G♯ (3), B♭ (♭5), D (♭7)", "A dominant 7th with a lowered 5th. Its four notes are the same as B♭7♭5's (B♭, D, F♭ = E, A♭ = G♯), which is why E7 can stand in for B♭7 (a tritone substitution). It also sounds like a French augmented sixth. The melody holds B♭: the ♭5."],
+    ["E♭7", "E♭3", ["G4", "B♭4", "D♭5"], "E♭ (root), G (3), B♭ (5), D♭ (♭7)", "A plain dominant 7th, a half step below the last chord. It doesn't resolve to A♭; it keeps sliding. The melody's D♭ is the ♭7."],
+    ["D♭7♯11", "D♭3", ["F4", "A♭4", "C♭5", "G5"], "D♭ (root), F (3), A♭ (5), C♭ (♭7), G (♯11)", "The plain 11th would be G♭; ♯11 is G♮, a tritone above the root. A 9th (E♭) may be added. This is the Lydian dominant sound."],
+    ["G♭/C", "C3", ["G♭4", "B♭4", "D♭5"], "C (bass), G♭ (♭5), B♭ (♭7), D♭ (♭9)", "C isn't a note of G♭ major, so this isn't an inversion. Read from C, it's C7(♭5, ♭9) with no 3rd: an altered dominant of F, written as a slash chord so the player doesn't add an E. The melody's D♭ is the ♭9."],
+    ["F7♯5", "F3", ["A4", "C♯5", "E♭5"], "F (root), A (3), C♯ (♯5), E♭ (♭7)", "An augmented seventh chord: V7 in B♭ minor with a raised 5th. C♯ is D♭ respelled, the 6th degree of B♭ minor, so the alteration comes straight from the key. The melody's E♭ is the ♭7."],
+    ["B♭m7", "B♭2", ["D♭4", "F4", "A♭4"], "B♭ (root), D♭ (♭3), F (5), A♭ (♭7)", "The tonic, B♭ minor 7. The melody lands on B♭, the root."],
+    ["G♭13", "G♭2", ["F♭4", "A♭4", "B♭4", "E♭5"], "G♭ (root), F♭ (♭7), A♭ (9), B♭ (3), E♭ (13)", "A dominant 13th on ♭VI. All its notes come from G♭ Mixolydian; the 11th (C♭) is left out because it clashes with the 3rd. This voicing (7th, 9th, 3rd, 13th over the root) is a standard piano shape."]];
+  const AX = { i: 0 };
+  const armSpec = (H, c) => ({ type: "score", clefs: ["treble", "bass"], time: null, vf: "C", sig: {}, bpm: 50, final: false, minBar: 150, bars: [{ t: [[{ k: c[2], d: "w", sym: c[0], center: true }]], b: [[{ k: [c[1]], d: "w" }]] }] });
+  const armHTML = () => `<div class="toy" id="armX"><div class="toy-row" role="group" aria-label="Chords in Armageddon">${ARM.map((c, i) => `<button type="button" class="play" data-armc="${i}" aria-pressed="${i === AX.i}">${c[0]}</button>`).join("")}</div>
+      <div class="staff" id="armStaff" style="width:100%"></div><div id="armInfo" aria-live="polite"></div><button type="button" class="play" id="armPlay">▶ Play this chord</button></div>`;
+  function armWire(root, H, tools) {
+    const box = root.querySelector("#armX"); if (!box) return;
+    const midi = c => [c[1]].concat(c[2]).map(s => H.midi(H.parse(s)));
+    const draw = () => { const c = ARM[AX.i]; tools.drawStaff(box.querySelector("#armStaff"), armSpec(H, c));
+      box.querySelector("#armInfo").innerHTML = `<p><b>${c[0]}</b>: ${c[3]}.</p><p>${c[4]}</p>`; };
+    box.addEventListener("click", e => { const b = e.target.closest("[data-armc]"); if (b) { AX.i = +b.dataset.armc; box.querySelectorAll("[data-armc]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); draw(); tools.play({ chords: [midi(ARM[AX.i])], gap: 1.6, dur: .9 }); }
+      if (e.target.closest("#armPlay")) tools.play({ chords: [midi(ARM[AX.i])], gap: 1.6, dur: .9 }); });
+    draw();
+  }
+  const armFig = (H, U, idx, cap) => U.fig({ type: "score", clefs: ["treble", "bass"], time: null, vf: "C", sig: {}, bpm: 50, final: false, minBar: 120, bars: idx.map(i => ({ t: [[{ k: ARM[i][2], d: "w", sym: ARM[i][0], center: true }]], b: [[{ k: [ARM[i][1]], d: "w" }]] })) }, cap, { play: { chords: idx.map(i => [ARM[i][1]].concat(ARM[i][2]).map(s => H.midi(H.parse(s)))), gap: 1.6, dur: .9 } });
   const lesson = { steps: [
     { title: "Chord tones and extensions", kick: "Stacking 3rds", render: (H, k, U) => `<p>This lesson covers the chord symbols in lead sheets and jazz/pop charts beyond basic triads: seventh chords, added tones (6, add2, sus), extended chords (9, 11, 13), altered tones (♭5, ♯5, ♭9, ♯9, ♯11, ♭13), and N.C. and (omit 5).</p>
       <p><b>Extended chords</b> keep stacking 3rds above a seventh chord: the <b>9th</b>, <b>11th</b> and <b>13th</b>. Another 3rd above the 13th would repeat the root, so 13 is the highest.</p>`
@@ -122,9 +149,30 @@ window.FAM = (() => {
       ${tbl(["Symbol", "Spelling", "Why you might see it"], [["{sym:C(omit 5)}", "C–E", "a bare, open sound, or keeping the 5th out of the melody's way"], ["{sym:D9(omit 5)}", "D–F♯–C–E", "a thinner voicing"], ["{sym:C7(omit 3)}", "C–G–B♭", "neither major nor minor: an ambiguous, open dominant"], ["{sym:C(omit 3)} = {sym:C5}", "C–G", "the power chord; C5 is more common"]])}
       <p><b>N.C.</b> means “no chord”: chord players stop until the next symbol. You might hear the melody alone (often a pickup or intro), the band in unison or octaves, or a break where a soloist fills the gap. In analysis, N.C. gets no label or Roman numeral; if the melody clearly outlines a harmony, describe it in words (“the pickup implies the dominant”).</p>` },
     { title: "Extended chords and inversion", kick: "Which root?", render: () => `<p>With extensions (especially with tones omitted), the same notes can often be named from more than one root: G–B–D–F–A–C could be G11, Bm7(♭5/♭9/♭13), Dm13… Fortunately, the more extended a chord is, the less likely it is to be inverted. <b>In this course, analyze every extended chord as root position.</b> In real music, context usually makes an inversion clear (a walking bass, or upper voices held while the bass moves); it's shown with a slash, like C7/E.</p>
-      <h3>Reading a jazz chord chart</h3>
-      ${tbl(["Symbol", "Spelling", "Comment"], [["N.C.", "—", "a pickup with melody only"], ["{sym:E7♭5}", "E–G♯–B♭–D", "E7 with a lowered 5th; sounds like a French augmented sixth (B♭–D–E–G♯)"], ["{sym:D♭7♯11}", "D♭–F–A♭–C♭ + G", "the plain 11th would be G♭, so ♯11 is G♮; a 9th (E♭) may be included"], ["{sym:G♭/C}", "C–G♭–B♭–D♭", "C isn't in G♭, so it's not an inversion: C7(♭5/♭9)(omit 3), written so as not to imply E"], ["{sym:F7♯5}", "F–A–C♯–E♭", "an augmented seventh chord"], ["{sym:B♭–7}", "B♭–D♭–F–A♭", "“–” means minor"], ["{sym:G♭13}", "G♭–B♭–D♭–F♭–A♭–(C♭)–E♭", "all from G♭ mixolydian; the 11th is usually left out"]])}
-      <p>This edition writes alterations without parentheses (E7♭5); both styles are common.</p>` },
+      <p>Chord charts write alterations with or without parentheses: E7♭5 and E7(♭5) mean the same thing.</p>` },
+    { title: "Wayne Shorter, “Armageddon”", kick: "Reading a real chart", render: () => `<p>Seven chord symbols, eight bars, and almost every kind of symbol from this lesson. This is the intro of Wayne Shorter's “Armageddon,” from his 1964 album <i>Night Dreamer</i>.</p>
+      ${YT("0nXqhfry8KQ", "Wayne Shorter, Armageddon")}
+      <figure class="lfig ext-fig"><img src="assets/img/extended/shorter-armageddon.png" width="1800" height="680" alt="Lead sheet of the intro of Armageddon in 4/4: a pickup bar marked N.C. with a descending chromatic sixteenth-note run; then E7 flat 5, E-flat 7 and D-flat 7 sharp 11; G-flat over C, F7 sharp 5 and B-flat minor 7; the same again; then rhythmic slashes and diamonds for B-flat minor 7 and G-flat 13." loading="lazy"><figcaption><p>Wayne Shorter, “Armageddon” (1964), intro. The slashes and diamond noteheads in the last line show the band's rhythm only, not pitches.</p>${FU}</figcaption></figure>
+      <p>Tap each chord to see how it's spelled and hear it. The voicings are simple piano shapes, root in the bass.</p>
+      ${armHTML()}`, after: (root, H, k, tools) => armWire(root, H, tools) },
+    { title: "Sliding dominants", kick: "E7♭5, E♭7, D♭7♯11", render: (H, k, U) => `<p>The run marked <b>N.C.</b> (no chord) falls through a chromatic scale with nothing under it. Then three dominant 7ths in a row, and none of them resolves the way a dominant should.</p>`
+      + armFig(H, U, [0, 1, 2], "E7♭5, E♭7, D♭7♯11: the roots slide down a half step, then a whole step.")
+      + `<p>A dominant 7th wants its root to fall a 5th. E7 should go to A, E♭7 to A♭. Here they slide sideways instead, keeping the same color and moving the whole chord, a technique called <b>planing</b>. What holds it together is the melody: the long B♭ is the ♭5 of E7, and the D♭ is the 7th of E♭7.</p>
+      <p>The alterations matter. E7♭5 has the same four notes as B♭7♭5, so it can stand in for a dominant on B♭. D♭7♯11 adds G♮, a tritone above the root, the bright edge of the Lydian dominant sound.</p>`
+      + H.check("E7♭5 has the same notes as which other chord?", "B♭7♭5", ["E♭7", "A7", "D♭7♯11"], "E–G♯–B♭–D and B♭–D–F♭–A♭ are the same four pitches.")
+      + H.check("What is the ♯11 of D♭7?", "G", ["G♭", "F♯", "A♭"], "The plain 11th is G♭; raised, it's G♮.") },
+    { title: "A slash chord and an altered cadence", kick: "G♭/C, F7♯5, B♭m7", render: (H, k, U) => armFig(H, U, [3, 4, 5], "G♭/C, F7♯5, B♭m7: an altered V/V, an altered V, and the tonic.")
+      + `<p>In B♭ minor this is {rn:V/V} – {rn:V} – {rn:i}, the most ordinary cadence there is, with every chord bent.</p>
+      <p><b>G♭/C</b> isn't G♭ in inversion: C isn't one of G♭'s notes. Read from the bass, the chord is C7 with a ♭5 (G♭) and a ♭9 (D♭) and no 3rd. Writing “G♭/C” tells the pianist exactly which three notes to play over C, and keeps the E out. The melody's D♭ sits on the ♭9.</p>
+      <p><b>F7♯5</b> is the dominant with a raised 5th, C♯. Spell it D♭ and it's the 6th degree of B♭ minor, so the alteration isn't foreign at all. The melody steps to E♭ (the 7th of F7) and falls to B♭, the root of the tonic chord.</p>`
+      + H.check("Why is G♭/C not an inversion of G♭?", "C isn't a note of the G♭ chord", ["C is the root of G♭", "the chord has no 5th", "slash chords are always inversions"], "An inversion puts a chord tone in the bass. C isn't in G♭–B♭–D♭.")
+      + H.check("In B♭ minor, what does F7♯5 do?", "it's the dominant (V7), leading to B♭m7", ["it's the tonic", "it's a pre-dominant", "it's a passing chord with no function"], "F is the 5th degree of B♭; the ♯5 only colors it.") },
+    { title: "The vamp", kick: "B♭m7 and G♭13", render: (H, k, U) => armFig(H, U, [5, 6], "B♭m7 and G♭13, the two chords the intro rocks between at the end.")
+      + `<p>The last line swaps between two chords, {rn:i7} and {rn:♭VI13}. Written out, they share three notes: B♭, D♭ and A♭ (the 9th of G♭). The bass moves down a 3rd and the color darkens, but most of the sound stays put.</p>
+      <p>G♭13 is spelled G♭–B♭–D♭–F♭–A♭–E♭. The 11th (C♭) is missing, as it usually is in a dominant 13th, because it rubs against the 3rd. The voicing here is a common piano shape: the 7th, 9th, 3rd and 13th stacked over the root.</p>
+      <p>Listen for how long the band stays on these two chords before the theme comes in.</p>`
+      + H.check("Which notes do B♭m7 and G♭13 share?", "B♭, D♭ and A♭", ["F and E♭", "only B♭", "none"], "B♭m7 is B♭–D♭–F–A♭; G♭13 is G♭–B♭–D♭–F♭–A♭–E♭.")
+      + H.check("Why is the 11th usually left out of a dominant 13th chord?", "it clashes with the 3rd", ["it's the same note as the root", "it makes the chord minor", "it doubles the 13th"], "The 11th sits a half step above the 3rd.") },
     { title: "Quick check", kick: "Then practice", render: (H) => H.check("Which tone is the 13th of C7?", "A", ["A♭", "F", "D"], "13 = 6: a M6 above C.") + H.check("What is the ♯11 of A♭7?", "D", ["D♭", "C♯", "E♭"], "The plain 11th is D♭; raised, it's D♮.") + H.check("Which symbol means a minor triad with a major 7th?", "Cm(maj7)", ["Cm7", "Cmaj7", "Cø7"], "Minor-major seventh: C–E♭–G–B.", "sym") + H.check("C6 differs from C13 because C6 has…", "no 7th", ["no 3rd", "no 5th", "a ♭9"], "C13 implies B♭; C6 doesn't.") },
   ] };
   return { key: "silverapps-extlesson-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };

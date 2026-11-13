@@ -595,3 +595,6 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ps-ans { margin: 14px 0 4px; padding: 10px 14px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
 .ps-ans summary { cursor: pointer; font-weight: 700; min-height: 32px; display: list-item; }
 .ps-ans p { margin: 8px 0; }
+/* Extended chords: Armageddon (extlesson.js) */
+.ext-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
+#armInfo p { margin: 6px 0; }
