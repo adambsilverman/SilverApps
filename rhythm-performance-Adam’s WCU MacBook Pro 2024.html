@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ear Training – Rhythm · SilverApps Interactive Music Training</title>
+<meta name="description" content="Rhythmic dictation (hear a rhythm, write it down) and rhythm performance: perform written rhythms by tapping or clapping with a count-in and metronome: generated rhythms, world and classical rhythms, drum rudiments, clapping on cue, and a phasing piece in the manner of Clapping Music. The app checks the timing of every note.">
+<link rel="stylesheet" href="assets/indie.css">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
+<script src="assets/shared/vexflow.b24b3b9880.js"></script>
+<style>
+.lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
+.lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.lesson-head h1 span{color:var(--fi-red-dk)}
+.lesson-head p{max-width:60ch;margin:10px 0 0}
+.steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:18px 0 12px}
+.steps button{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;min-height:36px;min-width:36px;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:4px 11px;cursor:pointer}
+.steps button[aria-current="step"]{background:var(--fi-ink);color:#fff}
+.steps button.seen:not([aria-current]){background:var(--fi-green-pale)}
+.slide{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:22px 24px;display:grid;gap:14px}
+.slide[hidden]{display:none}
+.slide h2{font:400 clamp(32px,5vw,46px)/1 var(--fi-display);margin:0}
+.slide .kick{font:700 13px var(--fi-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--fi-muted);margin:0}
+.slide p{margin:0;max-width:64ch}
+.fig{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:12px;overflow:hidden}
+.fig svg{display:block;width:100%;height:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbtn{font:700 16px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:9px 16px;min-height:44px;cursor:pointer}
+.lbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk);color:var(--fi-ink)}
+.lbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.lbtn:focus-visible,.steps button:focus-visible,.key:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.readout{font:400 clamp(26px,4.4vw,38px)/1.05 var(--fi-display)}
+.readout small{display:block;font:15px/1.4 var(--fi-serif);color:var(--fi-muted)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.note{font-size:.95rem;color:var(--fi-muted)}
+.settings2{display:flex;flex-wrap:wrap;gap:14px;align-items:end}
+label.f2{min-width:0;max-width:100%;display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+select,input[type=number]{max-width:100%;font:16px var(--fi-serif);padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px}
+input[type=number]{width:5.5em}
+#card>*{min-width:0}
+.score{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:8px 10px;position:relative}
+.score svg{display:block;width:100%;height:auto}
+.count{display:flex;gap:10px;justify-content:center;min-height:56px;align-items:center}
+.count span{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:400 28px var(--fi-display);border:2px solid var(--fi-line);background:var(--fi-card);transition:background .05s}
+.count span.on{background:var(--fi-red);border-color:var(--fi-red-dk)}
+.count span.on.down{background:var(--fi-ink);color:#fff}
+.tap{display:block;width:100%;min-height:120px;border-radius:var(--fi-r);border:2px dashed var(--fi-line);background:var(--fi-card);font:400 40px var(--fi-display);color:var(--fi-ink);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tap small{display:block;font:15px var(--fi-serif);color:var(--fi-muted)}
+.tap.hit{background:#FFE07A}
+.tap:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:3px}
+.fb2{min-height:1.5em;font:600 18px var(--fi-serif);text-align:center;margin:0 auto}
+.fb2.good{color:var(--fi-green-dk)} .fb2.bad{color:var(--fi-red-dk)}
+.tl svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:14px;color:var(--fi-muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:18px 0 12px}
+.tabs button{border:1.5px solid var(--fi-line);background:var(--fi-card);border-radius:14px;padding:10px 8px;min-height:64px;cursor:pointer;color:var(--fi-ink);display:grid;gap:2px;text-align:center}
+.tabs button b{font:400 24px/1 var(--fi-display)} .tabs button small{font:13px var(--fi-serif);color:var(--fi-muted)}
+.tabs button[aria-pressed="true"]{background:var(--fi-ink);color:#fff} .tabs button[aria-pressed="true"] small{color:#e8e1d8}
+.tabs button:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.pal{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pal button{min-width:64px;min-height:64px;border-radius:14px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);cursor:pointer;display:grid;place-items:center;gap:0;padding:4px 8px}
+.pal button .g{font:30px/1 "Noto Music",serif} .pal button small{font:12px var(--fi-serif);color:var(--fi-muted)}
+.pal button:disabled{opacity:.35;cursor:default}
+.pal button:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+#dictUI[hidden],#tabs [hidden],.tap[hidden],.tl[hidden],.micstat[hidden],.anslab[hidden],.score[hidden]{display:none}
+.anslab{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:4px 0}
+.micstat{font:600 15px var(--fi-serif);color:var(--fi-muted);text-align:center}
+label.f2[hidden],.info[hidden],.lbtn[hidden]{display:none}
+.info{background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:10px 14px}
+.info p{margin:0 0 6px} .info p:last-child{margin:0}
+.info b.stick{font:700 18px var(--fi-ui);letter-spacing:.12em}
+.cue{font:400 clamp(24px,4vw,34px)/1.15 var(--fi-display);text-align:center;padding:18px 8px}
+.cue small{display:block;font:400 16px/1.4 var(--fi-serif);letter-spacing:0;text-transform:none;color:var(--fi-muted);margin-top:6px}
+.pgrid{max-width:620px;margin:0 auto;display:grid;grid-template-columns:auto repeat(12,minmax(0,1fr));gap:4px;align-items:center;padding:6px 4px}
+.pgrid .lab{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.05em;padding-right:6px;white-space:nowrap}
+.pgrid i{display:block;aspect-ratio:1;border-radius:50%;border:2px solid var(--fi-line);background:var(--fi-card)}
+.pgrid i.x{background:var(--fi-ink)}
+.pgrid i.now{outline:3px solid var(--fi-red);outline-offset:1px}
+.pgrid i.x.now{background:var(--fi-red)}
+.phase-stat{text-align:center;font:600 16px var(--fi-serif);margin:4px 0 0}
+.restab{width:100%;border-collapse:collapse;font-size:15px}.restab th,.restab td{border-bottom:1px solid var(--fi-soft);padding:4px 6px;text-align:left}
+input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;padding:8px 10px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:44px;width:12em;max-width:100%}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+<script src="assets/progress.js?v=0916b76d"></script>
+
+<main class="lesson" id="main">
+  <header class="lesson-head">
+    <h1>Ear Training <span>Rhythm</span></h1>
+    <p><b>Dictation:</b> listen to a rhythm and write it down. <b>Perform:</b> read the rhythm, listen to the count-in, then perform it. Practice generated rhythms, rhythms from around the world, classical dance rhythms and drum rudiments, clap on cue while counting rests, or perform a phasing piece in the manner of Steve Reich's <i>Clapping Music</i>. Perform by tapping the pad or the space bar, or by clapping into the microphone. The app shows which notes were on time, early, late, missed or extra.</p>
+  </header>
+  <nav class="tabs" aria-label="Activity" id="tabs">
+    <button type="button" data-tab="dict" aria-pressed="false"><b>Dictation</b><small>write the rhythm you hear</small></button>
+    <button type="button" data-tab="perf" aria-pressed="true"><b>Perform</b><small>tap or clap written rhythms</small></button>
+  </nav>
+  <section class="slide" id="card">
+    <div class="settings2" id="settings">
+      <label class="f2" for="sMode">Practice<select id="sMode"><option value="gen">Generated rhythms</option><option value="world">Rhythms from around the world</option><option value="classic">Classical rhythms</option><option value="rud">Drum rudiments</option><option value="cue">Clap on cue (count the rests)</option><option value="cm">Clapping Music (phasing)</option><option value="cmg">Clapping Music Generator</option></select></label>
+      <label class="f2" for="sPat" id="lPat">Pattern<select id="sPat"></select></label>
+      <label class="f2" for="sCm" id="lCm">Pattern (x = clap, . = rest)<input id="sCm" type="text" maxlength="12" spellcheck="false" autocomplete="off" placeholder="12 pulses"></label>
+      <label class="f2" for="sPart" id="lPart">Your part<select id="sPart"><option value="steady">Steady clapper</option><option value="moving">Moving clapper</option></select></label>
+      <label class="f2" for="sSnd" id="lSnd">Clap sound<select id="sSnd"><option value="clap">Hand claps</option><option value="block">Wood blocks</option></select></label>
+      <label class="f2" for="sReps" id="lReps">Repeats per section<select id="sReps"><option>2</option><option>4</option><option>8</option><option>12</option></select></label>
+      <label class="f2" for="sFrom" id="lFrom">Start at section<select id="sFrom"></select></label>
+      <label class="f2" for="sNsec" id="lNsec">Sections<select id="sNsec"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="13">All (to unison)</option></select></label>
+      <label class="f2" for="sLv">Rhythms<select id="sLv"></select></label>
+      <label class="f2" for="sMt">Meter<select id="sMt"><option>2/4</option><option>3/4</option><option>4/4</option><option>6/8</option></select></label>
+      <label class="f2" for="sBars">Bars<select id="sBars"><option>1</option><option>2</option><option>4</option></select></label>
+      <label class="f2" for="sTp">Tempo (beats per minute)<input id="sTp" type="number" min="40" max="160" step="2"></label>
+      <label class="f2" for="sTol">Timing<select id="sTol"><option value="relaxed">Relaxed</option><option value="normal">Normal</option><option value="strict">Strict</option></select></label>
+      <label class="f2" for="sClk">Metronome<select id="sClk"><option value="on">Click throughout</option><option value="in">Count-in only</option></select></label>
+      <label class="f2" for="sIn">Perform by<select id="sIn"><option value="tap">Tapping (pad or space bar)</option><option value="clap">Clapping (microphone)</option></select></label>
+    </div>
+    <div class="info" id="info" aria-live="polite"></div>
+    <p class="anslab" id="ansLab" hidden>Your answer</p>
+    <div class="score" id="score"></div>
+    <div class="count" id="count" aria-hidden="true"></div>
+    <div class="row" style="justify-content:center">
+      <button class="lbtn primary" id="go" type="button">▶ Perform it</button>
+      <button class="lbtn" id="hear" type="button">▶ Hear it</button>
+      <button class="lbtn" id="next" type="button">New rhythm ›</button>
+      <button class="lbtn" id="cal" type="button">Calibrate timing</button>
+    </div>
+    <div id="dictUI" hidden>
+      <p class="note" style="text-align:center;margin:0 0 8px">Press <b>Hear it</b> (as often as you like), then build the rhythm with the buttons below. Only where each note <i>starts</i> is checked: with these short clicks, a longer note sounds the same as a shorter note followed by a rest.</p>
+      <div class="pal" id="dPal" role="group" aria-label="Add a note or rest"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button class="lbtn" id="dRest" type="button" aria-pressed="false">Rest</button>
+        <button class="lbtn" id="dUndo" type="button">Undo</button>
+        <button class="lbtn" id="dClear" type="button">Clear</button>
+        <button class="lbtn primary" id="dCheck" type="button">Check</button>
+        <button class="lbtn" id="dShow" type="button">Show answer</button>
+      </div>
+      <p class="micstat" id="dState" aria-live="polite"></p>
+      <p class="anslab" id="corLab" hidden>The rhythm played</p>
+      <div class="score" id="ansScore" hidden></div>
+    </div>
+    <button class="tap" id="tap" type="button">Tap<small>or press the space bar</small></button>
+    <p class="fb2" id="fb" aria-live="polite"></p>
+    <div class="tl" id="tl"></div>
+    <p class="micstat" id="stat" aria-live="polite"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; };
+
+  // ---------- settings ----------
+  const LEVELS = [[1, "Quarters and halves"], [2, "+ Eighth notes"], [3, "+ Dotted rhythms, eighth rests"], [4, "+ Sixteenth notes"], [5, "+ Syncopation"], [6, "+ Triplets"]];
+  let S = { tab: "dict", lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", snd: "clap", reps: 4, from: 0, nsec: 13, cm: "" };
+  try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-rhythmperf") || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem("silverapps-rhythmperf", JSON.stringify(S)); } catch (e) {} };
+  $("sLv").innerHTML = LEVELS.map(([v, t]) => `<option value="${v}">${v}. ${t}</option>`).join("");
+  $("sFrom").innerHTML = Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i + 1}${i ? ` (shifted ${i})` : " (unison)"}</option>`).join("");
+  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sSnd").value = S.snd; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
+  syncForm();
+  $("settings").onchange = e => {
+    const v = e.target.value, id = e.target.id;
+    if (["sMode", "sPat", "sPart", "sSnd", "sReps", "sFrom", "sNsec", "sCm"].includes(id)) {
+      ({ sMode: () => S.mode = v, sPat: () => S.pat[S.mode] = +v, sPart: () => S.part = v, sSnd: () => S.snd = v, sReps: () => S.reps = +v, sFrom: () => S.from = +v, sNsec: () => S.nsec = +v, sCm: () => S.cm = v.trim() })[id]();
+      save(); stopRun(); modeUI(); newRhythm(); return;
+    }
+    ({ sLv: () => S.lv = +v, sMt: () => S.meter = v, sBars: () => S.bars = +v, sTp: () => S.tempo = Math.max(40, Math.min(160, +v || 80)), sTol: () => S.tol = v, sClk: () => S.click = v, sIn: () => S.input = v })[e.target.id]();
+    save(); if (["sLv", "sMt", "sBars"].includes(e.target.id)) newRhythm(); else if (e.target.id === "sIn") updateInputUI();
+  };
+  if (window.SAprogress) SAprogress.init({ id: "rhythmperformance", name: "Ear Training – Rhythm", before: ".fi-credit" });
+
+  // ---------- rhythm generation ----------
+  // Durations in ticks: quarter = 12 (eighth 6, sixteenth 3, triplet eighth 4). Negative = rest. span = beats covered.
+  const P = (lv, span, d) => ({ lv, span, d });
+  const SIMPLE = [
+    P(1, 1, [12]), P(1, 2, [24]), P(1, 1, [-12]), P(1, 3, [36]), P(1, 4, [48]),
+    P(2, 1, [6, 6]), P(2, 1, [6, 6]),
+    P(3, 2, [18, 6]), P(3, 1, [-6, 6]),
+    P(4, 1, [3, 3, 3, 3]), P(4, 1, [6, 3, 3]), P(4, 1, [3, 3, 6]),
+    P(5, 2, [6, 12, 6]), P(5, 1, [3, 6, 3]), P(5, 1, [9, 3]),
+    P(6, 1, [4, 4, 4]),
+  ];
+  const COMPOUND = [   // beat = dotted quarter = 18
+    P(1, 1, [18]), P(1, 2, [36]), P(1, 1, [-18]), P(1, 1, [12, 6]),
+    P(2, 1, [6, 6, 6]), P(2, 1, [6, 6, 6]),
+    P(3, 1, [6, 12]), P(3, 1, [9, 3, 6]), P(3, 1, [-6, 6, 6]),
+    P(4, 1, [3, 3, 6, 6]), P(4, 1, [6, 3, 3, 6]), P(4, 1, [3, 3, 3, 3, 6]),
+    P(5, 1, [6, 12]), P(5, 1, [12, 6]),
+    P(6, 1, [3, 3, 3, 3, 3, 3]),
+  ];
+  const METERS = { "2/4": { beats: 2, beat: 12, num: 2, den: 4 }, "3/4": { beats: 3, beat: 12, num: 3, den: 4 }, "4/4": { beats: 4, beat: 12, num: 4, den: 4 }, "6/8": { beats: 2, beat: 18, num: 6, den: 8, compound: true }, "12/8": { beats: 4, beat: 18, num: 12, den: 8, compound: true } };
+  function makeBar(m, lv, last) {
+    const lib = m.compound ? COMPOUND : SIMPLE;
+    for (let g = 0; g < 100; g++) {
+      const bar = []; let b = 0;
+      while (b < m.beats) {
+        const ok = lib.filter(p => p.lv <= lv && p.span <= m.beats - b
+          && (p.span === 1 || b % 2 === 0 || (lv >= 5 && p.span === 2))      // longer values start on strong beats unless syncopated
+          && !(p.span === 3 && b !== 0) && !(p.span === 4 && b !== 0) && !(p.d[0] < 0 && b === 0 && Math.random() < .6));
+        const w = ok.map(p => 1 + (p.lv === lv ? 3 : 0) + (p.lv === lv - 1 ? 1 : 0) - (p.span > 1 ? .4 : 0));
+        let r = Math.random() * w.reduce((a, c) => a + c, 0), pick = ok[0];
+        for (let i = 0; i < ok.length; i++) { r -= w[i]; if (r <= 0) { pick = ok[i]; break; } }
+        bar.push({ b, p: pick }); b += pick.span;
+      }
+      const notes = bar.reduce((n, x) => n + x.p.d.filter(d => d > 0).length, 0);
+      if (notes < 2 && m.beats > 2) continue;
+      if (lv > 1 && !bar.some(x => x.p.lv >= Math.max(2, lv - 1)) && Math.random() < .8) continue;   // show the level's material
+      if (last && bar[bar.length - 1].p.d.slice(-1)[0] < 0 && Math.random() < .7) continue;
+      return bar;
+    }
+    return [{ b: 0, p: P(1, m.beats, [m.beat * m.beats]) }];
+  }
+  let R = null;   // current rhythm: { m, bars: [[{d, rest, start, beatIdx, trip}]], onsets: [{t, bar, i}], total }
+  function newRhythm() {
+    if (S.tab === "dict") { genRhythm(); finishSetup(); dictReset(); return; }
+    if (S.mode === "gen") genRhythm(); else if (S.mode === "cue") cueRhythm(); else if (S.mode === "cm" || S.mode === "cmg") phaseRhythm(); else libRhythm();
+    finishSetup();
+  }
+  function finishSetup() {
+    R.onsets = []; R.bars.forEach((ev, bi) => ev.forEach((e, i) => { if (!e.rest) R.onsets.push({ tick: e.start, bar: bi, i }); }));
+    R.res = null; draw(); $("fb").textContent = ""; $("tl").innerHTML = ""; drawCount(-1);
+  }
+  // events from signed tick lists, one list per bar
+  function fromLists(m, lists) {
+    const barT = m.beats * m.beat;
+    return lists.map((arr, k) => { let t = 0; return arr.map(d => { const b = Math.floor(t / m.beat), e = { d: Math.abs(d), rest: d < 0, start: k * barT + t, beat: b, group: `${k}-${b}`, trip: Math.abs(d) === 4 }; t += Math.abs(d); return e; }); });
+  }
+  function setR(m, bars, extra) { const barT = m.beats * m.beat; R = Object.assign({ m, bars, barT, nb: bars.length, total: barT * bars.length, onsets: [] }, extra || {}); }
+  function genRhythm() {
+    const m = METERS[S.meter], barT = m.beats * m.beat, bars = [];
+    for (let k = 0; k < S.bars; k++) {
+      const raw = makeBar(m, S.lv, k === S.bars - 1), ev = []; let t = 0;
+      raw.forEach(({ b, p }) => p.d.forEach(d => { ev.push({ d: Math.abs(d), rest: d < 0, start: k * barT + t, beat: b + Math.floor((t - b * m.beat) / m.beat), group: `${k}-${b}`, trip: p.d.length === 3 && p.d.every(x => x === 4) }); t += Math.abs(d); }));
+      bars.push(ev);
+    }
+    setR(m, bars);
+    $("info").hidden = true;
+  }
+  // ---------- pattern library ----------
+  const S16 = Array(16).fill(3), S12 = Array(12).fill(3);
+  const LIB = {
+    world: [
+      { n: "Son clave (3–2)", m: "4/4", b: [[18, 18, 12], [-12, 12, 24]], t: "The rhythmic key of Cuban son and salsa: three strokes in the first bar, two in the second. Everyone in the band places their part against it, and a phrase is said to be “in clave” when its accents agree with it." },
+      { n: "Son clave (2–3)", m: "4/4", b: [[-12, 12, 24], [18, 18, 12]], t: "The same clave started from its other half. Which side comes first depends on the song's melody, and musicians feel the difference at once." },
+      { n: "Rumba clave (3–2)", m: "4/4", b: [[18, 24, 6], [-12, 12, 24]], t: "Like son clave, but the third stroke is delayed by an eighth, which gives Afro-Cuban rumba its pull toward the next bar." },
+      { n: "Tresillo", m: "4/4", b: [[18, 18, 12], [18, 18, 12]], t: "Eight eighths grouped 3 + 3 + 2. Found across the Caribbean, Latin America and West Africa, and in countless pop, rock, reggaeton and funk grooves." },
+      { n: "Habanera", m: "2/4", b: [[9, 3, 6, 6], [9, 3, 6, 6]], t: "A dotted figure followed by two even notes: the 19th-century Cuban dance rhythm that spread into tango and early jazz." },
+      { n: "Cinquillo", m: "2/4", b: [[6, 3, 6, 3, 6], [6, 3, 6, 3, 6]], t: "Five strokes in a bar of eight sixteenths (long-short-long-short-long). Heard in Cuban danzón and Haitian and Dominican music." },
+      { n: "Bossa nova pattern", m: "4/4", b: [[18, 18, 12], [-12, 18, 18]], t: "A Brazilian relative of clave, often played as a rim click; the second bar's last stroke comes an eighth earlier than in son clave." },
+      { n: "West African bell pattern", m: "12/8", b: [[12, 12, 6, 12, 12, 12, 6], [12, 12, 6, 12, 12, 12, 6]], t: "The seven-stroke bell timeline of much West African drumming (and Afro-Cuban bembé): twelve pulses that can be felt in four dotted-quarter beats or in six quarter beats at once." },
+    ],
+    classic: [
+      { n: "Siciliano", m: "6/8", b: [[9, 3, 6, 9, 3, 6], [9, 3, 6, 18]], t: "A gentle, lilting Baroque dance or aria type in 6/8 or 12/8 with a dotted-eighth, sixteenth, eighth figure." },
+      { n: "Gigue (jig)", m: "6/8", b: [[12, 6, 12, 6], [12, 6, 18]], t: "Long-short, long-short in a fast compound meter: the last dance of many Baroque suites." },
+      { n: "Lombard rhythm (Scotch snap)", m: "2/4", b: [[3, 9, 3, 9], [3, 9, 12]], t: "A reversed dotted rhythm, short-long, with the accent on the short note. Common in Scottish song and in 18th-century galant music." },
+      { n: "French overture style", m: "4/4", b: [[18, 6, 9, 3, 12], [18, 6, 24]], t: "Stately dotted rhythms, often played even sharper than written (double-dotted), in the slow opening of a French overture." },
+      { n: "Polonaise", m: "3/4", b: [[6, 3, 3, 6, 6, 6, 6], [6, 3, 3, 6, 6, 12]], t: "The Polish processional dance in moderate 3/4: an eighth and two sixteenths on beat 1, often ending phrases on beat 3." },
+      { n: "Sarabande", m: "3/4", b: [[12, 18, 6], [12, 24]], t: "A slow Baroque dance that leans on beat 2: a long note there gives the dance its weight." },
+      { n: "Minuet", m: "3/4", b: [[12, 12, 12], [24, 12]], t: "The courtly dance in moderate 3/4, usually phrased in two-bar units." },
+      { n: "March", m: "2/4", b: [[9, 3, 9, 3], [6, 6, 12]], t: "Two strong beats per bar with crisp dotted figures, ideal for walking in step." },
+    ],
+    rud: [
+      { n: "Single-stroke roll", m: "4/4", b: [S16], st: "R L R L R L R L R L R L R L R L", t: "Alternate hands evenly. Start slowly; speed comes from relaxed, even strokes." },
+      { n: "Double-stroke roll", m: "4/4", b: [S16], st: "R R L L R R L L R R L L R R L L", t: "Two strokes per hand; at speed the second stroke is a controlled rebound. The basis of the open roll." },
+      { n: "Single paradiddle", m: "4/4", b: [S16, S16], st: "R L R R L R L L (repeat)", t: "Two singles and a double (“para-diddle”). Because the pattern switches the leading hand, it is used to move around a drum kit." },
+      { n: "Double paradiddle", m: "6/8", b: [S12, S12], st: "R L R L R R L R L R L L", t: "Four singles and a double: a six-note grouping that fits compound meter." },
+      { n: "Paradiddle-diddle", m: "6/8", b: [S12, S12], st: "R L R R L L (repeat)", t: "Two singles and two doubles, always leading with the same hand; common in fills in 6/8 and in triplet feels." },
+      { n: "Triplet single strokes", m: "4/4", b: [Array(12).fill(4)], st: "R L R L R L R L R L R L", t: "Alternating strokes in eighth-note triplets: the leading hand switches on every beat." },
+      { n: "Accented single strokes", m: "4/4", b: [S16], st: "R l l l L r r r R l l l L r r r", t: "Capital letters are accents. Keep unaccented strokes low and the accents high; the clapping test checks timing only." },
+    ],
+  };
+  function libRhythm() {
+    const list = LIB[S.mode], i = Math.min(S.pat[S.mode] || 0, list.length - 1), p = list[i], m = METERS[p.m];
+    setR(m, fromLists(m, p.b));
+    $("info").hidden = false;
+    $("info").innerHTML = `<p><b>${p.n}</b> · ${p.m}</p><p>${p.t}</p>` + (p.st ? `<p>Sticking (R = right hand, L = left): <b class="stick">${p.st}</b></p><p class="note">Tap or clap every stroke; to practice the sticking, use two fingers or both hands on the table.</p>` : "");
+  }
+
+  // ---------- clap on cue ----------
+  const ORD = ["", "2nd", "3rd"];
+  function cueRhythm() {
+    const m = METERS[S.meter], barT = m.beats * m.beat, nb = Math.max(2, S.bars);
+    const g = m.compound ? (S.lv <= 2 ? 18 : 6) : (S.lv <= 2 ? 12 : S.lv <= 4 ? 6 : 3);
+    const slots = barT / g * nb, want = Math.min(nb + 1, 1 + Math.floor(Math.random() * Math.min(4, nb + 1)));
+    const pick = new Set(); let guard = 0;
+    while (pick.size < want && guard++ < 200) { const x = Math.floor(Math.random() * slots); if (x === 0 && Math.random() < .7) continue; if (![...pick].some(y => Math.abs(y - x) * g < 12)) pick.add(x); }
+    const ticks = [...pick].sort((a, b) => a - b).map(x => x * g);
+    const lists = [];
+    for (let k = 0; k < nb; k++) {
+      const arr = []; let restRun = 0, t = 0;
+      const flush = () => { while (restRun > 0) { const room = m.beat - ((t - restRun) % m.beat), c = Math.min(restRun, room), ok = [18, 12, 9, 6, 3].find(v => v <= c && (v !== 18 || m.compound) && (v !== 9 || c === 9)); arr.push(-ok); restRun -= ok; } };
+      for (t = 0; t < barT; ) { const abs = k * barT + t; if (ticks.includes(abs)) { flush(); arr.push(g); t += g; } else { restRun += g; t += g; if (t % m.beat === 0) flush(); } }
+      flush(); lists.push(arr);
+    }
+    const name = tk => { const k = Math.floor(tk / barT), r = tk % barT, b = Math.floor(r / m.beat) + 1, w = r % m.beat;
+      let pos; if (m.compound) pos = w === 0 ? `beat ${b}` : `the ${ORD[w / 6]} eighth of beat ${b}`; else pos = w === 0 ? `beat ${b}` : w === 6 ? `the “&” of ${b}` : w === 3 ? `the “e” of ${b}` : `the “a” of ${b}`;
+      return `bar ${k + 1}, ${pos}`; };
+    setR(m, fromLists(m, lists), { hide: true, cueText: "Clap on: " + ticks.map(name).join(" · ") });
+    $("info").hidden = false;
+    $("info").innerHTML = `<p><b>Clap on cue.</b> Listen to the one-bar count-in, keep counting through the rests (${m.compound ? "“1 & a 2 & a”, or count the eighths" : "“1 e & a 2 e & a…”"}), and clap only where the cue says. ${nb} bars of ${S.meter}.</p>`;
+  }
+
+  // ---------- phasing (Clapping Music) ----------
+  const rot = (P, s) => P.map((_, i) => P[(i + s) % 12]);
+  const groupsOf = P => { const k = P.indexOf(false); if (k < 0) return []; const r = rot(P, k), out = []; let c = 0; r.forEach(x => { if (x) c++; else { if (c) out.push(c); c = 0; } }); if (c) out.push(c); return out; };
+  function genPhase() {
+    for (let g = 0; g < 500; g++) {
+      const groups = []; let used = 0;
+      while (used < 12) { const n = 1 + Math.floor(Math.random() * 3), gap = Math.random() < .8 ? 1 : 2; if (used + n + gap > 12) break; groups.push([n, gap]); used += n + gap; }
+      if (used !== 12 || groups.length < 3) continue;
+      const P = []; groups.forEach(([n, gap]) => { for (let i = 0; i < n; i++) P.push(true); for (let i = 0; i < gap; i++) P.push(false); });
+      const claps = P.filter(Boolean).length; if (claps < 6 || claps > 9) continue;
+      let sym = false; for (let s = 1; s < 12; s++) if (rot(P, s).every((x, i) => x === P[i])) sym = true; if (sym) continue;
+      const gs = groupsOf(P).join(","); if (["3,2,1,2", "2,1,2,3", "1,2,3,2", "2,3,2,1"].includes(gs)) continue;   // not the original piece's grouping
+      return P.map(x => x ? "x" : ".").join("");
+    }
+    return "xx.x.xxx.x..";
+  }
+  let genPat = null;
+  function phaseRhythm() {
+    let str = S.mode === "cmg" ? (genPat = genPat || genPhase()) : (S.cm || "");
+    const ok = /^[xX.]{12}$/.test(str) && /x/i.test(str);
+    const m = METERS["12/8"];
+    if (!ok) {
+      setR(m, fromLists(m, [[72]]), { grid: { P: Array(12).fill(false), secs: [0], bad: true } });
+      $("info").hidden = false; $("info").innerHTML = `<p><b>Clapping Music.</b> Type the 12-pulse pattern from your score into the Pattern box, using <b>x</b> for a clap and <b>.</b> for a rest (12 characters). The pattern isn't printed here because the piece is under copyright. Or choose <b>Clapping Music Generator</b> for a new pattern of the same kind.</p>`;
+      return;
+    }
+    const P = [...str].map(c => c.toLowerCase() === "x");
+    const secs = []; for (let i = 0; i < S.nsec && S.from + i <= 12; i++) secs.push(S.from + i);
+    const lists = [], other = [], barT = 72; let k = 0;
+    secs.forEach(sc => { const steady = P, moving = rot(P, sc), mine = S.part === "steady" ? steady : moving, theirs = S.part === "steady" ? moving : steady;
+      for (let r = 0; r < S.reps; r++, k++) { lists.push(mine.map(x => x ? 6 : -6)); theirs.forEach((x, i) => { if (x) other.push(k * barT + i * 6); }); } });
+    setR(m, fromLists(m, lists), { grid: { P, secs }, other });
+    $("info").hidden = false;
+    $("info").innerHTML = (S.mode === "cmg" ? `<p><b>Clapping Music Generator.</b> A new 12-pulse pattern made the same way: groups of claps separated by rests, with no repeat inside the cycle, so every shift sounds different. Press <b>New pattern</b> for another.</p>` : `<p><b>Clapping Music</b> (Steve Reich, 1972) is for two performers. Both clap the same 12-pulse pattern. One keeps it unchanged throughout; the other, after a number of repeats, moves the pattern one eighth note ahead, and keeps doing so until, after 12 shifts, both are back in unison. There is no gradual drift: each shift is a sudden jump.</p>`)
+      + `<p>You are the <b>${S.part === "steady" ? "steady" : "moving"} clapper</b>; the app claps the other part (the lower sound). Use headphones if you're clapping into the microphone. Sections ${secs[0] + 1}–${secs[secs.length - 1] + 1}, ${S.reps} repeats each. Tip: count the 12 eighths in four groups of three.</p>`;
+  }
+  function drawGrid(colors) {
+    const G = R.grid, box = $("score");
+    if (G.bad) { box.innerHTML = `<p class="cue">Enter a pattern to begin<small>12 characters: x = clap, . = rest</small></p>`; return; }
+    const row = (lab, P, id) => `<span class="lab">${lab}</span>` + P.map((x, i) => `<i class="${x ? "x" : ""}" data-${id}="${i}"></i>`).join("");
+    const sc = G.cur != null ? G.cur : G.secs[0], st = G.P, mv = rot(G.P, sc);
+    let html = `<div class="pgrid" role="img" aria-label="Steady part ${st.map(x => x ? "clap" : "rest").join(" ")}; moving part ${mv.map(x => x ? "clap" : "rest").join(" ")}">${row(S.part === "steady" ? "Steady (you)" : "Steady", st, "s")}${row(S.part === "moving" ? "Moving (you)" : "Moving", mv, "m")}</div>`;
+    html += `<p class="phase-stat" id="pstat">Section ${sc + 1}${sc ? ` (moved ${sc})` : " (unison)"}</p>`;
+    if (colors) {
+      const per = G.secs.map((s, j) => { let g = 0, n = 0; for (let r = 0; r < S.reps; r++) (colors[j * S.reps + r] || []).forEach(c => { if (c) { n++; if (c === "--fi-green-dk") g++; } }); return `<tr><td>${s + 1}</td><td>${g} / ${n}</td></tr>`; });
+      html += `<table class="restab"><caption class="sr">Results by section</caption><thead><tr><th scope="col">Section</th><th scope="col">Claps on time</th></tr></thead><tbody>${per.join("")}</tbody></table>`;
+    }
+    box.innerHTML = html; G.drawn = sc;
+  }
+  function gridAt(tick) {
+    const G = R.grid; if (G.bad) return;
+    const bar = Math.floor(tick / 72), sc = G.secs[Math.min(G.secs.length - 1, Math.floor(bar / S.reps))], slot = Math.floor((tick % 72) / 6);
+    if (G.drawn !== sc) { G.cur = sc; drawGrid(); }
+    const box = $("score"); box.querySelectorAll("i.now").forEach(e => e.classList.remove("now"));
+    box.querySelectorAll(`[data-s="${slot}"],[data-m="${slot}"]`).forEach(e => e.classList.add("now"));
+    const ps = $("pstat"); if (ps) ps.textContent = `Section ${sc + 1}${sc ? ` (moved ${sc})` : " (unison)"} · repeat ${bar % S.reps + 1} of ${S.reps}`;
+  }
+  function progLabel() {
+    if (S.tab === "dict") return `Dictation · level ${S.lv} · ${S.meter}`;
+    if (S.mode === "gen") return `Level ${S.lv} · ${S.meter}`;
+    if (LIB[S.mode]) return LIB[S.mode][S.pat[S.mode] || 0].n;
+    if (S.mode === "cue") return `Clap on cue · ${S.meter}`;
+    return `Phasing · ${S.part} clapper`;
+  }
+  function modeUI() {
+    const md = S.mode, lib = !!LIB[md], ph = md === "cm" || md === "cmg";
+    const show = (id, on) => { $(id).hidden = !on; };
+    show("lPat", lib); show("lCm", md === "cm"); ["lPart", "lSnd", "lReps", "lFrom", "lNsec"].forEach(id => show(id, ph));
+    $("sLv").closest("label").hidden = !(md === "gen" || md === "cue");
+    $("sMt").closest("label").hidden = !(md === "gen" || md === "cue");
+    $("sBars").closest("label").hidden = !(md === "gen" || md === "cue");
+    if (lib) { $("sPat").innerHTML = LIB[md].map((p, i) => `<option value="${i}">${p.n}</option>`).join(""); $("sPat").value = Math.min(S.pat[md] || 0, LIB[md].length - 1); }
+    $("next").textContent = md === "gen" || md === "cue" ? "New rhythm ›" : md === "cmg" ? "New pattern ›" : lib ? "Next pattern ›" : "Restart";
+    $("next").hidden = md === "cm";
+  }
+
+  // ---------- notation ----------
+  const NAMES = { 48: "whole note", 36: "dotted half", 24: "half", 18: "dotted quarter", 12: "quarter", 9: "dotted eighth", 6: "eighth", 4: "triplet eighth", 3: "sixteenth" };
+  const DUR = { 48: ["w", 0], 36: ["h", 1], 24: ["h", 0], 18: ["q", 1], 12: ["q", 0], 9: ["8", 1], 6: ["8", 0], 4: ["8", 0], 3: ["16", 0] };
+  let geo = null;
+  function describe() {
+    return `Time signature ${R.m.num} ${R.m.den}. ` + R.bars.map((ev, k) => `Bar ${k + 1}: ` + ev.map(e => (NAMES[e.d] || "note") + (e.rest ? " rest" : "")).join(", ") + ".").join(" ");
+  }
+  // Proportional justification: VexFlow otherwise pushes a bar's last note against the bar line. Justify to the point where the
+  // last note starts (as a share of the bar), so the space after it matches its value; never narrower than the notes need.
+  function justifyW(VF, fmt, vs, avail) {   // format, then re-space so the gap after the last note matches its value
+    let w = avail; fmt.format(vs, w);
+    for (let it = 0; it < 5; it++) {
+      let tot = 0; const pts = [];
+      vs.forEach(v => { let t = 0; v.getTickables().forEach(n => { if (!(n instanceof VF.GhostNote) && n.getTickContext()) pts.push([t, n.getTickContext().getX()]); t += n.getTicks().value(); }); tot = Math.max(tot, t); });   // the bar's own length: a pickup ends right after its last note
+      if (pts.length < 2) return w;
+      pts.sort((a, b) => a[0] - b[0]); const [t0, x0] = pts[0], [t1, x1] = pts[pts.length - 1];
+      if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
+      const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
+      if (Math.abs(need - end) <= 2) return w;
+      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      w = nw; fmt.format(vs, w);
+    }
+    return w;
+  }
+  function draw(colors, boxId) {
+    const box = $(boxId || "score"); box.innerHTML = "";
+    if (R.grid) { geo = null; drawGrid(colors); return; }
+    if (R.hide && !colors) { geo = null; box.innerHTML = `<p class="cue">${R.cueText}<small>The notation appears after you perform. Count along with the click and clap only on the cue.</small></p>`; return; }
+    if (!window.Vex || !Vex.Flow) { box.textContent = describe(); return; }
+    const VF = Vex.Flow, ink = css("--fi-ink");
+    // bar width proportional to time: the densest note sets the pixels per tick, so the space after the last note can match its value
+    const minW = d => d <= 3 ? 24 : d <= 4 ? 26 : d <= 6 ? 30 : d <= 9 ? 34 : 38;
+    const dens = Math.max(3, ...R.bars.flat().map(e => minW(e.d) / e.d)), widths = R.bars.map((ev, k) => 46 + R.barT * dens + (k === 0 ? 70 : 0));
+    const W = widths.reduce((a, b) => a + b, 0) + 10, H = 120;
+    const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, H); const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    let x = 4; geo = { notes: [], bars: [] };
+    R.bars.forEach((ev, k) => {
+      const st = new VF.Stave(x, 10, widths[k]); if (k === 0) st.addClef("percussion").addTimeSignature(`${R.m.num}/${R.m.den}`);
+      if (k === R.bars.length - 1) st.setEndBarType(VF.Barline.type.END); st.setContext(ctx).draw();
+      const sns = ev.map((e, i) => {
+        const [c, dots] = DUR[e.d], n = new VF.StaveNote({ keys: [e.rest && c === "w" ? "d/5" : "b/4"], duration: c + (e.rest ? "r" : ""), stem_direction: VF.Stem.UP });
+        for (let q = 0; q < dots; q++) VF.Dot.buildAndAttach([n], { all: true });
+        const col = colors && colors[k] && colors[k][i]; if (col) n.setStyle({ fillStyle: css(col), strokeStyle: css(col) });
+        return n;
+      });
+      const voice = new VF.Voice({ num_beats: R.m.num, beat_value: R.m.den }).setMode(VF.Voice.Mode.SOFT).addTickables(sns);
+      // beams within each beat group; triplets
+      const beams = [], tups = []; const groups = {};
+      ev.forEach((e, i) => { (groups[e.group + ":" + e.beat] = groups[e.group + ":" + e.beat] || []).push(i); });
+      Object.values(groups).forEach(idx => {
+        const runs = []; let run = [];
+        idx.forEach(i => { const e = ev[i]; if (!e.rest && e.d < 12) run.push(sns[i]); else { if (run.length > 1) runs.push(run); run = []; } });
+        if (run.length > 1) runs.push(run);
+        runs.forEach(rn => beams.push(new VF.Beam(rn)));
+        if (idx.every(i => ev[i].trip)) tups.push(new VF.Tuplet(idx.map(i => sns[i]), { num_notes: 3, notes_occupied: 2, bracketed: false }));
+      });
+      { const fm = new VF.Formatter().joinVoices([voice]); justifyW(VF, fm, [voice], st.getNoteEndX() - st.getNoteStartX() - 12); } voice.draw(ctx, st);
+      beams.forEach(b => b.setContext(ctx).draw()); tups.forEach(t => t.setContext(ctx).draw());
+      sns.forEach((n, i) => geo.notes.push({ tick: ev[i].start, x: n.getAbsoluteX() + 6 }));
+      geo.bars.push({ tick: (k + 1) * R.barT, x: x + widths[k] - 6 });
+      x += widths[k];
+    });
+    const svg = box.querySelector("svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.removeAttribute("width"); svg.removeAttribute("height"); svg.removeAttribute("style");
+    svg.setAttribute("role", "img"); svg.setAttribute("aria-label", describe());
+    geo.svg = svg; geo.head = el("line", { x1: -10, x2: -10, y1: 8, y2: 112, stroke: css("--fi-red-dk"), "stroke-width": 3, opacity: .75 }, svg);
+  }
+  const xAt = tick => { const k = [{ tick: 0, x: geo.notes[0].x - 8 }].concat(geo.notes, geo.bars).sort((a, b) => a.tick - b.tick); for (let i = 1; i < k.length; i++) if (tick <= k[i].tick) { const a = k[i - 1], b = k[i]; return a.x + (b.x - a.x) * ((tick - a.tick) / ((b.tick - a.tick) || 1)); } return k[k.length - 1].x; };
+
+  // ---------- audio ----------
+  let AC = null, out = null;
+  function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); out = AC.createGain(); out.gain.value = .9; out.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); return AC; }
+  function click(t, accent) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = accent ? 1760 : 1175; o.type = "square"; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(accent ? .22 : .13, t + .002); g.gain.exponentialRampToValueAtTime(.001, t + .05); o.connect(g); g.connect(out); o.start(t); o.stop(t + .06); }
+  function block(t) { if (clapping()) return clap(t, true); [[620, .5], [1240, .18]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }); }
+  // Hand clap: a few quick bursts of band-passed noise and a short tail. hi = brighter clap (your part), else a lower one.
+  let noiseBuf = null;
+  function clap(t, hi) {
+    if (!noiseBuf) { noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * .3), AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = AC.createBufferSource(), bp = AC.createBiquadFilter(), hp = AC.createBiquadFilter(), g = AC.createGain();
+    src.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = hi ? 1500 : 950; bp.Q.value = 1.1; hp.type = "highpass"; hp.frequency.value = 400;
+    const pk = hi ? .9 : .8;
+    g.gain.setValueAtTime(0, t);
+    [0, .009, .018].forEach(o => { g.gain.linearRampToValueAtTime(pk, t + o + .001); g.gain.exponentialRampToValueAtTime(pk * .25, t + o + .008); });
+    g.gain.linearRampToValueAtTime(pk * .7, t + .028); g.gain.exponentialRampToValueAtTime(.001, t + .028 + (hi ? .13 : .17));
+    src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out); src.start(t, Math.random() * .1); src.stop(t + .25);
+  }
+  const clapping = () => R && R.grid && S.snd === "clap";
+  function block2(t) { if (clapping()) return clap(t, false); [[300, .55], [760, .16]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); g.connect(out); o.start(t); o.stop(t + .14); }); }
+  const outLat = () => AC ? (AC.outputLatency || AC.baseLatency || 0) : 0;
+  const tickSec = () => 60 / S.tempo / R.m.beat;   // tempo counts the beat (dotted quarter in 6/8)
+
+  // ---------- counting display ----------
+  function drawCount(on, down) { const n = R.m.beats; $("count").innerHTML = Array.from({ length: n }, (_, i) => `<span class="${i === on ? "on" + (down ? " down" : "") : ""}">${i + 1}</span>`).join(""); }
+
+  // ---------- run (perform or listen) ----------
+  let run = null;
+  function stopRun() { if (run) { run.stop = true; cancelAnimationFrame(run.raf); run.timers.forEach(clearTimeout); stopClap(); } run = null; }
+  function start(perform) {
+    if (!ac()) return; stopRun();
+    const ts = tickSec(), beatS = ts * R.m.beat, t0 = AC.currentTime + .25, rs = t0 + R.m.beats * beatS, end = rs + R.total * ts;
+    run = { perform, t0, rs, end, taps: [], timers: [], raf: 0 };
+    for (let b = 0; b < R.m.beats; b++) click(t0 + b * beatS, b === 0);   // count-in bar
+    if (S.click === "on" || !perform) for (let b = 0; b < R.m.beats * R.nb; b++) click(rs + b * beatS, b % R.m.beats === 0);
+    if (!perform) R.onsets.forEach(o => block(rs + o.tick * ts));
+    if (R.other) R.other.forEach(tk => block2(rs + tk * ts));
+    if (geo && geo.head) geo.head.setAttribute("opacity", .75);
+    if (perform || S.tab !== "dict") { $("fb").className = "fb2"; $("fb").textContent = perform ? "Count-in… then perform." : "Listen."; }
+    $("go").textContent = perform ? "■ Stop" : "▶ Perform it"; if (perform) $("tap").focus();
+    if (perform && S.input === "clap") startClap();
+    const frame = () => {
+      if (!run || run.stop) return;
+      const now = AC.currentTime - outLat();
+      const beatNo = Math.floor((now - t0) / beatS);
+      if (now >= t0 && now < end) drawCount(((beatNo % R.m.beats) + R.m.beats) % R.m.beats, beatNo < R.m.beats);
+      if (R.grid && now >= rs && now <= end) gridAt((now - rs) / ts);
+      if (geo && geo.head && now >= rs && now <= end) { const xx = xAt((now - rs) / ts); geo.head.setAttribute("x1", xx); geo.head.setAttribute("x2", xx); }
+      if (now >= rs && now < rs + .05 && perform) $("fb").textContent = "Go!";
+      if (now > end + .35) { finish(); return; }
+      run.raf = requestAnimationFrame(frame);
+    };
+    run.raf = requestAnimationFrame(frame);
+  }
+  function tapNow(ev) {
+    if (!run || !run.perform) return;
+    const t = AC.currentTime - outLat() - S.lat;
+    run.taps.push(t);
+    const p = $("tap"); p.classList.add("hit"); setTimeout(() => p.classList.remove("hit"), 90);
+  }
+
+  // ---------- grading ----------
+  const TOL = { relaxed: .17, normal: .12, strict: .075 };
+  function finish() {
+    const r = run; stopRun(); drawCount(-1); $("go").textContent = "▶ Perform it";
+    if (geo && geo.head) geo.head.setAttribute("opacity", 0);
+    if (!r.perform) { if (S.tab !== "dict") $("fb").textContent = ""; return; }
+    const ts = tickSec(), exp = R.onsets.map(o => r.rs + o.tick * ts), used = new Set();
+    const res = exp.map((t, i) => {
+      const gapPrev = i ? t - exp[i - 1] : 1, gapNext = i < exp.length - 1 ? exp[i + 1] - t : 1, win = Math.min(TOL[S.tol] * 2.2, .48 * Math.min(gapPrev, gapNext) + .02);
+      let best = -1, bd = 9;
+      r.taps.forEach((tp, k) => { if (used.has(k)) return; const d = Math.abs(tp - t); if (d < bd && d <= win) { bd = d; best = k; } });
+      if (best < 0) return { t, miss: true };
+      used.add(best); const off = r.taps[best] - t;
+      return { t, off, tap: r.taps[best], good: Math.abs(off) <= TOL[S.tol] };
+    });
+    const usedT = [...used].map(k => r.taps[k]);
+    const extra = r.taps.filter((_, k) => !used.has(k)).filter(tp => tp > r.rs - .3).filter(tp => !usedT.some(u => Math.abs(u - tp) < .09));   // ignore accidental double taps right next to a good one
+    const good = res.filter(x => x.good).length, miss = res.filter(x => x.miss).length, offs = res.filter(x => !x.miss).map(x => x.off);
+    const ok = good === res.length && extra.length === 0;
+    if (window.SFX) SFX.play(ok);
+    if (window.SAprogress) SAprogress.record(progLabel(), ok);
+    // color notes
+    const colors = R.bars.map(ev => ev.map(() => null)); res.forEach((x, i) => { const o = R.onsets[i]; colors[o.bar][o.i] = x.good ? "--fi-green-dk" : "--fi-red-dk"; });
+    draw(colors);
+    const mean = offs.length ? offs.reduce((a, b) => a + b, 0) / offs.length : 0;
+    const tend = Math.abs(mean) < .02 ? "Your timing is centered." : mean < 0 ? `You tend to rush (about ${Math.round(-mean * 1000)} ms early).` : `You tend to drag (about ${Math.round(mean * 1000)} ms late).`;
+    $("fb").className = "fb2 " + (ok ? "good" : "bad");
+    $("fb").textContent = ok ? `Yes! All ${res.length} notes on time. ${tend}` : `${good} of ${res.length} notes on time` + (miss ? `, ${miss} missed` : "") + (res.length - good - miss ? `, ${res.length - good - miss} too early or late` : "") + (extra.length ? `, ${extra.length} extra tap${extra.length > 1 ? "s" : ""}` : "") + `. ${offs.length ? tend : ""}`;
+    timeline(r, res, extra);
+  }
+  function timeline(r, res, extra) {
+    const ts = tickSec(), W = 760, H = 96, x = t => 20 + (W - 40) * ((t - r.rs) / (R.total * ts)), svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Timing chart. ${res.map((q, i) => `Note ${i + 1}: ${q.miss ? "missed" : `${Math.round(q.off * 1000)} ms ${q.off < 0 ? "early" : "late"}`}`).join("; ")}${extra.length ? `; ${extra.length} extra taps` : ""}.` });
+    el("line", { x1: 20, x2: W - 20, y1: 48, y2: 48, stroke: css("--fi-line"), "stroke-width": 1.5 }, svg);
+    const beatS = ts * R.m.beat; for (let b = 0; b <= R.m.beats * R.nb; b++) { const xx = x(r.rs + b * beatS); el("line", { x1: xx, x2: xx, y1: b % R.m.beats ? 40 : 30, y2: b % R.m.beats ? 56 : 66, stroke: css("--fi-muted"), "stroke-width": b % R.m.beats ? 1 : 2 }, svg); }
+    res.forEach(q => { const xx = x(q.t); el("rect", { x: xx - 2, y: 20, width: 4, height: 56, rx: 2, fill: css("--fi-ink"), opacity: .35 }, svg);
+      if (q.miss) el("circle", { cx: xx, cy: 48, r: 8, fill: "none", stroke: css("--fi-red-dk"), "stroke-width": 3 }, svg);
+      else el("circle", { cx: x(q.tap), cy: 48, r: 7, fill: css(q.good ? "--fi-green-dk" : "--fi-red-dk") }, svg); });
+    extra.forEach(tp => { const xx = x(tp); if (xx < 0 || xx > W) return; el("path", { d: `M${xx - 6},${42} l12,12 M${xx + 6},${42} l-12,12`, stroke: css("--fi-red-dk"), "stroke-width": 3 }, svg); });
+    $("tl").innerHTML = ""; $("tl").appendChild(svg);
+    $("tl").insertAdjacentHTML("beforeend", `<div class="legend" aria-hidden="true"><span><i style="background:${css("--fi-ink")};opacity:.35;border-radius:2px"></i>where each note belongs</span><span><i style="background:${css("--fi-green-dk")}"></i>on time</span><span><i style="background:${css("--fi-red-dk")}"></i>early / late</span><span><i style="border:3px solid ${css("--fi-red-dk")};width:8px;height:8px"></i>missed</span><span>✕ extra</span></div>`);
+  }
+
+  // ---------- clapping (microphone onsets) ----------
+  let mic = null, an = null, buf = null, clapRaf = 0;
+  async function micOn() {
+    if (an) return true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $("stat").textContent = "The microphone works only when this page is opened from the web (https://). Use tapping instead."; return false; }
+    try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { $("stat").textContent = "Microphone blocked or unavailable. Allow it for this site, or use tapping."; return false; }
+    ac(); const src = AC.createMediaStreamSource(mic); an = AC.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const sink = AC.createGain(); sink.gain.value = 0; an.connect(sink); sink.connect(AC.destination); buf = new Float32Array(512);
+    $("stat").textContent = "Microphone on. Use headphones so it hears your claps, not the clicks."; return true;
+  }
+  function startClap() {
+    let floor = .01, last = -1, prev = 0;
+    const loop = () => {
+      if (!an) return; an.getFloatTimeDomainData(buf); let pk = 0; for (let i = 0; i < buf.length; i++) pk = Math.max(pk, Math.abs(buf[i]));
+      const now = AC.currentTime;
+      if (pk > Math.max(.08, floor * 5) && pk > prev * 1.8 && now - last > .11) { last = now; if (run && run.perform) { run.taps.push(now - buf.length / AC.sampleRate / 2 - S.lat); const p = $("tap"); p.classList.add("hit"); setTimeout(() => p.classList.remove("hit"), 90); } }
+      floor = floor * .97 + Math.min(pk, .05) * .03; prev = pk;
+      clapRaf = requestAnimationFrame(loop);
+    };
+    clapRaf = requestAnimationFrame(loop);
+  }
+  function stopClap() { cancelAnimationFrame(clapRaf); }
+  function updateInputUI() { $("tap").hidden = false; $("tap").innerHTML = S.input === "clap" ? "Clap!<small>the pad flashes when a clap is heard; you can also tap it</small>" : "Tap<small>or press the space bar</small>"; if (S.input === "clap") micOn(); else $("stat").textContent = S.lat ? `Timing adjustment: ${Math.round(S.lat * 1000)} ms.` : ""; }
+
+  // ---------- calibration ----------
+  function calibrate() {
+    if (!ac()) return; stopRun();
+    const beatS = 60 / 90, t0 = AC.currentTime + .4, n = 10, taps = [];
+    for (let i = 0; i < n; i++) click(t0 + i * beatS, i % 4 === 0);
+    $("fb").className = "fb2"; $("fb").textContent = `Tap (or clap) exactly with the ${n} clicks.`;
+    const saved = S.lat; S.lat = 0;
+    run = { perform: true, taps, timers: [], raf: 0, rs: t0 };
+    if (S.input === "clap") startClap();
+    run.timers.push(setTimeout(() => {
+      stopRun(); S.lat = saved;
+      const offs = []; for (let i = 2; i < n; i++) { const t = t0 + i * beatS, near = taps.filter(x => Math.abs(x - t) < beatS * .4).sort((a, b) => Math.abs(a - t) - Math.abs(b - t))[0]; if (near != null) offs.push(near - t); }
+      if (offs.length < 5) { $("fb").textContent = "Not enough taps were heard. Try calibrating again."; return; }
+      offs.sort((a, b) => a - b); S.lat = offs[Math.floor(offs.length / 2)]; save();
+      $("fb").textContent = `Calibrated: your taps arrive ${Math.round(Math.abs(S.lat) * 1000)} ms ${S.lat >= 0 ? "after" : "before"} the clicks; the app now allows for that.`;
+      $("stat").textContent = `Timing adjustment: ${Math.round(S.lat * 1000)} ms.`;
+    }, (n * beatS + 1) * 1000));
+  }
+
+  // ---------- rhythmic dictation ----------
+  // The answer is a list of signed tick values (negative = rest), entered left to right; a triplet adds three 4s.
+  let ANS = [], restOn = false, dictDone = false;
+  const GLYPH = { 48: "&#x1D15D;", 36: "&#x1D15E;.", 24: "&#x1D15E;", 18: "&#x2669;.", 12: "&#x2669;", 9: "&#x266A;.", 6: "&#x266A;", 3: "&#x1D161;", T: "<small style='font-size:13px'>3</small>&#x266B;" };
+  const RGLYPH = { 48: "&#x1D13B;", 36: "&#x1D13C;.", 24: "&#x1D13C;", 18: "&#x1D13D;.", 12: "&#x1D13D;", 9: "&#x1D13E;.", 6: "&#x1D13E;", 3: "&#x1D13F;" };
+  const ansTotal = () => ANS.reduce((a, d) => a + Math.abs(d), 0);
+  function palValues() {   // the values this level and meter use
+    const m = METERS[S.meter], lib = m.compound ? COMPOUND : SIMPLE, set = new Set();
+    lib.filter(p => p.lv <= S.lv).forEach(p => { p.d.forEach(d => set.add(Math.abs(d))); if (p.d.length === 1 && p.span > 1) set.add(p.span * m.beat); });
+    const vals = [48, 36, 24, 18, 12, 9, 6, 3].filter(v => set.has(v) && v <= m.beats * m.beat);
+    if (set.has(4)) vals.push("T");
+    return vals;
+  }
+  function ansBars() {   // answer as bar lists, padded with light rests to show what's still empty
+    const m = R.m, barT = R.barT, lists = [], pad = []; let t = 0, cur = [];
+    ANS.forEach(d => { cur.push(d); t += Math.abs(d); if (t % barT === 0) { lists.push(cur); pad.push(cur.length); cur = []; } });
+    const fill = (room, at) => { const out = []; while (room > 0) { const v = [48, 36, 24, 18, 12, 6, 3].find(x => x <= room && (at % x === 0 || x <= m.beat)); out.push(-v); room -= v; at += v; } return out; };
+    if (cur.length || lists.length < R.nb) { const used = cur.reduce((a, d) => a + Math.abs(d), 0); pad.push(cur.length); lists.push(cur.concat(fill(barT - used, used))); }
+    while (lists.length < R.nb) { pad.push(0); lists.push(fill(barT, 0)); }
+    return { lists, pad };
+  }
+  function drawAnswer(colorsFor) {
+    const keep = R, { lists, pad } = ansBars(), bars = fromLists(keep.m, lists);
+    const colors = bars.map((ev, k) => ev.map((e, i) => i >= pad[k] ? "--fi-soft" : colorsFor ? colorsFor(e) : null));
+    R = Object.assign({}, keep, { bars }); draw(colors, "score"); R = keep; geo = null;
+  }
+  function dictPalette() {
+    const m = R.m, t = ansTotal(), room = t >= R.total ? 0 : R.barT - (t % R.barT);
+    $("dPal").innerHTML = palValues().map(v => {
+      const trip = v === "T", ok = !dictDone && (trip ? (!restOn && t % m.beat === 0 && room >= 12 && !m.compound) : v <= room && (v === m.beat * 2 || v <= m.beat || (t % R.barT) % m.beat === 0));
+      const name = trip ? "triplet eighths (three in one beat)" : (NAMES[v] + (restOn ? " rest" : ""));
+      return `<button type="button" data-dv="${v}" ${ok ? "" : "disabled"} aria-label="Add ${name}"><span class="g" aria-hidden="true">${trip ? GLYPH.T : (restOn ? RGLYPH[v] : GLYPH[v])}</span><small aria-hidden="true">${trip ? "triplet" : NAMES[v].replace(" note", "")}</small></button>`;
+    }).join("");
+    const left = R.total - t;
+    $("dState").textContent = dictDone ? "" : left ? `${R.nb} bar${R.nb > 1 ? "s" : ""} of ${S.meter}: ${left === R.total ? "start entering the rhythm" : "keep going"}.` : "All bars are full: choose Check.";
+  }
+  function dictReset() { ANS = []; dictDone = false; $("ansScore").hidden = true; $("corLab").hidden = true; $("fb").textContent = ""; $("fb").className = "fb2"; drawAnswer(); dictPalette(); drawCount(-1); }
+  function dictCheck(reveal) {
+    if (!reveal && ansTotal() < R.total) { $("dState").textContent = "Fill every bar before checking (use rests for silences)."; return; }
+    const target = new Set(R.onsets.map(o => o.tick)), mine = []; let t = 0; ANS.forEach(d => { if (d > 0) mine.push(t); t += Math.abs(d); });
+    const ok = !reveal && mine.length === target.size && mine.every(x => target.has(x));
+    if (!reveal && window.SAprogress) SAprogress.record(progLabel(), ok);
+    if (!reveal && window.SFX) SFX.play(ok);
+    dictDone = true;
+    drawAnswer(e => e.rest ? null : (target.has(e.start) ? "--fi-green-dk" : "--fi-red-dk"));
+    const got = new Set(mine), colors = R.bars.map(ev => ev.map(e => e.rest ? null : got.has(e.start) ? "--fi-green-dk" : "--fi-red-dk"));
+    $("ansScore").hidden = false; $("corLab").hidden = false; draw(reveal ? null : colors, "ansScore"); geo = null;
+    $("fb").className = "fb2 " + (reveal ? "" : ok ? "good" : "bad");
+    const wrong = mine.filter(x => !target.has(x)).length, missed = [...target].filter(x => !got.has(x)).length;
+    $("fb").textContent = reveal ? "Here is the rhythm. Listen again while you follow it, then try a new one." : ok ? "Correct! Every note starts in the right place." : `Not quite: ${[wrong ? `${wrong} note${wrong > 1 ? "s" : ""} in the wrong place (red in your answer)` : "", missed ? `${missed} note${missed > 1 ? "s" : ""} missing (red in the rhythm played)` : ""].filter(Boolean).join("; ")}.`;
+    dictPalette();
+  }
+  function tabUI() {
+    const d = S.tab === "dict";
+    document.querySelectorAll("#tabs [data-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tab === S.tab)));
+    $("dictUI").hidden = !d; $("ansLab").hidden = !d;
+    ["go", "cal", "tap"].forEach(id => $(id).hidden = d);
+    ["sMode", "sTol", "sClk", "sIn"].forEach(id => $(id).closest("label").hidden = d);
+    $("tl").hidden = d; $("stat").hidden = d;
+    if (d) { ["lPat", "lCm", "lPart", "lSnd", "lReps", "lFrom", "lNsec"].forEach(id => $(id).hidden = true); ["sLv", "sMt", "sBars"].forEach(id => $(id).closest("label").hidden = false); $("next").hidden = false; $("next").textContent = "New rhythm ›"; $("info").hidden = true; }
+    else { modeUI(); updateInputUI(); }
+  }
+  $("tabs").onclick = e => { const b = e.target.closest("[data-tab]"); if (!b || b.dataset.tab === S.tab) return; stopRun(); S.tab = b.dataset.tab; save(); tabUI(); newRhythm(); };
+  $("dPal").onclick = e => { const b = e.target.closest("[data-dv]"); if (!b || b.disabled) return; const v = b.dataset.dv; if (v === "T") ANS.push(4, 4, 4); else ANS.push(restOn ? -v : +v); drawAnswer(); dictPalette(); const nb = $("dPal").querySelector(`[data-dv="${v}"]:not(:disabled)`) || $("dPal").querySelector("button:not(:disabled)") || $("dCheck"); nb.focus(); };
+  $("dRest").onclick = () => { restOn = !restOn; $("dRest").setAttribute("aria-pressed", String(restOn)); dictPalette(); };
+  $("dUndo").onclick = () => { if (dictDone) return; const last = ANS.pop(); if (last === 4 && ANS.slice(-2).every(x => x === 4)) ANS.splice(-2); drawAnswer(); dictPalette(); };
+  $("dClear").onclick = () => { if (dictDone) return; ANS = []; drawAnswer(); dictPalette(); };
+  $("dCheck").onclick = () => { if (!dictDone) dictCheck(false); };
+  $("dShow").onclick = () => { if (!dictDone) dictCheck(true); };
+
+  // ---------- wiring ----------
+  $("go").onclick = async () => { if (run && run.perform) { stopRun(); drawCount(-1); $("go").textContent = "▶ Perform it"; $("fb").textContent = ""; return; } if (S.input === "clap" && !(await micOn())) return; start(true); };
+  $("hear").onclick = () => start(false);
+  $("next").onclick = () => { stopRun(); if (S.tab !== "dict" && LIB[S.mode]) { S.pat[S.mode] = ((S.pat[S.mode] || 0) + 1) % LIB[S.mode].length; save(); $("sPat").value = S.pat[S.mode]; } if (S.mode === "cmg") genPat = genPhase(); newRhythm(); };
+  $("cal").onclick = async () => { if (S.input === "clap" && !(await micOn())) return; calibrate(); };
+  $("tap").addEventListener("pointerdown", e => { e.preventDefault(); tapNow(e); });
+  $("tap").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!e.repeat) tapNow(e); } });
+  document.addEventListener("keydown", e => { if (e.target.closest && e.target.closest("select,input,button,a")) return; if (e.key === " ") { e.preventDefault(); if (!e.repeat) tapNow(e); } });
+  updateInputUI(); modeUI(); tabUI(); newRhythm();
+  window.__rp = { get ANS() { return ANS; }, get R() { return R; }, get run() { return run; }, get AC() { return AC; }, tap: () => tapNow(), tickSec: () => tickSec() };   // used by automated tests
+})();
+</script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/site.js?v=8e6b7449"></script>
+</body></html>

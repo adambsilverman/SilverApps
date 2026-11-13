@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Clip Editor · SilverApps Interactive Music Training</title>
+<meta name="description" content="Open a video, trim it, crop it, split it into clips, normalize and master its audio with presets or your own settings, make a vertical Instagram version, and save the results. Everything runs in your browser.">
+<link rel="stylesheet" href="assets/indie.css">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
+<style>
+.tool{max-width:1100px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
+.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool h1 span{color:var(--fi-red-dk)}
+.tool > header p{max-width:70ch;margin:10px 0 0}
+.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:16px 18px;display:grid;gap:12px;min-width:0}
+.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
+.panel2 h3{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 0}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end}
+.tbtn{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:8px 14px;min-height:44px;cursor:pointer;touch-action:manipulation}
+.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
+.tbtn.ig{background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);color:#fff;border-color:#6228d7}
+.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.tbtn.sm{min-height:36px;padding:4px 10px;font-size:13px}
+.tbtn:disabled{opacity:.45;cursor:not-allowed}
+.tbtn:focus-visible,.handle:focus-visible,#cropBox:focus-visible,#igBox:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+label.fld{display:grid;gap:4px;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
+select,input[type=number]{font:15px var(--fi-serif);padding:6px 8px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:40px;max-width:100%}
+input[type=number]{width:6.5em}
+input[type=range]{accent-color:var(--fi-red-dk)}
+.note{font-size:.92rem;color:var(--fi-muted);margin:0}
+.drop{border:2px dashed var(--fi-line);border-radius:var(--fi-r);padding:22px;text-align:center;background:var(--fi-paper)}
+.drop.over{background:#FFF1C9}
+.stage{position:relative;margin:0 auto;max-width:100%;background:#000;border-radius:8px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage video{display:block;width:100%;height:100%}
+.box{position:absolute;box-sizing:border-box;cursor:move}
+#cropBox{border:2px solid #ffd27a;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+#igBox{border:2.5px dashed #c2185b;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+.box .handle{position:absolute;right:-9px;bottom:-9px;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #222;cursor:nwse-resize}
+.box .tag{position:absolute;left:4px;top:4px;font:700 11px var(--fi-ui);color:#000;background:#ffd27a;padding:1px 6px;border-radius:4px;letter-spacing:.04em;text-transform:uppercase}
+#igBox .tag{background:#ad1457;color:#fff}
+#tl{width:100%;height:64px;display:block;cursor:pointer;touch-action:none;border-radius:6px;background:var(--fi-paper);border:1.5px solid var(--fi-soft)}
+.time{font:700 22px var(--fi-ui);font-variant-numeric:tabular-nums}
+.segs{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.segs li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:6px 10px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.grid3 fieldset{border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);margin:0;padding:6px 10px 10px;display:grid;gap:6px}
+.grid3 legend{font:700 13px var(--fi-ui);text-transform:uppercase;letter-spacing:.05em;padding:0 4px}
+.sl{display:grid;grid-template-columns:8.5em 1fr 4.6em;align-items:center;gap:6px;font:600 13px var(--fi-ui)}
+.sl output{text-align:right;font-weight:500}
+.meter{height:12px;border-radius:6px;background:var(--fi-soft);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2e8b57 0 70%,#d4a017 70% 90%,#c0392b 90%)}
+.prog{height:10px;border-radius:5px;background:var(--fi-soft);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--fi-red)}
+.status{font:600 16px var(--fi-serif);margin:0;min-height:1.4em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+</style>
+
+<main class="tool" id="main">
+  <header>
+    <h1>Video <span>Clip Editor</span></h1>
+    <p>Open a video, trim it, crop it, split it into clips, and clean up its sound with normalization and simple mastering (presets, or set the compression, EQ and reverb yourself). <b>Instagram It</b> makes a vertical version from any part of the frame and any stretch of time. Your video never leaves your device: everything happens in this browser, and you save the results as files.</p>
+  </header>
+
+  <section class="panel2" aria-labelledby="h-open">
+    <h2 id="h-open">1. Open a video</h2>
+    <div class="drop" id="drop"><p><label class="tbtn primary" for="file" style="display:inline-flex;align-items:center">Choose a video file…</label><input type="file" id="file" accept="video/*" class="sr"></p><p class="note">or drag a video here. MP4 and MOV (including phone videos) work in every browser; WebM works in Chrome, Edge and Firefox.</p></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <div id="work" hidden>
+  <section class="panel2" aria-labelledby="h-edit">
+    <h2 id="h-edit">2. Trim, crop and split</h2>
+    <div class="stage" id="stage"><video id="vid" playsinline preload="auto"></video>
+      <div class="box" id="cropBox" tabindex="0" role="group" aria-label="Crop area: drag to move, drag the corner to resize; arrow keys move it, Shift plus arrow keys resize it" hidden><span class="tag">Crop</span><span class="handle" data-h="crop"></span></div>
+      <div class="box" id="igBox" tabindex="0" role="group" aria-label="Instagram frame: drag to move, drag the corner to resize; arrow keys move it, Shift plus arrow keys resize it" hidden><span class="tag">Instagram</span><span class="handle" data-h="ig"></span></div>
+    </div>
+    <div class="row"><button class="tbtn primary" id="play" type="button">▶ Play</button><span class="time" id="clock">0:00.0</span><span class="note" id="dur"></span>
+      <button class="tbtn sm" id="back1" type="button" aria-label="Back one second">−1 s</button><button class="tbtn sm" id="fwd1" type="button" aria-label="Forward one second">+1 s</button><button class="tbtn sm" id="frame" type="button" aria-label="Forward one frame">+1 frame</button></div>
+    <canvas id="tl" aria-label="Timeline: select a point to move there. The trimmed part is shaded; split points are lines; the Instagram range is pink." role="img"></canvas>
+    <h3>Trim</h3>
+    <div class="row"><button class="tbtn" id="setIn" type="button">Set start here</button><button class="tbtn" id="setOut" type="button">Set end here</button>
+      <label class="fld" for="inT">Start (s)<input type="number" id="inT" step="0.1" min="0" value="0"></label><label class="fld" for="outT">End (s)<input type="number" id="outT" step="0.1" min="0" value="0"></label>
+      <button class="tbtn sm" id="playSel" type="button">▶ Play the trimmed part</button></div>
+    <h3>Crop</h3>
+    <div class="row"><button class="tbtn" id="cropOn" type="button" aria-pressed="false">Crop the frame</button>
+      <label class="fld" for="cropAR">Shape<select id="cropAR"><option value="free">Free</option><option value="1.7778">16 : 9 (wide)</option><option value="1">1 : 1 (square)</option><option value="0.8">4 : 5 (portrait)</option><option value="0.5625">9 : 16 (vertical)</option><option value="1.3333">4 : 3</option></select></label>
+      <button class="tbtn sm" id="cropReset" type="button">Reset the crop</button><span class="note" id="cropInfo"></span></div>
+    <h3>Split into clips</h3>
+    <div class="row"><button class="tbtn" id="split" type="button">Split here</button><button class="tbtn sm" id="clearSplits" type="button">Remove all splits</button></div>
+    <ul class="segs" id="segs"></ul>
+  </section>
+
+  <section class="panel2" aria-labelledby="h-audio">
+    <h2 id="h-audio">3. Sound</h2>
+    <div class="row">
+      <label class="fld" for="norm">Normalize<select id="norm"><option value="off">Off</option><option value="peak">Peak to −1 dB</option><option value="-14" selected>Loudness −14 LUFS (Instagram, YouTube, streaming)</option><option value="-16">Loudness −16 LUFS (podcasts, Apple)</option><option value="-23">Loudness −23 LUFS (broadcast)</option></select></label>
+      <label class="fld" for="preset">Mastering preset<select id="preset"></select></label>
+      <button class="tbtn" id="bypass" type="button" aria-pressed="false">Bypass (hear the original)</button>
+    </div>
+    <p class="note" id="presetNote" aria-live="polite"></p>
+    <p class="note" id="normInfo"></p>
+    <div class="grid3" id="knobs"></div>
+    <div class="row" style="align-items:center"><span class="note" style="min-width:7em">Output level</span><div class="meter" style="flex:1;min-width:160px"><i id="lvl"></i></div><span class="note" id="grInfo" aria-live="off"></span></div>
+    <p class="note">Play the video to hear the settings. Normalizing measures the trimmed part's loudness and sets a gain so the result lands on the target; the limiter keeps peaks under the ceiling.</p>
+  </section>
+
+  <section class="panel2" aria-labelledby="h-ig">
+    <h2 id="h-ig">4. Instagram It</h2>
+    <p class="note">Choose the part of the frame and the stretch of time for a vertical (or square) Instagram version. Reels can run up to 3 minutes; most perform best between about 15 and 90 seconds.</p>
+    <div class="row"><button class="tbtn ig" id="igOn" type="button" aria-pressed="false">Show the Instagram frame</button>
+      <label class="fld" for="igAR">Format<select id="igAR"><option value="0.5625">Reel or Story, 9 : 16 (1080 × 1920)</option><option value="0.8">Feed portrait, 4 : 5 (1080 × 1350)</option><option value="1">Feed square, 1 : 1 (1080 × 1080)</option></select></label>
+      <button class="tbtn sm" id="igCenter" type="button">Center it</button></div>
+    <div class="row"><button class="tbtn" id="igIn" type="button">Instagram start here</button><button class="tbtn" id="igOut" type="button">Instagram end here</button>
+      <label class="fld" for="igInT">Start (s)<input type="number" id="igInT" step="0.1" min="0" value="0"></label><label class="fld" for="igOutT">End (s)<input type="number" id="igOutT" step="0.1" min="0" value="0"></label>
+      <span class="note" id="igLen"></span><button class="tbtn sm" id="igPlay" type="button">▶ Play the Instagram part</button></div>
+    <div class="row"><button class="tbtn ig" id="igExport" type="button">Export the Instagram version</button></div>
+  </section>
+
+  <section class="panel2" aria-labelledby="h-ex">
+    <h2 id="h-ex">5. Export and save</h2>
+    <div class="row">
+      <label class="fld" for="fmt">Video format<select id="fmt"></select></label>
+      <label class="fld" for="res">Size<select id="res"><option value="1080">Up to 1080p</option><option value="720" selected>Up to 720p</option><option value="480">Up to 480p</option><option value="orig">Original size</option></select></label>
+      <label class="fld" for="fps">Frame rate<select id="fps"><option value="30" selected>30 fps</option><option value="25">25 fps</option><option value="24">24 fps</option><option value="60">60 fps</option></select></label>
+      <label class="fld" for="mon">While exporting<select id="mon"><option value="on">Listen</option><option value="off">Stay quiet</option></select></label>
+    </div>
+    <div class="row"><button class="tbtn primary" id="exMain" type="button">Export the trimmed video</button><button class="tbtn" id="exAll" type="button">Export every clip</button>
+      <label class="fld" for="afmt">Audio only<select id="afmt"><option value="wav">WAV</option><option value="mp3">MP3</option></select></label><button class="tbtn" id="exAudio" type="button">Export the audio</button><button class="tbtn sm" id="cancel" type="button" hidden>Cancel</button></div>
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+    <p class="note">Video exports record in real time (a 30-second clip takes about 30 seconds), so keep this tab open and visible. Files save to your Downloads folder (on iPhone and iPad, to Files › Downloads). Instagram needs MP4: if your browser can only make WebM, use Safari or Chrome. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL).</p>
+  </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const V = $("vid"), status = t => { $("status").textContent = t; };
+  const fmtT = t => { t = Math.max(0, t || 0); const m = Math.floor(t / 60), s = t - m * 60; return `${m}:${s < 10 ? "0" : ""}${s.toFixed(1)}`; };
+  const S = { name: "clip", dur: 0, vw: 0, vh: 0, inT: 0, outT: 0, splits: [], crop: { on: false, x: .1, y: .1, w: .8, h: .8, ar: "free" }, ig: { on: false, x: .3, y: 0, w: .3, h: 1, ar: .5625, inT: 0, outT: 0 }, buf: null, normGain: 1, busy: false, cancel: false };
+
+  // ---------- open ----------
+  async function open(f) {
+    if (!f) return; if (!/^video\//.test(f.type) && !/\.(mp4|mov|m4v|webm|mkv)$/i.test(f.name)) { status("That doesn't look like a video file."); return; }
+    S.name = f.name.replace(/\.[^.]+$/, ""); S.file = f; S.buf = null; S.splits = []; status("Loading…");
+    if (V.src) URL.revokeObjectURL(V.src); V.src = URL.createObjectURL(f);
+    await new Promise((ok, no) => { V.onloadedmetadata = ok; V.onerror = () => no(new Error("This browser can't play that video.")); }).catch(e => { status(e.message); throw e; });
+    S.dur = V.duration; S.vw = V.videoWidth; S.vh = V.videoHeight; S.inT = 0; S.outT = S.dur; S.ig.inT = 0; S.ig.outT = Math.min(S.dur, 60);
+    $("stage").style.aspectRatio = `${S.vw} / ${S.vh}`; $("stage").style.maxHeight = "70vh"; $("stage").style.width = `min(100%, calc(70vh * ${S.vw / S.vh}))`;
+    $("work").hidden = false; $("dur").textContent = `of ${fmtT(S.dur)} · ${S.vw} × ${S.vh}`; igFit(); syncInputs(); drawTL(); drawSegs(); drawBoxes();
+    status(`Opened ${f.name}.`);
+    analyze();
+  }
+  $("file").onchange = e => open(e.target.files[0]).catch(() => {});
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => open(e.dataTransfer.files[0]).catch(() => {}));
+
+  // ---------- audio: mastering chain (works on live and offline contexts) ----------
+  const P = { hp: 20, low: 0, mud: 0, mid: 0, midF: 2500, high: 0, ess: 0, compOn: true, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revMix: 0, revSize: 1.6, limOn: true, ceil: -1, out: 0 };
+  const PRESETS = {
+    clean: ["Clean (normalize only)", { hp: 20, low: 0, mid: 0, high: 0, compOn: false, revMix: 0, limOn: true, ceil: -1, out: 0 }],
+    podcast: ["Podcast voice (speech from a computer mic)", { hp: 90, low: 2.5, mud: -4, mid: 3, midF: 4000, high: 2, ess: -4, compOn: true, thr: -32, ratio: 4, atk: 4, rel: 140, makeup: 10, revMix: 0, limOn: true, ceil: -1.5, out: 0 }, "-16"],
+    voice: ["Voice / talking to camera", { hp: 80, low: -2, mid: 2, midF: 3000, high: 2, compOn: true, thr: -24, ratio: 3, atk: 8, rel: 180, makeup: 5, revMix: 0, limOn: true, ceil: -1, out: 0 }],
+    music: ["Music performance", { hp: 30, low: 1, mid: 0, high: 1.5, compOn: true, thr: -18, ratio: 2, atk: 20, rel: 250, makeup: 2, revMix: 8, revSize: 1.8, limOn: true, ceil: -1, out: 0 }],
+    warm: ["Warm", { hp: 30, low: 3, mid: -1, midF: 2500, high: -2, compOn: true, thr: -20, ratio: 2.5, atk: 15, rel: 220, makeup: 3, revMix: 5, revSize: 1.4, limOn: true, ceil: -1, out: 0 }],
+    bright: ["Bright and clear", { hp: 60, low: -1, mid: 1, midF: 3000, high: 4, compOn: true, thr: -20, ratio: 2.5, atk: 10, rel: 200, makeup: 3, revMix: 0, limOn: true, ceil: -1, out: 0 }],
+    loud: ["Loud and punchy", { hp: 40, low: 2, mid: 0, high: 2, compOn: true, thr: -28, ratio: 4, atk: 5, rel: 120, makeup: 8, revMix: 0, limOn: true, ceil: -1, out: 0 }],
+    hall: ["Concert hall", { hp: 30, low: 0, mid: 0, high: 0, compOn: true, thr: -20, ratio: 2, atk: 20, rel: 300, makeup: 2, revMix: 32, revSize: 3.2, limOn: true, ceil: -1, out: 0 }],
+    room: ["Small room", { hp: 40, low: 0, mid: 0, high: 0, compOn: true, thr: -20, ratio: 2, atk: 15, rel: 200, makeup: 2, revMix: 14, revSize: .8, limOn: true, ceil: -1, out: 0 }],
+  };
+  const KN = [["EQ", [["hp", "Low cut", 20, 300, 5, "Hz"], ["low", "Bass (120 Hz)", -12, 12, .5, "dB"], ["mud", "Boxiness (300 Hz)", -12, 6, .5, "dB"], ["mid", "Middle", -12, 12, .5, "dB"], ["midF", "Middle freq.", 300, 6000, 50, "Hz"], ["high", "Treble (8 kHz)", -12, 12, .5, "dB"], ["ess", "Sibilance, \"s\" sounds (7 kHz)", -12, 6, .5, "dB"]]],
+    ["Compressor", [["thr", "Threshold", -50, 0, 1, "dB"], ["ratio", "Ratio", 1, 12, .5, ": 1"], ["atk", "Attack", 1, 100, 1, "ms"], ["rel", "Release", 30, 1000, 10, "ms"], ["makeup", "Makeup gain", 0, 18, .5, "dB"]]],
+    ["Reverb, limiter, output", [["revMix", "Reverb amount", 0, 60, 1, "%"], ["revSize", "Room size", .3, 5, .1, "s"], ["ceil", "Limiter ceiling", -6, 0, .1, "dB"], ["out", "Output gain", -12, 12, .5, "dB"]]]];
+  const db = x => Math.pow(10, x / 20);
+  function chain(C) {
+    const G = v => { const g = C.createGain(); g.gain.value = v; return g; }, BQ = (type, f, g, q) => { const b = C.createBiquadFilter(); b.type = type; b.frequency.value = f; if (g != null) b.gain.value = g; if (q) b.Q.value = q; return b; };
+    const input = G(1), norm = G(1), hp = BQ("highpass", 20, null, .7), lo = BQ("lowshelf", 120, 0), mud = BQ("peaking", 300, 0, 1.2), mid = BQ("peaking", 2500, 0, .9), hi = BQ("highshelf", 8000, 0), ess = BQ("peaking", 7000, 0, 2.5), comp = C.createDynamicsCompressor(), mk = G(1), dry = G(1), wet = G(0), cv = C.createConvolver(), lim = C.createDynamicsCompressor(), out = G(1), byp = G(0), main = G(1), output = G(1);
+    input.connect(norm); norm.connect(hp); hp.connect(lo); lo.connect(mud); mud.connect(mid); mid.connect(hi); hi.connect(ess); ess.connect(comp); comp.connect(mk); mk.connect(dry); mk.connect(cv); cv.connect(wet); dry.connect(lim); wet.connect(lim); lim.connect(out); out.connect(main); main.connect(output);
+    input.connect(byp); byp.connect(output);
+    lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .08;
+    let irSize = 0;
+    function update(bypass) {
+      const t = C.currentTime || 0, s = (prm, v) => prm.setTargetAtTime(v, t, .02);
+      s(norm.gain, S.normGain); s(hp.frequency, P.hp); s(lo.gain, P.low); s(mid.gain, P.mid); s(mid.frequency, P.midF); s(hi.gain, P.high); s(mud.gain, P.mud); s(ess.gain, P.ess);
+      if (P.compOn) { s(comp.threshold, P.thr); s(comp.ratio, P.ratio); s(comp.attack, P.atk / 1000); s(comp.release, P.rel / 1000); s(mk.gain, db(P.makeup)); } else { s(comp.threshold, 0); s(comp.ratio, 1); s(mk.gain, 1); }
+      if (irSize !== P.revSize) { const L = Math.floor(C.sampleRate * P.revSize), b = C.createBuffer(2, L, C.sampleRate); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3) * .5; } cv.buffer = b; irSize = P.revSize; }
+      s(wet.gain, P.revMix / 100); s(dry.gain, 1 - P.revMix / 250);
+      if (P.limOn) { s(lim.threshold, P.ceil - .5); s(lim.ratio, 20); } else { s(lim.threshold, 0); s(lim.ratio, 1); }
+      s(out.gain, db(P.out)); s(main.gain, bypass ? 0 : 1); s(byp.gain, bypass ? 1 : 0);
+    }
+    update(false);
+    return { input, output, update, comp, lim };
+  }
+  let AC = null, CH = null, SRC = null, MON = null, DEST = null, AN = null, bypass = false;
+  function audioUp() {
+    if (AC) { if (AC.state === "suspended") AC.resume(); return AC; }
+    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return null;
+    AC = new Ctx(); CH = chain(AC); SRC = AC.createMediaElementSource(V); SRC.connect(CH.input);
+    MON = AC.createGain(); CH.output.connect(MON); MON.connect(AC.destination);
+    DEST = AC.createMediaStreamDestination(); CH.output.connect(DEST);
+    AN = AC.createAnalyser(); AN.fftSize = 1024; CH.output.connect(AN);
+    requestAnimationFrame(meter); return AC;
+  }
+  function meter() { if (AN) { const d = new Float32Array(AN.fftSize); AN.getFloatTimeDomainData(d); let pk = 0; for (const x of d) pk = Math.max(pk, Math.abs(x)); const dbv = 20 * Math.log10(pk || 1e-6); $("lvl").style.width = Math.max(0, Math.min(100, (dbv + 48) / 48 * 100)) + "%"; const gr = (CH.comp.reduction || 0) + (CH.lim.reduction || 0); $("grInfo").textContent = `peak ${dbv < -90 ? "−∞" : dbv.toFixed(1)} dB${P.compOn || P.limOn ? ` · reducing ${(-gr).toFixed(1)} dB` : ""}`; } requestAnimationFrame(meter); }
+  const upd = () => { if (CH) CH.update(bypass); };
+
+  // knobs UI
+  $("preset").innerHTML = Object.entries(PRESETS).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("") + `<option value="custom">Custom</option>`;
+  function drawKnobs() {
+    $("knobs").innerHTML = KN.map(([g, list], gi) => `<fieldset><legend>${g}${gi === 1 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="compOn" ${P.compOn ? "checked" : ""}> on</label>` : gi === 2 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="limOn" ${P.limOn ? "checked" : ""}> limiter on</label>` : ""}</legend>${list.map(([k, l, mn, mx, st, u]) => `<label class="sl">${l}<input type="range" data-k="${k}" min="${mn}" max="${mx}" step="${st}" value="${P[k]}"><output data-o="${k}">${P[k]} ${u}</output></label>`).join("")}</fieldset>`).join("");
+  }
+  function applyPreset(k) {
+    Object.assign(P, { mud: 0, ess: 0, midF: 2500, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revSize: 1.6 }, PRESETS[k][1]); drawKnobs(); upd();
+    if (PRESETS[k][2]) { $("norm").value = PRESETS[k][2]; setNorm(); }
+    $("presetNote").textContent = k === "podcast" ? "Podcast voice: cuts rumble and boxiness, adds warmth and presence, tames harsh \"s\" sounds, and compresses firmly so every word sits at the same level, then normalizes to −16 LUFS, the podcast standard. Works best close to the mic (a hand's width or two away) in a quiet room: compression also raises background noise." : "";
+  }
+  $("preset").onchange = e => { if (e.target.value !== "custom") applyPreset(e.target.value); };
+  $("knobs").addEventListener("input", e => { const k = e.target.dataset.k; if (k) { P[k] = +e.target.value; const u = KN.flatMap(x => x[1]).find(x => x[0] === k)[5]; document.querySelector(`[data-o="${k}"]`).textContent = `${P[k]} ${u}`; $("preset").value = "custom"; upd(); } });
+  $("knobs").addEventListener("change", e => { if (e.target.id === "compOn") { P.compOn = e.target.checked; $("preset").value = "custom"; upd(); } if (e.target.id === "limOn") { P.limOn = e.target.checked; $("preset").value = "custom"; upd(); } });
+  $("bypass").onclick = e => { bypass = !bypass; e.currentTarget.setAttribute("aria-pressed", bypass); audioUp(); upd(); };
+  applyPreset("music"); $("preset").value = "music";
+
+  // ---------- normalization: decode the audio and measure loudness (K-weighted, ungated, approximate LUFS) ----------
+  async function analyze() {
+    $("normInfo").textContent = "Measuring the sound…";
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext, tmp = new Ctx(), data = await S.file.arrayBuffer();
+      S.buf = await new Promise((ok, no) => { const p = tmp.decodeAudioData(data, ok, no); if (p && p.catch) p.catch(no); }); tmp.close && tmp.close();
+      await measure();
+    } catch (e) { S.buf = null; S.normGain = 1; upd(); $("normInfo").textContent = "This video's sound couldn't be measured here (or it has no sound), so normalizing is off. Mastering still works while you play and export."; }
+  }
+  async function measure() {
+    if (!S.buf) return; const b = S.buf, sr = b.sampleRate, s0 = Math.floor(S.inT * sr), s1 = Math.max(s0 + 1, Math.floor(S.outT * sr)), n = s1 - s0;
+    let peak = 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = s0; i < s1; i++) { const v = Math.abs(d[i]); if (v > peak) peak = v; } }
+    const C = new OfflineAudioContext(b.numberOfChannels, n, sr), src = C.createBufferSource(), seg = C.createBuffer(b.numberOfChannels, n, sr);
+    for (let c = 0; c < b.numberOfChannels; c++) seg.getChannelData(c).set(b.getChannelData(c).subarray(s0, s1));
+    src.buffer = seg; const sh = C.createBiquadFilter(); sh.type = "highshelf"; sh.frequency.value = 1500; sh.gain.value = 4; const hpf = C.createBiquadFilter(); hpf.type = "highpass"; hpf.frequency.value = 38; hpf.Q.value = .5;
+    src.connect(sh); sh.connect(hpf); hpf.connect(C.destination); src.start(); const k = await C.startRendering();
+    let ms = 0; for (let c = 0; c < k.numberOfChannels; c++) { const d = k.getChannelData(c); let s = 0; for (let i = 0; i < d.length; i += 2) s += d[i] * d[i]; ms += s / (d.length / 2); }
+    S.lufs = -0.691 + 10 * Math.log10(ms || 1e-12); S.peakDb = 20 * Math.log10(peak || 1e-9); setNorm();
+  }
+  function setNorm() {
+    const v = $("norm").value; if (!S.buf) { S.normGain = 1; upd(); return; }
+    let g = 0; if (v === "peak") g = -1 - S.peakDb; else if (v !== "off") g = +v - S.lufs;
+    g = Math.max(-30, Math.min(30, g)); S.normGain = db(g); upd();
+    $("normInfo").textContent = `Trimmed part: loudness about ${S.lufs.toFixed(1)} LUFS, peak ${S.peakDb.toFixed(1)} dB. ${v === "off" ? "Normalizing is off." : `Gain ${g >= 0 ? "+" : ""}${g.toFixed(1)} dB to reach the target${v !== "peak" && S.peakDb + g > -1 ? " (the limiter catches the peaks)" : ""}.`}`;
+  }
+  $("norm").onchange = () => setNorm();
+
+  // ---------- playback ----------
+  let stopAt = null;
+  $("play").onclick = () => { audioUp(); if (V.paused) { stopAt = null; V.play(); } else V.pause(); };
+  V.onplay = () => { $("play").textContent = "❚❚ Pause"; tick(); }; V.onpause = () => { $("play").textContent = "▶ Play"; };
+  function tick() { $("clock").textContent = fmtT(V.currentTime); drawTL(); if (stopAt != null && V.currentTime >= stopAt) { V.pause(); stopAt = null; } if (!V.paused) requestAnimationFrame(tick); }
+  V.ontimeupdate = () => { if (V.paused) { $("clock").textContent = fmtT(V.currentTime); drawTL(); } };
+  const seek = t => { V.currentTime = Math.max(0, Math.min(S.dur, t)); };
+  $("back1").onclick = () => seek(V.currentTime - 1); $("fwd1").onclick = () => seek(V.currentTime + 1); $("frame").onclick = () => { V.pause(); seek(V.currentTime + 1 / 30); };
+  const playRange = (a, b) => { audioUp(); seek(a); stopAt = b; V.play(); };
+  $("playSel").onclick = () => playRange(S.inT, S.outT);
+
+  // ---------- trim & splits ----------
+  function syncInputs() { $("inT").value = S.inT.toFixed(1); $("outT").value = S.outT.toFixed(1); $("igInT").value = S.ig.inT.toFixed(1); $("igOutT").value = S.ig.outT.toFixed(1); $("igLen").textContent = `Length ${fmtT(S.ig.outT - S.ig.inT)}${S.ig.outT - S.ig.inT > 180 ? " (longer than Instagram allows: 3 minutes)" : ""}`; }
+  const setTrim = (a, b) => { S.inT = Math.max(0, Math.min(a, S.dur)); S.outT = Math.max(S.inT + .1, Math.min(b, S.dur)); syncInputs(); drawTL(); drawSegs(); clearTimeout(S.mt); S.mt = setTimeout(measure, 300); };
+  $("setIn").onclick = () => setTrim(V.currentTime, Math.max(S.outT, V.currentTime + .1)); $("setOut").onclick = () => setTrim(Math.min(S.inT, V.currentTime - .1), V.currentTime);
+  $("inT").onchange = e => setTrim(+e.target.value, S.outT); $("outT").onchange = e => setTrim(S.inT, +e.target.value);
+  $("split").onclick = () => { const t = +V.currentTime.toFixed(2); if (t <= S.inT + .05 || t >= S.outT - .05) { status("Move inside the trimmed part to split it."); return; } if (!S.splits.some(x => Math.abs(x - t) < .05)) S.splits.push(t); S.splits.sort((a, b) => a - b); drawTL(); drawSegs(); };
+  $("clearSplits").onclick = () => { S.splits = []; drawTL(); drawSegs(); };
+  const segments = () => { const pts = [S.inT, ...S.splits.filter(x => x > S.inT && x < S.outT), S.outT]; return pts.slice(1).map((b, i) => [pts[i], b]); };
+  function drawSegs() {
+    const sg = segments();
+    $("segs").innerHTML = sg.length < 2 ? `<li class="note">No splits yet: the trimmed part is one clip. Move to a point and choose <b>Split here</b> to cut it into clips.</li>` : sg.map(([a, b], i) => `<li><b>Clip ${i + 1}</b><span>${fmtT(a)} – ${fmtT(b)} (${(b - a).toFixed(1)} s)</span><button class="tbtn sm" type="button" data-sp="${i}">▶ Play</button><button class="tbtn sm" type="button" data-sx="${i}">Export</button>${i ? `<button class="tbtn sm" type="button" data-sd="${i}">Remove the split before it</button>` : ""}</li>`).join("");
+  }
+  $("segs").onclick = e => { const sg = segments(), p = e.target.closest("[data-sp]"), x = e.target.closest("[data-sx]"), d = e.target.closest("[data-sd]");
+    if (p) { const [a, b] = sg[+p.dataset.sp]; playRange(a, b); } if (x) { const i = +x.dataset.sx, [a, b] = sg[i]; runExports([{ a, b, rect: S.crop.on ? S.crop : null, ar: null, name: `${S.name}-clip${i + 1}` }]); }
+    if (d) { const t = sg[+d.dataset.sd][0]; S.splits = S.splits.filter(s => Math.abs(s - t) > .001); drawTL(); drawSegs(); } };
+
+  // ---------- timeline ----------
+  const TL = $("tl");
+  function drawTL() {
+    if (!S.dur) return; const dpr = window.devicePixelRatio || 1, W = TL.clientWidth, H = TL.clientHeight; if (TL.width !== W * dpr) { TL.width = W * dpr; TL.height = H * dpr; }
+    const g = TL.getContext("2d"), X = t => t / S.dur * W; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = "rgba(0,0,0,.06)"; g.fillRect(0, 0, W, H);
+    if (S.buf) { if (!S.wave || S.wave.W !== W) { const d = S.buf.getChannelData(0), step = d.length / W, out = []; for (let i = 0; i < W; i++) { let m = 0; for (let j = Math.floor(i * step), e = Math.floor((i + 1) * step); j < e; j += 16) m = Math.max(m, Math.abs(d[j])); out.push(m); } S.wave = { W, out }; } g.fillStyle = "rgba(0,0,0,.25)"; S.wave.out.forEach((m, i) => { const h = m * (H - 22); g.fillRect(i, H / 2 + 4 - h / 2, 1, Math.max(1, h)); }); }
+    g.fillStyle = "rgba(255,210,122,.45)"; g.fillRect(X(S.inT), 14, X(S.outT) - X(S.inT), H - 14);
+    if (S.ig.on) { g.fillStyle = "rgba(238,42,123,.8)"; g.fillRect(X(S.ig.inT), 2, Math.max(2, X(S.ig.outT) - X(S.ig.inT)), 8); }
+    g.fillStyle = "#222"; S.splits.forEach(t => g.fillRect(X(t) - 1, 12, 2, H - 12));
+    g.fillStyle = "#c0392b"; g.fillRect(X(V.currentTime) - 1, 0, 2, H);
+  }
+  let tlDrag = false; const tlSeek = e => { const r = TL.getBoundingClientRect(); seek((e.clientX - r.left) / r.width * S.dur); };
+  TL.addEventListener("pointerdown", e => { tlDrag = true; TL.setPointerCapture(e.pointerId); tlSeek(e); }); TL.addEventListener("pointermove", e => { if (tlDrag) tlSeek(e); }); TL.addEventListener("pointerup", () => { tlDrag = false; });
+  window.addEventListener("resize", () => { S.wave = null; drawTL(); drawBoxes(); });
+
+  // ---------- crop and Instagram boxes (normalized 0–1 coordinates) ----------
+  const pxAR = r => r.w * S.vw / (r.h * S.vh);
+  function fitAR(r, ar) { if (!ar) return; const cx = r.x + r.w / 2, cy = r.y + r.h / 2; let w = r.w, h = w * S.vw / (ar * S.vh); if (h > 1) { h = 1; w = h * ar * S.vh / S.vw; } if (w > 1) { w = 1; h = w * S.vw / (ar * S.vh); } r.w = w; r.h = h; r.x = Math.min(1 - w, Math.max(0, cx - w / 2)); r.y = Math.min(1 - h, Math.max(0, cy - h / 2)); }
+  function igFit() { const r = S.ig; r.w = 1; r.h = 1; fitAR(r, r.ar); r.x = (1 - r.w) / 2; r.y = (1 - r.h) / 2; }
+  function drawBoxes() {
+    [["cropBox", S.crop], ["igBox", S.ig]].forEach(([id, r]) => { const el = $(id); el.hidden = !r.on; Object.assign(el.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: r.h * 100 + "%" }); });
+    $("cropInfo").textContent = S.crop.on ? `${Math.round(S.crop.w * S.vw)} × ${Math.round(S.crop.h * S.vh)} pixels` : "Showing the whole frame.";
+  }
+  let drag = null;
+  $("stage").addEventListener("pointerdown", e => {
+    const h = e.target.closest(".handle"), box = e.target.closest(".box"); if (!box) return; e.preventDefault();
+    const r = box.id === "cropBox" ? S.crop : S.ig, st = $("stage").getBoundingClientRect(); drag = { r, mode: h ? "size" : "move", x0: e.clientX, y0: e.clientY, r0: { ...r }, st, ar: box.id === "igBox" ? r.ar : (S.crop.ar === "free" ? 0 : +S.crop.ar) }; box.setPointerCapture(e.pointerId);
+  });
+  $("stage").addEventListener("pointermove", e => {
+    if (!drag) return; const { r, r0, st } = drag, dx = (e.clientX - drag.x0) / st.width, dy = (e.clientY - drag.y0) / st.height;
+    if (drag.mode === "move") { r.x = Math.min(1 - r.w, Math.max(0, r0.x + dx)); r.y = Math.min(1 - r.h, Math.max(0, r0.y + dy)); }
+    else { r.w = Math.max(.05, Math.min(1 - r.x, r0.w + dx)); r.h = drag.ar ? r.w * S.vw / (drag.ar * S.vh) : Math.max(.05, Math.min(1 - r.y, r0.h + dy)); if (r.y + r.h > 1) { r.h = 1 - r.y; if (drag.ar) r.w = r.h * drag.ar * S.vh / S.vw; } }
+    drawBoxes();
+  });
+  window.addEventListener("pointerup", () => { drag = null; });
+  ["cropBox", "igBox"].forEach(id => $(id).addEventListener("keydown", e => {
+    const r = id === "cropBox" ? S.crop : S.ig, ar = id === "igBox" ? r.ar : (S.crop.ar === "free" ? 0 : +S.crop.ar), st = .01 * (e.altKey ? .2 : 1), K = e.key; let hit = true;
+    if (e.shiftKey) { if (K === "ArrowRight") r.w = Math.min(1 - r.x, r.w + st); else if (K === "ArrowLeft") r.w = Math.max(.05, r.w - st); else if (K === "ArrowDown") r.h = Math.min(1 - r.y, r.h + st); else if (K === "ArrowUp") r.h = Math.max(.05, r.h - st); else hit = false; if (hit && ar) { r.h = r.w * S.vw / (ar * S.vh); fitAR(r, ar); } }
+    else if (K === "ArrowRight") r.x = Math.min(1 - r.w, r.x + st); else if (K === "ArrowLeft") r.x = Math.max(0, r.x - st); else if (K === "ArrowDown") r.y = Math.min(1 - r.h, r.y + st); else if (K === "ArrowUp") r.y = Math.max(0, r.y - st); else hit = false;
+    if (hit) { e.preventDefault(); drawBoxes(); }
+  }));
+  $("cropOn").onclick = e => { S.crop.on = !S.crop.on; e.currentTarget.setAttribute("aria-pressed", S.crop.on); drawBoxes(); };
+  $("cropAR").onchange = e => { S.crop.ar = e.target.value; if (S.crop.ar !== "free") fitAR(S.crop, +S.crop.ar); S.crop.on = true; $("cropOn").setAttribute("aria-pressed", "true"); drawBoxes(); };
+  $("cropReset").onclick = () => { Object.assign(S.crop, { x: .1, y: .1, w: .8, h: .8 }); if (S.crop.ar !== "free") fitAR(S.crop, +S.crop.ar); drawBoxes(); };
+  $("igOn").onclick = e => { S.ig.on = !S.ig.on; e.currentTarget.setAttribute("aria-pressed", S.ig.on); e.currentTarget.textContent = S.ig.on ? "Hide the Instagram frame" : "Show the Instagram frame"; drawBoxes(); drawTL(); };
+  $("igAR").onchange = e => { S.ig.ar = +e.target.value; fitAR(S.ig, S.ig.ar); S.ig.on = true; $("igOn").setAttribute("aria-pressed", "true"); drawBoxes(); };
+  $("igCenter").onclick = () => { S.ig.x = (1 - S.ig.w) / 2; S.ig.y = (1 - S.ig.h) / 2; drawBoxes(); };
+  const setIG = (a, b) => { S.ig.inT = Math.max(0, Math.min(a, S.dur)); S.ig.outT = Math.max(S.ig.inT + .1, Math.min(b, S.dur)); S.ig.on = true; $("igOn").setAttribute("aria-pressed", "true"); syncInputs(); drawTL(); drawBoxes(); };
+  $("igIn").onclick = () => setIG(V.currentTime, Math.max(S.ig.outT, V.currentTime + .1)); $("igOut").onclick = () => setIG(Math.min(S.ig.inT, V.currentTime - .1), V.currentTime);
+  $("igInT").onchange = e => setIG(+e.target.value, S.ig.outT); $("igOutT").onchange = e => setIG(S.ig.inT, +e.target.value);
+  $("igPlay").onclick = () => playRange(S.ig.inT, S.ig.outT);
+
+  // ---------- export ----------
+  const MIMES = [["video/mp4;codecs=avc1.640028,mp4a.40.2", "MP4 (H.264 + AAC)", "mp4"], ["video/mp4;codecs=avc1.42E01F,mp4a.40.2", "MP4 (H.264 + AAC)", "mp4"], ["video/mp4", "MP4", "mp4"], ["video/webm;codecs=vp9,opus", "WebM (VP9 + Opus)", "webm"], ["video/webm;codecs=vp8,opus", "WebM (VP8 + Opus)", "webm"], ["video/webm", "WebM", "webm"]];
+  const okM = window.MediaRecorder ? MIMES.filter(([m]) => MediaRecorder.isTypeSupported(m)).filter((x, i, a) => a.findIndex(y => y[1] === x[1]) === i) : [];
+  $("fmt").innerHTML = okM.length ? okM.map(([m, l], i) => `<option value="${i}">${l}</option>`).join("") : `<option>Video export isn't available in this browser</option>`;
+  if (!okM.length) { $("exMain").disabled = $("exAll").disabled = $("igExport").disabled = true; }
+  const prog = f => { $("prog").style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + "%"; };
+  function save(blob, name) { const url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 8000); }
+  const even = n => Math.max(2, Math.round(n / 2) * 2);
+  // one real-time recording of [a, b] from rect (normalized) to a canvas of the chosen size
+  async function exportClip({ a, b, rect, outW, outH, name, mime }) {
+    audioUp(); upd();
+    const r = rect || { x: 0, y: 0, w: 1, h: 1 }, sx = r.x * S.vw, sy = r.y * S.vh, sw = r.w * S.vw, sh = r.h * S.vh, fps = +$("fps").value;
+    if (!outW) { const lim = $("res").value === "orig" ? 1e9 : +$("res").value, sc = Math.min(1, lim / Math.min(sw, sh)); outW = even(sw * sc); outH = even(sh * sc); }
+    const cv = document.createElement("canvas"); cv.width = outW; cv.height = outH; const g = cv.getContext("2d");
+    const stream = cv.captureStream(fps), tracks = [...stream.getVideoTracks()]; if (DEST) tracks.push(...DEST.stream.getAudioTracks());
+    const ms = new MediaStream(tracks), rec = new MediaRecorder(ms, { mimeType: mime[0], videoBitsPerSecond: outW * outH >= 1920 * 1080 * .9 ? 10e6 : outW * outH > 1e6 ? 6e6 : 3.5e6, audioBitsPerSecond: 192000 });
+    const chunks = []; rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    const done = new Promise(ok => { rec.onstop = ok; });
+    V.pause(); stopAt = null; V.currentTime = a; await new Promise(ok => { V.onseeked = () => { V.onseeked = null; ok(); }; });
+    const draw = () => g.drawImage(V, sx, sy, sw, sh, 0, 0, outW, outH);
+    draw(); MON.gain.value = $("mon").value === "on" ? 1 : 0;
+    rec.start(500); await V.play();
+    await new Promise(ok => {
+      const step = () => { draw(); prog((V.currentTime - a) / (b - a)); if (S.cancel || V.currentTime >= b || V.ended) { V.pause(); ok(); return; } if (V.requestVideoFrameCallback) V.requestVideoFrameCallback(step); else requestAnimationFrame(step); };
+      if (V.requestVideoFrameCallback) V.requestVideoFrameCallback(step); else requestAnimationFrame(step);
+    });
+    rec.stop(); await done; MON.gain.value = 1;
+    if (S.cancel) return null;
+    const blob = new Blob(chunks, { type: mime[0].split(";")[0] }), fname = `${name}.${mime[2]}`; save(blob, fname); return { fname, size: blob.size };
+  }
+  async function runExports(list) {
+    if (S.busy) return; if (!okM.length) { status("This browser can't record video. Try Chrome, Edge or Safari."); return; }
+    S.busy = true; S.cancel = false; $("cancel").hidden = false; ["exMain", "exAll", "igExport", "exAudio"].forEach(id => $(id).disabled = true);
+    const mime = okM[+$("fmt").value] || okM[0], saved = [];
+    try {
+      for (let i = 0; i < list.length && !S.cancel; i++) { const it = list[i]; status(`Exporting ${list.length > 1 ? `clip ${i + 1} of ${list.length}` : it.name}… (${fmtT(it.b - it.a)} in real time)`); const r = await exportClip(Object.assign({ mime }, it)); if (r) saved.push(r); }
+      status(S.cancel ? "Export cancelled." : `Saved ${saved.map(s => `${s.fname} (${(s.size / 1048576).toFixed(1)} MB)`).join(", ")}.`);
+      window.__lastExport = saved;
+    } catch (e) { status("Export failed: " + e.message); }
+    S.busy = false; $("cancel").hidden = true; prog(0); ["exMain", "exAll", "igExport", "exAudio"].forEach(id => $(id).disabled = false);
+  }
+  $("cancel").onclick = () => { S.cancel = true; };
+  $("exMain").onclick = () => runExports([{ a: S.inT, b: S.outT, rect: S.crop.on ? S.crop : null, name: `${S.name}-edit` }]);
+  $("exAll").onclick = () => runExports(segments().map(([a, b], i) => ({ a, b, rect: S.crop.on ? S.crop : null, name: `${S.name}-clip${i + 1}` })));
+  $("igExport").onclick = () => { if (S.ig.outT - S.ig.inT > 180.5) { status("Instagram allows up to 3 minutes: shorten the Instagram range first."); return; } const W = 1080, H = Math.round(1080 / S.ig.ar); S.ig.on = true; drawBoxes(); runExports([{ a: S.ig.inT, b: S.ig.outT, rect: S.ig, outW: W, outH: even(H), name: `${S.name}-instagram-${S.ig.ar < .6 ? "9x16" : S.ig.ar < .9 ? "4x5" : "1x1"}` }]); };
+
+  // audio only: offline render of the trimmed part through the same chain (faster than real time)
+  function wav(b) { const ch = b.numberOfChannels, n = b.length, ab = new ArrayBuffer(44 + n * ch * 2), v = new DataView(ab), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n * ch * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true); v.setUint32(24, b.sampleRate, true); v.setUint32(28, b.sampleRate * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * ch * 2, true);
+    const cs = Array.from({ length: ch }, (_, c) => b.getChannelData(c)); let o = 44; for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const x = Math.max(-1, Math.min(1, cs[c][i])); v.setInt16(o, x < 0 ? x * 32768 : x * 32767, true); o += 2; } return new Blob([ab], { type: "audio/wav" }); }
+  const lame = () => new Promise((ok, no) => { if (window.lamejs) return ok(); const sc = document.createElement("script"); sc.src = "assets/lame.min.js?v=5a6238f8"; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  async function mp3(b) { await lame(); const enc = new lamejs.Mp3Encoder(2, b.sampleRate, 192), I = d => Int16Array.from(d, x => Math.max(-32768, Math.min(32767, x * 32767))), L = I(b.getChannelData(0)), R = I(b.getChannelData(b.numberOfChannels > 1 ? 1 : 0)), parts = [];
+    for (let i = 0; i < L.length; i += 1152) { const x = enc.encodeBuffer(L.subarray(i, i + 1152), R.subarray(i, i + 1152)); if (x.length) parts.push(new Uint8Array(x)); } const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" }); }
+  $("exAudio").onclick = async () => {
+    if (!S.buf) { status("The sound couldn't be read from this video, so audio-only export isn't available."); return; }
+    status("Rendering the audio…"); const b = S.buf, sr = b.sampleRate, s0 = Math.floor(S.inT * sr), n = Math.floor((S.outT - S.inT) * sr) + Math.floor(sr * (P.revMix ? Math.min(P.revSize, 3) : .05));
+    const C = new OfflineAudioContext(2, n, sr), ch = chain(C); ch.update(bypass); ch.output.connect(C.destination);
+    const src = C.createBufferSource(); src.buffer = b; src.connect(ch.input); src.start(0, S.inT, S.outT - S.inT);
+    const out = await C.startRendering(), fmt = $("afmt").value, blob = fmt === "mp3" ? await mp3(out) : wav(out), name = `${S.name}-audio.${fmt}`; save(blob, name);
+    status(`Saved ${name} (${(blob.size / 1048576).toFixed(1)} MB).`); window.__lastAudio = { dur: out.duration, size: blob.size };
+  };
+  window.__vcm = { S, P, open, segments, runExports };   // used by automated tests
+})();
+</script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/site.js?v=8e6b7449"></script>
+</body></html>
