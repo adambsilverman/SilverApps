@@ -1154,7 +1154,7 @@
     if (!window.SAquiz || !FAM.quiz) { lessonEl.innerHTML = "<p>This quiz couldn't load. Try reloading the page.</p>"; return; }
     lessonEl.innerHTML = `<article class="lslide saq-page">${SAquiz.html("quiz")}</article>`;
     const sn = n => QMAP[n] || n;
-    SAquiz.wire(lessonEl, "quiz", FAM.quiz, { rich, href: n => `${SA_PAGE.lesson}#step=${sn(n)}`,
+    SAquiz.wire(lessonEl, "quiz", FAM.quiz, { rich: richHTML, href: n => `${SA_PAGE.lesson}#step=${sn(n)}`,
       stepName: n => { const s = L && L.steps[sn(n) - 1]; return s ? s.title.replace(/<[^>]+>/g, "") : "step " + n; },
       draw: (el, spec) => drawStaff(el, spec),
       links: [{ href: SA_PAGE.drills, label: "Practice: " + (SA_PAGE.drillsName || "drills") + " →", primary: true }, { href: SA_PAGE.lesson, label: "Back to the lesson" }] });

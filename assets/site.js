@@ -98,7 +98,8 @@
    The list is a question bank: each attempt draws up to 15 (at least 12 when the bank is bigger), covering every step of
    the lesson once before any step gets a second question, in lesson order. "Start over" draws a fresh set.
    Open notes: every question links to the step that covers it (new tab). A wrong answer shows the hint and allows another try;
-   only first tries count toward the score. opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec), links: [{href, label, primary}] shown when finished }. ===== */
+   only first tries count toward the score. Every text field is escaped here, then passed through opts.rich, which must not escape again
+   (lesson pages pass the engine's richHTML, for {rn:…} numerals and accidentals). opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec), links: [{href, label, primary}] shown when finished }. ===== */
 window.SAquiz = (function () {
   var ST = {};
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -178,7 +179,7 @@ window.SAquiz = (function () {
       if (S.done) {
         var right = S.first.filter(Boolean).length, miss = qs.filter(function (q, i) { return !S.first[i]; });
         card.innerHTML = '<p class="saq-score"><b>' + right + ' of ' + qs.length + '</b> right on the first try.</p>'
-          + (miss.length ? '<p>Worth another look:</p><ul class="saq-miss">' + miss.map(function (q) { return '<li>' + rich(q.q) + (q.s ? ' ' + look(q) : "") + '</li>'; }).join("") + '</ul>' : '<p>Every one on the first try.</p>')
+          + (miss.length ? '<p>Worth another look:</p><ul class="saq-miss">' + miss.map(function (q) { return '<li>' + rich(esc(q.q)) + (q.s ? ' ' + look(q) : "") + '</li>'; }).join("") + '</ul>' : '<p>Every one on the first try.</p>')
           + (function () { var L = log(), b = best(L); return L.attempts.length > 1 ? '<p class="saq-best">Best so far: ' + b.right + ' of ' + b.n + ' (' + L.attempts.length + ' tries finished).</p>' : ""; })()
           + '<div class="saq-row"><button type="button" class="btn primary" data-saq="report">Report for my professor</button><button type="button" class="btn" data-saq="again">Start over</button></div>'
           + (o.links && o.links.length ? '<div class="saq-row saq-next">' + o.links.map(function (l) { return '<a class="btn' + (l.primary ? ' primary' : '') + '" href="' + esc(l.href) + '">' + esc(l.label) + '</a>'; }).join("") + '</div>' : "")
@@ -186,10 +187,10 @@ window.SAquiz = (function () {
         return;
       }
       var q = qs[S.i];
-      card.innerHTML = '<p class="saq-n">Question ' + (S.i + 1) + ' of ' + qs.length + '</p><p class="saq-q">' + rich(q.q) + '</p>' + (q.fig ? '<div class="staff saq-fig"></div>' : "")
+      card.innerHTML = '<p class="saq-n">Question ' + (S.i + 1) + ' of ' + qs.length + '</p><p class="saq-q">' + rich(esc(q.q)) + '</p>' + (q.fig ? '<div class="staff saq-fig"></div>' : "")
         + '<div class="opts">' + S.order[S.i].map(function (v) { return '<button type="button" class="opt" data-saqv="' + esc(v) + '">' + rich(esc(v)) + '</button>'; }).join("") + '</div>'
         + '<div class="saq-row">' + (q.hint ? '<button type="button" class="btn saq-hb" data-saq="hint" aria-expanded="false">Hint</button>' : "") + look(q) + '</div>'
-        + '<p class="saq-hint" hidden>' + rich(q.hint || "") + '</p><p class="saq-fb"></p>';
+        + '<p class="saq-hint" hidden>' + rich(esc(q.hint || "")) + '</p><p class="saq-fb"></p>';
       if (q.fig && o.draw) try { o.draw(card.querySelector(".saq-fig"), q.fig); } catch (e) {}
       S.tries = 0;
     }
@@ -206,7 +207,7 @@ window.SAquiz = (function () {
         if (window.SFX) SFX.play(ok);
         if (ok) {
           card.querySelectorAll("[data-saqv]").forEach(function (x) { x.disabled = true; if (x === b) x.classList.add("right"); });
-          fb.innerHTML = '<b>' + (S.tries === 1 ? "Yes." : "Yes, got it.") + '</b> ' + rich(q.why || "") + '<span class="saq-row"><button type="button" class="btn primary" data-saq="next">' + (S.i < qs.length - 1 ? "Next question →" : "See your score") + '</button></span>';
+          fb.innerHTML = '<b>' + (S.tries === 1 ? "Yes." : "Yes, got it.") + '</b> ' + rich(esc(q.why || "")) + '<span class="saq-row"><button type="button" class="btn primary" data-saq="next">' + (S.i < qs.length - 1 ? "Next question →" : "See your score") + '</button></span>';
         } else {
           b.disabled = true; b.classList.add("wrong");
           var h = card.querySelector(".saq-hint"), hb = card.querySelector(".saq-hb");
