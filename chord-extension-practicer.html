@@ -451,13 +451,13 @@ details.panel[open] summary::after { content: "−"; }
     el._args = [q, colors];
     el.innerHTML = "";
     if (!window.Vex || !Vex.Flow) { el.innerHTML = '<p class="staff-msg">The notation engine didn\'t load. Check your connection and reload the page.</p>'; return; }
-    const VF = Vex.Flow, W = 240, H = 240, X = 28;
+    const VF = Vex.Flow, W = 240, H = 220, X = 28;
     const ink = cssVar("--ink");
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     r.resize(W, H);
     const ctx = r.getContext();
     ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
-    const ts = new VF.Stave(X, 10, W - X - 8), bs = new VF.Stave(X, 110, W - X - 8);
+    const ts = new VF.Stave(X, 10, W - X - 8), bs = new VF.Stave(X, 90, W - X - 8);
     ts.addClef("treble"); bs.addClef("bass");
     const placed = voicing(q);
     const all = q.notes.map((_, i) => i);

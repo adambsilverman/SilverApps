@@ -888,14 +888,14 @@ function drawStaff(el, spec){
   r.resize(tmpW, 400);
   let ts=null, bs;
   if (grand){ ts = new VF.Stave(X, TOP, 200).addClef('treble'); if (spec.key) ts.addKeySignature(spec.key); }
-  bs = new VF.Stave(X, grand ? TOP + 100 : TOP, 200).addClef('bass'); if (spec.key) bs.addKeySignature(spec.key);
+  bs = new VF.Stave(X, grand ? TOP + 80 : TOP, 200).addClef('bass'); if (spec.key) bs.addKeySignature(spec.key);
   const sx = Math.max(bs.getNoteStartX(), ts ? ts.getNoteStartX() : 0);
   const noteArea = 110;
   const w = (sx - X) + noteArea;
   [ts,bs].forEach(s => { if (!s) return; s.setWidth(w); s.setNoteStartX(sx); });
   const W = X + w + 14;
   const figRows = spec.figure ? Math.max(spec.figure.length,1) : (spec.boxes ? 1 : 0);
-  const bassBottom = grand ? TOP + 100 + 80 : TOP + 80;
+  const bassBottom = grand ? TOP + 80 + 80 : TOP + 80;
   const H = bassBottom + (figRows ? 30 + figRows*24 : 26);
   r.resize(W, H);
   if (ts) ts.setContext(ctx).draw();

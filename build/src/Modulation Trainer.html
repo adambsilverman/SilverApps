@@ -800,7 +800,7 @@ details.panel[open] summary::after { content: "−"; }
       let x = X0;
       for (let i = row * per, j = 0; i < Math.min(N, (row + 1) * per); i++, j++) {
         const c = p.chords[i];
-        const ts = new VF.Stave(x, y0, MW), bs = new VF.Stave(x, y0 + 100, MW);
+        const ts = new VF.Stave(x, y0, MW), bs = new VF.Stave(x, y0 + 80, MW);
         if (j === 0) {
           ts.addClef("treble").addKeySignature(KS_NAME[sig]); bs.addClef("bass").addKeySignature(KS_NAME[sig]);
           const pad = Math.max(ts.getNoteStartX(), bs.getNoteStartX()) - x;

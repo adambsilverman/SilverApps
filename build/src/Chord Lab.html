@@ -3184,7 +3184,7 @@ function drawStaff(el, spec){
   r.resize(tmpW, 400);
   let ts=null, bs;
   if (grand){ ts = new VF.Stave(X, TOP, 200).addClef('treble'); if (spec.key) ts.addKeySignature(spec.key); }
-  bs = new VF.Stave(X, grand ? TOP + 100 : TOP, 200).addClef('bass'); if (spec.key) bs.addKeySignature(spec.key);
+  bs = new VF.Stave(X, grand ? TOP + 80 : TOP, 200).addClef('bass'); if (spec.key) bs.addKeySignature(spec.key);
   const sx = Math.max(bs.getNoteStartX(), ts ? ts.getNoteStartX() : 0);
   const noteArea = 110;
   const w = (sx - X) + noteArea;

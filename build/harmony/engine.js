@@ -182,7 +182,7 @@
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     const sigN = Object.values(o.sig || {}).filter(a => a).length;
     const firstX = 10, W = Math.round(firstX + 80 + sigN * 11 + n * (o.colW || 74) + 10);
-    const topY = o.syms && cols.some(c => c.sym) ? 34 : 14, gap = voiced ? 130 : 100, Ht = topY + gap + 130;
+    const topY = o.syms && cols.some(c => c.sym) ? 34 : 14, gap = voiced ? 108 : 80, Ht = topY + gap + 130;   // grand staff: 4 staff spaces between the staves (a little more when SATB stems point into the gap)
     r.resize(W, Ht);
     const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
     const tr = new VF.Stave(firstX, topY, W - firstX - 6), bs = new VF.Stave(firstX, topY + gap, W - firstX - 6);
@@ -342,7 +342,7 @@
     const all = o.bars.flatMap(b => ids.flatMap(id => (b[id] || []).flat()));
     const has = f => all.some(n => n[f]);
     const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") || o.beatNums ? 22 : 0) + (has("bs") ? 26 : 0);
-    const gap = clefs.length > 1 ? (has("ly") ? 120 : 96) : 0;
+    const gap = clefs.length > 1 ? (has("ly") ? 104 : 80) : 0;   // grand staff: 4 staff spaces between the staves (more room for lyrics)
     const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
     const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
