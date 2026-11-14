@@ -17,7 +17,7 @@ def card(t, color):
     if t.get("quiz"): btns.append(f'<a class="btn" href="{e(t["quiz"])}">Test Yourself<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("drills"): btns.append(f'<a class="btn" href="{e(t["drills"])}">Drills<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("open"): btns.append(f'<a class="btn" href="{e(t["open"])}">Open<span class="sr"> {e(t["name"])}</span></a>')
-    note = t.get("note") or ("Drills include a class game" if t.get("class") else "")
+    note = t.get("note") or ""   # the old default "Drills include a class game" note was dropped (Nov 2026)
     words = " ".join([t["name"], t["topic"], t["blurb"]]).lower()
     return f'''<li class="card t-{color}" data-q="{e(words)}"><div class="cname"><span class="course">{e(t["topic"])}</span>
         <h3 class="tname">{e(t["name"])}</h3></div><div class="cinfo"><p class="blurb">{e(t["blurb"])}</p>{f'<p class="note">{e(note)}</p>' if note else ""}</div>
@@ -87,7 +87,7 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .group h2 .dot{{width:22px;height:22px}}
 .group{{scroll-margin-top:90px}}
 .tiles{{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}}
-.card{{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) 220px;align-items:center;gap:6px 22px;padding:12px 18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}
+.card{{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto;align-items:center;gap:6px 22px;padding:10px 18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}
 .cname{{display:flex;flex-direction:column;gap:2px}} .cinfo{{display:flex;flex-direction:column;gap:4px}}
 @media (max-width:820px){{.card{{grid-template-columns:1fr;gap:8px}}}}
 .card[hidden],.group[hidden]{{display:none}}
@@ -95,8 +95,8 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .course{{font-size:13px;text-transform:uppercase}}
 .tname{{font-family:var(--fi-display);font-weight:400;font-size:28px;line-height:1;margin:0}}
 .blurb{{line-height:1.4;margin:0}}
-.btns{{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}} @media (max-width:820px){{.btns{{justify-content:flex-start}}}}
-.btn{{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:96px;padding:0 18px;border-radius:var(--fi-pill);border:2px solid currentColor;color:inherit;text-decoration:none;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;box-sizing:border-box}}
+.btns{{display:flex;flex-wrap:nowrap;gap:6px;justify-content:flex-end}} @media (max-width:1050px){{.btns{{flex-wrap:wrap}}}} @media (max-width:820px){{.btns{{justify-content:flex-start}}}}
+.btn{{display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:0;padding:0 14px;white-space:nowrap;border-radius:var(--fi-pill);border:2px solid currentColor;color:inherit;text-decoration:none;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;box-sizing:border-box}}
 .btn:hover{{background:rgba(255,255,255,.35)}} .t-black .btn:hover,.t-purple .btn:hover{{background:rgba(255,255,255,.18)}}
 .btn:first-child{{background:var(--fi-card);color:var(--fi-ink);border-color:var(--fi-card)}}
 .note{{margin:0;font-size:13px;opacity:.9}}
