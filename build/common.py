@@ -8,7 +8,10 @@ ROOT = _pl.Path(__file__).resolve().parent.parent          # the "Music Apps" fo
 # Pages are written to ROOT (the folder you upload to GitHub). In the original dev setup they went to ROOT/site.
 SITE_DIR = ROOT / "site" if (ROOT / "site").is_dir() else ROOT
 
-def strip_html(full_screen=True, sound=False):
+def strip_html(full_screen=True, sound=False, about=False):
+    ab = ('<a class="site-btn" href="about-this-site.html" aria-label="About this site">'
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>'
+          '<span class="lbl">About this site</span></a>') if about else ""
     fs = ('<button class="site-btn" data-fs aria-pressed="false" type="button" aria-label="Full screen">'
           '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>'
           '<span class="lbl">Full screen</span></button>') if full_screen else ""
@@ -18,7 +21,7 @@ def strip_html(full_screen=True, sound=False):
     return ('<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps">'
             '<img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a>'
             '<span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span>'
-            + snd + fs + '</header>')
+            + ab + snd + fs + '</header>')
 
 CREDIT = ('<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener">'
           '<span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a>'
