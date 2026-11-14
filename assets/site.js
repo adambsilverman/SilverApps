@@ -102,6 +102,56 @@ window.SAquiz = (function () {
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function state(id, qs) { if (!ST[id]) ST[id] = { i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; return ST[id]; }
+  /* Finished attempts are kept in this browser (silverapps-quiz-<page>) for the professor report;
+     inside an LMS (SCORM package from gradebook-sync.html) each finished attempt is also posted to the wrapper page. */
+  var PAGE = (location.pathname.split("/").pop() || "index.html").replace(/\.html?$/, "");
+  var LESSON = (document.title || PAGE).split(" · ")[0];
+  var LOGKEY = "silverapps-quiz-" + PAGE;
+  function plain(s) { var d = document.createElement("div"); d.innerHTML = String(s); return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+  function log() { try { return JSON.parse(localStorage.getItem(LOGKEY) || "null") || { attempts: [] }; } catch (e) { return { attempts: [] }; } }
+  function fmt(t) { return new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
+  function pc(r, n) { return n ? Math.round(r / n * 100) : 0; }
+  function finish(qs, S) {
+    var right = S.first.filter(Boolean).length, L = log();
+    var att = { t: Date.now(), right: right, n: qs.length, miss: qs.map(function (q, i) { return S.first[i] ? -1 : i; }).filter(function (i) { return i >= 0; }) };
+    L.attempts.push(att); if (L.attempts.length > 50) L.attempts = L.attempts.slice(-50);
+    try { localStorage.setItem(LOGKEY, JSON.stringify(L)); } catch (e) {}
+    if (window.parent !== window) try {
+      window.parent.postMessage({ type: "silverapps-quiz-result", v: 1, page: PAGE, lesson: LESSON, right: right, n: qs.length, pct: pc(right, qs.length),
+        questions: qs.map(function (q, i) { return { id: "q" + (i + 1), text: plain(q.q).slice(0, 250), correct: !!S.first[i] }; }) }, "*");
+    } catch (e) {}
+  }
+  function best(L) { return L.attempts.reduce(function (b, a) { return !b || a.right / a.n > b.right / b.n ? a : b; }, null); }
+  function reportBody(qs, st) {
+    var L = log(), last = L.attempts[L.attempts.length - 1], b = best(L);
+    return [
+      "SilverApps Interactive Music Training — Quiz report",
+      "Lesson: " + LESSON,
+      "Quiz: Test yourself (open notes; first tries count)",
+      "Student: " + st.name,
+      st.sid ? "Student ID or username: " + st.sid : null,
+      st.course ? "Course or section: " + st.course : null,
+      "Report created: " + fmt(Date.now()),
+      "Attempts finished: " + L.attempts.length,
+      "Latest attempt: " + fmt(last.t) + " — " + last.right + " of " + last.n + " (" + pc(last.right, last.n) + "%)",
+      "Best attempt: " + fmt(b.t) + " — " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)",
+      "Score: " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)",
+      last.miss.length ? "Missed on the first try (latest attempt):" : "Latest attempt: every question right on the first try.",
+    ].concat(last.miss.map(function (i) { return "- Q" + (i + 1) + ": " + (qs[i] ? plain(qs[i].q) : ""); })).filter(function (l) { return l !== null; }).join("\n");
+  }
+  function needReport(cb) {
+    if (window.SAreport) return cb();
+    var me = document.querySelector('script[src*="assets/site.js"]'), sc = document.createElement("script");
+    sc.src = me ? me.src.replace(/site\.js(\?.*)?$/, "progress.js") : "assets/progress.js";
+    sc.onload = cb; document.head.appendChild(sc);
+  }
+  function openReport(qs) {
+    needReport(function () {
+      SAreport.open({ app: LESSON, kind: "quiz report", title: "Quiz report for your professor",
+        intro: "Your report shows this lesson, your name, the date, how many tries you've finished, your best and latest first-try scores, and the questions you missed, with a verification code your professor can check.",
+        build: function (st) { return reportBody(qs, st); } });
+    });
+  }
   function html(id) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score.</p><div class="saq-card" aria-live="polite"></div></div>'; }
   function wire(root, id, qs, o) {
     o = o || {}; var rich = o.rich || function (s) { return s; };
@@ -113,7 +163,9 @@ window.SAquiz = (function () {
         var right = S.first.filter(Boolean).length, miss = qs.filter(function (q, i) { return !S.first[i]; });
         card.innerHTML = '<p class="saq-score"><b>' + right + ' of ' + qs.length + '</b> right on the first try.</p>'
           + (miss.length ? '<p>Worth another look:</p><ul class="saq-miss">' + miss.map(function (q) { return '<li>' + rich(q.q) + (q.s ? ' ' + look(q) : "") + '</li>'; }).join("") + '</ul>' : '<p>Every one on the first try.</p>')
-          + '<div class="saq-row"><button type="button" class="btn" data-saq="again">Start over</button></div>';
+          + (function () { var L = log(), b = best(L); return L.attempts.length > 1 ? '<p class="saq-best">Best so far: ' + b.right + ' of ' + b.n + ' (' + L.attempts.length + ' tries finished).</p>' : ""; })()
+          + '<div class="saq-row"><button type="button" class="btn primary" data-saq="report">Report for my professor</button><button type="button" class="btn" data-saq="again">Start over</button></div>'
+          + (window.SAlms ? '<p class="saq-lms">Your score was sent to your course gradebook.</p>' : "");
         return;
       }
       var q = qs[S.i];
@@ -128,7 +180,8 @@ window.SAquiz = (function () {
       box.addEventListener("click", function (e) {
         var b = e.target.closest("[data-saqv]"), c = e.target.closest("[data-saq]");
         if (c && c.dataset.saq === "hint") { var h = card.querySelector(".saq-hint"); h.hidden = !h.hidden; c.setAttribute("aria-expanded", String(!h.hidden)); return; }
-        if (c && c.dataset.saq === "next") { S.i++; if (S.i >= qs.length) S.done = true; draw(); var n = card.querySelector(".saq-q, .saq-score"); if (n) { n.setAttribute("tabindex", "-1"); n.focus({ preventScroll: true }); } return; }
+        if (c && c.dataset.saq === "next") { S.i++; if (S.i >= qs.length) { S.done = true; finish(qs, S); } draw(); var n = card.querySelector(".saq-q, .saq-score"); if (n) { n.setAttribute("tabindex", "-1"); n.focus({ preventScroll: true }); } return; }
+        if (c && c.dataset.saq === "report") { openReport(qs); return; }
         if (c && c.dataset.saq === "again") { delete ST[id]; S = state(id, qs); draw(); return; }
         if (!b || b.disabled) return;
         var q = qs[S.i], ok = b.dataset.saqv === q.a, fb = card.querySelector(".saq-fb");
@@ -148,4 +201,16 @@ window.SAquiz = (function () {
     draw();
   }
   return { html: html, wire: wire };
+})();
+
+/* ===== LMS bridge: a SCORM package made on gradebook-sync.html shows this page in a frame and sends
+   {type:"silverapps-lms", name, id} with the student's name from the gradebook. The quiz posts its result back (see SAquiz). ===== */
+(function () {
+  if (window.parent === window) return;
+  window.addEventListener("message", function (e) {
+    var d = e.data; if (!d || d.type !== "silverapps-lms" || e.source !== window.parent) return;
+    window.SAlms = { name: String(d.name || "").slice(0, 120), id: String(d.id || "").slice(0, 120), lms: String(d.lms || "") };
+    document.documentElement.classList.add("sa-in-lms");
+  });
+  try { window.parent.postMessage({ type: "silverapps-ready", page: (location.pathname.split("/").pop() || "").replace(/\.html?$/, "") }, "*"); } catch (e) {}
 })();

@@ -1,4 +1,4 @@
-<!-- title: About This Site | desc: Who makes SilverApps, where the music notation and recordings come from, the fair-use basis for short excerpts, licensing and privacy. -->
+<!-- title: About This Site | desc: Who makes SilverApps, where the music notation and recordings come from, the fair-use basis for short excerpts, licensing, privacy, and how to send quiz scores to D2L Brightspace, Canvas, Blackboard or Moodle. -->
 <style>
 .about{max-width:760px;margin:0 auto;padding:22px 16px 48px}
 .about h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -6,6 +6,9 @@
 .about h2{font:400 clamp(28px,4.4vw,38px)/1 var(--fi-display);margin:34px 0 8px}
 .about p{margin:0 0 12px;max-width:66ch}
 .about a{color:var(--fi-red-dk)}
+.about h3{font:900 13px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:24px 0 8px}
+.about ol{margin:0 0 14px;padding-left:1.4em;max-width:66ch}
+.about li{margin:4px 0}
 </style>
 <main id="main" class="about">
 <h1>About <span>this site</span></h1>
@@ -27,6 +30,51 @@
 <h2>Using SilverApps</h2>
 <p>Silverman's apps, lessons, text, graphics and code are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">Creative Commons BY-NC-SA 4.0</a><span class="sr-only"> (opens in a new tab)</span>. Teach with them, adapt them, put them on your own site. Keep the credit, don't sell them, and share your version under the same license. That license doesn't cover the excerpts of other people's music described above, or the open-source pieces the site is built on (VexFlow and its Bravura font, and the fonts, each under its own license).</p>
 
+<h2 id="lms">Quiz scores in your gradebook</h2>
+<p>Each lesson ends with a "Test yourself" quiz. A score can get from that quiz to a course gradebook in two ways. The first is automatic: you add the quiz to your course as a SCORM package, students take it inside the course, and the LMS records the score. The second needs no setup in the LMS: students send you a report, you check the reports and import the scores as a spreadsheet file.</p>
+<p>Quiz scores are first-try scores. A student who misses a question sees the hint and tries again, but only the first try counts. Students can retake a quiz as often as they like; the package and the import file both keep the best score.</p>
+
+<h3>Automatic: a SCORM package</h3>
+<p>Go to <a href="gradebook-sync.html">Gradebook sync</a>, pick a quiz and download its package. It's a small .zip file. Upload it as it is (don't unzip it). The package doesn't copy the lesson into your course; it opens the live quiz from this site, so students need an internet connection, and corrections to a lesson reach them without a new upload. The score arrives as a percent. The "Look back" links open the lesson in a new tab, since the quiz is open-note.</p>
+<p><b>D2L Brightspace.</b></p>
+<ol>
+<li>In <b>Content</b>, open the module where the quiz belongs and choose <b>Add Existing</b> (or <b>Upload / Create</b> in older courses), then <b>SCORM/xAPI Object</b>.</li>
+<li>Choose <b>Bulk Upload</b>, upload the .zip, select it and choose <b>Next</b>.</li>
+<li>Answer <b>Yes</b> to creating a grade item. Under the calculation method, choose the highest attempt. Choose <b>Add</b>.</li>
+<li>Brightspace makes a new grade item outside any category. In <b>Grades</b> &gt; <b>Manage Grades</b>, edit it to move it into a category and set its points. Or, from the topic's menu in Content, choose <b>Edit or Link to Existing</b> to send the score to a grade item you already have.</li>
+</ol>
+<p><b>Canvas.</b> Canvas plays SCORM packages through its SCORM tool, which your school has to have turned on.</p>
+<ol>
+<li>In the course, go to <b>Settings</b> &gt; <b>Navigation</b>, drag <b>SCORM</b> into the visible list and save.</li>
+<li>Open <b>SCORM</b>, choose <b>Upload</b> and pick the .zip.</li>
+<li>From <b>Choose import type</b>, choose <b>Import as graded assignment</b>, then <b>Go</b>. This can't be changed later.</li>
+<li>The new assignment is worth 100 points and is unpublished. In <b>Assignments</b>, edit it to set the points, group and due date, then publish it.</li>
+</ol>
+<p><b>Blackboard (Ultra).</b></p>
+<ol>
+<li>On <b>Course Content</b>, select the plus sign, then <b>Create</b> &gt; <b>SCORM package</b>.</li>
+<li>Choose <b>Upload SCORM package</b> and pick the .zip.</li>
+<li>In the SCORM settings, turn on <b>Grade SCORM</b>, choose the grading schema and set the maximum score to 100. Set attempts to unlimited and grade on the highest attempt. The grade settings can't be changed after the package is added, so set them now.</li>
+</ol>
+<p>In Blackboard's Original Course View, open a content area and choose <b>Build Content</b> &gt; <b>Content Package (SCORM)</b>. Turn grading on in the package settings.</p>
+<p><b>Moodle.</b></p>
+<ol>
+<li>Turn editing on and choose <b>Add an activity or resource</b> &gt; <b>SCORM package</b>.</li>
+<li>Upload the .zip under <b>Package file</b>.</li>
+<li>Under <b>Grade</b>, set the grading method to <b>Highest grade</b> and the maximum grade to 100. Under <b>Attempts management</b>, allow unlimited attempts and grade on the highest attempt.</li>
+</ol>
+<p>Whatever the LMS, try the quiz once as a student (Student View in Canvas and Blackboard, View as Student in Brightspace) and check that the score shows up before you assign it. Some schools block SCORM uploads or limit them to certain roles; if the upload option is missing, ask your LMS support office.</p>
+
+<h3>By hand: reports and an import file</h3>
+<p>At the end of any quiz, a student can press <b>Report for my professor</b>. The report has the lesson, the student's name, their latest and best first-try scores, the questions they missed and a verification code. They can email it, download it, print it or copy it into an assignment box. Practice apps make a similar completion report from the <b>Your progress</b> panel.</p>
+<p>Ask students to type the ID your LMS uses to identify them in the report's <b>Student ID or campus username</b> box. In Brightspace that's the Username or the OrgDefinedId; in Canvas, the SIS Login ID or SIS User ID; in Blackboard, the username.</p>
+<ol>
+<li>Open <a href="verify.html">Check reports</a>. Paste in all the reports, one after another, or choose the report files students downloaded. Each one is marked "Checks out" or "Doesn't match".</li>
+<li>Under <b>Gradebook import file</b>, choose your LMS and whether to grade as a percent or as the number of questions right. Each lesson becomes one grade column. To fill a grade item you already have, type its name exactly as it appears in your gradebook.</li>
+<li>Download the .csv file and import it: in <b>Brightspace</b>, <b>Grades</b> &gt; <b>Enter Grades</b> &gt; <b>Import</b>; in <b>Canvas</b>, <b>Grades</b> &gt; <b>Import</b>; in <b>Blackboard Ultra</b>, the gradebook's <b>Upload</b> button; in <b>Moodle</b>, <b>Grades</b> &gt; <b>Import</b> &gt; <b>CSV file</b>, matching the "Student ID or username" column to the username or ID number field.</li>
+</ol>
+<p>Brightspace and Blackboard match students only by ID, so reports without one are left out of those files and listed on the page for you to enter by hand. Canvas and Moodle files keep them, with the name, but matching by name is less reliable. A Brightspace grade item graded as points should be worth as many points as the quiz has questions; graded as a percent, 100.</p>
+
 <h2>Privacy</h2>
-<p>The site counts visits with Umami: which pages are opened, and the city, region and country they're opened from. No names, no email addresses, no cookies. Your practice settings and progress stay in your own browser.</p>
+<p>The site counts visits with Umami: which pages are opened, and the city, region and country they're opened from. No names, no email addresses, no cookies. Your practice settings, progress and quiz scores stay in your own browser unless you send a report or take a quiz from inside your course's LMS, which then receives the score.</p>
 </main>

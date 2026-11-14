@@ -31,6 +31,7 @@
   const norm = text => text.replace(/\r/g, "").split("\n").map(l => l.trim()).filter(l => l && !/^Verification code:/i.test(l) && !/^Check it at:/i.test(l)).join("\n");
   const codeFor = text => { const h = cyrb53(SALT + "\n" + norm(text)).toString(36).toUpperCase().padStart(11, "0").slice(-10); return h.slice(0, 5) + "-" + h.slice(5); };
   window.SAverify = { codeFor, norm };
+  window.SAreport = { open: cfg => openReport(cfg) };
 
   function panel() {
     if (!box) return;
@@ -41,7 +42,7 @@
       <div class="pr-actions"><button type="button" class="pr-btn primary" data-pr="report" ${D.n ? "" : "disabled"}>Completion report for my professor</button>
         <button type="button" class="pr-btn" data-pr="reset" ${D.n ? "" : "disabled"}>Reset my score</button></div>
       <p class="pr-note" data-pr-msg role="status"></p>`;
-    box.querySelector('[data-pr="report"]').onclick = openReport;
+    box.querySelector('[data-pr="report"]').onclick = () => openReport({ app: APP.name, kind: "completion report", title: "Completion report", intro: "Your report shows this app, your name, the date, how many questions you answered and your percent correct, with a verification code your professor can check.", build: progressBody });
     const rb = box.querySelector('[data-pr="reset"]');
     rb.onclick = () => {
       if (rb.dataset.armed) { reset(); return; }
@@ -53,53 +54,58 @@
   function reset() { D = blank(); save(); if (APP.onReset) try { APP.onReset(); } catch (e) {} panel(); const m = box.querySelector("[data-pr-msg]"); if (m) m.textContent = "Your score has been reset."; }
 
   /* ---------------- report ---------------- */
-  function reportText(name, course) {
-    const lines = [
+  /* SAreport.open(cfg) — shared by the progress panel and the "Test yourself" quizzes.
+     cfg: { app (name shown in subject/file), title, intro, build({name, sid, course}) -> body text (without code) }
+     Student details are remembered in this browser (silverapps-student). Inside an LMS (SCORM package),
+     site.js fills window.SAlms = {name, id} from the gradebook, which prefills the form. */
+  const student = () => { let s = {}; try { s = JSON.parse(localStorage.getItem("silverapps-student") || "{}") || {}; } catch (e) {} const l = window.SAlms || {}; return { name: s.name || l.name || "", sid: s.sid || l.id || "", course: s.course || "", email: s.email || "" }; };
+  const withCode = body => { const verify = new URL("verify.html", location.href).toString(); return body + `\nVerification code: ${codeFor(body)}\nCheck it at: ${verify}`; };
+  function progressBody(st) {
+    return [
       "SilverApps Interactive Music Training — Completion report",
       `App: ${APP.name}`,
-      `Student: ${name}`,
-      course ? `Course or section: ${course}` : null,
+      `Student: ${st.name}`,
+      st.sid ? `Student ID or username: ${st.sid}` : null,
+      st.course ? `Course or section: ${st.course}` : null,
       `Report created: ${fmt(Date.now())}`,
       `Practice period: ${fmt(D.since)} to ${fmt(D.last)}`,
       `Questions answered: ${D.n}`,
       `Correct: ${D.r} (${pct(D.r, D.n)}%)`,
       "By question type:",
       ...Object.entries(D.cats).map(([c, v]) => `- ${c}: ${v.r}/${v.n} (${pct(v.r, v.n)}%)`),
-    ].filter(Boolean);
-    const body = lines.join("\n");
-    const verify = new URL("verify.html", location.href).toString();
-    return body + `\nVerification code: ${codeFor(body)}\nCheck it at: ${verify}`;
+    ].filter(l => l !== null).join("\n");
   }
-  function openReport() {
+  function openReport(cfg) {
     let dlg = document.getElementById("pr-dialog");
     if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "pr-dialog"; dlg.className = "pr-dialog"; dlg.setAttribute("aria-labelledby", "pr-dlg-title"); document.body.appendChild(dlg); }
-    let saved = {}; try { saved = JSON.parse(localStorage.getItem("silverapps-student") || "{}"); } catch (e) {}
-    dlg.innerHTML = `<form method="dialog" class="pr-form"><h2 id="pr-dlg-title">Completion report</h2>
-      <p>Your report shows this app, your name, the date, how many questions you answered and your percent correct, with a verification code your professor can check.</p>
-      <label>Your name <input name="name" required autocomplete="name" value="${esc(saved.name || "")}"></label>
-      <label>Course or section <small>(optional)</small><input name="course" value="${esc(saved.course || "")}"></label>
-      <label>Professor's email <small>(optional, for the Email button)</small><input name="email" type="email" autocomplete="off" value="${esc(saved.email || "")}"></label>
+    const saved = student();
+    dlg.innerHTML = `<form method="dialog" class="pr-form"><h2 id="pr-dlg-title">${esc(cfg.title)}</h2>
+      <p>${esc(cfg.intro)}</p>
+      <label>Your name <input name="name" required autocomplete="name" value="${esc(saved.name)}"></label>
+      <label>Student ID or campus username <small>(optional; lets your professor import the score into the gradebook)</small><input name="sid" autocomplete="username" value="${esc(saved.sid)}"></label>
+      <label>Course or section <small>(optional)</small><input name="course" value="${esc(saved.course)}"></label>
+      <label>Professor's email <small>(optional, for the Email button)</small><input name="email" type="email" autocomplete="off" value="${esc(saved.email)}"></label>
       <div class="pr-actions"><button class="pr-btn" value="cancel" type="button" data-x>Cancel</button><button class="pr-btn primary" type="submit" value="make">Make my report</button></div></form>`;
     const f = dlg.querySelector("form");
     dlg.querySelector("[data-x]").onclick = () => dlg.close();
     f.onsubmit = e => {
       e.preventDefault();
-      const name = f.name.value.trim(); if (!name) { f.name.focus(); return; }
-      const course = f.course.value.trim(), email = f.email.value.trim();
-      try { localStorage.setItem("silverapps-student", JSON.stringify({ name, course, email })); } catch (er) {}
-      showReport(dlg, reportText(name, course), name, email);
+      const st = { name: f.elements.name.value.trim(), sid: f.elements.sid.value.trim(), course: f.elements.course.value.trim(), email: f.elements.email.value.trim() };
+      if (!st.name) { f.elements.name.focus(); return; }
+      try { localStorage.setItem("silverapps-student", JSON.stringify(st)); } catch (er) {}
+      showReport(dlg, withCode(cfg.build(st)), st.name, st.email, cfg.app, cfg.kind || "completion report");
     };
-    dlg.showModal(); (f.name.value ? f.querySelector('[type="submit"]') : f.name).focus();
+    dlg.showModal(); (f.elements.name.value ? f.querySelector('[type="submit"]') : f.elements.name).focus();
   }
-  function showReport(dlg, text, name, email) {
-    const fileBase = `${APP.name} report - ${name}`.replace(/[\\/:*?"<>|]/g, "");
-    dlg.innerHTML = `<div class="pr-report"><h2 id="pr-dlg-title">Your completion report</h2>
+  function showReport(dlg, text, name, email, appName, kind) {
+    const fileBase = `${appName} ${kind} - ${name}`.replace(/[\\/:*?"<>|]/g, "");
+    dlg.innerHTML = `<div class="pr-report"><h2 id="pr-dlg-title">Your ${esc(kind)}</h2>
       <pre class="pr-text" tabindex="0" aria-label="Report text">${esc(text)}</pre>
       <p class="pr-note">Send it any of these ways. Your professor can paste it into the "Check it at" page to confirm the numbers haven't been changed.</p>
       <div class="pr-actions wrap">
         <button type="button" class="pr-btn primary" data-r="print">Print or save as PDF</button>
         <button type="button" class="pr-btn" data-r="download">Download file</button>
-        <a class="pr-btn" data-r="email" href="mailto:${encodeURIComponent(email || "")}?subject=${encodeURIComponent(APP.name + " — completion report — " + name)}&body=${encodeURIComponent(text)}">Email it</a>
+        <a class="pr-btn" data-r="email" href="mailto:${encodeURIComponent(email || "")}?subject=${encodeURIComponent(appName + " — " + kind + " — " + name)}&body=${encodeURIComponent(text)}">Email it</a>
         <button type="button" class="pr-btn" data-r="copy">Copy text</button>
         <button type="button" class="pr-btn" data-r="close">Close</button></div>
       <p class="pr-note" data-r-msg role="status"></p></div>`;

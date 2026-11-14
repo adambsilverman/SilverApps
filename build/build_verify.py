@@ -1,49 +1,167 @@
-"""Build verify.html — professors paste a student's completion report to check its verification code.
+"""Build verify.html — professors paste one or more student reports (completion reports and "Test yourself" quiz reports)
+to check their verification codes, then download a gradebook import file (D2L Brightspace, Canvas, Blackboard, Moodle/other).
 Run: python3 build/build_verify.py"""
 import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from common import *
 
-page = f'''<!doctype html>
+page = r'''<!doctype html>
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Check a completion report · {SITE}</title>
-{HEAD_ASSETS}
+<title>Check reports · __SITE__</title>
+__HEAD__
 <style>
-main{{max-width:760px;margin:0 auto;padding:26px 16px}}
-h1{{font-family:var(--fi-display);font-weight:400;font-size:clamp(44px,8vw,72px);line-height:.92;margin:0;border-top:2px solid var(--fi-red);padding-top:12px}}
-textarea{{width:100%;min-height:300px;font:16px/1.55 var(--fi-serif);padding:14px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink)}}
-label{{display:block;font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:18px 0 6px}}
-.res{{margin-top:14px;padding:14px 16px;border-radius:var(--fi-r);border-left:8px solid var(--fi-line);background:var(--fi-card)}}
-.res.ok{{border-left-color:var(--fi-green);background:#eef6e4}} .res.bad{{border-left-color:var(--fi-red);background:#fff1ec}}
-.res b{{font-family:var(--fi-display);font-weight:400;font-size:30px;display:block;line-height:1}}
+main{max-width:900px;margin:0 auto;padding:26px 16px}
+h1{font-family:var(--fi-display);font-weight:400;font-size:clamp(44px,8vw,72px);line-height:.92;margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+h2{font:400 clamp(26px,4vw,34px)/1 var(--fi-display);margin:30px 0 8px}
+textarea{width:100%;min-height:260px;font:16px/1.55 var(--fi-serif);padding:14px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink)}
+label{display:block;font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:18px 0 6px}
+label small{font:400 13px var(--fi-body);letter-spacing:0;text-transform:none}
+select,input[type=text]{font:16px var(--fi-serif);padding:8px 10px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink)}
+.res{margin-top:14px;padding:14px 16px;border-radius:var(--fi-r);border-left:8px solid var(--fi-line);background:var(--fi-card)}
+.res.ok{border-left-color:var(--fi-green);background:#eef6e4} .res.bad{border-left-color:var(--fi-red);background:#fff1ec}
+.res b{font-family:var(--fi-display);font-weight:400;font-size:30px;display:block;line-height:1}
+table{border-collapse:collapse;width:100%;margin-top:14px;font:15px/1.4 var(--fi-serif)}
+th,td{border-bottom:1px solid var(--fi-line);padding:7px 8px;text-align:left;vertical-align:top}
+th{font:900 12px var(--fi-body);letter-spacing:.08em;text-transform:uppercase}
+td.ok{color:#2d6a1f;font-weight:700} td.bad{color:#9b2a14;font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:end}
+.row > div{min-width:220px}
+.items input{width:100%;max-width:520px;margin:4px 0}
+.warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px}
 </style></head>
 <body>
-{strip_html(full_screen=False)}
-<main>
-<h1>Check a completion report</h1>
-<p>Paste the whole report a student sent you — from the first line to the verification code. This checks that the numbers weren't changed after the report was made. It's a deterrent, not cryptographic proof.</p>
-<label for="rep">Report text</label>
-<textarea id="rep" spellcheck="false" placeholder="SilverApps Interactive Music Training — Completion report&#10;App: …"></textarea>
-<p><button type="button" class="pr-btn primary" id="go">Check report</button></p>
+__STRIP__
+<main id="main">
+<h1>Check reports</h1>
+<p>Paste one report or many: completion reports from the practice apps and quiz reports from the "Test yourself" quizzes. You can also choose the report files students downloaded. Each report's verification code is checked, which shows whether its numbers were changed after it was made. It's a deterrent, not cryptographic proof.</p>
+<label for="rep">Report text <small>(paste several one after another; each starts with "SilverApps Interactive Music Training —")</small></label>
+<textarea id="rep" spellcheck="false" placeholder="SilverApps Interactive Music Training — Quiz report&#10;Lesson: …"></textarea>
+<label for="files">Or choose report files <small>(.html or .txt; you can pick many at once)</small></label>
+<input id="files" type="file" multiple accept=".html,.htm,.txt,text/html,text/plain">
+<p><button type="button" class="pr-btn primary" id="go">Check reports</button></p>
 <div id="out" role="status" aria-live="polite"></div>
+
+<section id="gb" hidden>
+<h2>Gradebook import file</h2>
+<p>Makes a file your LMS can import, with one grade column per lesson or app. Only reports that check out are included. If a student sent more than one report for the same quiz, the best score is used. Students are matched by the <b>Student ID or username</b> they typed in the report, so ask them to use the ID your LMS knows (campus username, or for Brightspace the OrgDefinedId). Setup steps for each LMS are on <a href="about-this-site.html#lms">About this site</a>.</p>
+<div class="row">
+ <div><label for="lms">LMS</label><select id="lms">
+   <option value="d2l">D2L Brightspace</option><option value="canvas">Canvas</option><option value="bb">Blackboard (Ultra or Original)</option><option value="moodle">Moodle or other</option></select></div>
+ <div><label for="kind">Grade as</label><select id="kind"><option value="pct">Percent (out of 100)</option><option value="pts">Points (questions right)</option></select></div>
+ <div id="d2lIdBox"><label for="d2lId">Brightspace ID column</label><select id="d2lId"><option value="Username">Username</option><option value="OrgDefinedId">OrgDefinedId</option></select></div>
+</div>
+<label>Grade column names <small>(match an existing grade item exactly to fill it; a new name makes a new item)</small></label>
+<div class="items" id="items"></div>
+<p><button type="button" class="pr-btn primary" id="dl">Download import file (.csv)</button></p>
+<div id="gbMsg" role="status"></div>
+</section>
 </main>
-{CREDIT}
+__CREDIT__
 <script src="assets/progress.js"></script>
 <script>
-document.getElementById("go").onclick = () => {{
-  const t = document.getElementById("rep").value, out = document.getElementById("out");
-  const m = t.match(/Verification code:\\s*([0-9A-Z]{{5}}-[0-9A-Z]{{5}})/i);
-  if (!m) {{ out.innerHTML = '<div class="res bad"><b>No code found</b>Paste the full report, including the "Verification code" line.</div>'; return; }}
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let REPORTS = [];
+const HEAD = /^\s*SilverApps Interactive Music Training\s+—/m;
+function split(t) {
+  t = t.replace(/\r/g, "");
+  const idx = []; const re = /^\s*SilverApps Interactive Music Training\s+—/gm; let m;
+  while ((m = re.exec(t))) idx.push(m.index);
+  if (!idx.length) return t.trim() ? [t] : [];
+  return idx.map((s, i) => t.slice(s, idx[i + 1] ?? t.length));
+}
+function parse(t) {
+  const g = k => ((t.match(new RegExp("^\\s*" + k + ":\\s*(.+)$", "mi")) || [])[1] || "").trim();
+  const m = t.match(/Verification code:\s*([0-9A-Z]{5}-[0-9A-Z]{5})/i);
+  const r = { text: t, student: g("Student"), sid: g("Student ID or username"), course: g("Course or section"), made: g("Report created") };
+  r.quiz = /—\s*Quiz report/i.test(t);
+  r.item = r.quiz ? g("Lesson") : g("App");
+  if (r.quiz) { const s = g("Score").match(/(\d+)\s+of\s+(\d+)\s*\((\d+)%\)/); if (s) { r.right = +s[1]; r.n = +s[2]; r.pct = +s[3]; } }
+  else { const c = g("Correct").match(/(\d+)\s*\((\d+)%\)/); if (c) { r.right = +c[1]; r.pct = +c[2]; r.n = +(g("Questions answered") || 0); } }
+  if (!m) { r.status = "nocode"; return r; }
   const body = t.slice(0, t.search(/Verification code:/i));
-  const ok = SAverify.codeFor(body) === m[1].toUpperCase();
-  const g = k => (t.match(new RegExp("^\\\\s*" + k + ":\\\\s*(.+)$", "mi")) || [])[1] || "—";
-  out.innerHTML = ok
-    ? `<div class="res ok"><b>Report checks out</b>${{g("Student")}} · ${{g("App")}} · ${{g("Questions answered")}} answered · ${{g("Correct")}} correct · made ${{g("Report created")}}</div>`
-    : '<div class="res bad"><b>Doesn\\'t match</b>The text was changed after the report was made (or only part of it was pasted).</div>';
-}};
+  r.status = SAverify.codeFor(body) === m[1].toUpperCase() ? "ok" : "bad";
+  return r;
+}
+async function readFiles() {
+  const fs = [...$("files").files], out = [];
+  for (const f of fs) {
+    let s = await f.text();
+    if (/<pre[\s>]/i.test(s)) { const d = new DOMParser().parseFromString(s, "text/html"); s = [...d.querySelectorAll("pre")].map(p => p.textContent).join("\n"); }
+    out.push(s);
+  }
+  return out.join("\n");
+}
+$("go").onclick = async () => {
+  const all = $("rep").value + "\n" + await readFiles(), out = $("out");
+  REPORTS = split(all).map(parse);
+  if (!REPORTS.length) { out.innerHTML = '<div class="res bad"><b>Nothing to check</b>Paste a report or choose report files.</div>'; $("gb").hidden = true; return; }
+  if (REPORTS.length === 1) {
+    const r = REPORTS[0];
+    out.innerHTML = r.status === "ok"
+      ? `<div class="res ok"><b>Report checks out</b>${esc(r.student || "—")}${r.sid ? " (" + esc(r.sid) + ")" : ""} · ${esc(r.item || "—")} · ${r.quiz ? `${r.right} of ${r.n} on the first try (${r.pct}%)` : `${r.n} answered · ${r.right} correct (${r.pct}%)`} · made ${esc(r.made || "—")}</div>`
+      : r.status === "nocode" ? '<div class="res bad"><b>No code found</b>Paste the full report, including the "Verification code" line.</div>'
+      : '<div class="res bad"><b>Doesn\'t match</b>The text was changed after the report was made (or only part of it was pasted).</div>';
+  } else {
+    const ok = REPORTS.filter(r => r.status === "ok").length;
+    out.innerHTML = `<div class="res ${ok === REPORTS.length ? "ok" : "bad"}"><b>${ok} of ${REPORTS.length} reports check out</b>Reports marked "Doesn't match" were changed after they were made, or were pasted only in part.</div>
+      <table><thead><tr><th>Student</th><th>ID or username</th><th>Lesson or app</th><th>Score</th><th>Made</th><th>Check</th></tr></thead><tbody>
+      ${REPORTS.map(r => `<tr><td>${esc(r.student || "—")}</td><td>${esc(r.sid || "—")}</td><td>${esc(r.item || "—")}${r.quiz ? " (quiz)" : ""}</td><td>${r.pct != null ? (r.quiz ? `${r.right}/${r.n} · ` : "") + r.pct + "%" : "—"}</td><td>${esc(r.made || "—")}</td><td class="${r.status === "ok" ? "ok" : "bad"}">${r.status === "ok" ? "Checks out" : r.status === "nocode" ? "No code" : "Doesn't match"}</td></tr>`).join("")}
+      </tbody></table>`;
+  }
+  const items = [...new Set(REPORTS.filter(r => r.status === "ok" && r.item).map(r => r.item + (r.quiz ? "|q" : "|a")))];
+  $("gb").hidden = !items.length;
+  $("items").innerHTML = items.map(k => { const [name, t] = k.split("|"); return `<input type="text" data-k="${esc(k)}" value="${esc(name + (t === "q" ? " quiz" : " practice"))}" aria-label="Grade column for ${esc(name)}">`; }).join("");
+  $("gbMsg").innerHTML = "";
+};
+const showD2L = () => { $("d2lIdBox").hidden = $("lms").value !== "d2l"; };
+$("lms").onchange = showD2L; showD2L();
+const q = v => { v = String(v ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+$("dl").onclick = () => {
+  const lms = $("lms").value, pts = $("kind").value === "pts";
+  const cols = [...$("items").querySelectorAll("input")].map(i => ({ k: i.dataset.k, name: i.value.trim() || i.dataset.k.split("|")[0] }));
+  const ok = REPORTS.filter(r => r.status === "ok" && r.pct != null);
+  const people = new Map();   // key: id or name
+  for (const r of ok) {
+    const key = (r.sid || "name:" + r.student).toLowerCase();
+    const p = people.get(key) || { sid: r.sid, student: r.student, g: {} }; people.set(key, p);
+    const k = r.item + (r.quiz ? "|q" : "|a"), prev = p.g[k];
+    if (!prev || r.pct > prev.pct) p.g[k] = r;
+  }
+  const val = r => r ? (pts ? r.right : r.pct) : "";
+  const maxFor = c => pts ? Math.max(0, ...ok.filter(r => r.item + (r.quiz ? "|q" : "|a") === c.k).map(r => r.n || 0)) : 100;
+  const list = [...people.values()], noId = list.filter(p => !p.sid);
+  let rows = [];
+  if (lms === "d2l") {
+    const idc = $("d2lId").value;
+    rows.push([idc, ...cols.map(c => c.name + " Points Grade"), "End-of-Line Indicator"]);
+    list.filter(p => p.sid).forEach(p => rows.push(["#" + p.sid.replace(/^#/, ""), ...cols.map(c => val(p.g[c.k])), "#"]));
+  } else if (lms === "canvas") {
+    rows.push(["Student", "ID", "SIS User ID", "SIS Login ID", "Section", ...cols.map(c => c.name)]);
+    rows.push(["Points Possible", "", "", "", "", ...cols.map(maxFor)]);
+    list.forEach(p => { const num = /^\d+$/.test(p.sid || ""); rows.push([p.student, "", num ? p.sid : "", num ? "" : (p.sid || ""), "", ...cols.map(c => val(p.g[c.k]))]); });
+  } else if (lms === "bb") {
+    rows.push(["Username", ...cols.map(c => c.name)]);
+    list.filter(p => p.sid).forEach(p => rows.push([p.sid, ...cols.map(c => val(p.g[c.k]))]));
+  } else {
+    rows.push(["Student ID or username", "Student", ...cols.map(c => c.name)]);
+    list.forEach(p => rows.push([p.sid || "", p.student, ...cols.map(c => val(p.g[c.k]))]));
+  }
+  const csv = rows.map(r => r.map(q).join(",")).join("\r\n") + "\r\n";
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = { d2l: "Brightspace", canvas: "Canvas", bb: "Blackboard", moodle: "Gradebook" }[lms] + " import - SilverApps.csv";
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  const skipped = (lms === "d2l" || lms === "bb") ? noId : [];
+  $("gbMsg").innerHTML = `<p>Downloaded a file with ${list.length - skipped.length} student${list.length - skipped.length === 1 ? "" : "s"}.</p>` +
+    (skipped.length ? `<p class="warn">Left out because the report has no student ID or username: ${skipped.map(p => esc(p.student)).join(", ")}. Enter these by hand.</p>`
+      : noId.length ? `<p class="warn">No student ID or username in these reports, so your LMS will have to match them by name: ${noId.map(p => esc(p.student)).join(", ")}.</p>` : "");
+};
+})();
 </script>
 </body></html>
 '''
+page = page.replace("__SITE__", SITE).replace("__HEAD__", HEAD_ASSETS).replace("__STRIP__", strip_html(full_screen=False)).replace("__CREDIT__", CREDIT)
 (SITE_DIR / "verify.html").write_text(page, encoding="utf-8")
 print("built verify.html")

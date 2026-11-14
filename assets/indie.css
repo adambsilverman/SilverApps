@@ -277,3 +277,4 @@ button,a,input,select,label,[role="button"]{touch-action:manipulation}
 .saq .opt.right { background: #A9D27A; color: #111; } .saq .opt.wrong { background: #F6D5D0; color: #111; border-style: dashed; text-decoration: line-through; }
 .saq .opt:disabled:not(.right):not(.wrong) { opacity: .6; cursor: default; }
 .saq-look { color: var(--fi-red-dk, #8B1E12); }
+.saq-best, .saq-lms { font-size: .95rem; color: var(--fi-muted, #555); margin: 4px 0 0; }
