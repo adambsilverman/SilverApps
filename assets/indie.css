@@ -257,3 +257,23 @@ button,a,input,select,label,[role="button"]{touch-action:manipulation}
   input[type=range]::-moz-range-thumb{width:28px;height:28px}
 }
 #saJumpDlg [hidden]{display:none!important}
+
+/* "Test yourself" quiz (assets/site.js SAquiz) */
+.saq { max-width: 720px; }
+.saq-intro { font-size: .95rem; }
+.saq-card { border: 1.5px solid var(--fi-line, #222); border-radius: 12px; padding: 14px 16px; background: var(--fi-card, #fffdf8); }
+.saq-n { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; margin: 0 0 4px; color: var(--fi-muted, #555); }
+.saq-q { font-weight: 700; margin: 0 0 10px; outline: none; }
+.saq-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 10px; }
+.saq-hint { background: #FFF4D6; border-left: 4px solid #C98A00; padding: 8px 12px; margin: 10px 0 0; border-radius: 4px; color: #222; }
+.saq-fb { margin: 10px 0 0; } .saq-fb .saq-row { display: flex; }
+.saq-score { font-size: 1.15rem; margin: 0 0 8px; outline: none; }
+.saq-miss li { margin: 6px 0; } .saq-miss .saq-look { font-size: .9rem; }
+.saq-fig { margin: 4px 0 10px; }
+.saq .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.saq .opt { font: 600 17px var(--fi-serif, serif); border-radius: 999px; border: 1.5px solid var(--fi-line, #222); background: var(--fi-card, #fffdf8); padding: 8px 16px; min-height: 44px; min-width: 44px; cursor: pointer; color: var(--fi-ink, #222); text-align: left; }
+.saq .opt:hover:not(:disabled) { border-color: var(--fi-red-dk, #b33); }
+.saq .opt:focus-visible { outline: 3px solid var(--fi-red-dk, #b33); outline-offset: 2px; }
+.saq .opt.right { background: #A9D27A; color: #111; } .saq .opt.wrong { background: #F6D5D0; color: #111; border-style: dashed; text-decoration: line-through; }
+.saq .opt:disabled:not(.right):not(.wrong) { opacity: .6; cursor: default; }
+.saq-look { color: var(--fi-red-dk, #8B1E12); }

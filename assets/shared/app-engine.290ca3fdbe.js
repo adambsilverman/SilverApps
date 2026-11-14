@@ -1066,6 +1066,12 @@
       <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. ${SA_PAGE.cls !== false ? "Teachers can also host the drills as a <b>class game</b>: students join on their own devices." : ""}</p>
       <p class="note">You can come back to any page of this lesson with the numbered buttons above.</p>` });
   }
+  // a "Test yourself" quiz (FAM.quiz: open notes, hints, first tries scored) goes just before the closing Practice step
+  if (window.SA_PAGE && SA_PAGE.view === "lesson" && FAM.quiz && FAM.quiz.length && window.SAquiz && L && L.steps) {
+    const page = location.pathname.split("/").pop() || "", at = /^Practice/.test(L.steps[L.steps.length - 1].title) ? L.steps.length - 1 : L.steps.length;
+    L.steps.splice(at, 0, { title: "Test yourself", kick: "Open-note quiz", render: () => SAquiz.html("lesson"),
+      after: (root, H, k, tools) => SAquiz.wire(root, "lesson", FAM.quiz, { rich, href: n => `${page}#step=${n}`, stepName: n => L.steps[n - 1] ? L.steps[n - 1].title.replace(/<[^>]+>/g, "") : "step " + n, draw: (el, spec) => tools.drawStaff(el, spec) }) });
+  }
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}

@@ -436,3 +436,11 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z145 — More About Intervals edits; grand-staff bar lines
 - intervals2.js: P1 drawn as two whole notes side by side; Over the Rainbow plays the score in rhythm (no play override); "Intervals in scales" points ahead to the scales unit; "Inverting intervals" is a drag toy (drag a notehead from bar 1 into bar 2; buttons do the same; labels via sym above the staff); the d3 (C–E𝄫) example removed from "Half steps, whole steps and 2nds". extra.css .i2-drag.
 - engine.js (cols grand-staff renderer): bar lines drawn through both staves.
+
+## z146 — "Test yourself" quizzes; rhythm table fix
+- assets/site.js: SAquiz (html/wire). Open notes: each question has a hint and a "Look back" link (new tab, #step=N) to the step that covers it; a miss shows the hint and allows another try; only first tries score; end screen lists questions to review. Styles in assets/indie.css (.saq*).
+- engine.js: if FAM.quiz exists, a "Test yourself" step is inserted just before the closing Practice step (lesson view only).
+- Quizzes (window.FAM.quiz = [...], appended at the end of each lesson's last data file): Foundations (pitch, timbre, notevalues, meter, rhythmlesson, clefs, intervals2, scales, keys, figlesson, leadsheets, nct, texture, romans, cadences), Advanced Harmony (harmsucc, secondary, chromatic, extlesson, modlesson), Melody/Phrase/Form (motive, phrases, forms). Question fields: s (step), q, a, w, hint, why, fig (optional score spec). Chord Progressions in Real Songs has none (it's an in-class activity).
+- Slide pages intervals-what-why-how.html and modes-the-simple-truth.html: new "Test yourself" slide before Practice; #step=N deep links.
+- notevalues.js: "In 4/4" column now gives units for every value (2 beats, 1 beat, ½ beat, ¼ beat); dotted-quarter check explains the wrong answers too.
+- extlesson.js: fixed "E7(♭5) and E7♭5 mean the same thing".

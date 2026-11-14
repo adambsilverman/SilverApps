@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link rel="stylesheet" href="assets/shared/styles-apps.69fa8071d1.css">
-<link rel="stylesheet" href="assets/indie.css?v=f97d23f8">
+<link rel="stylesheet" href="assets/indie.css?v=bab86b2b">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 <link rel="stylesheet" href="assets/trainer-skin.css?v=f9e4882a">
 </head>
@@ -326,15 +326,17 @@ window.FAM = (() => {
   ] };
   return { key: "silverapps-figlesson-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
 })();
+// ===== Test yourself quiz (engine adds it as the step before Practice; s = step to look back at) =====
+window.FAM.quiz = [{"s": 1, "q": "A triad with a major 3rd and an augmented 5th above its root is…", "a": "augmented", "w": ["major", "diminished", "minor"], "hint": "Look at the table of four triad qualities.", "why": "Major 3rd + augmented 5th (M3 + M3) is augmented: C–E–G♯."}, {"s": 1, "q": "Name this triad's quality.", "fig": {"type": "score", "clefs": ["treble"], "time": null, "vf": "C", "sig": {}, "bpm": 60, "final": false, "minBar": 90, "bars": [{"t": [[{"k": ["D4", "F4", "A4"], "d": "w"}]]}]}, "a": "minor", "w": ["major", "diminished", "augmented"], "hint": "D up to F is a minor 3rd. D up to A is a perfect 5th.", "why": "Minor 3rd + perfect 5th: D minor."}, {"s": 2, "q": "C–E♭–G♭–B♭ is a…", "a": "half-diminished seventh", "w": ["fully diminished seventh", "minor seventh", "dominant seventh"], "hint": "The triad is diminished. What kind of 7th sits on top?", "why": "Diminished triad + minor 7th = half-diminished (Cø7). With B𝄫 it would be fully diminished."}, {"s": 2, "q": "In any major key, what kind of seventh chord is built on the 5th degree?", "a": "dominant seventh", "w": ["major seventh", "minor seventh", "half-diminished seventh"], "hint": "Its name gives it away.", "why": "V⁷ in major is always a dominant seventh (major triad + minor 7th)."}, {"s": 3, "q": "G in the bass, with C and E above. What is the chord and its position?", "a": "C major, second inversion", "w": ["C major, root position", "G major, root position", "E minor, first inversion"], "hint": "Stack the notes in 3rds to find the root, then look at the bass.", "why": "Stacked: C–E–G, so the root is C. The 5th (G) is in the bass: second inversion."}, {"s": 4, "q": "What figure shows a seventh chord in first inversion?", "a": "6/5", "w": ["7", "4/3", "4/2"], "hint": "For seventh chords the figures count down: 7, 6-5, 4-3, 4-2.", "why": "Root position 7, first inversion 6/5, second 4/3, third 4/2."}, {"s": 4, "q": "A triad in first inversion is figured…", "a": "6", "w": ["6/4", "7", "nothing"], "hint": "Triads: nothing, 6, 6-4.", "why": "Root position: no figure. First inversion: 6. Second inversion: 6/4."}, {"s": 5, "q": "In a figured bass, what does ♯6 under a bass note mean?", "a": "raise the 6th above the bass", "w": ["raise the 3rd above the bass", "raise the bass note", "play a 6th chord in a sharp key"], "hint": "An accidental next to a number applies to that interval.", "why": "♯6 raises the 6th above the bass. An accidental alone applies to the 3rd."}, {"s": 6, "q": "What does C/E mean?", "a": "a C chord with E in the bass", "w": ["a C chord followed by an E chord", "C and E played alone", "an E chord with C in the bass"], "hint": "The letter after the slash is the bass note.", "why": "C/E is C major in first inversion."}, {"s": 7, "q": "On a lead sheet, how long does a chord symbol last?", "a": "until the next chord symbol", "w": ["one beat", "one bar, always", "until the end of the line"], "hint": "Each symbol sits above the beat where its chord begins.", "why": "A chord lasts until the next symbol, however many beats that is."}, {"s": 8, "q": "What notes make up Gsus4?", "a": "G–C–D", "w": ["G–B–D", "G–A–D", "G–B♭–D"], "hint": "A sus4 puts a perfect 4th where the 3rd would be.", "why": "Root, perfect 4th, perfect 5th: G–C–D."}, {"s": 9, "q": "In an inverted triad, a quick way to find the root is…", "a": "the upper note of the 4th", "w": ["the lowest note", "the highest note", "the lower note of the 3rd"], "hint": "It's the shortcut in the identifying routine.", "why": "An inverted triad contains a 4th, and its upper note is the root (in E–G–C, G–C is the 4th; C is the root)."}];
 </script>
 <script src="assets/progress.js?v=0916b76d"></script>
 <script src="assets/sfx.js?v=b8f71476"></script>
 <script src="assets/mqtt.min.js?v=c6d89040"></script>
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
 <script src="assets/live.js?v=4cd58c7e"></script>
-<script src="assets/site.js?v=6bd7072e"></script>
+<script src="assets/site.js?v=c4442f7c"></script>
 <script>var __SA_APP = {"id": "figlesson", "name": "Understanding Chord Figures and Symbols"};</script>
-<script src="assets/shared/app-engine.052a822234.js"></script>
+<script src="assets/shared/app-engine.290ca3fdbe.js"></script>
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 </body>

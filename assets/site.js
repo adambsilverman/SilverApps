@@ -92,3 +92,60 @@
   function go() { scan(); if (window.MutationObserver) new MutationObserver(scan).observe(document.body, { childList: true, subtree: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
+
+/* ===== "Test yourself" quizzes (lessons and slide pages). SAquiz.html(id, qs) + SAquiz.wire(root, id, qs, opts).
+   Each question: { q, a, w: [wrong…], hint, why, s: step number to look back at, fig: optional score spec }.
+   Open notes: every question links to the step that covers it (new tab). A wrong answer shows the hint and allows another try;
+   only first tries count toward the score. opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec) }. ===== */
+window.SAquiz = (function () {
+  var ST = {};
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function state(id, qs) { if (!ST[id]) ST[id] = { i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; return ST[id]; }
+  function html(id) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score.</p><div class="saq-card" aria-live="polite"></div></div>'; }
+  function wire(root, id, qs, o) {
+    o = o || {}; var rich = o.rich || function (s) { return s; };
+    var box = root.querySelector("#saq-" + id); if (!box) return;
+    var card = box.querySelector(".saq-card"), S = state(id, qs);
+    function look(q) { return q.s && o.href ? '<a class="saq-look" href="' + esc(o.href(q.s)) + '" target="_blank" rel="noopener">Look back: ' + esc(o.stepName ? o.stepName(q.s) : "step " + q.s) + '<span class="sr-only"> (opens in a new tab)</span></a>' : ""; }
+    function draw() {
+      if (S.done) {
+        var right = S.first.filter(Boolean).length, miss = qs.filter(function (q, i) { return !S.first[i]; });
+        card.innerHTML = '<p class="saq-score"><b>' + right + ' of ' + qs.length + '</b> right on the first try.</p>'
+          + (miss.length ? '<p>Worth another look:</p><ul class="saq-miss">' + miss.map(function (q) { return '<li>' + rich(q.q) + (q.s ? ' ' + look(q) : "") + '</li>'; }).join("") + '</ul>' : '<p>Every one on the first try.</p>')
+          + '<div class="saq-row"><button type="button" class="btn" data-saq="again">Start over</button></div>';
+        return;
+      }
+      var q = qs[S.i];
+      card.innerHTML = '<p class="saq-n">Question ' + (S.i + 1) + ' of ' + qs.length + '</p><p class="saq-q">' + rich(q.q) + '</p>' + (q.fig ? '<div class="staff saq-fig"></div>' : "")
+        + '<div class="opts">' + S.order[S.i].map(function (v) { return '<button type="button" class="opt" data-saqv="' + esc(v) + '">' + rich(esc(v)) + '</button>'; }).join("") + '</div>'
+        + '<div class="saq-row">' + (q.hint ? '<button type="button" class="btn saq-hb" data-saq="hint" aria-expanded="false">Hint</button>' : "") + look(q) + '</div>'
+        + '<p class="saq-hint" hidden>' + rich(q.hint || "") + '</p><p class="saq-fb"></p>';
+      if (q.fig && o.draw) try { o.draw(card.querySelector(".saq-fig"), q.fig); } catch (e) {}
+      S.tries = 0;
+    }
+    if (!box.dataset.wired) { box.dataset.wired = "1";
+      box.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-saqv]"), c = e.target.closest("[data-saq]");
+        if (c && c.dataset.saq === "hint") { var h = card.querySelector(".saq-hint"); h.hidden = !h.hidden; c.setAttribute("aria-expanded", String(!h.hidden)); return; }
+        if (c && c.dataset.saq === "next") { S.i++; if (S.i >= qs.length) S.done = true; draw(); var n = card.querySelector(".saq-q, .saq-score"); if (n) { n.setAttribute("tabindex", "-1"); n.focus({ preventScroll: true }); } return; }
+        if (c && c.dataset.saq === "again") { delete ST[id]; S = state(id, qs); draw(); return; }
+        if (!b || b.disabled) return;
+        var q = qs[S.i], ok = b.dataset.saqv === q.a, fb = card.querySelector(".saq-fb");
+        if (S.tries === 0) S.first[S.i] = ok; S.tries++;
+        if (window.SFX) SFX.play(ok);
+        if (ok) {
+          card.querySelectorAll("[data-saqv]").forEach(function (x) { x.disabled = true; if (x === b) x.classList.add("right"); });
+          fb.innerHTML = '<b>' + (S.tries === 1 ? "Yes." : "Yes, got it.") + '</b> ' + rich(q.why || "") + '<span class="saq-row"><button type="button" class="btn primary" data-saq="next">' + (S.i < qs.length - 1 ? "Next question →" : "See your score") + '</button></span>';
+        } else {
+          b.disabled = true; b.classList.add("wrong");
+          var h = card.querySelector(".saq-hint"), hb = card.querySelector(".saq-hb");
+          if (q.hint && h.hidden) { h.hidden = false; if (hb) hb.setAttribute("aria-expanded", "true"); }
+          fb.innerHTML = '<b>Not yet.</b> ' + (q.hint ? "Read the hint and try again." : "Try again.");
+        }
+      });
+    }
+    draw();
+  }
+  return { html: html, wire: wire };
+})();
