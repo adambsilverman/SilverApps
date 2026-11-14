@@ -394,22 +394,30 @@ window.FAM = (() => {
   const DT_LO = [697, 770, 852, 941], DT_HI = [1209, 1336, 1477, 1633], DT_KEYS = ["123A", "456B", "789C", "*0#D"];
   const DT = { lo: true, hi: true, held: null, t0: 0, timers: [] };
   const DT_IV = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th", "octave", "minor 9th", "major 9th", "minor 10th", "major 10th"];
-  const dtName = k => k === "*" ? "star" : k === "#" ? "pound" : k;
+  // letters as on Bell keypads of the 1960s–70s (no Q or Z); the fourth column = AUTOVON precedence keys
+  const DT_LET = { "2": "ABC", "3": "DEF", "4": "GHI", "5": "JKL", "6": "MNO", "7": "PRS", "8": "TUV", "9": "WXY", "0": "OPER" };
+  const DT_MIL = { A: ["FO", "Flash Override"], B: ["F", "Flash"], C: ["I", "Immediate"], D: ["P", "Priority"] };
+  const dtName = k => k === "*" ? "star" : k === "#" ? "pound" : DT_MIL[k] ? `${DT_MIL[k][1]} (${k})` : k;
   function dtWords(k, r, c) {
     const lo = DT_LO[r], hi = DT_HI[c], st = 12 * Math.log2(hi / lo), n = Math.round(st), off = Math.round((st - n) * 100);
     const near = Math.abs(off) <= 10 ? `almost exactly an equal-tempered ${DT_IV[n]}` : `between a ${DT_IV[Math.floor(st)]} and a ${DT_IV[Math.ceil(st)]}`;
-    return `<b>${k}</b> = ${lo} Hz + ${hi} Hz. The high tone is ${(hi / lo).toFixed(3)} times the low one: ${st.toFixed(2)} half steps apart, ${near}.`;
+    return `<b>${DT_MIL[k] ? `${DT_MIL[k][0]} (${DT_MIL[k][1]}, ${k})` : k}</b> = ${lo} Hz + ${hi} Hz. The high tone is ${(hi / lo).toFixed(3)} times the low one: ${st.toFixed(2)} half steps apart, ${near}.`;
+  }
+  function dtKey(k, r, c) {
+    const face = DT_MIL[k] ? `<span class="lt">${k}</span><span class="dg">${DT_MIL[k][0]}</span>` : `<span class="lt">${DT_LET[k] || "&nbsp;"}</span><span class="dg">${k}</span>`;
+    return `<button type="button" class="dt-key${c === 3 ? " dt-x" : ""}" style="grid-row:${r + 2};grid-column:${c + 2}" data-dtkey="${k}" data-r="${r}" data-c="${c}" aria-label="${dtName(k)}: ${DT_LO[r]} plus ${DT_HI[c]} hertz">${face}</button>`;
   }
   function dtToy() {
     return `<div class="toy dtmf" id="dtToy">
       <div class="dt-grid" role="group" aria-label="Touch-tone keypad: press and hold a key">
-        <span aria-hidden="true"></span>${DT_HI.map((f, c) => `<span class="dt-h" data-dtcol="${c}" aria-hidden="true">${f}</span>`).join("")}
-        ${DT_KEYS.map((row, r) => `<span class="dt-h dt-rh" data-dtrow="${r}" aria-hidden="true">${DT_LO[r]}</span>` + [...row].map((k, c) => `<button type="button" class="dt-key${c === 3 ? " dt-x" : ""}" data-dtkey="${k}" data-r="${r}" data-c="${c}" aria-label="${dtName(k)}: ${DT_LO[r]} plus ${DT_HI[c]} hertz">${k}</button>`).join("")).join("")}
+        <div class="dt-plate" aria-hidden="true"></div>
+        ${DT_HI.map((f, c) => `<span class="dt-h" style="grid-row:1;grid-column:${c + 2}" data-dtcol="${c}" aria-hidden="true">${f}</span>`).join("")}
+        ${DT_KEYS.map((row, r) => `<span class="dt-h dt-rh" style="grid-row:${r + 2};grid-column:1" data-dtrow="${r}" aria-hidden="true">${DT_LO[r]}</span>` + [...row].map((k, c) => dtKey(k, r, c)).join("")).join("")}
       </div>
-      <p class="dt-read" id="dtRead" aria-live="polite">Press and hold a key. The numbers on the edges are the two groups of tones, in hertz.</p>
-      <div class="toy-row" role="group" aria-label="Which tones to hear"><button class="play" data-dtpart="lo" aria-pressed="true">Low tone</button><button class="play" data-dtpart="hi" aria-pressed="true">High tone</button></div>
-      <div class="toy-row"><label for="dtNum" style="font-weight:700">Number</label><input id="dtNum" type="text" inputmode="tel" autocomplete="off" value="555-0123" maxlength="24" style="font:700 18px var(--mono);padding:6px 10px;border:2px solid var(--ink, #222);border-radius:10px;width:11em"><button class="play" id="dtDial"><span aria-hidden="true">▶ </span>Dial it</button></div>
-      <p class="small" style="margin:0">The dashed column (A, B, C, D) completes the grid of 16. Those keys were for military phone systems, not home phones.</p>
+      <p class="dt-read" id="dtRead" aria-live="polite">Press and hold a key. The numbers along the edges are the two groups of tones, in hertz.</p>
+      <div class="toy-row" role="group" aria-label="What to hear and show"><button class="play" data-dtpart="lo" aria-pressed="true">Low tone</button><button class="play" data-dtpart="hi" aria-pressed="true">High tone</button><button class="play" id="dtMil" aria-pressed="false">Military column (AUTOVON)</button></div>
+      <div class="toy-row"><label for="dtNum" style="font-weight:700">Number</label><input id="dtNum" type="text" autocomplete="off" value="PE6-5000" maxlength="24" style="font:700 18px var(--mono);padding:6px 10px;border:2px solid var(--ink, #222);border-radius:10px;width:11em"><button class="play" id="dtDial"><span aria-hidden="true">▶ </span>Dial it</button></div>
+      <p class="small" style="margin:0">Letters dial the key they're printed on, so PE6-5000 dials 736-5000.</p>
     </div>`;
   }
   function dtLight(r, c, on) {
