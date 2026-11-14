@@ -20,7 +20,7 @@
   <header class="top">
     <div class="brand">
       <h1><span class="h1-pre">Understanding</span> Piano Accompaniment</h1>
-      <p>Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, boom-chuck in the left hand, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.</p>
+      <p>Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, boom-chuck in the left hand, stride, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -161,7 +161,7 @@ window.FAM = (() => {
       <p>This lesson works from one lead sheet, the first eight bars of <i>Brother, Can You Spare a Dime?</i> (Jay Gorney and E. Y. Harburg, 1932):</p>
       <figure class="lfig lsfig"><img src="assets/img/dime/leadsheet.png" alt="Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign." width="1600" height="553">
       <figcaption>${DIME.aud("leadsheet")}</figcaption></figure>
-      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck (shared between the hands, then in the left hand alone), Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
+      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck (shared between the hands, then in the left hand alone, and its big cousin, stride), Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
       <p>In each setting the chord symbols are hidden at first. Before you show them, try to work out which chord each part of the accompaniment spells, using the lead sheet above.</p>` },
     { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: () => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
       <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
@@ -196,7 +196,13 @@ window.FAM = (() => {
       + H.check("In a 4/4 boom-chuck pattern, where do the chords usually go?", "beats 2 and 4", ["beats 1 and 3", "every beat", "only beat 1"], "The bass takes the strong beats (1 and 3), the chords the weak ones (2 and 4).") },
     { title: "Boom-chuck in the left hand", kick: "The left hand does both jobs", render: () => `<p>Boom-chuck can also go entirely into the left hand: a bass note on beats 1 and 3, then a chord just above it on 2 and 4. That frees the right hand for the melody, so one player covers melody, harmony and bass.</p>
       ${DIME.fig("stride", "Boom-chuck in the left hand: bass notes on 1 and 3, chords on 2 and 4; the melody in the right hand.")}${SHOW}
-      <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>` },
+      <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>
+      <h3>Stride piano</h3>
+      <p><b>Stride</b> piano, from Harlem in the 1910s and 1920s (James P. Johnson, Fats Waller, Willie “The Lion” Smith), takes left-hand boom-chuck and stretches it. The bass notes drop toward the bottom of the keyboard, as single notes or octaves, and the chords sit around middle C, so the left hand leaps an octave or more on almost every beat. The right hand plays the melody in full chords and octaves on top.</p>
+      <figure class="lfig ext-fig"><img src="assets/img/dime/waller-effervescent.jpg" width="605" height="558" loading="lazy" alt="Four systems of Fats Waller's Effervescent for solo piano, in E-flat major. The right hand plays the melody in chords and octaves; the left hand alternates low bass notes, many on ledger lines below the bass staff, with chords around middle C.">
+        <figcaption>Fats Waller, <i>Effervescent</i>. The left hand leaps between low bass notes on 1 and 3 and chords around middle C on 2 and 4.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>
+      <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/_L5zjY8zV98?start=93&amp;end=127&amp;rel=0" title="Fats Waller, Effervescent, 1:33 to 2:07 (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      <p class="note">The video starts at 1:33 and stops at 2:07. Watch the left hand.</p>` },
     { title: "Alberti bass and broken chords", kick: "Low, high, middle, high", render: () => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
       ${DIME.fig("alberti", "Alberti bass in eighth notes, with the melody alone in the right hand.", { g7d: true })}${SHOW}
       <p>Other <b>broken-chord</b> patterns spread the chord wider (bass, 5th, octave, then the 3rd above) for ballads; with the pedal they fill out the sound without getting thick.</p>` },
@@ -213,6 +219,7 @@ window.FAM = (() => {
         ["Boom-chuck", "bass on strong beats, chords on weak beats", "marches, folk, country, polkas, upbeat songs"],
         ["Boom-chuck-chuck", "bass on 1, chords on 2 and 3", "waltzes and other songs in 3/4"],
         ["Left-hand boom-chuck", "bass and chords both in the left hand, melody in the right", "solo piano, playing a lead sheet alone"],
+        ["Stride", "left-hand boom-chuck with wide leaps: low bass, chords around middle C", "ragtime, early jazz, solo piano"],
         ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
         ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
         ["Rhythmicized chords", "chord tones in a steady repeating rhythm over a held bass", "ballads and accompanying a singer"],
