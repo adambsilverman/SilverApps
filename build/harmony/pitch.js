@@ -391,21 +391,20 @@ window.FAM = (() => {
     setInterval(() => { if (!document.getElementById("tuToy")) { if (TU.oscs) tuStop(); } else if (!TU.raf) TU.raf = requestAnimationFrame(tuDraw); }, 300);
   }
   // ---------- touch-tone (DTMF) keypad: each key sends a dyad, one low (row) + one high (column) sine tone ----------
-  const DT_LO = [697, 770, 852, 941], DT_HI = [1209, 1336, 1477, 1633], DT_KEYS = ["123A", "456B", "789C", "*0#D"];
+  const DT_LO = [697, 770, 852, 941], DT_HI = [1209, 1336, 1477], DT_KEYS = ["123", "456", "789", "*0#"];   // the standard 12-key pad
   const DT = { lo: true, hi: true, held: null, t0: 0, timers: [] };
   const DT_IV = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th", "octave", "minor 9th", "major 9th", "minor 10th", "major 10th"];
-  // letters as on Bell keypads of the 1960s–70s (no Q or Z); the fourth column = AUTOVON precedence keys
+  // letters as on Bell keypads of the 1960s–70s (no Q or Z)
   const DT_LET = { "2": "ABC", "3": "DEF", "4": "GHI", "5": "JKL", "6": "MNO", "7": "PRS", "8": "TUV", "9": "WXY", "0": "OPER" };
-  const DT_MIL = { A: ["FO", "Flash Override"], B: ["F", "Flash"], C: ["I", "Immediate"], D: ["P", "Priority"] };
-  const dtName = k => k === "*" ? "star" : k === "#" ? "pound" : DT_MIL[k] ? `${DT_MIL[k][1]} (${k})` : k;
+  const dtName = k => k === "*" ? "star" : k === "#" ? "pound" : k;
   function dtWords(k, r, c) {
     const lo = DT_LO[r], hi = DT_HI[c], st = 12 * Math.log2(hi / lo), n = Math.round(st), off = Math.round((st - n) * 100);
     const near = Math.abs(off) <= 10 ? `almost exactly an equal-tempered ${DT_IV[n]}` : `between a ${DT_IV[Math.floor(st)]} and a ${DT_IV[Math.ceil(st)]}`;
-    return `<b>${DT_MIL[k] ? `${DT_MIL[k][0]} (${DT_MIL[k][1]}, ${k})` : k}</b> = ${lo} Hz + ${hi} Hz. The high tone is ${(hi / lo).toFixed(3)} times the low one: ${st.toFixed(2)} half steps apart, ${near}.`;
+    return `<b>${k}</b> = ${lo} Hz + ${hi} Hz. The high tone is ${(hi / lo).toFixed(3)} times the low one: ${st.toFixed(2)} half steps apart, ${near}.`;
   }
   function dtKey(k, r, c) {
-    const face = DT_MIL[k] ? `<span class="lt">${k}</span><span class="dg">${DT_MIL[k][0]}</span>` : `<span class="lt">${DT_LET[k] || "&nbsp;"}</span><span class="dg">${k}</span>`;
-    return `<button type="button" class="dt-key${c === 3 ? " dt-x" : ""}" style="grid-row:${r + 2};grid-column:${c + 2}" data-dtkey="${k}" data-r="${r}" data-c="${c}" aria-label="${dtName(k)}: ${DT_LO[r]} plus ${DT_HI[c]} hertz">${face}</button>`;
+    const face = `<span class="lt">${DT_LET[k] || "&nbsp;"}</span><span class="dg">${k}</span>`;
+    return `<button type="button" class="dt-key" style="grid-row:${r + 2};grid-column:${c + 2}" data-dtkey="${k}" data-r="${r}" data-c="${c}" aria-label="${dtName(k)}: ${DT_LO[r]} plus ${DT_HI[c]} hertz">${face}</button>`;
   }
   function dtToy() {
     return `<div class="toy dtmf" id="dtToy">
@@ -415,7 +414,7 @@ window.FAM = (() => {
         ${DT_KEYS.map((row, r) => `<span class="dt-h dt-rh" style="grid-row:${r + 2};grid-column:1" data-dtrow="${r}" aria-hidden="true">${DT_LO[r]}</span>` + [...row].map((k, c) => dtKey(k, r, c)).join("")).join("")}
       </div>
       <p class="dt-read" id="dtRead" aria-live="polite">Press and hold a key. The numbers along the edges are the two groups of tones, in hertz.</p>
-      <div class="toy-row" role="group" aria-label="What to hear and show"><button class="play" data-dtpart="lo" aria-pressed="true">Low tone</button><button class="play" data-dtpart="hi" aria-pressed="true">High tone</button><button class="play" id="dtMil" aria-pressed="false">Military column (AUTOVON)</button></div>
+      <div class="toy-row" role="group" aria-label="What to hear and show"><button class="play" data-dtpart="lo" aria-pressed="true">Low tone</button><button class="play" data-dtpart="hi" aria-pressed="true">High tone</button></div>
       <div class="toy-row"><label for="dtNum" style="font-weight:700">Number</label><input id="dtNum" type="text" autocomplete="off" value="PE6-5000" maxlength="24" style="font:700 18px var(--mono);padding:6px 10px;border:2px solid var(--ink, #222);border-radius:10px;width:11em"><button class="play" id="dtDial"><span aria-hidden="true">▶ </span>Dial it</button></div>
       <p class="small" style="margin:0">Letters dial the key they're printed on, so PE6-5000 dials 736-5000.</p>
     </div>`;
@@ -438,7 +437,8 @@ window.FAM = (() => {
   function dtStopDial() { DT.timers.forEach(clearTimeout); DT.timers = []; }
   function dtDial() {
     dtStopDial(); const digits = (document.getElementById("dtNum") || {}).value || "";
-    const seq = [...digits.toUpperCase()].filter(ch => /[0-9*#A-D]/.test(ch)); let t = 0;
+    const L2D = {}; Object.entries(DT_LET).forEach(([d, ls]) => { if (d !== "0") [...ls].forEach(l => L2D[l] = d); });   // phone-word letters dial their key
+    const seq = [...digits.toUpperCase()].map(ch => L2D[ch] || ch).filter(ch => /[0-9*#]/.test(ch)); let t = 0;
     seq.forEach(ch => { const r = DT_KEYS.findIndex(row => row.includes(ch)), c = DT_KEYS[r].indexOf(ch);
       DT.timers.push(setTimeout(() => dtOn(r, c), t)); DT.timers.push(setTimeout(() => dtOff(true), t + 170)); t += 270; });
   }
@@ -586,14 +586,17 @@ window.FAM = (() => {
       ${[["2/1", "2 against 1"], ["3/2", "3 against 2"], ["4/3", "4 against 3"], ["5/4", "5 against 4"], ["6/5", "6 against 5"]].map(([r, l]) => `<tr><td>${l}</td><td>${btn("Slow", { px: "polyslow", r, lo: 1.2 })}</td><td>${btn("Speed up", { px: "poly", r, lo: 1.2, hi: 140, s: 9 })}</td><td><details class="ldet"><summary>Reveal</summary>${RAT[r]}</details></td></tr>`).join("")}</tbody></table></div>
       ${row(btn("Out of tune: 3.03 against 2", { px: "poly", r: "303/200", lo: 1.2, hi: 140, s: 9 }), stopBtn)}
       <p class="lnote">In the out-of-tune version the slow rhythm drifts out of alignment; sped up, that drift becomes beating in a slightly sour 5th. The same arithmetic links rhythm and tuning.</p>` },
-    { title: "Touch-tone dialing", kick: "A history lesson: dyads on the phone line", render: () => `<p>Rotary phones dialed with clicks, the same pulses as the last step but slow: dialing 5 sent five clicks down the line, and 0 sent ten. In 1963 the Bell System replaced the clicks with pitch. Its push-button <b>Touch-Tone</b> phones went on sale on November 18, 1963, starting in Carnegie, Pennsylvania.</p>
-      <p>Each key sends a <b>dyad</b>: two pure tones at once. The four rows each have a low tone and the four columns each have a high tone, so 8 frequencies make 16 different dyads. The engineers called it <b>dual-tone multi-frequency</b> signaling (DTMF), and it's still how you press 1 for the billing department.</p>
+    { title: "Touch-tone dialing", kick: "A history lesson: dyads on the phone line", render: () => `<p>Rotary phones dialed with clicks, the same pulses as the last step but slow: dialing 5 sent five clicks down the line, and 0 sent ten. In 1963 the Bell System replaced the clicks with pitch. Its push-button <b>Touch-Tone</b> phones went on sale on November 18, 1963, starting in Carnegie and Greensburg, Pennsylvania. The first ones had just ten keys, like the ten holes of a rotary dial; <b>*</b> and <b>#</b> arrived in 1968.</p>
+      <p>Each key sends a <b>dyad</b>: two pure tones at once. The four rows each have a low tone and the three columns each have a high tone, so 7 frequencies make 12 different dyads. The engineers called it <b>dual-tone multi-frequency</b> signaling (DTMF), and it's still how you press 1 for the billing department.</p>
       ${dtToy()}
       <h3>Why two tones, and why these?</h3>
       <p>The phone line also carries voices, and voices are full of pitches. If one pitch meant one digit, a caller could dial by accident just by talking or humming. Asking for exactly one low tone and one high tone at the same time makes that much less likely, and the frequencies were chosen to make it less likely still:</p>
       <ul><li>A voice's overtones line up in whole-number ratios (the harmonic series, two steps back). No high tone is within 4% of double a low tone, and no pair comes within about 3% of 2 : 1, 3 : 2, 4 : 3 or 5 : 4, so a sung note and its overtones don't fake a key. The receivers accept only about 1.5% of error, so the gap is wide enough.</li>
       <li>Within each group, each tone is about 1.105 times the one below it, roughly 1.73 half steps: between the keys of a piano.</li></ul>
-      <p>So the dyads are intervals, but odd ones. Try the keys on a diagonal (1, 5, 9, D): they share the same ratio, about 1.735, so they sound like the same interval moved up. The 3 key is almost exactly an equal-tempered minor 9th, but that isn't a simple ratio either (about 2.12 : 1). Turn off the low or the high tone to hear each half of the dyad alone.</p>` },
+      <h3>The letters</h3>
+      <p>The letters on the keys come from the days when phone numbers began with an exchange name: Glenn Miller's <i>Pennsylvania 6-5000</i> (1940) is named for the Hotel Pennsylvania's number, PEnnsylvania 6-5000, which you dial as 736-5000. There was no Q or Z, and 0 was for the operator.</p>
+      <p>The system actually has an eighth tone, 1633 Hz, for a fourth column of keys. Home phones and payphones never had it; it appeared as red priority keys on the U.S. military's AUTOVON phones.</p>
+      <p>So the dyads are intervals, but odd ones. Try the keys on a diagonal (1, 5, 9): they share the same ratio, about 1.735, so they sound like the same interval moved up. The 3 key is almost exactly an equal-tempered minor 9th, but that isn't a simple ratio either (about 2.12 : 1). Turn off the low or the high tone to hear each half of the dyad alone.</p>` },
     { title: "Shepard tones and the tritone paradox", kick: "Endlessly rising; up or down?", render: () => `<p>In 1964 the psychologist <b>Roger Shepard</b> built a tone that seems to rise forever. Each <b>Shepard tone</b> is a stack of sine waves an octave apart, with the loudest ones in the middle of the range and the highest and lowest fading to silence. Step the whole stack up a semitone at a time: the top octaves fade out while new ones fade in at the bottom, so after twelve steps you are back where you started, yet every step sounds higher.</p>
       ${row(btn("Shepard scale: endlessly rising", { px: "shep", mode: "up" }), btn("Endlessly falling", { px: "shep", mode: "down" }), stopBtn)}
       <p>The composer and physicist <b>Jean-Claude Risset</b> extended the idea into a continuous glide, the <b>Shepard–Risset glissando</b>, and applied the same trick to tempo: a rhythm that seems to <b>accelerate forever</b> (Risset's rhythm, sometimes called the endless accelerando). Pulse layers at tempos an octave apart (each twice as fast as the last) all speed up together; the fastest layer fades out as a new slow one fades in.</p>
