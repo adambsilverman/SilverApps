@@ -185,6 +185,12 @@ APPS += [dict(src=a, out=b, id=c, name=d, labelsel_m='`.modes [data-mode="${m}"]
               render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
               show="q.tries = 1; choose(q.correctValue); relabel();") for a, b, c, d in HARM]
 
+# Test Yourself pages (one per lesson with a quiz), listed by build/harmony/assemble.py
+_qz = GEN / "quizzes.json"
+APPS += [dict(src=q["src"], out=q["out"], id=q["id"], name=q["name"], quiz=True, labelsel_m='`.modes [data-mode="${m}"] b`', sfx=True, stop="stopSound();",
+              render="clearAnswer(); renderSettings(); renderPrompt(); renderControls();",
+              show="q.tries = 1; choose(q.correctValue); relabel();") for q in (json.loads(_qz.read_text(encoding="utf-8")) if _qz.exists() else [])]
+
 SCORE_HOOK = ("if (!(window.LiveClass && LiveClass.active)) { %(sfxcall)s"
               "if (window.SAprogress && q.tries === 0 && !q.revealed) SAprogress.record(__saLabel(S.mode), correct); }\n    "
               "if (window.LiveClass && LiveClass.active && LiveClass.answered(correct)) return;")
@@ -199,6 +205,7 @@ def build(a):
     s = set_title(s, a["name"])
     pre = re.match(r"(Understanding|Introduction to|About) (.+)$", a["name"])   # lesson titles: the lead-in word in color, the subject's real name in ink
     h1 = f'<span class="h1-pre">{pre.group(1)}</span> {pre.group(2)}' if pre else a["name"]
+    if a.get("quiz"): h1 = '<span class="h1-pre">Test</span> Yourself'   # quiz pages: "Test Yourself" heading; the lesson is named under it
     s, nh = re.subn(r"<h1>[^<]*</h1>", "<h1>" + h1 + "</h1>", s, count=1); assert nh == 1
     s = before_head_close(s, HEAD_ASSETS + '\n<link rel="stylesheet" href="assets/trainer-skin.css">')
     # 3. site strip + credit

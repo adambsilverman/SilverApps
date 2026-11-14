@@ -1,4 +1,4 @@
-<!-- title: Intervals: What, Why and How | sound: 1 | vex: 1 | desc: An interactive lesson on intervals: what they are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music. -->
+<!-- title: Intervals: What, Why and How | sound: 1 | vex: 1 | desc: An interactive lesson on intervals: what they are, and how they shape melody, transposition, inversion, singing, tension, chords, keys and atonal music. | quiz: intervals-quiz.html -->
 <style>
 @font-face{font-family:"SA Music";src:url(assets/fonts/noto-music.woff2) format("woff2");font-display:block}
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
@@ -245,20 +245,6 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     </div>
   </section>
 
-  <section class="slide" data-title="Check" hidden>
-    <p class="kick">13 · Check</p><h2>Before the drills</h2>
-    <div id="quiz"></div>
-  </section>
-  <section class="slide" data-title="Test yourself" hidden>
-    <p class="kick">14 · Test yourself</p><h2>Open-note quiz</h2>
-    <div id="saqBox"></div>
-  </section>
-  <section class="slide" data-title="Practice" hidden>
-    <p class="kick">15 · Practice</p><h2>On to the drills</h2>
-    <p>The <b>Interval drills</b> practice four things:</p><ul><li>Name intervals on the staff</li><li>Write the note an interval above</li><li>Write the note an interval below</li><li>Count half steps</li></ul>
-    <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
-    <p>Next: <a href="more-about-intervals-lesson.html"><b>More About Intervals</b></a> covers consonance and dissonance, compound intervals, intervals in scales, and how to invert an interval.</p>
-  </section>
   </div>
   <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
 </main>
@@ -295,14 +281,14 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
     cur = Math.max(0, Math.min(slides.length - 1, i)); seen.add(cur);
     slides.forEach((s, k) => s.hidden = k !== cur);
     [...stepsEl.querySelectorAll("button")].forEach((b, k) => { b.toggleAttribute("aria-current", k === cur); if (k === cur) b.setAttribute("aria-current", "step"); b.classList.toggle("seen", seen.has(k)); });
-    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Start the drills →" : "Next →";
+    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Next: Test Yourself →" : "Next →";
     $("where").textContent = `Step ${cur + 1} of ${slides.length}: ${slides[cur].dataset.title}`;
     if (focus) { const h = slides[cur].querySelector("h2"); h.tabIndex = -1; h.focus(); }
     if (slides[cur].onshow) slides[cur].onshow();
     try { localStorage.setItem("silverapps-intervals-step", cur); } catch (e) {}
   }
   $("back").onclick = () => go(cur - 1, true);
-  $("fwd").onclick = () => (cur === slides.length - 1 ? (location.href = "intervals.html") : go(cur + 1, true));
+  $("fwd").onclick = () => (cur === slides.length - 1 ? (location.href = "intervals-quiz.html") : go(cur + 1, true));
   document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select")) return; if (e.key === "ArrowRight") go(cur + 1, true); if (e.key === "ArrowLeft") go(cur - 1, true); });
 
   // ---------- 1. keyboard + tape ----------
@@ -664,32 +650,9 @@ label.sl{font:700 14px var(--fi-ui);text-transform:uppercase;letter-spacing:.06e
   SL("Spelling counts").onshow = () => { drawPair(false); drawScale(false); };
 
   // ---------- quick check ----------
-  const QZ = [
-    ["An interval is…", ["the distance between two notes", "the speed of a melody", "a kind of chord"], 0, "Musicians measure sound in intervals, the way we measure space in inches."],
-    ["When a song is moved to a new key, its intervals…", ["stay exactly the same", "all get bigger", "flip direction"], 0, "The notes change, but the distances between them don't, so the tune is still recognizable."],
-    ["Inverting a melody's intervals means…", ["keeping the sizes but flipping up and down", "playing it backwards", "making every interval an octave"], 0, "Every up becomes a down and every down an up."],
-    ["An interval's size (3rd, 5th…) is found by counting…", ["letter names", "half steps", "black keys"], 0, "Count letters for the size; count half steps for the quality."],
-    ["C–D♯ and C–E♭ sound the same. What are they?", ["an augmented 2nd and a minor 3rd", "both minor 3rds", "both augmented 2nds"], 0, "Spelling counts: C–D♯ spans two letters, C–E♭ three."],
-    ["A perfect 5th made one half step larger becomes…", ["augmented", "major", "minor"], 0, "Perfect intervals become augmented or diminished, never major or minor."],
-    ["E♭ up to B♭, F♯ up to C♯, A up to E: what do these 5ths have in common?", ["they're all perfect: each pair has matching accidentals", "they're all diminished", "they're all augmented"], 0, "Matching accidentals make a perfect 5th; the only exception is the B–F pair (B–F is diminished, B♭–F is perfect)."],
-    ["Lowering the middle note of a major triad a half step makes it…", ["minor", "augmented", "an octave"], 0, "Major 3rd + minor 3rd becomes minor 3rd + major 3rd."],
-    ["After a big upward leap, a melody usually…", ["comes back down, often by step", "leaps up again", "stops"], 0, "The stretch wants to resolve in the opposite direction."],
-  ];
-  $("quiz").innerHTML = QZ.map((q, i) => `<div class="q" role="group" aria-labelledby="qz${i}"><p id="qz${i}"><b>${i + 1}.</b> ${q[0]}</p><div class="opts">${q[1].map((o, j) => ({ o, j })).sort((a, b) => ((a.j * 7 + i * 3) % 5) - ((b.j * 7 + i * 3) % 5)).map(({ o, j }) => `<button class="opt" type="button" data-q="${i}" data-o="${j}">${o}</button>`).join("")}</div><p class="fbk" id="qf${i}" aria-live="polite"></p></div>`).join("");
-  $("quiz").onclick = e => {
-    const b = e.target.closest(".opt"); if (!b || b.disabled) return; const i = +b.dataset.q, j = +b.dataset.o, q = QZ[i], ok = j === q[2];
-    b.parentNode.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (+x.dataset.o === q[2]) x.classList.add("right"); });
-    if (!ok) b.classList.add("wrong");
-    if (window.SFX) SFX.play(ok);
-    $("qf" + i).textContent = (ok ? "Yes! " : "Not quite. ") + q[3];
-  };
 
   let start = 0; try { start = +localStorage.getItem("silverapps-intervals-step") || 0; } catch (e) {}
   { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) start = Math.max(0, +mh[1] - 1); }
-  if (/[#&]quiz\b/.test(location.hash)) { const qi = slides.findIndex(x => x.dataset.title === "Test yourself"); if (qi >= 0) start = qi; }   // #quiz (LMS packages open here)   // deep link from the quiz's "Look back" links
-  // "Test yourself" quiz (assets/site.js SAquiz): open notes, hints, first tries scored
-  const mountQuiz = () => { if (!window.SAquiz) return; const QZ = [{"s": 1, "q": "What's the smallest interval on a keyboard, from one key to the very next?", "a": "a half step", "w": ["a whole step", "a 2nd", "an octave"], "hint": "Black keys count.", "why": "One key to the next, black or white, is a half step."}, {"s": 2, "q": "C up to G spans how many letter names, counting C as 1?", "a": "5, so it's a 5th", "w": ["7, so it's a 7th", "4, so it's a 4th", "8, so it's an octave"], "hint": "C D E F G.", "why": "Size comes from counting letters: C D E F G is five, a 5th. (It's 7 half steps.)"}, {"s": 2, "q": "Which part of an interval's name comes from counting half steps?", "a": "the quality (major, minor, perfect…)", "w": ["the size (2nd, 3rd…)", "neither", "both"], "hint": "Two numbers: size and quality.", "why": "Letters give the size; half steps give the quality."}, {"s": 3, "q": "A major 3rd made one half step smaller (same letters) becomes…", "a": "a minor 3rd", "w": ["a diminished 3rd", "a perfect 3rd", "an augmented 2nd"], "hint": "2nds, 3rds, 6ths and 7ths are the major/minor family.", "why": "Major made smaller is minor. Minor made smaller again would be diminished."}, {"s": 3, "q": "Which intervals belong to the perfect family?", "a": "unisons, 4ths, 5ths and octaves", "w": ["2nds, 3rds, 6ths and 7ths", "only 5ths", "3rds and 6ths"], "hint": "They have no major or minor version.", "why": "Unisons, 4ths, 5ths and octaves are perfect, diminished or augmented."}, {"s": 4, "q": "C–D♯ and C–E♭ sound the same. Why do they have different names?", "a": "They span different numbers of letters", "w": ["One is higher than the other", "One uses a black key", "They don't; they're both minor 3rds"], "hint": "An interval is named from its spelling.", "why": "C–D♯ spans two letters (an augmented 2nd); C–E♭ spans three (a minor 3rd)."}, {"s": 4, "q": "On the white keys, which 5th is not perfect?", "a": "B up to F", "w": ["C up to G", "E up to B", "D up to A"], "hint": "It's a half step smaller than the others.", "why": "B–F is a diminished 5th. Every other white-key 5th is perfect."}, {"s": 6, "q": "A song is moved up 3 half steps to suit a singer. What happens to its intervals?", "a": "They stay exactly the same", "w": ["They all get 3 half steps bigger", "They flip direction", "They become minor"], "hint": "That's why you can still recognize it.", "why": "Transposition changes every note but keeps every interval."}, {"s": 7, "q": "A motive leaps up a 5th. In its melodic inversion, it…", "a": "leaps down a 5th", "w": ["leaps up a 4th", "leaps up an octave", "plays the notes backwards"], "hint": "Keep the sizes; flip the direction.", "why": "Melodic inversion turns every up into a down."}, {"s": 9, "q": "After a wide leap up, what does a melody usually do?", "a": "come back down, often by step", "w": ["leap up again", "stop", "repeat the top note"], "hint": "Stretch, then resolve.", "why": "Most tunes balance a big leap with stepwise motion the other way."}, {"s": 10, "q": "Which stack makes a major triad, from the bottom up?", "a": "a major 3rd, then a minor 3rd", "w": ["a minor 3rd, then a major 3rd", "two major 3rds", "two minor 3rds"], "hint": "Lowering the middle note flips it to minor.", "why": "C–E is a major 3rd and E–G a minor 3rd: C major."}], box = $("saqBox"); box.innerHTML = SAquiz.html("page");
-    SAquiz.wire(box, "page", QZ, { href: n => "intervals-what-why-how.html#step=" + n, stepName: n => slides[n - 1] ? slides[n - 1].dataset.title : "step " + n }); }; if (window.SAquiz) mountQuiz(); else window.addEventListener("DOMContentLoaded", mountQuiz);
-  go(start, false);
+  go(Math.min(start, slides.length - 1), false);
 })();
 </script>

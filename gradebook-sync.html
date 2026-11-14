@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gradebook Sync for Professors · SilverApps Interactive Music Training</title>
-<meta name="description" content="Download a SCORM package so a SilverApps &quot;Test yourself&quot; quiz reports scores straight to your D2L Brightspace, Canvas, Blackboard or Moodle gradebook.">
+<meta name="description" content="Download a SCORM package so a SilverApps Test Yourself quiz reports scores straight to your D2L Brightspace, Canvas, Blackboard or Moodle gradebook.">
 <link rel="stylesheet" href="assets/indie.css?v=f94c14bc">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
@@ -25,7 +25,7 @@
 </style>
 <main id="main" class="gs">
 <h1>Gradebook <span>sync</span></h1>
-<p>Every lesson's "Test yourself" quiz can send its score to your course gradebook. Download a SCORM package for a quiz here and add it to your course in D2L Brightspace, Canvas, Blackboard or Moodle. Students open the quiz from inside the course; when they finish, their first-try score (as a percent) goes into the gradebook. If they take it again, the gradebook keeps their best score.</p>
+<p>Every lesson's Test Yourself quiz can send its score to your course gradebook. Download a SCORM package for a quiz here and add it to your course in D2L Brightspace, Canvas, Blackboard or Moodle. Students open the quiz from inside the course; when they finish, their first-try score (as a percent) goes into the gradebook. If they take it again, the gradebook keeps their best score.</p>
 <p>The package is tiny: it holds no lesson content, just a page that shows the live quiz from this site and passes the score along. Updates to the lesson reach your students without a new upload. Step-by-step setup for each LMS is on <a href="about-this-site.html#lms">About this site</a>.</p>
 <p>No LMS, or you'd rather not upload anything? Students can press <b>Report for my professor</b> at the end of any quiz and send you a report with a verification code. Paste a stack of them into <a href="verify.html">Check reports</a> to verify them and download a gradebook import file.</p>
 
@@ -46,7 +46,7 @@
 </main>
 <script>
 (() => {
-  const QUIZZES = /*QUIZLIST*/[{"page": "intervals-what-why-how", "title": "Intervals: What, Why and How"}, {"page": "introduction-to-pitch-lesson", "title": "Introduction to Pitch"}, {"page": "roman-numeral-analysis-lesson", "title": "Introduction to Roman Numeral Analysis"}, {"page": "modes-the-simple-truth", "title": "Modes: The Simple Truth"}, {"page": "more-about-intervals-lesson", "title": "More About Intervals"}, {"page": "cadences-lesson", "title": "Understanding Cadences"}, {"page": "chord-figures-and-symbols-lesson", "title": "Understanding Chord Figures and Symbols"}, {"page": "chromatic-chords-lesson", "title": "Understanding Chromatic Chords"}, {"page": "reading-pitch-lesson", "title": "Understanding Clefs and Pitch Reading"}, {"page": "extended-and-altered-chords-lesson", "title": "Understanding Extended and Altered Chords"}, {"page": "harmonic-succession-lesson", "title": "Understanding Harmonic Succession"}, {"page": "keys-and-scale-degrees-lesson", "title": "Understanding Keys, Scale Degrees and Tendency Tones"}, {"page": "lead-sheets-lesson", "title": "Understanding Lead Sheets"}, {"page": "major-and-minor-scales-lesson", "title": "Understanding Major and Minor Scales"}, {"page": "meter-lesson", "title": "Understanding Meter and Beaming"}, {"page": "modulation-lesson", "title": "Understanding Modulation"}, {"page": "motive-and-sequence-lesson", "title": "Understanding Motive and Sequence"}, {"page": "forms-lesson", "title": "Understanding Musical Forms"}, {"page": "non-chord-tones-lesson", "title": "Understanding Non-Chord Tones"}, {"page": "phrases-lesson", "title": "Understanding Phrases and Phrase Combinations"}, {"page": "rhythm-notation-lesson", "title": "Understanding Rhythm Notation"}, {"page": "secondary-function-chords-lesson", "title": "Understanding Secondary Function Chords"}, {"page": "texture-lesson", "title": "Understanding Texture"}, {"page": "timbre-lesson", "title": "Understanding Timbre"}, {"page": "note-values-lesson", "title": "Understanding Units of Rhythm"}];
+  const QUIZZES = /*QUIZLIST*/[{"page": "intervals-quiz", "title": "Intervals: What, Why and How"}, {"page": "introduction-to-pitch-quiz", "title": "Introduction to Pitch"}, {"page": "roman-numeral-analysis-quiz", "title": "Introduction to Roman Numeral Analysis"}, {"page": "modes-quiz", "title": "Modes: The Simple Truth"}, {"page": "more-about-intervals-quiz", "title": "More About Intervals"}, {"page": "cadences-quiz", "title": "Understanding Cadences"}, {"page": "chord-figures-and-symbols-quiz", "title": "Understanding Chord Figures and Symbols"}, {"page": "chromatic-chords-quiz", "title": "Understanding Chromatic Chords"}, {"page": "reading-pitch-quiz", "title": "Understanding Clefs and Pitch Reading"}, {"page": "extended-and-altered-chords-quiz", "title": "Understanding Extended and Altered Chords"}, {"page": "harmonic-succession-quiz", "title": "Understanding Harmonic Succession"}, {"page": "keys-and-scale-degrees-quiz", "title": "Understanding Keys, Scale Degrees and Tendency Tones"}, {"page": "lead-sheets-quiz", "title": "Understanding Lead Sheets"}, {"page": "major-and-minor-scales-quiz", "title": "Understanding Major and Minor Scales"}, {"page": "meter-quiz", "title": "Understanding Meter and Beaming"}, {"page": "modulation-quiz", "title": "Understanding Modulation"}, {"page": "motive-and-sequence-quiz", "title": "Understanding Motive and Sequence"}, {"page": "forms-quiz", "title": "Understanding Musical Forms"}, {"page": "non-chord-tones-quiz", "title": "Understanding Non-Chord Tones"}, {"page": "phrases-quiz", "title": "Understanding Phrases and Phrase Combinations"}, {"page": "rhythm-notation-quiz", "title": "Understanding Rhythm Notation"}, {"page": "secondary-function-chords-quiz", "title": "Understanding Secondary Function Chords"}, {"page": "texture-quiz", "title": "Understanding Texture"}, {"page": "timbre-quiz", "title": "Understanding Timbre"}, {"page": "note-values-quiz", "title": "Understanding Units of Rhythm"}];
   const DEFAULT_SITE = "https://adambsilverman.github.io/SilverApps/";
   const $ = id => document.getElementById(id);
   const sel = $("gsQuiz");
@@ -92,7 +92,7 @@
     <organization identifier="org1">
       <title>${x(q.title)} quiz</title>
       <item identifier="item1" identifierref="res1" isvisible="true">
-        <title>${x(q.title)}: Test yourself</title>${pass !== "" ? `\n        <adlcp:masteryscore>${pass}</adlcp:masteryscore>` : ""}
+        <title>${x(q.title)}: Test Yourself</title>${pass !== "" ? `\n        <adlcp:masteryscore>${pass}</adlcp:masteryscore>` : ""}
       </item>
     </organization>
   </organizations>
@@ -106,11 +106,11 @@
     const url = new URL(q.page + ".html#quiz", site).href;
     return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${x(q.title)}: Test yourself</title>
+<title>${x(q.title)}: Test Yourself</title>
 <style>html,body{margin:0;height:100%;background:#fffdf9}body{display:flex;flex-direction:column}#bar{font:15px/1.4 Georgia,serif;padding:8px 14px;background:#fff4d6;border-bottom:1px solid #e5d3a0;color:#231d19}#bar[hidden]{display:none}iframe{flex:1;border:0;width:100%;min-height:600px}a{color:#9b2a14}</style>
 </head><body>
 <p id="bar" hidden role="status"></p>
-<iframe id="sa" title="${x(q.title)}: Test yourself" allow="autoplay; fullscreen; microphone; clipboard-write" src="${x(url)}"></iframe>
+<iframe id="sa" title="${x(q.title)}: Test Yourself" allow="autoplay; fullscreen; microphone; clipboard-write" src="${x(url)}"></iframe>
 <script>
 /* SilverApps SCORM 1.2 package. Generated by gradebook-sync.html.
    Shows the live quiz from the SilverApps site; when the student finishes, the first-try score (percent) is sent to the LMS.
@@ -176,5 +176,5 @@
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=a2a439a1"></script>
+<script src="assets/site.js?v=cd6cde8b"></script>
 </body></html>

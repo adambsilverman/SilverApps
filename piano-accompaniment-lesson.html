@@ -20,7 +20,7 @@
   <header class="top">
     <div class="brand">
       <h1><span class="h1-pre">Understanding</span> Piano Accompaniment</h1>
-      <p>Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, stride, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.</p>
+      <p>Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, boom-chuck in the left hand, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.</p>
     </div>
     <div class="score" style="display:none">
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -82,7 +82,7 @@
   <p class="legend">Your answer stays as you left it. Press Escape or Close to return.</p>
 </dialog>
 <script src="assets/shared/vexflow.b24b3b9880.js"></script>
-<script>window.SA_PAGE = { view: "lesson", other: "groove-maker.html", otherName: "Groove Maker", cls: false };</script>
+<script>window.SA_PAGE = { view: "lesson", other: "groove-maker.html", otherName: "Groove Maker", cls: false, lesson: "piano-accompaniment-lesson.html", drills: "groove-maker.html", drillsName: "Groove Maker", quiz: null };</script>
 <script>
 // ===== "Brother, Can You Spare a Dime?" (Jay Gorney / E. Y. Harburg, 1932), bars 1–8: Adam's lead sheet and six piano settings (images in assets/img/dime/),
 // the melody and chords as data, and a figure that hides an arrangement's chord symbols until "Show the chords" reveals them with their regions shaded.
@@ -110,10 +110,10 @@ window.DIME = (() => {
   const IMG = {"leadsheet":{"w":2248,"h":777,"sys":[[50,370],[405,770]],"ch":[[0,251,356,81,142],[0,852,1001,72,149],[0,1126,1268,72,173],[0,1348,1410,80,141],[0,1623,1759,72,149],[0,1941,2020,81,139],[0,2071,2169,75,141],[1,197,394,429,500],[1,490,588,435,501],[1,745,849,441,502],[1,976,1089,435,500],[1,1170,1297,434,501],[1,1540,1637,435,501],[1,1840,1969,415,502],[1,1991,2089,435,501]]},"alberti":{"w":2240,"h":960,"sys":[[0,430],[465,935]],"ch":[[0,298,403,11,72],[0,791,940,2,79],[0,1014,1156,2,103],[0,1264,1326,10,71],[0,1493,1630,2,79],[0,1742,1821,11,69],[0,1960,2058,5,71],[1,244,441,485,556],[1,491,640,488,565],[1,733,838,497,558],[1,939,1053,491,556],[1,1181,1307,490,557],[1,1442,1540,491,557],[1,1713,1818,471,558],[1,1918,2016,491,557]]},"block":{"w":2232,"h":973,"sys":[[0,435],[470,945]],"ch":[[0,290,395,14,75],[0,844,993,5,82],[0,1092,1235,5,106],[0,1301,1363,13,74],[0,1550,1687,5,82],[0,1827,1906,14,72],[0,2000,2097,8,74],[1,236,433,493,564],[1,513,662,496,573],[1,748,853,505,566],[1,987,1101,499,564],[1,1188,1314,498,565],[1,1479,1576,499,565],[1,1756,1861,478,566],[1,1923,2020,499,565]]},"stride":{"w":2200,"h":981,"sys":[[0,445],[475,965]],"ch":[[0,267,372,14,75],[0,785,934,5,82],[0,1024,1166,5,105],[0,1251,1313,13,74],[0,1490,1627,5,82],[0,1758,1837,14,72],[0,1953,2051,8,74],[1,213,410,498,569],[1,479,576,504,570],[1,714,819,510,571],[1,944,1058,504,569],[1,1166,1293,503,570],[1,1448,1546,504,570],[1,1710,1824,483,571],[1,1907,2005,504,570]]},"singer":{"w":2248,"h":1622,"sys":[[0,795],[820,1600]],"ch":[[0,303,408,28,89],[0,851,1000,19,96],[0,1079,1221,19,119],[0,1297,1359,27,88],[0,1526,1663,19,96],[0,1812,1891,28,86],[0,1998,2095,22,88],[1,249,446,843,914],[1,528,625,849,915],[1,765,870,855,916],[1,963,1077,849,914],[1,1149,1275,848,915],[1,1519,1616,849,915],[1,1801,1930,829,916],[1,1978,2075,849,915]]},"pulse":{"w":2216,"h":973,"sys":[[0,440],[478,950]],"ch":[[0,277,382,22,83],[0,814,963,13,90],[0,1048,1191,13,114],[0,1276,1338,21,82],[0,1512,1649,13,90],[0,1775,1854,22,80],[0,1967,2064,16,82],[1,223,420,500,571],[1,489,638,503,580],[1,725,829,512,573],[1,954,1068,506,571],[1,1177,1303,505,572],[1,1459,1556,506,572],[1,1717,1834,486,573],[1,1918,2015,506,572]]},"bassline":{"w":2224,"h":1149,"sys":[[0,505],[535,1140]],"ch":[[0,283,388,17,78],[0,769,918,8,108],[0,1012,1155,8,108],[0,1226,1288,16,77],[0,1460,1597,8,85],[0,1712,1791,17,75],[0,1976,2073,11,77],[1,229,426,559,630],[1,510,659,562,639],[1,716,820,571,632],[1,928,1042,565,630],[1,1195,1321,564,631],[1,1470,1568,565,631],[1,1710,1822,544,632],[1,1950,2047,565,631]]},"rhythm":{"w":2264,"h":1622,"sys":[[0,790],[820,1600]],"ch":[[0,270,370,18,77],[0,817,959,10,84],[0,1048,1185,10,88],[0,1282,1342,18,76],[0,1486,1618,10,84],[0,1758,1835,18,74],[0,1962,2056,13,76],[1,218,406,835,903],[1,476,570,841,904],[1,723,824,846,905],[1,920,1030,841,903],[1,1148,1269,840,904],[1,1504,1598,841,904],[1,1807,1908,846,905],[1,1989,2084,841,904]]}};
   const ALT = { leadsheet: "Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols, ending with a first ending and a repeat sign.",
     alberti: "Piano setting: the melody in the right hand, an Alberti bass in left-hand eighth notes.", block: "Piano setting: the melody in the right hand, block chords held in the left hand (half and whole notes).",
-    stride: "Piano setting: the melody in the right hand; the left hand leaps between low bass notes on beats 1 and 3 and chords on beats 2 and 4 (stride).",
+    stride: "Piano setting: the melody in the right hand; the left hand plays bass notes on beats 1 and 3 and chords on beats 2 and 4 (boom-chuck in the left hand).",
     singer: "Voice and piano: the vocal line with lyrics on top; the piano's right hand plays chords on beats 2 and 4 and the left hand bass notes on beats 1 and 3.",
     pulse: "Piano setting: the melody in the right hand, left-hand chords repeated on every beat.", rhythm: "Voice and piano: the vocal line in the bass clef with lyrics; the piano's right hand plays chord tones in a steady eighth-note pattern, the left hand half-note bass notes, with the pedal changing for each chord.", bassline: "Piano setting: the melody on top of the right hand with chord tones under it; an active bass line in the left hand." };
-  const AUDL = { leadsheet: "the lead sheet played: melody and chords", melody: "the melody alone", alberti: "Alberti bass setting", block: "block chords setting", stride: "stride (boom-chuck all in the piano) setting",
+  const AUDL = { leadsheet: "the lead sheet played: melody and chords", melody: "the melody alone", alberti: "Alberti bass setting", block: "block chords setting", stride: "boom-chuck in the left hand setting",
     singer: "voice and piano (boom-chuck) setting", pulse: "pulsing chords setting", rhythm: "voice and piano with rhythmicized chords", bassline: "melody with chords and an active bass line" };
   const aud = id => `<audio class="dm-aud" controls preload="none" src="assets/audio/dime/${id}.mp3" aria-label="Brother, Can You Spare a Dime?: ${AUDL[id]}"></audio>`;
   const pc = (v, t) => (v / t * 100).toFixed(2) + "%";
@@ -161,7 +161,7 @@ window.FAM = (() => {
       <p>This lesson works from one lead sheet, the first eight bars of <i>Brother, Can You Spare a Dime?</i> (Jay Gorney and E. Y. Harburg, 1932):</p>
       <figure class="lfig lsfig"><img src="assets/img/dime/leadsheet.png" alt="Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign." width="1600" height="553">
       <figcaption>${DIME.aud("leadsheet")}</figcaption></figure>
-      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck, stride, Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
+      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck (shared between the hands, then in the left hand alone), Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
       <p>In each setting the chord symbols are hidden at first. Before you show them, try to work out which chord each part of the accompaniment spells, using the lead sheet above.</p>` },
     { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: () => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
       <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
@@ -194,8 +194,8 @@ window.FAM = (() => {
       <p>In 3/4, <b>boom-chuck-chuck</b> is the waltz accompaniment: bass on beat 1, chords on beats 2 and 3.</p>
       ${U.fig(WALTZ, "Boom-chuck-chuck in 3/4: Cm, Fm, G7, Cm.", { follow: true })}`
       + H.check("In a 4/4 boom-chuck pattern, where do the chords usually go?", "beats 2 and 4", ["beats 1 and 3", "every beat", "only beat 1"], "The bass takes the strong beats (1 and 3), the chords the weak ones (2 and 4).") },
-    { title: "Stride", kick: "The left hand does both jobs", render: () => `<p><b>Stride</b> piano (Harlem in the 1920s: James P. Johnson, Fats Waller, Willie “The Lion” Smith) moves boom-chuck entirely into the left hand: a low bass note on beats 1 and 3, then a leap up to a chord in the middle of the keyboard on 2 and 4. That frees the right hand for the melody.</p>
-      ${DIME.fig("stride", "Stride: low bass notes on 1 and 3, mid-range chords on 2 and 4, all in the left hand.")}${SHOW}
+    { title: "Boom-chuck in the left hand", kick: "The left hand does both jobs", render: () => `<p>Boom-chuck can also go entirely into the left hand: a bass note on beats 1 and 3, then a chord just above it on 2 and 4. That frees the right hand for the melody, so one player covers melody, harmony and bass.</p>
+      ${DIME.fig("stride", "Boom-chuck in the left hand: bass notes on 1 and 3, chords on 2 and 4; the melody in the right hand.")}${SHOW}
       <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>` },
     { title: "Alberti bass and broken chords", kick: "Low, high, middle, high", render: () => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
       ${DIME.fig("alberti", "Alberti bass in eighth notes, with the melody alone in the right hand.", { g7d: true })}${SHOW}
@@ -212,7 +212,7 @@ window.FAM = (() => {
         ["Block chords", "all chord tones together, held or on the beats", "hymns, slow ballads, sight-reading"],
         ["Boom-chuck", "bass on strong beats, chords on weak beats", "marches, folk, country, polkas, upbeat songs"],
         ["Boom-chuck-chuck", "bass on 1, chords on 2 and 3", "waltzes and other songs in 3/4"],
-        ["Stride", "left hand leaps: bass on 1 and 3, chords on 2 and 4", "ragtime, early jazz, solo piano"],
+        ["Left-hand boom-chuck", "bass and chords both in the left hand, melody in the right", "solo piano, playing a lead sheet alone"],
         ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
         ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
         ["Rhythmicized chords", "chord tones in a steady repeating rhythm over a held bass", "ballads and accompanying a singer"],
@@ -222,7 +222,7 @@ window.FAM = (() => {
       <li><b>Thin out under a busy melody</b>, and fill in when the melody holds or rests.</li>
       <li><b>Practice hands separately</b>, then together at a slow tempo.</li></ul>
       <p>To hear these patterns with any progression, try the <a href="groove-maker.html"><b>Groove Maker</b></a>.</p>`
-      + H.check("Which pattern puts both the bass and the chords in the left hand?", "stride", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "Stride leaps between a low bass and a middle-register chord, all in the left hand.") },
+      + H.check("Which pattern puts both the bass and the chords in the left hand?", "left-hand boom-chuck", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "The left hand alternates a bass note and a chord, leaving the right hand free for the melody.") },
   ] };
   return { key: "silverapps-accomp-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
 })();
@@ -232,9 +232,9 @@ window.FAM = (() => {
 <script src="assets/mqtt.min.js?v=c6d89040"></script>
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
 <script src="assets/live.js?v=4cd58c7e"></script>
-<script src="assets/site.js?v=a2a439a1"></script>
+<script src="assets/site.js?v=cd6cde8b"></script>
 <script>var __SA_APP = {"id": "accomp", "name": "Understanding Piano Accompaniment"};</script>
-<script src="assets/shared/app-engine.f85ceb4238.js"></script>
+<script src="assets/shared/app-engine.ad33050868.js"></script>
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 </body>

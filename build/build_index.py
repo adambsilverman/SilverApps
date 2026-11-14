@@ -4,12 +4,17 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from common import *
 cfg = json.loads((ROOT / "build" / "apps.json").read_text(encoding="utf-8"))
 e = html.escape
+QUIZ = quiz_map()   # lesson page -> Test Yourself page
+for _sec in cfg["sections"]:
+    for _t in _sec["topics"]:
+        if _t.get("lesson") in QUIZ and not _t.get("quiz"): _t["quiz"] = QUIZ[_t["lesson"]]
 HOW = """<ul class="how"><li><b>Practice solo</b>Open any drill and start: it explains each answer and brings missed items back for review.</li>
       <li><b>Host a class game</b>On the projector, open a drill and choose <i>Host a class game</i>. You pick each question; the class answers anonymously.</li>
       <li><b>Join from any device</b>On a phone, tablet or laptop, open the same drill, tap <i>Join a game</i>, and enter the room code (or scan the QR code).</li></ul>"""
 def card(t, color):
     btns = []
     if t.get("lesson"): btns.append(f'<a class="btn" href="{e(t["lesson"])}">Lesson<span class="sr">: {e(t["name"])}</span></a>')
+    if t.get("quiz"): btns.append(f'<a class="btn" href="{e(t["quiz"])}">Test Yourself<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("drills"): btns.append(f'<a class="btn" href="{e(t["drills"])}">Drills<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("open"): btns.append(f'<a class="btn" href="{e(t["open"])}">Open<span class="sr"> {e(t["name"])}</span></a>')
     note = t.get("note") or ("Drills include a class game" if t.get("class") else "")
@@ -23,7 +28,7 @@ _nav = []
 for sec in cfg["sections"]:
     items = []
     for t in sec["topics"]:
-        links = [[k.capitalize() if k != "open" else "Open", t[k]] for k in ("lesson", "drills", "open") if t.get(k)]
+        links = [[{"quiz": "Test Yourself"}.get(k, k.capitalize()), t[k]] for k in ("lesson", "quiz", "drills", "open") if t.get(k)]
         if links: items.append([t["name"], links])
     if items: _nav.append([sec["title"], items])
 (ROOT / "assets" / "nav.js").write_text("window.SA_NAV = " + json.dumps(_nav, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")

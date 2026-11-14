@@ -50,7 +50,7 @@ APPS = [
   dict(src="More About Intervals Lesson.html", lesson_only=True, drills="intervals.html", drills_name="Interval drills", lesson="more-about-intervals-lesson.html", lesson_title="More About Intervals", lesson_desc="Consonance and dissonance, melodic and harmonic intervals, half steps and 2nds, intervals between notes that aren't neighbors (Over the Rainbow), compound intervals and chord extensions, intervals above the tonic in major and minor scales, and inversion by the rule of nine. Use the arrow keys or the buttons to move between steps.", data="intervals2.js", title="More About Intervals", desc="", modes=[], how=[]),
   dict(src="Progressions In Class.html", lesson_only=True, drills="harmonic-succession.html", drills_name="Harmonic Succession drills", lesson="chord-progressions-in-real-songs.html", lesson_title="Chord Progressions in Real Songs", lesson_desc="An in-class study: listen to Betty, Wild World, In Bloom, Fast Car and Prelude to a Kiss, discuss the questions, then open each analysis. Use the arrow keys or the buttons to move between songs.", data="progstudy.js", title="Chord Progressions in Real Songs", desc="", modes=[], how=[]),
   dict(src="Lead Sheets Lesson.html", lesson_only=True, drills="chord-figures-and-symbols.html", drills_name="Chord Figures and Symbols drills", lesson="lead-sheets-lesson.html", lesson_title="Understanding Lead Sheets", lesson_desc="How a lead sheet works: what it includes (melody, lyrics, chord symbols, key, form) and what it leaves to the players, and how each chord symbol marks a region of harmony. Example: Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.", data=["dime.js", "leadsheets.js"], title="Lead Sheets", desc="", modes=[], how=[]),
-  dict(src="Piano Accompaniment Lesson.html", lesson_only=True, drills="groove-maker.html", drills_name="Groove Maker", lesson="piano-accompaniment-lesson.html", lesson_title="Understanding Piano Accompaniment", lesson_desc="Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, stride, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.", data=["dime.js", "accomp.js"], title="Piano Accompaniment", desc="", modes=[], how=[]),
+  dict(src="Piano Accompaniment Lesson.html", lesson_only=True, drills="groove-maker.html", drills_name="Groove Maker", lesson="piano-accompaniment-lesson.html", lesson_title="Understanding Piano Accompaniment", lesson_desc="Turn chord symbols into a piano part: melody, harmony and bass in two hands; fitting notes in the hands; keeping chords in one register; block chords, boom-chuck, boom-chuck-chuck, boom-chuck in the left hand, Alberti bass, broken chords and an active bass line, with settings of Brother, Can You Spare a Dime? Use the arrow keys or the buttons to move between steps.", data=["dime.js", "accomp.js"], title="Piano Accompaniment", desc="", modes=[], how=[]),
   dict(src="Extended and Altered Chords Lesson.html", lesson_only=True, drills="chord-extension-practicer.html", drills_name="Chord Extensions drills", lesson="extended-and-altered-chords-lesson.html", lesson_title="Understanding Extended and Altered Chords", lesson_desc="A step-by-step lesson: seventh chords, added-tone and sus chords, 9ths, 11ths and 13ths, altered tones, how to write a chord symbol, omissions and N.C., with notated chords to hear, and a chord-by-chord look at the intro of Wayne Shorter's Armageddon.", data="extlesson.js", title="Extended and Altered Chords", desc="", modes=[], how=[]),
   dict(src="Modulation Lesson.html", lesson_only=True, drills="modulation-trainer.html", drills_name="Key Modulation drills", lesson="modulation-lesson.html", lesson_title="Understanding Modulation", lesson_desc="A step-by-step lesson: modulation vs. tonicization, closely related keys, finding and labeling modulations, pivot chords (diatonic, chromatic, enharmonic), common-tone, sequential and chord-quality-shift modulations, direct modulation and turnarounds.", data="modlesson.js", title="Modulation", desc="", modes=[], how=[]),
   dict(src="Rhythm Notation Lesson.html", lesson_only=True, drills="rhythm-notation-trainer.html", drills_name="Rhythm Notation drills", lesson="rhythm-notation-lesson.html", lesson_title="Understanding Rhythm Notation", lesson_desc="A step-by-step lesson: showing the beat, common notation errors, beaming in simple and compound meter, ties and slurs, time signatures and bar lines, rhythm terms from syncopation to metric modulation, and notating lyrics.", data="rhythmlesson.js", title="Rhythm Notation", desc="", modes=[], how=[]),
@@ -172,7 +172,7 @@ APPS = [
        how=["<b>Two copyrights</b>: composition (ISWC) and recording (ISRC).",
             "<b>US royalties</b>: PROs (performance), The MLC (mechanical), SoundExchange (digital recording performance), sync.",
             "General information, not legal advice."]),
-  dict(src="Intervals.html", drills="intervals.html", lesson="intervals-what-why-how.html", lesson_title="Intervals: What, Why and How", lesson_desc="", data="intervals.js", title="Intervals",
+  dict(src="Intervals.html", drills="intervals.html", lesson="intervals-what-why-how.html", lesson_title="Intervals: What, Why and How", lesson_desc="", data="intervals.js", title="Intervals", quiz="intervals-quiz.html",   # lesson + quiz pages are build/pages
        drills_name="Interval drills",
        desc="Name intervals on the staff, write a note a given interval above or below, and count half steps. Open the keyboard to count on it and hear the notes.",
        modes=[("name", "Name it", "number · quality", "name the interval"),
@@ -320,20 +320,34 @@ APPS = [
             "<b>Textures:</b> monophony (one line), homophony (melody + chords), polyphony (independent lines), heterophony (one melody, varied at once)."]),
 ]
 
+def quiz_page(f):
+    """Test Yourself page for a lesson: note-values-lesson.html -> note-values-quiz.html."""
+    l = f["lesson"]
+    return l[:-len("-lesson.html")] + "-quiz.html" if l.endswith("-lesson.html") else l.replace(".html", "-quiz.html")
+
 def body(f, view):
     n = len(f["modes"])
     nav = "\n".join(f'    <button data-mode="{m}" aria-pressed="{"true" if i == 0 else "false"}"><b>{b}</b><small><span aria-hidden="true">{s}</span><span class="sr">: {html.escape(sr)}</span></small></button>' for i, (m, b, s, sr) in enumerate(f["modes"]))
     how = "".join(f"<li>{h}</li>" for h in f["how"])
-    lesson = view == "lesson"
-    other = (f'<a href="{f["drills"]}">Practice: {html.escape(f.get("drills_name", f["title"] + " drills"))} →</a>' if lesson else f'<a href="{f["lesson"]}">New to this? Read the lesson: {html.escape(f["lesson_title"])} →</a>')
+    lesson, quiz = view == "lesson", view == "quiz"
+    qz = f.get("_quiz")
+    dname = html.escape(f.get("drills_name", f["title"] + " drills"))
+    tq = f'<a href="{qz}">Test Yourself: open-note quiz →</a>' if qz else ""
+    if quiz:
+        other = f'<a href="{f["lesson"]}">← Lesson: {html.escape(f["lesson_title"])}</a><span class="sep" aria-hidden="true"> · </span><a href="{f["drills"]}">Practice: {dname} →</a>'
+    elif lesson:
+        other = (tq + '<span class="sep" aria-hidden="true"> · </span>' if tq else "") + f'<a href="{f["drills"]}">Practice: {dname} →</a>'
+    else:
+        other = f'<a href="{f["lesson"]}">New to this? Read the lesson: {html.escape(f["lesson_title"])} →</a>' + ('<span class="sep" aria-hidden="true"> · </span>' + tq if tq else "")
+    lesson = lesson or quiz   # the quiz uses the lesson area
     lhide, dhide = ("", " hidden") if lesson else (" hidden", "")
     return f'''<body>
-<a class="skip" href="{"#lessonView" if lesson else "#practice"}">Skip to the {"lesson" if lesson else "practice question"}</a>
+<a class="skip" href="{"#lessonView" if lesson else "#practice"}">Skip to the {"quiz" if quiz else "lesson" if lesson else "practice question"}</a>
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <h1>{html.escape(f["lesson_title"] if lesson else f["title"])}</h1>
-      <p>{f["lesson_desc"] if lesson else f["desc"]}</p>
+      <h1>{"Test Yourself" if quiz else html.escape(f["lesson_title"] if lesson else f["title"])}</h1>
+      <p>{f'An open-note quiz on <a href="{f["lesson"]}">{html.escape(f["lesson_title"])}</a>. Each question links back to the part of the lesson that covers it.' if quiz else f["lesson_desc"] if lesson else f["desc"]}</p>
     </div>
     <div class="score"{' style="display:none"' if lesson else ''}>
       <div aria-hidden="true"><b><span id="scRight">0</span><span style="opacity:.45">/</span><span id="scTotal">0</span></b><small>correct / answered</small></div>
@@ -343,7 +357,7 @@ def body(f, view):
     </div>
   </header>
   <p class="other-page" id="views">{other}</p>
-  <section class="lesson-view" id="lessonView" aria-label="Lesson"{lhide}></section>
+  <section class="lesson-view" id="lessonView" aria-label="{"Quiz" if quiz else "Lesson"}"{lhide}{f' data-sa-quiz="{html.escape(f["lesson_title"])}"' if quiz else ""}></section>
   <div id="drillView"{dhide}>
   <nav class="modes m{n}" aria-label="Practice mode">
 {nav}
@@ -400,13 +414,25 @@ MODES_CSS = """
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 """
 ENGINE = (B / "engine.js").read_text(encoding="utf-8")
-for f, view in [(f, v) for f in APPS for v in (("lesson",) if f.get("lesson_only") else ("drills", "lesson"))]:
-    head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(f['lesson_title'] if view == 'lesson' else f['title'])}</title>")
+QUIZZES = []   # Test Yourself pages, for build_trainers.py and build_index.py (build/gen/quizzes.json)
+for f in APPS:
+    f["_data"] = "\n".join((B / d).read_text(encoding="utf-8") for d in ([f["data"]] if isinstance(f["data"], str) else f["data"]))
+    f["_hasquiz"] = "window.FAM.quiz" in f["_data"]
+    f["_quiz"] = quiz_page(f) if f["_hasquiz"] else f.get("quiz")
+for f, view in [(f, v) for f in APPS for v in (("lesson",) if f.get("lesson_only") else ("drills", "lesson")) + (("quiz",) if f["_hasquiz"] else ())]:
+    ttl = f"Test Yourself: {f['lesson_title']}" if view == "quiz" else f['lesson_title'] if view == 'lesson' else f['title']
+    head = HEAD.replace("<title>Modes Trainer</title>", f"<title>{html.escape(ttl)}</title>")
     head = head.replace("@media (min-width: 640px) { .modes { grid-template-columns: repeat(5, 1fr); } .modes button:first-child { grid-column: auto; } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; white-space: nowrap; } }", "")
     head = head[:head.rstrip().rindex("</style>")] + EXTRA + MODES_CSS + "\n</style>"
-    data = "\n".join((B / d).read_text(encoding="utf-8") for d in ([f["data"]] if isinstance(f["data"], str) else f["data"]))
-    _oname = (f.get("drills_name") or (f["title"] + " drills")) if view == "lesson" else f["lesson_title"]
-    page = f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view == "lesson" else f["lesson"]}", otherName: {json.dumps(_oname)}, cls: {"true" if not f.get("lesson_only") or f["drills"] not in NOCLASS else "false"} }};</script>\n'
+    data = f["_data"]
+    dname = f.get("drills_name") or (f["title"] + " drills")
+    _oname = dname if view in ("lesson", "quiz") else f["lesson_title"]
+    page = (f'<script>window.SA_PAGE = {{ view: "{view}", other: "{f["drills"] if view in ("lesson", "quiz") else f["lesson"]}", otherName: {json.dumps(_oname)}, '
+            f'cls: {"true" if not f.get("lesson_only") or f["drills"] not in NOCLASS else "false"}, lesson: {json.dumps(f["lesson"])}, drills: {json.dumps(f["drills"])}, '
+            f'drillsName: {json.dumps(dname)}, quiz: {json.dumps(f["_quiz"] if f["_hasquiz"] else None)} }};</script>\n')
     out = head + "\n</head>\n" + body(f, view) + VEX + "\n" + page + "<script>\n" + data + "</script>\n<script>\n" + ENGINE + "</script>\n\n</body>\n</html>\n"
-    src = f["src"] if view == "drills" else (f["src"] if f.get("lesson_only") else f["src"].replace(".html", " Lesson.html"))
+    lsrc = f["src"] if f.get("lesson_only") else f["src"].replace(".html", " Lesson.html")
+    src = f["src"] if view == "drills" else lsrc if view == "lesson" else lsrc.replace(".html", " Quiz.html")
+    if view == "quiz": QUIZZES.append({"src": src, "out": f["_quiz"], "id": f["_quiz"][:-5], "name": ttl, "lesson": f["lesson"], "lesson_title": f["lesson_title"]})
     (GEN / src).write_text(out, encoding="utf-8"); print("assembled", src, len(out))
+(GEN / "quizzes.json").write_text(json.dumps(QUIZZES, ensure_ascii=False, indent=1), encoding="utf-8"); print("quiz pages:", len(QUIZZES))

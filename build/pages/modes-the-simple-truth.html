@@ -1,4 +1,4 @@
-<!-- title: Modes: The Simple Truth | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, modes in real music (recorded excerpts), PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). -->
+<!-- title: Modes: The Simple Truth | sound: 1 | vex: 1 | desc: An interactive lesson on modes: relative and parallel modes, major and minor families, modes in real music (recorded excerpts), PADMIL, modal key signatures, modes by ear, and non-diatonic modes (augmented-second, pentatonic, blues, whole-tone, octatonic). | quiz: modes-quiz.html -->
 <style>
 .lesson{max-width:900px;margin:0 auto;padding:22px 16px 40px}
 .lesson-head h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -215,16 +215,6 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   <section class="slide" data-title="Summary" hidden>
     <p class="kick">11 · Summary</p><h2>Modes in a nutshell</h2>
     <div class="cards3"><div class="c1"><b>Major family</b>Lydian ♯4 · Ionian · Mixolydian ♭7</div><div class="c2"><b>Minor family</b>Dorian ♯6 · Aeolian · Phrygian ♭2 · Locrian ♭2 ♭5</div><div class="c3"><b>Beyond</b>+2 modes · pentatonic · blues · whole-tone · octatonic</div></div>
-    <div id="quiz"></div>
-  </section>
-  <section class="slide" data-title="Test yourself" hidden>
-    <p class="kick">12 · Test yourself</p><h2>Open-note quiz</h2>
-    <div id="saqBox"></div>
-  </section>
-  <section class="slide" data-title="Practice" hidden>
-    <p class="kick">13 · Practice</p><h2>On to the drills</h2>
-    <p>You've finished the lesson. Now practice what you learned in the <b>Modes drills</b>.</p>
-    <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. Teachers can also host the drills as a <b>class game</b>: students join on their own devices.</p>
   </section>
   </div>
   <nav class="nav" aria-label="Lesson navigation"><button class="lbtn" id="back" type="button">← Back</button><span id="where" class="note" aria-live="polite"></span><button class="lbtn primary" id="fwd" type="button">Next →</button></nav>
@@ -343,14 +333,14 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
     cur = Math.max(0, Math.min(slides.length - 1, i)); seen.add(cur);
     slides.forEach((s, k) => s.hidden = k !== cur);
     [...stepsEl.querySelectorAll("button")].forEach((b, k) => { b.removeAttribute("aria-current"); if (k === cur) b.setAttribute("aria-current", "step"); b.classList.toggle("seen", seen.has(k)); });
-    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Start the drills →" : "Next →";
+    $("back").disabled = cur === 0; $("fwd").textContent = cur === slides.length - 1 ? "Next: Test Yourself →" : "Next →";
     $("where").textContent = `Step ${cur + 1} of ${slides.length}: ${slides[cur].dataset.title}`;
     if (focus) { const h = slides[cur].querySelector("h2"); h.tabIndex = -1; h.focus(); }
     if (slides[cur].onshow) slides[cur].onshow();
     try { localStorage.setItem("silverapps-modes-step", cur); } catch (e) {}
   }
   $("back").onclick = () => go(cur - 1, true);
-  $("fwd").onclick = () => (cur === slides.length - 1 ? (location.href = "modes-trainer.html") : go(cur + 1, true));
+  $("fwd").onclick = () => (cur === slides.length - 1 ? (location.href = "modes-quiz.html") : go(cur + 1, true));
   document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select")) return; if (e.key === "ArrowRight") go(cur + 1, true); if (e.key === "ArrowLeft") go(cur - 1, true); });
 
   // 1. relative modes
@@ -517,29 +507,9 @@ label.fld2 select{font:16px var(--fi-serif);text-transform:none;letter-spacing:0
   SL("Symmetrical scales").onshow = () => drawSym(false);
 
   // 10. quiz
-  const QZ = [
-    ["Dorian sounds like…", ["natural minor with a raised 6th (LA)", "major with a lowered 7th (TE)", "natural minor with a lowered 2nd (RA)"], 0, "Dorian is minor ♯6."],
-    ["Which mode is major with a lowered 7th?", ["Mixolydian", "Lydian", "Dorian"], 0, "Mixolydian: TE instead of TI."],
-    ["In PADMIL order, which mode comes right after Mixolydian?", ["Ionian", "Dorian", "Lydian"], 0, "P → A → D → M → I → L."],
-    ["A Mixolydian has which key signature?", ["2 sharps", "3 sharps", "1 sharp"], 0, "A major (3♯) with one flat more = 2♯."],
-    ["Using only the white keys from E to E gives…", ["E Phrygian", "E Aeolian", "E Dorian"], 0, "E is scale degree 3 of C major."],
-    ["Which scale contains an augmented 2nd?", ["harmonic minor", "Dorian", "major pentatonic"], 0, "Between <span class='sd'>6</span> and <span class='sd'>7</span> (LE and TI)."],
-    ["How many different whole-tone collections are there?", ["2", "3", "6"], 0, "Shift up a half step for the second; again and the first returns."],
-  ];
-  $("quiz").innerHTML = `<h3 class="readout" style="margin:6px 0 0">Quick check</h3>` + QZ.map((q, i) => `<div class="q" role="group" aria-labelledby="qz${i}"><p id="qz${i}"><b>${i + 1}.</b> ${q[0]}</p><div class="opts">${q[1].map((o, j) => ({ o, j })).sort((a, b) => ((a.j * 7 + i * 3) % 5) - ((b.j * 7 + i * 3) % 5)).map(({ o, j }) => `<button class="opt" type="button" data-q="${i}" data-o="${j}">${o}</button>`).join("")}</div><p class="fbk" id="qf${i}" aria-live="polite"></p></div>`).join("");
-  $("quiz").onclick = e => {
-    const b = e.target.closest(".opt"); if (!b || b.disabled) return; const i = +b.dataset.q, j = +b.dataset.o, q = QZ[i], ok = j === q[2];
-    b.parentNode.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (+x.dataset.o === q[2]) x.classList.add("right"); });
-    if (!ok) b.classList.add("wrong"); if (window.SFX) SFX.play(ok);
-    $("qf" + i).innerHTML = (ok ? "Yes! " : "Not quite. ") + q[3];
-  };
 
   let start = 0; try { start = +localStorage.getItem("silverapps-modes-step") || 0; } catch (e) {}
   { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) start = Math.max(0, +mh[1] - 1); }
-  if (/[#&]quiz\b/.test(location.hash)) { const qi = slides.findIndex(x => x.dataset.title === "Test yourself"); if (qi >= 0) start = qi; }   // #quiz (LMS packages open here)   // deep link from the quiz's "Look back" links
-  // "Test yourself" quiz (assets/site.js SAquiz): open notes, hints, first tries scored
-  const mountQuiz = () => { if (!window.SAquiz) return; const QZ = [{"s": 1, "q": "Play the white keys from D to D. Which mode is that?", "a": "D Dorian", "w": ["D Ionian", "D Aeolian", "D Phrygian"], "hint": "C major's notes from its 2nd degree.", "why": "Starting on the 2nd degree of the major scale gives Dorian."}, {"s": 1, "q": "Which mode starts on the 5th degree of a major scale?", "a": "Mixolydian", "w": ["Lydian", "Aeolian", "Locrian"], "hint": "1 Ionian, 2 Dorian, 3 Phrygian, 4 Lydian…", "why": "5 → Mixolydian (G to G on the white keys)."}, {"s": 3, "q": "Which modes are in the major family (major 3rd above the tonic)?", "a": "Lydian, Ionian, Mixolydian", "w": ["Dorian, Aeolian, Phrygian", "Lydian, Dorian, Locrian", "Ionian, Aeolian, Locrian"], "hint": "Check the summary: major family and minor family.", "why": "Lydian (♯4), Ionian, Mixolydian (♭7) have a major 3rd. The others have a minor 3rd."}, {"s": 3, "q": "Lydian is major with which note changed?", "a": "a raised 4th", "w": ["a lowered 7th", "a lowered 2nd", "a raised 6th"], "hint": "Remember the one note that differs from major or natural minor.", "why": "Lydian = major with ♯4."}, {"s": 4, "q": "Phrygian is natural minor with which note changed?", "a": "a lowered 2nd", "w": ["a raised 6th", "a raised 4th", "a lowered 5th"], "hint": "Listen for the note right above the tonic.", "why": "Phrygian = minor with ♭2."}, {"s": 5, "q": "In PADMIL order, which mode comes right after Dorian?", "a": "Mixolydian", "w": ["Aeolian", "Ionian", "Lydian"], "hint": "Phrygian, Aeolian, Dorian, Mixolydian, Ionian, Lydian.", "why": "P-A-D-M-I-L: after D comes M."}, {"s": 6, "q": "What key signature does A Dorian use?", "a": "1 sharp", "w": ["3 sharps", "no sharps or flats", "2 flats"], "hint": "Start from A major's signature, then Dorian is two flats more.", "why": "A major has 3 sharps; two flats more cancels two of them: 1 sharp (F♯)."}, {"s": 6, "q": "What key signature does E Lydian use?", "a": "5 sharps", "w": ["4 sharps", "3 sharps", "1 sharp"], "hint": "Lydian is one sharp more than the major key.", "why": "E major has 4 sharps; Lydian adds one: 5."}, {"s": 8, "q": "Which scale has an augmented 2nd between neighboring notes?", "a": "harmonic minor", "w": ["Dorian", "major pentatonic", "Mixolydian"], "hint": "It appears between 6 and 7.", "why": "Raising the 7th of natural minor opens a +2 between the 6th and 7th."}, {"s": 9, "q": "What does the blues scale add to minor pentatonic?", "a": "♯4 / ♭5", "w": ["♭2", "a major 3rd", "♯6"], "hint": "It's the one extra note.", "why": "Minor pentatonic plus ♯4/♭5 is the blues scale."}, {"s": 10, "q": "How many notes does an octatonic scale have?", "a": "8", "w": ["6", "7", "12"], "hint": "It alternates whole and half steps.", "why": "Octatonic: 8 notes. Whole-tone: 6."}], box = $("saqBox"); box.innerHTML = SAquiz.html("page");
-    SAquiz.wire(box, "page", QZ, { href: n => "modes-the-simple-truth.html#step=" + n, stepName: n => slides[n - 1] ? slides[n - 1].dataset.title : "step " + n }); }; if (window.SAquiz) mountQuiz(); else window.addEventListener("DOMContentLoaded", mountQuiz);
   go(Math.min(start, slides.length - 1), false);
 })();
 </script>

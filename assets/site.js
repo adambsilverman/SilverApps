@@ -93,10 +93,10 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
 
-/* ===== "Test yourself" quizzes (lessons and slide pages). SAquiz.html(id, qs) + SAquiz.wire(root, id, qs, opts).
+/* ===== Test Yourself quizzes (their own pages: <lesson>-quiz.html). SAquiz.html(id, qs) + SAquiz.wire(root, id, qs, opts).
    Each question: { q, a, w: [wrong…], hint, why, s: step number to look back at, fig: optional score spec }.
    Open notes: every question links to the step that covers it (new tab). A wrong answer shows the hint and allows another try;
-   only first tries count toward the score. opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec) }. ===== */
+   only first tries count toward the score. opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec), links: [{href, label, primary}] shown when finished }. ===== */
 window.SAquiz = (function () {
   var ST = {};
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -105,7 +105,7 @@ window.SAquiz = (function () {
   /* Finished attempts are kept in this browser (silverapps-quiz-<page>) for the professor report;
      inside an LMS (SCORM package from gradebook-sync.html) each finished attempt is also posted to the wrapper page. */
   var PAGE = (location.pathname.split("/").pop() || "index.html").replace(/\.html?$/, "");
-  var LESSON = (document.title || PAGE).split(" · ")[0];
+  var LESSON = (function () { var m = document.querySelector("[data-sa-quiz]"); return m ? m.getAttribute("data-sa-quiz") : (document.title || PAGE).split(" · ")[0].replace(/^Test Yourself:\s*/, ""); })();
   var LOGKEY = "silverapps-quiz-" + PAGE;
   function plain(s) { var d = document.createElement("div"); d.innerHTML = String(s); return (d.textContent || "").replace(/\s+/g, " ").trim(); }
   function log() { try { return JSON.parse(localStorage.getItem(LOGKEY) || "null") || { attempts: [] }; } catch (e) { return { attempts: [] }; } }
@@ -127,7 +127,7 @@ window.SAquiz = (function () {
     return [
       "SilverApps Interactive Music Training — Quiz report",
       "Lesson: " + LESSON,
-      "Quiz: Test yourself (open notes; first tries count)",
+      "Quiz: Test Yourself (open notes; first tries count)",
       "Student: " + st.name,
       st.sid ? "Student ID or username: " + st.sid : null,
       st.course ? "Course or section: " + st.course : null,
@@ -165,6 +165,7 @@ window.SAquiz = (function () {
           + (miss.length ? '<p>Worth another look:</p><ul class="saq-miss">' + miss.map(function (q) { return '<li>' + rich(q.q) + (q.s ? ' ' + look(q) : "") + '</li>'; }).join("") + '</ul>' : '<p>Every one on the first try.</p>')
           + (function () { var L = log(), b = best(L); return L.attempts.length > 1 ? '<p class="saq-best">Best so far: ' + b.right + ' of ' + b.n + ' (' + L.attempts.length + ' tries finished).</p>' : ""; })()
           + '<div class="saq-row"><button type="button" class="btn primary" data-saq="report">Report for my professor</button><button type="button" class="btn" data-saq="again">Start over</button></div>'
+          + (o.links && o.links.length ? '<div class="saq-row saq-next">' + o.links.map(function (l) { return '<a class="btn' + (l.primary ? ' primary' : '') + '" href="' + esc(l.href) + '">' + esc(l.label) + '</a>'; }).join("") + '</div>' : "")
           + (window.SAlms ? '<p class="saq-lms">Your score was sent to your course gradebook.</p>' : "");
         return;
       }

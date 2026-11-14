@@ -19,10 +19,30 @@
 .about h3{font:900 13px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:24px 0 8px}
 .about ol{margin:0 0 14px;padding-left:1.4em;max-width:66ch}
 .about li{margin:4px 0}
+.about .intro{font-size:1.12rem;max-width:62ch}
+.about-jump{margin:22px 0 8px;padding:12px 16px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card)}
+.about-jump p{font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px}
+.about-jump ul{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;margin:0;padding:0}
+.about-jump a{font-weight:700}
+.about h3{scroll-margin-top:110px}
 .about code{font:15px ui-monospace,Menlo,monospace;background:var(--fi-card);padding:1px 5px;border-radius:4px}
 </style>
 <main id="main" class="about">
 <h1>About <span>this site</span></h1>
+
+<p class="intro">SilverApps is a set of interactive lessons, quizzes, drills and tools for learning music, made to slot into music courses in high school and college and to work just as well for anyone teaching themselves. A teacher can use one app for a single class or build a whole course around them; a student working alone can start anywhere.</p>
+<p class="intro">Every topic works the same way: you try your hand. Instead of reading about an idea and moving on, you hear it, change it and use it right away, in small creative tasks (build a chord, drag a note into place, move an example into another key, put a progression together, run a fragment of your own through a minimalist process) and in close analysis of specific pieces. Classical examples sit alongside a wide range of other music: pop, rock, jazz, blues, gospel, country, hip-hop, folk songs and hymns, film and game scores, and music from around the world, from raga to gamelan.</p>
+
+<nav class="about-jump" aria-label="On this page"><p>On this page</p><ul>
+<li><a href="#guide">What's on the site</a></li>
+<li><a href="#lms">Quiz scores in your gradebook</a></li>
+<li><a href="#who">Who makes it</a></li>
+<li><a href="#notation">The notation</a></li>
+<li><a href="#recordings">The recordings</a></li>
+<li><a href="#fair-use">Fair use</a></li>
+<li><a href="#license">Using SilverApps</a></li>
+<li><a href="#privacy">Privacy</a></li>
+</ul></nav>
 
 <h2 id="guide">What's on the site</h2>
 <p>The front page groups the apps by subject: Foundations, Advanced Harmony, Voice Leading, Melody, Phrase and Form, Orchestration, Ear Training and Practice Tools, Creating Music, Music Technology and the Music Business, and Audio Tools. Use the buttons at the top of the front page to jump to a subject, or type in <b>Find a topic</b>. Nothing needs an account or an install; everything runs in the browser, on a laptop, tablet or phone.</p>
@@ -30,8 +50,8 @@
 <h3>Lessons</h3>
 <p>Most topics start with a lesson: a set of steps you click through in order, with the step list along the top so you can jump back to any of them. Examples play, and most of them can be moved to another key with the key picker, so the same idea can be heard and seen in all twelve. Students can work through a lesson before class, or a teacher can project one and step through it in front of the room. A lesson can be linked to a single step by adding <code>#step=</code> and the step number to its address, which is handy for pointing students at one idea in an assignment.</p>
 
-<h3>"Test yourself" quizzes</h3>
-<p>Near the end of most lessons is a short open-note quiz. Each question links back to the step that covers it, there's a hint for anyone who wants one, and a miss shows the hint and allows another try. Only first tries count toward the score. Students can use it as a self-check, or a teacher can assign it: students send a <b>Report for my professor</b> from the end screen, or the quiz can be added to a course so its score goes straight into the gradebook (see <a href="#lms">Quiz scores in your gradebook</a> below). A lesson's quiz opens directly when <code>#quiz</code> is added to its address.</p>
+<h3>Test Yourself quizzes</h3>
+<p>Most lessons have a Test Yourself quiz on its own page, reached from the lesson's last step, from the lesson and drills pages, and from the <b>Test Yourself</b> button on the front page. It's a short open-note quiz. Each question links back to the step that covers it, there's a hint for anyone who wants one, and a miss shows the hint and allows another try. Only first tries count toward the score. Students can use it as a self-check, or a teacher can assign it: students send a <b>Report for my professor</b> from the end screen, or the quiz can be added to a course so its score goes straight into the gradebook (see <a href="#lms">Quiz scores in your gradebook</a> below).</p>
 
 <h3>Drills</h3>
 <p>Most topics also have a drills page. Students choose a kind of question and work through as many as they like; each answer is explained, and missed items come back for review. The <b>Your progress</b> panel keeps a running count by question type in the student's own browser and makes a <b>Completion report for my professor</b> with a verification code, so drills can be assigned as practice ("50 questions at 80% or better by Friday") and checked on the <a href="verify.html">Check reports</a> page.</p>
@@ -49,27 +69,27 @@
 <p>The Audio Clip Editor, Video Clip Editor, Multitrack Studio and Vocal Tuner are small editors for preparing class examples and student projects: trimming and normalizing clips, layering recordings over a backing track, tuning a vocal. Files are opened and processed on your own computer and are never uploaded.</p>
 
 <h3>For teachers</h3>
-<p>Everything here is free to use in class and to assign. A typical unit might be: the lesson before class, a class game to check understanding in class, drills for homework with a completion report, and the "Test yourself" quiz as a graded check, either through your LMS or through reports. The site can also be copied to your own web space under the license described below.</p>
+<p>Everything here is free to use in class and to assign. A typical unit might be: the lesson before class, a class game to check understanding in class, drills for homework with a completion report, and the Test Yourself quiz as a graded check, either through your LMS or through reports. The site can also be copied to your own web space under the license described below.</p>
 
-<h2>Who makes it</h2>
+<h2 id="who">Who makes it</h2>
 <p>SilverApps is written and maintained by <a href="https://adambsilverman.com" target="_blank" rel="noopener">Adam Silverman</a><span class="sr-only"> (opens in a new tab)</span>, a composer who teaches music theory. All of the teaching ideas are his. The site was coded largely with Anthropic's Claude, which also generated some of the text.</p>
 
-<h2>The notation</h2>
+<h2 id="notation">The notation</h2>
 <p>Silverman typeset the music notation on this site. The staves inside the apps are drawn as you work, with VexFlow; the score images in the lessons he engraved himself. The few exceptions, such as a medieval chant manuscript and a page of published sheet music, are credited where they appear.</p>
 <p>Most of what you'll see is public-domain music: folk songs, hymns, carols and classical repertoire whose copyrights have expired. The exceptions are short excerpts of copyrighted songs, typeset here only so they can be analyzed. The pop song transcriptions are Silverman's.</p>
 
-<h2>The recordings</h2>
+<h2 id="recordings">The recordings</h2>
 <p>Some audio was created specifically for a particular lesson; other audio is generated adaptively. The rest are short excerpts of commercial recordings. Videos from YouTube are embedded from their published sources rather than copied here.</p>
 
-<h2>Fair use</h2>
+<h2 id="fair-use">Fair use</h2>
 <p>Short excerpts of copyrighted music, whether a few bars of a score or a few seconds of a recording, are included under fair use, 17 U.S.C. § 107. You'll see a note under each one. All rights remain with the artists and copyright holders.</p>
 <p>The claim rests on how the excerpts are used. The site is free and nonprofit, and it exists for teaching. Each excerpt is the smallest passage that shows the point being taught, and it sits next to commentary and analysis of that passage. None of them can stand in for the song, the recording or the published sheet music. If you hold rights to something here and object to its use, contact Silverman through <a href="https://adambsilverman.com" target="_blank" rel="noopener">adambsilverman.com</a><span class="sr-only"> (opens in a new tab)</span> and it will be taken down.</p>
 
-<h2>Using SilverApps</h2>
+<h2 id="license">Using SilverApps</h2>
 <p>Silverman's apps, lessons, text, graphics and code are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">Creative Commons BY-NC-SA 4.0</a><span class="sr-only"> (opens in a new tab)</span>. Teach with them, adapt them, put them on your own site. Keep the credit, don't sell them, and share your version under the same license. That license doesn't cover the excerpts of other people's music described above, or the open-source pieces the site is built on (VexFlow and its Bravura font, and the fonts, each under its own license).</p>
 
 <h2 id="lms">Quiz scores in your gradebook</h2>
-<p>Each lesson ends with a "Test yourself" quiz. A score can get from that quiz to a course gradebook in two ways. The first is automatic: you add the quiz to your course as a SCORM package, students take it inside the course, and the LMS records the score. The second needs no setup in the LMS: students send you a report, you check the reports and import the scores as a spreadsheet file.</p>
+<p>Most lessons have a Test Yourself quiz. A score can get from that quiz to a course gradebook in two ways. The first is automatic: you add the quiz to your course as a SCORM package, students take it inside the course, and the LMS records the score. The second needs no setup in the LMS: students send you a report, you check the reports and import the scores as a spreadsheet file.</p>
 <p>Quiz scores are first-try scores. A student who misses a question sees the hint and tries again, but only the first try counts. Students can retake a quiz as often as they like; the package and the import file both keep the best score.</p>
 
 <h3>Automatic: a SCORM package</h3>
@@ -113,11 +133,11 @@
 </ol>
 <p>Brightspace and Blackboard match students only by ID, so reports without one are left out of those files and listed on the page for you to enter by hand. Canvas and Moodle files keep them, with the name, but matching by name is less reliable. A Brightspace grade item graded as points should be worth as many points as the quiz has questions; graded as a percent, 100.</p>
 
-<h2>Privacy</h2>
+<h2 id="privacy">Privacy</h2>
 <p>The site counts visits with Umami: which pages are opened, and the city, region and country they're opened from. No names, no email addresses, no cookies. Your practice settings, progress and quiz scores stay in your own browser unless you send a report or take a quiz from inside your course's LMS, which then receives the score.</p>
 </main>
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=a2a439a1"></script>
+<script src="assets/site.js?v=cd6cde8b"></script>
 </body></html>

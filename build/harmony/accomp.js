@@ -19,7 +19,7 @@ window.FAM = (() => {
       <p>This lesson works from one lead sheet, the first eight bars of <i>Brother, Can You Spare a Dime?</i> (Jay Gorney and E. Y. Harburg, 1932):</p>
       <figure class="lfig lsfig"><img src="assets/img/dime/leadsheet.png" alt="Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign." width="1600" height="553">
       <figcaption>${DIME.aud("leadsheet")}</figcaption></figure>
-      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck, stride, Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
+      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck (shared between the hands, then in the left hand alone), Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
       <p>In each setting the chord symbols are hidden at first. Before you show them, try to work out which chord each part of the accompaniment spells, using the lead sheet above.</p>` },
     { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: () => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
       <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
@@ -52,8 +52,8 @@ window.FAM = (() => {
       <p>In 3/4, <b>boom-chuck-chuck</b> is the waltz accompaniment: bass on beat 1, chords on beats 2 and 3.</p>
       ${U.fig(WALTZ, "Boom-chuck-chuck in 3/4: Cm, Fm, G7, Cm.", { follow: true })}`
       + H.check("In a 4/4 boom-chuck pattern, where do the chords usually go?", "beats 2 and 4", ["beats 1 and 3", "every beat", "only beat 1"], "The bass takes the strong beats (1 and 3), the chords the weak ones (2 and 4).") },
-    { title: "Stride", kick: "The left hand does both jobs", render: () => `<p><b>Stride</b> piano (Harlem in the 1920s: James P. Johnson, Fats Waller, Willie “The Lion” Smith) moves boom-chuck entirely into the left hand: a low bass note on beats 1 and 3, then a leap up to a chord in the middle of the keyboard on 2 and 4. That frees the right hand for the melody.</p>
-      ${DIME.fig("stride", "Stride: low bass notes on 1 and 3, mid-range chords on 2 and 4, all in the left hand.")}${SHOW}
+    { title: "Boom-chuck in the left hand", kick: "The left hand does both jobs", render: () => `<p>Boom-chuck can also go entirely into the left hand: a bass note on beats 1 and 3, then a chord just above it on 2 and 4. That frees the right hand for the melody, so one player covers melody, harmony and bass.</p>
+      ${DIME.fig("stride", "Boom-chuck in the left hand: bass notes on 1 and 3, chords on 2 and 4; the melody in the right hand.")}${SHOW}
       <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>` },
     { title: "Alberti bass and broken chords", kick: "Low, high, middle, high", render: () => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
       ${DIME.fig("alberti", "Alberti bass in eighth notes, with the melody alone in the right hand.", { g7d: true })}${SHOW}
@@ -70,7 +70,7 @@ window.FAM = (() => {
         ["Block chords", "all chord tones together, held or on the beats", "hymns, slow ballads, sight-reading"],
         ["Boom-chuck", "bass on strong beats, chords on weak beats", "marches, folk, country, polkas, upbeat songs"],
         ["Boom-chuck-chuck", "bass on 1, chords on 2 and 3", "waltzes and other songs in 3/4"],
-        ["Stride", "left hand leaps: bass on 1 and 3, chords on 2 and 4", "ragtime, early jazz, solo piano"],
+        ["Left-hand boom-chuck", "bass and chords both in the left hand, melody in the right", "solo piano, playing a lead sheet alone"],
         ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
         ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
         ["Rhythmicized chords", "chord tones in a steady repeating rhythm over a held bass", "ballads and accompanying a singer"],
@@ -80,7 +80,7 @@ window.FAM = (() => {
       <li><b>Thin out under a busy melody</b>, and fill in when the melody holds or rests.</li>
       <li><b>Practice hands separately</b>, then together at a slow tempo.</li></ul>
       <p>To hear these patterns with any progression, try the <a href="groove-maker.html"><b>Groove Maker</b></a>.</p>`
-      + H.check("Which pattern puts both the bass and the chords in the left hand?", "stride", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "Stride leaps between a low bass and a middle-register chord, all in the left hand.") },
+      + H.check("Which pattern puts both the bass and the chords in the left hand?", "left-hand boom-chuck", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "The left hand alternates a bass note and a chord, leaving the right hand free for the melody.") },
   ] };
   return { key: "silverapps-accomp-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
 })();

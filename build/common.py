@@ -64,3 +64,18 @@ def before_head_close(s, html):
     return s[:i] + html + "\n" + s[i:]
 
 PROGRESS_SCRIPTS = '<script src="assets/progress.js"></script>\n<script src="assets/sfx.js"></script>\n'
+
+def quiz_map():
+    """{lesson page: Test Yourself page}: from build/gen/quizzes.json (harmony lessons, written by harmony/assemble.py)
+    and from the "quiz:" meta of build/pages lessons."""
+    import json
+    out = {}
+    q = ROOT / "build" / "gen" / "quizzes.json"
+    if q.exists():
+        for x in json.loads(q.read_text(encoding="utf-8")): out[x["lesson"]] = x["out"]
+    for f in (ROOT / "build" / "pages").glob("*.html"):
+        m = re.match(r"<!--(.*?)-->", f.read_text(encoding="utf-8"), re.S)
+        if m:
+            meta = {k.strip(): v.strip() for k, v in (kv.split(":", 1) for kv in m.group(1).split("|") if ":" in kv)}
+            if meta.get("quiz"): out[f.name] = meta["quiz"]
+    return out

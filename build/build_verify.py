@@ -1,4 +1,4 @@
-"""Build verify.html — professors paste one or more student reports (completion reports and "Test yourself" quiz reports)
+"""Build verify.html — professors paste one or more student reports (completion reports and Test Yourself quiz reports)
 to check their verification codes, then download a gradebook import file (D2L Brightspace, Canvas, Blackboard, Moodle/other).
 Run: python3 build/build_verify.py"""
 import sys, pathlib
@@ -34,7 +34,7 @@ td.ok{color:#2d6a1f;font-weight:700} td.bad{color:#9b2a14;font-weight:700}
 __STRIP__
 <main id="main">
 <h1>Check reports</h1>
-<p>Paste one report or many: completion reports from the practice apps and quiz reports from the "Test yourself" quizzes. You can also choose the report files students downloaded. Each report's verification code is checked, which shows whether its numbers were changed after it was made. It's a deterrent, not cryptographic proof.</p>
+<p>Paste one report or many: completion reports from the practice apps and quiz reports from the Test Yourself quizzes. You can also choose the report files students downloaded. Each report's verification code is checked, which shows whether its numbers were changed after it was made. It's a deterrent, not cryptographic proof.</p>
 <label for="rep">Report text <small>(paste several one after another; each starts with "SilverApps Interactive Music Training —")</small></label>
 <textarea id="rep" spellcheck="false" placeholder="SilverApps Interactive Music Training — Quiz report&#10;Lesson: …"></textarea>
 <label for="files">Or choose report files <small>(.html or .txt; you can pick many at once)</small></label>

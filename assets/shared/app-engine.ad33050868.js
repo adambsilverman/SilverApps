@@ -1059,24 +1059,23 @@
 
   // ---------- Lesson (step-through) ----------
   const L = FAM.lesson, VKEY = FAM.key + ":view";
+  // In lessons with a quiz, "Quick check" steps were replaced by the separate Test Yourself page; drop them, and map the quiz's step numbers
+  // (written against the original steps) to the steps that remain. QMAP[original 1-based] = new 1-based.
+  const QMAP = [];
+  if (L && L.steps && FAM.quiz && FAM.quiz.length) { let n = 0; L.steps.forEach((s, i) => { QMAP[i + 1] = s.title === "Quick check" ? Math.max(1, n) : ++n; }); L.steps = L.steps.filter(s => s.title !== "Quick check"); }
+  const QUIZ_PAGE = window.SA_PAGE && SA_PAGE.quiz && FAM.quiz && FAM.quiz.length ? SA_PAGE.quiz : null;
   // every lesson ends on a page that leads to its drills
-  if (window.SA_PAGE && SA_PAGE.view === "lesson" && SA_PAGE.other && L && L.steps && !/^Practice/.test(L.steps[L.steps.length - 1].title)) {
+  if (window.SA_PAGE && SA_PAGE.view === "lesson" && !QUIZ_PAGE && SA_PAGE.other && L && L.steps && !/^Practice/.test(L.steps[L.steps.length - 1].title)) {
     const modes = (FAM.modes || []).map(m => m.kicker).filter(Boolean);
     L.steps.push({ title: "Practice", kick: "On to the drills", render: () => `<p>You've finished the lesson. Now practice what you learned in the <b>${esc(SA_PAGE.otherName || "drills")}</b>${modes.length ? ":" : "."}</p>${modes.length ? `<ul>${modes.map(m => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
       <p>Each question explains its answer, and items you miss come back for review. Your progress is saved in this browser, and you can print a completion report for your professor. ${SA_PAGE.cls !== false ? "Teachers can also host the drills as a <b>class game</b>: students join on their own devices." : ""}</p>
       <p class="note">You can come back to any page of this lesson with the numbered buttons above.</p>` });
   }
-  // a "Test yourself" quiz (FAM.quiz: open notes, hints, first tries scored) goes just before the closing Practice step
-  if (window.SA_PAGE && SA_PAGE.view === "lesson" && FAM.quiz && FAM.quiz.length && window.SAquiz && L && L.steps) {
-    const page = location.pathname.split("/").pop() || "", at = /^Practice/.test(L.steps[L.steps.length - 1].title) ? L.steps.length - 1 : L.steps.length;
-    L.steps.splice(at, 0, { title: "Test yourself", kick: "Open-note quiz", render: () => SAquiz.html("lesson"),
-      after: (root, H, k, tools) => SAquiz.wire(root, "lesson", FAM.quiz, { rich, href: n => `${page}#step=${n}`, stepName: n => L.steps[n - 1] ? L.steps[n - 1].title.replace(/<[^>]+>/g, "") : "step " + n, draw: (el, spec) => tools.drawStaff(el, spec) }) });
-  }
   const lessonEl = $("lessonView"), drillEl = $("drillView");
   let LS = { step: 0, seen: [0], key: null, mode: null };
   try { LS = Object.assign(LS, JSON.parse(localStorage.getItem(FAM.key + ":lesson") || "{}")); } catch (e) {}
   { const mh = /[#&]step=(\d+)/.exec(location.hash); if (mh) { LS.step = Math.max(0, +mh[1] - 1); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); } }   // deep link: lesson.html#step=N
-  if (/[#&]quiz\b/.test(location.hash) && L && L.steps) { const qi = L.steps.findIndex(s => s.title === "Test yourself"); if (qi >= 0) { LS.step = qi; if (!LS.seen.includes(qi)) LS.seen.push(qi); } }   // lesson.html#quiz (LMS packages open here)
+  if (/[#&]quiz\b/.test(location.hash) && QUIZ_PAGE && SA_PAGE.view === "lesson") location.replace(QUIZ_PAGE);   // old lesson.html#quiz links
   const saveL = () => { try { localStorage.setItem(FAM.key + ":lesson", JSON.stringify(LS)); } catch (e) {} };
   let figs = {};
   function lessonKey(st) {
@@ -1099,7 +1098,7 @@
     const keyRow = st.keyed ? `<div class="lkeys" role="group" aria-label="Choose a key">${st.keyed === "both" ? ["major", "minor"].map(m => `<button class="lk mode" data-lmode="${m}" aria-pressed="${LS.mode === m}">${m}</button>`).join("") + '<span class="lk-sep" aria-hidden="true"></span>' : ""}${KEYS[LS.mode].map(n => `<button class="lk" data-lkey="${esc(n)}" aria-pressed="${LS.key === n}"><span aria-hidden="true">${accHTML(n)}</span><span class="sr">${esc(speak(n))} ${LS.mode}</span></button>`).join("")}</div>` : "";
     lessonEl.innerHTML = `<ol class="lsteps" aria-label="Lesson steps">${L.steps.map((s, j) => `${s.part && (j === 0 || L.steps[j - 1].part !== s.part) ? `<li class="lpart" aria-hidden="true">${esc(s.part)}</li>` : ""}<li><button data-lstep="${j}" ${j === i ? 'aria-current="step"' : ""} class="${LS.seen.includes(j) ? "seen" : ""}"><span aria-hidden="true">${j + 1}</span><span class="sr">Step ${j + 1}: ${esc(s.title)}</span></button></li>`).join("")}</ol>
       <article class="lslide" aria-labelledby="lsTitle"><p class="lkick">${st.part ? esc(st.part) + " · " : ""}Step ${i + 1} of ${L.steps.length}${st.kick ? " · " + esc(st.kick) : ""}</p><h2 id="lsTitle" tabindex="-1">${rich(st.title)}</h2>${keyRow}${body}
-      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? `<a class="btn primary" href="${esc(SA_PAGE.other)}">Start the drills →</a>` : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
+      <div class="lnav"><button class="btn" data-lgo="-1" ${i === 0 ? "disabled" : ""}>← Back</button>${i < L.steps.length - 1 ? `<button class="btn primary" data-lgo="1">Next: ${rich(L.steps[i + 1].title)} →</button>` : (window.SA_PAGE && SA_PAGE.view === "lesson" ? (QUIZ_PAGE ? `<a class="btn primary" href="${esc(QUIZ_PAGE)}">Next: Test Yourself →</a>` : `<a class="btn primary" href="${esc(SA_PAGE.other)}">Start the drills →</a>`) : `<button class="btn primary" data-view="drills">Start the drills →</button>`)}</div></article>`;
     lessonEl.querySelectorAll("[data-lfig]").forEach(el => { drawStaff(el, figs[el.dataset.lfig].spec); if (figs[el.dataset.lfig].follow) wireFollow(el, figs[el.dataset.lfig]); });
     lessonEl.querySelectorAll(".lq").forEach(bindCheck);
     if (st.after) st.after(lessonEl, H, k, { play, drawStaff });
@@ -1152,15 +1151,26 @@
     const t = e.target; if (t && t.closest && t.closest("input, textarea, select, audio, video, iframe, [contenteditable], [role=slider], [role=listbox], [role=radiogroup], [role=tablist], [role=grid], .pbld, .gwrap")) return;
     const b = lessonEl.querySelector(`[data-lgo="${e.key === "ArrowLeft" ? -1 : 1}"]:not([disabled])`); if (b) { e.preventDefault(); b.click(); }
   });
+  // Test Yourself page (SA_PAGE.view "quiz"): the open-note quiz alone, in the lesson area
+  function renderQuizPage() {
+    if (lessonEl.dataset.quiz) return; lessonEl.dataset.quiz = "1";
+    if (!window.SAquiz || !FAM.quiz) { lessonEl.innerHTML = "<p>This quiz couldn't load. Try reloading the page.</p>"; return; }
+    lessonEl.innerHTML = `<article class="lslide saq-page">${SAquiz.html("quiz")}</article>`;
+    const sn = n => QMAP[n] || n;
+    SAquiz.wire(lessonEl, "quiz", FAM.quiz, { rich, href: n => `${SA_PAGE.lesson}#step=${sn(n)}`,
+      stepName: n => { const s = L && L.steps[sn(n) - 1]; return s ? s.title.replace(/<[^>]+>/g, "") : "step " + n; },
+      draw: (el, spec) => drawStaff(el, spec),
+      links: [{ href: SA_PAGE.drills, label: "Practice: " + (SA_PAGE.drillsName || "drills") + " →", primary: true }, { href: SA_PAGE.lesson, label: "Back to the lesson" }] });
+  }
   // Lesson / Drills switch
   function setView(v, focus) {
     if (!lessonEl) return;
     stopSound();
-    const lesson = v === "lesson";
+    const quiz = v === "quiz", lesson = v === "lesson" || quiz;
     lessonEl.hidden = !lesson; drillEl.hidden = lesson;
     document.querySelectorAll("[data-view]").forEach(b => { if (b.closest(".viewtabs")) b.setAttribute("aria-pressed", String(b.dataset.view === v)); });
     if (!window.SA_PAGE) try { localStorage.setItem(VKEY, v); } catch (e) {}
-    if (lesson) renderLesson(focus); else if (focus) { const h = $("qHead"); if (h) h.focus(); }
+    if (quiz) renderQuizPage(); else if (lesson) renderLesson(focus); else if (focus) { const h = $("qHead"); if (h) h.focus(); }
     if (!lesson) redrawStaves();
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-view]"); if (b) { setView(b.dataset.view, true); if (!b.closest(".viewtabs")) window.scrollTo({ top: 0, behavior: "smooth" }); } });
