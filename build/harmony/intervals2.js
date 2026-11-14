@@ -79,6 +79,7 @@ window.FAM = (() => {
 
     { title: "Intervals across a melody", kick: "Notes that aren't next to each other", render: (H, k, U) => `<p>“Somewhere over the rainbow” opens with an octave leap, from C up to C (shown here in C). Then the tune drifts down to G and climbs back up to C before leaping from the same low C to A.</p>`
       + U.fig(rainSpec(), "Harold Arlen and E. Y. Harburg, “Over the Rainbow” (1939), the opening phrase, shown in C. Circled: the notes that make a hidden stepwise line.")
+      + `<figure class="lfig"><audio controls preload="none" src="assets/audio/over-the-rainbow-garland.mp3" style="width:100%"></audio><figcaption>Judy Garland, “Over the Rainbow,” from <i>The Wizard of Oz</i> (1939), the first phrase. The recording is in A♭ major; the example above is shown in C.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>`
       + `<p>The ear doesn't only connect notes that sit side by side. It hears intervals across a gap, too.</p>
       <p>Compare the two leaps. Both start on the same low C: the first goes up an octave, the second only a 6th. The second reach falls short of the first, and that's part of why the phrase sounds like it's settling.</p>
       <p>Now follow the high points: C, then B, then A, then G at the end. Spread across four bars, the peaks walk down a scale, step by step. Nobody sings that line as a line, but you hear it. It gives the phrase its direction under all the leaping.</p>`

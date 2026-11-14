@@ -325,7 +325,7 @@ window.FAM = (() => {
         + U.fig(staffOf(H, m, { ly: m.map(H.nm) }), "C minor (natural minor): C D E♭ F G A♭ B♭ C. Same tonic, but the 3rd, 6th and 7th notes are lower.", pl(m))
         + `<p>What makes a scale major or minor is its pattern of <b>half steps</b> and <b>whole steps</b>, the distances between neighboring notes. The next step shows what those are.</p>
       <h3>Scales in real songs</h3>
-      <figure class="lfig"><video controls preload="metadata" playsinline src="assets/video/Scales.mp4" style="width:100%;height:auto;border-radius:8px;background:#000"><track kind="captions" srclang="en" label="English" src="assets/video/scales.vtt" default></video>
+      <figure class="lfig"><video controls preload="metadata" playsinline src="assets/video/Scales.mp4?v=2" style="width:100%;height:auto;border-radius:8px;background:#000"><track kind="captions" srclang="en" label="English" src="assets/video/scales.vtt" default></video>
       <figcaption>Scales hide inside songs, but rarely as a tidy climb from do to do: a descending scale opens “Joy to the World,” Katy Perry's “Firework” runs from mi up past the octave to sol, and the jagged melody of Justin Bieber's “Stay” uses five notes of the D♭ major scale, with the chords filling in the rest.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>`;
     } },
     { title: "Half steps and whole steps", kick: "The two step sizes", render: (H, k, U) => `<p>A <b>half step</b> (semitone) is the distance from one key on the piano to the very next one, black or white. A <b>whole step</b> (tone) is two half steps. Between the white keys, E–F and B–C are half steps; all the other neighbors are whole steps.</p>`
