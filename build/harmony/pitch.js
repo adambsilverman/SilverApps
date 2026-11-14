@@ -394,8 +394,8 @@ window.FAM = (() => {
   const DT_LO = [697, 770, 852, 941], DT_HI = [1209, 1336, 1477], DT_KEYS = ["123", "456", "789", "*0#"];   // the standard 12-key pad
   const DT = { lo: true, hi: true, held: null, t0: 0, timers: [] };
   const DT_IV = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th", "octave", "minor 9th", "major 9th", "minor 10th", "major 10th"];
-  // letters as on Bell keypads of the 1960s–70s (no Q or Z)
-  const DT_LET = { "2": "ABC", "3": "DEF", "4": "GHI", "5": "JKL", "6": "MNO", "7": "PRS", "8": "TUV", "9": "WXY", "0": "OPER" };
+  // letters as on a later payphone keypad (all 26 letters: PQRS, WXYZ)
+  const DT_LET = { "2": "ABC", "3": "DEF", "4": "GHI", "5": "JKL", "6": "MNO", "7": "PQRS", "8": "TUV", "9": "WXYZ" };
   const dtName = k => k === "*" ? "star" : k === "#" ? "pound" : k;
   function dtWords(k, r, c) {
     const lo = DT_LO[r], hi = DT_HI[c], st = 12 * Math.log2(hi / lo), n = Math.round(st), off = Math.round((st - n) * 100);
@@ -437,7 +437,7 @@ window.FAM = (() => {
   function dtStopDial() { DT.timers.forEach(clearTimeout); DT.timers = []; }
   function dtDial() {
     dtStopDial(); const digits = (document.getElementById("dtNum") || {}).value || "";
-    const L2D = {}; Object.entries(DT_LET).forEach(([d, ls]) => { if (d !== "0") [...ls].forEach(l => L2D[l] = d); });   // phone-word letters dial their key
+    const L2D = {}; Object.entries(DT_LET).forEach(([d, ls]) => [...ls].forEach(l => L2D[l] = d));   // phone-word letters dial their key
     const seq = [...digits.toUpperCase()].map(ch => L2D[ch] || ch).filter(ch => /[0-9*#]/.test(ch)); let t = 0;
     seq.forEach(ch => { const r = DT_KEYS.findIndex(row => row.includes(ch)), c = DT_KEYS[r].indexOf(ch);
       DT.timers.push(setTimeout(() => dtOn(r, c), t)); DT.timers.push(setTimeout(() => dtOff(true), t + 170)); t += 270; });
@@ -594,7 +594,7 @@ window.FAM = (() => {
       <ul><li>A voice's overtones line up in whole-number ratios (the harmonic series, two steps back). No high tone is within 4% of double a low tone, and no pair comes within about 3% of 2 : 1, 3 : 2, 4 : 3 or 5 : 4, so a sung note and its overtones don't fake a key. The receivers accept only about 1.5% of error, so the gap is wide enough.</li>
       <li>Within each group, each tone is about 1.105 times the one below it, roughly 1.73 half steps: between the keys of a piano.</li></ul>
       <h3>The letters</h3>
-      <p>The letters on the keys come from the days when phone numbers began with an exchange name: Glenn Miller's <i>Pennsylvania 6-5000</i> (1940) is named for the Hotel Pennsylvania's number, PEnnsylvania 6-5000, which you dial as 736-5000. There was no Q or Z, and 0 was for the operator.</p>
+      <p>The letters on the keys come from the days when phone numbers began with an exchange name: Glenn Miller's <i>Pennsylvania 6-5000</i> (1940) is named for the Hotel Pennsylvania's number, PEnnsylvania 6-5000, which you dial as 736-5000. The first keypads left out Q and Z (7 was PRS, 9 was WXY) and printed OPER on the 0; later ones, like this payphone pad, have all 26 letters.</p>
       <p>The system actually has an eighth tone, 1633 Hz, for a fourth column of keys. Home phones and payphones never had it; it appeared as red priority keys on the U.S. military's AUTOVON phones.</p>
       <p>So the dyads are intervals, but odd ones. Try the keys on a diagonal (1, 5, 9): they share the same ratio, about 1.735, so they sound like the same interval moved up. The 3 key is almost exactly an equal-tempered minor 9th, but that isn't a simple ratio either (about 2.12 : 1). Turn off the low or the high tone to hear each half of the dyad alone.</p>` },
     { title: "Shepard tones and the tritone paradox", kick: "Endlessly rising; up or down?", render: () => `<p>In 1964 the psychologist <b>Roger Shepard</b> built a tone that seems to rise forever. Each <b>Shepard tone</b> is a stack of sine waves an octave apart, with the loudest ones in the middle of the range and the highest and lowest fading to silence. Step the whole stack up a semitone at a time: the top octaves fade out while new ones fade in at the bottom, so after twelve steps you are back where you started, yet every step sounds higher.</p>
