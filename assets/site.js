@@ -95,13 +95,29 @@
 
 /* ===== Test Yourself quizzes (their own pages: <lesson>-quiz.html). SAquiz.html(id, qs) + SAquiz.wire(root, id, qs, opts).
    Each question: { q, a, w: [wrong…], hint, why, s: step number to look back at, fig: optional score spec }.
+   The list is a question bank: each attempt draws up to 15 (at least 12 when the bank is bigger), covering every step of
+   the lesson once before any step gets a second question, in lesson order. "Start over" draws a fresh set.
    Open notes: every question links to the step that covers it (new tab). A wrong answer shows the hint and allows another try;
    only first tries count toward the score. opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec), links: [{href, label, primary}] shown when finished }. ===== */
 window.SAquiz = (function () {
   var ST = {};
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function state(id, qs) { if (!ST[id]) ST[id] = { i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; return ST[id]; }
+  function pick(bank) {
+    var all = bank.map(function (q, i) { var c = {}; for (var k in q) c[k] = q[k]; c._id = i + 1; return c; });
+    var groups = {}; all.forEach(function (q) { var k = q.s || 0; (groups[k] = groups[k] || []).push(q); });
+    var keys = Object.keys(groups), N = all.length <= 12 ? all.length : Math.min(15, Math.max(12, keys.length)), out = [];
+    keys.forEach(function (k) { groups[k] = shuffle(groups[k]); });
+    while (out.length < N) {   // one round = one more question from each step that still has some, steps in random order
+      var round = shuffle(keys.filter(function (k) { return groups[k].length; })); if (!round.length) break;
+      round.forEach(function (k) { if (out.length < N) out.push(groups[k].shift()); });
+    }
+    return out.sort(function (a, b) { return (a.s || 0) - (b.s || 0) || a._id - b._id; });
+  }
+  function state(id, bank) {
+    if (!ST[id]) { var qs = pick(bank); ST[id] = { qs: qs, i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; }
+    return ST[id];
+  }
   /* Finished attempts are kept in this browser (silverapps-quiz-<page>) for the professor report;
      inside an LMS (SCORM package from gradebook-sync.html) each finished attempt is also posted to the wrapper page. */
   var PAGE = (location.pathname.split("/").pop() || "index.html").replace(/\.html?$/, "");
@@ -113,16 +129,16 @@ window.SAquiz = (function () {
   function pc(r, n) { return n ? Math.round(r / n * 100) : 0; }
   function finish(qs, S) {
     var right = S.first.filter(Boolean).length, L = log();
-    var att = { t: Date.now(), right: right, n: qs.length, miss: qs.map(function (q, i) { return S.first[i] ? -1 : i; }).filter(function (i) { return i >= 0; }) };
+    var att = { t: Date.now(), right: right, n: qs.length, missed: qs.filter(function (q, i) { return !S.first[i]; }).map(function (q) { return plain(q.q).slice(0, 200); }) };
     L.attempts.push(att); if (L.attempts.length > 50) L.attempts = L.attempts.slice(-50);
     try { localStorage.setItem(LOGKEY, JSON.stringify(L)); } catch (e) {}
     if (window.parent !== window) try {
       window.parent.postMessage({ type: "silverapps-quiz-result", v: 1, page: PAGE, lesson: LESSON, right: right, n: qs.length, pct: pc(right, qs.length),
-        questions: qs.map(function (q, i) { return { id: "q" + (i + 1), text: plain(q.q).slice(0, 250), correct: !!S.first[i] }; }) }, "*");
+        questions: qs.map(function (q, i) { return { id: "q" + (q._id || i + 1), text: plain(q.q).slice(0, 250), correct: !!S.first[i] }; }) }, "*");
     } catch (e) {}
   }
   function best(L) { return L.attempts.reduce(function (b, a) { return !b || a.right / a.n > b.right / b.n ? a : b; }, null); }
-  function reportBody(qs, st) {
+  function reportBody(st) {
     var L = log(), last = L.attempts[L.attempts.length - 1], b = best(L);
     return [
       "SilverApps Interactive Music Training — Quiz report",
@@ -136,8 +152,8 @@ window.SAquiz = (function () {
       "Latest attempt: " + fmt(last.t) + " — " + last.right + " of " + last.n + " (" + pc(last.right, last.n) + "%)",
       "Best attempt: " + fmt(b.t) + " — " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)",
       "Score: " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)",
-      last.miss.length ? "Missed on the first try (latest attempt):" : "Latest attempt: every question right on the first try.",
-    ].concat(last.miss.map(function (i) { return "- Q" + (i + 1) + ": " + (qs[i] ? plain(qs[i].q) : ""); })).filter(function (l) { return l !== null; }).join("\n");
+      (last.missed || last.miss || []).length ? "Missed on the first try (latest attempt):" : "Latest attempt: every question right on the first try.",
+    ].concat((last.missed || []).map(function (t) { return "- " + t; })).filter(function (l) { return l !== null; }).join("\n");
   }
   function needReport(cb) {
     if (window.SAreport) return cb();
@@ -145,18 +161,18 @@ window.SAquiz = (function () {
     sc.src = me ? me.src.replace(/site\.js(\?.*)?$/, "progress.js") : "assets/progress.js";
     sc.onload = cb; document.head.appendChild(sc);
   }
-  function openReport(qs) {
+  function openReport() {
     needReport(function () {
       SAreport.open({ app: LESSON, kind: "quiz report", title: "Quiz report for your professor",
         intro: "Your report shows this lesson, your name, the date, how many tries you've finished, your best and latest first-try scores, and the questions you missed, with a verification code your professor can check.",
-        build: function (st) { return reportBody(qs, st); } });
+        build: function (st) { return reportBody(st); } });
     });
   }
-  function html(id) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score.</p><div class="saq-card" aria-live="polite"></div></div>'; }
-  function wire(root, id, qs, o) {
+  function html(id) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score. Every try draws a fresh set of questions covering the whole lesson.</p><div class="saq-card" aria-live="polite"></div></div>'; }
+  function wire(root, id, bank, o) {
     o = o || {}; var rich = o.rich || function (s) { return s; };
     var box = root.querySelector("#saq-" + id); if (!box) return;
-    var card = box.querySelector(".saq-card"), S = state(id, qs);
+    var card = box.querySelector(".saq-card"), S = state(id, bank), qs = S.qs;
     function look(q) { return q.s && o.href ? '<a class="saq-look" href="' + esc(o.href(q.s)) + '" target="_blank" rel="noopener">Look back: ' + esc(o.stepName ? o.stepName(q.s) : "step " + q.s) + '<span class="sr-only"> (opens in a new tab)</span></a>' : ""; }
     function draw() {
       if (S.done) {
@@ -182,8 +198,8 @@ window.SAquiz = (function () {
         var b = e.target.closest("[data-saqv]"), c = e.target.closest("[data-saq]");
         if (c && c.dataset.saq === "hint") { var h = card.querySelector(".saq-hint"); h.hidden = !h.hidden; c.setAttribute("aria-expanded", String(!h.hidden)); return; }
         if (c && c.dataset.saq === "next") { S.i++; if (S.i >= qs.length) { S.done = true; finish(qs, S); } draw(); var n = card.querySelector(".saq-q, .saq-score"); if (n) { n.setAttribute("tabindex", "-1"); n.focus({ preventScroll: true }); } return; }
-        if (c && c.dataset.saq === "report") { openReport(qs); return; }
-        if (c && c.dataset.saq === "again") { delete ST[id]; S = state(id, qs); draw(); return; }
+        if (c && c.dataset.saq === "report") { openReport(); return; }
+        if (c && c.dataset.saq === "again") { delete ST[id]; S = state(id, bank); qs = S.qs; draw(); return; }
         if (!b || b.disabled) return;
         var q = qs[S.i], ok = b.dataset.saqv === q.a, fb = card.querySelector(".saq-fb");
         if (S.tries === 0) S.first[S.i] = ok; S.tries++;
