@@ -232,3 +232,44 @@ window.SAquiz = (function () {
   });
   try { window.parent.postMessage({ type: "silverapps-ready", page: (location.pathname.split("/").pop() || "").replace(/\.html?$/, "") }, "*"); } catch (e) {}
 })();
+
+/* ===== Enlarge notation: every <figure> holding notation (an engine staff or a score image) gets an "Enlarge" button that opens it
+   full-screen in a <dialog>. Lessons re-render figures as steps change, so a MutationObserver keeps adding buttons. ===== */
+(function () {
+  var dlg = null;
+  function open(fig) {
+    var src = fig.querySelector(".staff svg") || fig.querySelector("img"); if (!src) return;
+    if (!dlg) {
+      dlg = document.createElement("dialog"); dlg.className = "sa-lb"; dlg.setAttribute("aria-label", "Enlarged notation");
+      dlg.innerHTML = '<div class="sa-lb-bar"><button type="button" class="sa-lb-zoom" aria-pressed="false">Zoom in</button><button type="button" class="sa-lb-x">Close ✕</button></div><div class="sa-lb-body"></div><p class="sa-lb-cap"></p>';
+      document.body.appendChild(dlg);
+      dlg.querySelector(".sa-lb-x").addEventListener("click", function () { dlg.close(); });
+      dlg.querySelector(".sa-lb-zoom").addEventListener("click", function () { var z = dlg.classList.toggle("zoom"); this.setAttribute("aria-pressed", String(z)); this.textContent = z ? "Fit to screen" : "Zoom in"; });
+      dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener("close", function () { dlg.querySelector(".sa-lb-body").innerHTML = ""; if (dlg._from) try { dlg._from.focus(); } catch (e) {} });
+    }
+    var body = dlg.querySelector(".sa-lb-body"), c;
+    if (src.tagName.toLowerCase() === "img") { c = document.createElement("img"); c.src = src.currentSrc || src.src; c.alt = src.alt || ""; }
+    else { c = src.cloneNode(true); c.removeAttribute("width"); c.removeAttribute("height"); c.style.width = ""; c.style.height = ""; c.setAttribute("role", "img"); c.setAttribute("aria-label", "Enlarged notation"); c.querySelectorAll("[id]").forEach(function (n) { n.removeAttribute("id"); }); }
+    body.innerHTML = ""; body.appendChild(c);
+    var cap = fig.querySelector("figcaption"); dlg.querySelector(".sa-lb-cap").textContent = cap ? cap.textContent.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+    dlg.classList.remove("zoom"); var zb = dlg.querySelector(".sa-lb-zoom"); zb.setAttribute("aria-pressed", "false"); zb.textContent = "Zoom in";
+    dlg._from = document.activeElement;
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+  function scan(root) {
+    (root.querySelectorAll ? root : document).querySelectorAll("figure").forEach(function (fig) {
+      if (fig.dataset.lb || fig.closest(".sa-lb")) return;
+      if (!fig.querySelector(".staff, img")) return;
+      fig.dataset.lb = "1"; fig.classList.add("sa-lb-fig");
+      var b = document.createElement("button"); b.type = "button"; b.className = "sa-lb-btn"; b.innerHTML = '<span aria-hidden="true">⤢</span> Enlarge';
+      b.setAttribute("aria-label", "Enlarge this example");
+      b.addEventListener("click", function () { open(fig); });
+      fig.appendChild(b);
+    });
+  }
+  var t = null;
+  function kick() { clearTimeout(t); t = setTimeout(function () { scan(document); }, 120); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", kick); else kick();
+  try { new MutationObserver(kick).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+})();
