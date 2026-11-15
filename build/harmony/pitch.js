@@ -218,7 +218,7 @@ window.FAM = (() => {
   }
 
   // ---------- a mini synthesizer ----------
-  const SY = { wave: "sawtooth", det: 7, osc2: true, cut: 1800, q: 4, env: 40, a: .01, d: .3, s: .6, r: .4, lfoR: 5, lfoD: 0, vol: .7, oct: 0, voices: {}, out: null, an: null, raf: 0, last: null };
+  const SY = { wave: "sawtooth", det: 7, osc2: true, cut: 1800, q: 4, env: 40, a: .01, d: .3, s: .6, r: .4, lfoR: 5, lfoD: 0, dly: 0, vol: .7, oct: 0, voices: {}, out: null, an: null, raf: 0, last: null };
   const SYP = {
     "Pure sine": { wave: "sine", osc2: false, det: 0, cut: 8000, q: .7, env: 0, a: .02, d: .2, s: 1, r: .3, lfoD: 0 },
     "Brass": { wave: "sawtooth", osc2: true, det: 6, cut: 700, q: 2, env: 70, a: .06, d: .25, s: .75, r: .25, lfoD: 8, lfoR: 5.5 },
@@ -227,14 +227,16 @@ window.FAM = (() => {
     "Hollow (clarinet-ish)": { wave: "square", osc2: false, det: 0, cut: 1600, q: 1, env: 20, a: .04, d: .2, s: .85, r: .2, lfoD: 6, lfoR: 5 },
     "Wah bass": { wave: "sawtooth", osc2: true, det: 4, cut: 250, q: 14, env: 85, a: .005, d: .5, s: .3, r: .2, lfoD: 0 },
   };
-  const SYK = [["sy", "Waveform"], ["det", "Oscillator 2 detune", 0, 50, 1, " cents"], ["cut", "Filter cutoff", 80, 8000, 1, " Hz"], ["q", "Filter resonance", .5, 20, .1, ""], ["env", "Envelope → filter", 0, 100, 1, "%"], ["a", "Attack", .002, 2, .001, " s"], ["d", "Decay", .02, 2, .01, " s"], ["s", "Sustain", 0, 1, .01, ""], ["r", "Release", .02, 3, .01, " s"], ["lfoD", "Vibrato depth", 0, 50, 1, " cents"], ["lfoR", "Vibrato speed", .5, 10, .1, " Hz"], ["vol", "Volume", 0, 1, .01, ""]];
+  const SYK = [["sy", "Waveform"], ["det", "Oscillator 2 detune", 0, 50, 1, " cents"], ["cut", "Filter cutoff", 80, 8000, 1, " Hz"], ["q", "Filter resonance", .5, 20, .1, ""], ["env", "Envelope → filter", 0, 100, 1, "%"], ["a", "Attack", .002, 2, .001, " s"], ["d", "Decay", .02, 2, .01, " s"], ["s", "Sustain", 0, 1, .01, ""], ["r", "Release", .02, 3, .01, " s"], ["lfoD", "Vibrato depth", 0, 50, 1, " cents"], ["lfoR", "Vibrato speed", .5, 10, .1, " Hz"], ["dly", "Echo (delay)", 0, 100, 1, "%"], ["vol", "Volume", 0, 1, .01, ""]];
   const NN = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"], NS = ["C", "C sharp", "D", "D sharp", "E", "F", "F sharp", "G", "G sharp", "A", "A sharp", "B"];
   const KEYMAP = "awsedftgyhujkolp;'";   // computer keys → semitones from the bottom C
   const syHz = m => 440 * Math.pow(2, (m - 69) / 12);
   function syOut() {
     if (SY.out) return SY.out;
     const o = AC.createGain(), comp = AC.createDynamicsCompressor(); o.gain.value = SY.vol * .5; comp.threshold.value = -12; comp.ratio.value = 4;
-    SY.an = AC.createAnalyser(); SY.an.fftSize = 2048; o.connect(comp); comp.connect(SY.an); SY.an.connect(AC.destination); SY.out = o; return o;
+    SY.an = AC.createAnalyser(); SY.an.fftSize = 2048; o.connect(comp); comp.connect(SY.an); SY.an.connect(AC.destination); SY.out = o;
+    const dl = AC.createDelay(2), fb = AC.createGain(), lp = AC.createBiquadFilter(); SY.dw = AC.createGain(); dl.delayTime.value = .33; fb.gain.value = .4; lp.type = "lowpass"; lp.frequency.value = 4000; SY.dw.gain.value = SY.dly / 100 * .7;
+    o.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(SY.dw); SY.dw.connect(comp); return o;
   }
   function syOn(m, vel = 1) {
     if (!ac() || SY.voices[m]) return; const t = AC.currentTime + .005, f = syHz(m), out = syOut(), pk = .35 * vel;
@@ -268,8 +270,8 @@ window.FAM = (() => {
     SY.raf = requestAnimationFrame(syScope);
   }
   const syFmt = (k, v) => { const sp = SYK.find(x => x[0] === k); return (k === "cut" ? Math.round(v) : +(+v).toFixed(sp[4] < .01 ? 3 : sp[4] < 1 ? 2 : 0)) + sp[5]; };
-  const SYG = [["Oscillators", ["sy", "det"]], ["Filter", ["cut", "q", "env"]], ["Envelope", ["a", "d", "s", "r"]], ["Vibrato and level", ["lfoD", "lfoR", "vol"]]];
-  const SYSHORT = { det: "Detune", cut: "Cutoff", q: "Resonance", env: "Env → filter", a: "Attack", d: "Decay", s: "Sustain", r: "Release", lfoD: "Depth", lfoR: "Speed", vol: "Volume" };
+  const SYG = [["Oscillators", ["sy", "det"]], ["Filter", ["cut", "q", "env"]], ["Envelope", ["a", "d", "s", "r"]], ["Vibrato, echo, level", ["lfoD", "lfoR", "dly", "vol"]]];
+  const SYSHORT = { det: "Detune", cut: "Cutoff", q: "Resonance", env: "Env → filter", a: "Attack", d: "Decay", s: "Sustain", r: "Release", lfoD: "Depth", lfoR: "Speed", dly: "Echo", vol: "Volume" };
   function syKnobs() {
     return SYG.map(([h, ks]) => `<div class="sysec" role="group" aria-label="${h}"><h4>${h}</h4>${ks.map(k => { const sp = SYK.find(x => x[0] === k), [, l, mn, mx, st] = sp;
       return k === "sy" ? `<label class="syrow">Wave<select id="syWave">${["sine", "triangle", "square", "sawtooth"].map(w => `<option value="${w}"${SY.wave === w ? " selected" : ""}>${w}</option>`).join("")}</select><span></span></label><label class="syck"><input type="checkbox" id="syOsc2"${SY.osc2 ? " checked" : ""}> Oscillator 2 (detuned copy)</label>`
@@ -306,7 +308,7 @@ window.FAM = (() => {
       const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i < 0) return;
       e.preventDefault(); if (e.repeat) return; syOn(48 + 12 * SY.oct + i); });
     document.addEventListener("keyup", e => { const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) syOff(48 + 12 * SY.oct + i); });
-    document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.syk; if (!k) return; SY[k] = +e.target.value; const o = document.querySelector(`[data-syo="${k}"]`); if (o) o.textContent = syFmt(k, SY[k]); if (k === "vol" && SY.out) SY.out.gain.setTargetAtTime(SY.vol * .5, AC.currentTime, .02);
+    document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.syk; if (!k) return; SY[k] = +e.target.value; const o = document.querySelector(`[data-syo="${k}"]`); if (o) o.textContent = syFmt(k, SY[k]); if (k === "vol" && SY.out) SY.out.gain.setTargetAtTime(SY.vol * .5, AC.currentTime, .02); if (k === "dly" && SY.dw) SY.dw.gain.setTargetAtTime(SY.dly / 100 * .7, AC.currentTime, .02);
       if (k === "cut" || k === "q") Object.values(SY.voices).forEach(v => { if (k === "q") v.lp.Q.setTargetAtTime(SY.q, AC.currentTime, .02); else { v.lp.frequency.cancelScheduledValues(AC.currentTime); v.lp.frequency.setTargetAtTime(SY.cut, AC.currentTime, .02); } }); });
     document.addEventListener("change", e => { if (e.target.id === "syWave") SY.wave = e.target.value; if (e.target.id === "syOsc2") SY.osc2 = e.target.checked; });
     document.addEventListener("click", e => {

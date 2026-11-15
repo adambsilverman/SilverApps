@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Minimalist Process Lab · SilverApps Interactive Music Training</title>
 <meta name="description" content="Write a short musical fragment, choose instruments, and run minimalist processes on it in up to six voices: canons, phasing, additive and subtractive processes, augmentation, retrograde and inversion, chord loops and drones.">
-<link rel="stylesheet" href="assets/indie.css?v=a3cc4d4b">
+<link rel="stylesheet" href="assets/indie.css?v=243a01e4">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
 <body>
@@ -78,6 +78,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       <p class="note">The drums follow the tempo above, in 4/4 (for the 6/8 groove, the tempo counts the dotted-quarter beat).</p></div>
     <div class="row"><button class="tbtn" id="addV" type="button">+ Add a voice</button>
       <label class="fld" for="space">Reverb: <output id="spaceO">30%</output><input type="range" id="space" min="0" max="100" value="30"></label>
+      <label class="fld" for="echo">Delay (echo): <output id="echoO">0%</output><input type="range" id="echo" min="0" max="100" value="0"></label>
       <label class="fld" for="vol">Volume: <output id="volO">80%</output><input type="range" id="vol" min="0" max="100" value="80"></label></div>
   </section>
 
@@ -126,7 +127,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   $("scale").onchange = e => { const oldL = SC().length; F.scale = e.target.value; const r = rows(); F.notes.forEach(n => { n.d = Math.min(r - 1, Math.round(n.d * SC().length / oldL)); }); drawGrid(); };
   $("len").onchange = e => { F.len = Math.max(2, Math.min(24, Math.round(+e.target.value) || 8)); e.target.value = F.len; F.notes = F.notes.filter(n => n.s < F.len).map(n => Object.assign(n, { n: Math.min(n.n, F.len - n.s) })); drawGrid(); };
   $("stepv").onchange = e => { F.stepv = +e.target.value; drawGrid(); };
-  $("bpm").oninput = e => { F.bpm = +e.target.value; $("bpmO").textContent = F.bpm; };
+  $("bpm").oninput = e => { F.bpm = +e.target.value; $("bpmO").textContent = F.bpm; if (typeof setEcho === "function") setEcho(); };
 
   // ---------- fragment grid ----------
   const grid = $("grid");
@@ -211,14 +212,18 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     drawVoices(); if (playing) restart(); else start(); };
 
   // ---------- audio ----------
-  let AC = null, OUT = null, REV = null, DRY = null, NZ = null;
+  let ECHO = null, AC = null, OUT = null, REV = null, DRY = null, NZ = null;
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); }
     if (AC.state === "suspended") AC.resume(); return AC; }
   function build() { { const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .8; comp.connect(master); master.connect(AC.destination); OUT = AC.createGain(); DRY = AC.createGain(); REV = AC.createGain(); OUT.connect(DRY); DRY.connect(comp);
       const L = AC.sampleRate * 3, ir = AC.createBuffer(2, L, AC.sampleRate); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3.5); } const cv = AC.createConvolver(); cv.buffer = ir; OUT.connect(cv); cv.connect(REV); REV.connect(comp);
+      ECHO = { d: AC.createDelay(2), fb: AC.createGain(), lp: AC.createBiquadFilter(), w: AC.createGain() }; ECHO.lp.type = "lowpass"; ECHO.lp.frequency.value = 4500; ECHO.fb.gain.value = .4; ECHO.w.gain.value = 0;
+      OUT.connect(ECHO.d); ECHO.d.connect(ECHO.lp); ECHO.lp.connect(ECHO.fb); ECHO.fb.connect(ECHO.d); ECHO.lp.connect(ECHO.w); ECHO.w.connect(comp); ECHO.lp.connect(cv); setEcho();
       NZ = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const nd = NZ.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1; AC.__master = master; setSpace(); setVol(); } }
   function setSpace() { const v = +$("space").value; $("spaceO").textContent = v + "%"; if (AC) { DRY.gain.value = 1 - v / 250; REV.gain.value = v / 100 * .7; } }
   function setVol() { const v = +$("vol").value; $("volO").textContent = v + "%"; if (AC) AC.__master.gain.value = v / 100; }
+  function setEcho() { const v = +$("echo").value; $("echoO").textContent = v + "%"; if (AC && ECHO) { ECHO.w.gain.value = v / 100 * .6; ECHO.d.delayTime.value = Math.min(1.5, 60 / F.bpm * .75); } }   // a dotted-eighth echo, in time with the tempo
+  $("echo").oninput = setEcho;
   $("space").oninput = setSpace; $("vol").oninput = setVol;
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   // one note on a synthesized instrument

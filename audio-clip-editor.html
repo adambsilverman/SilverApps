@@ -2,8 +2,8 @@
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Audio Clip Editor · SilverApps Interactive Music Training</title>
-<meta name="description" content="Open an audio clip, trim it from the front, middle or end, normalize, change gain, fade, reverse, add reverb, change the sample rate or channels, and export WAV or MP3. Everything stays on your device.">
-<link rel="stylesheet" href="assets/indie.css?v=a3cc4d4b">
+<meta name="description" content="Open an audio clip, trim it from the front, middle or end, normalize, change gain, fade, reverse, add reverb or delay (echo), change the sample rate or channels, and export WAV or MP3. Everything stays on your device.">
+<link rel="stylesheet" href="assets/indie.css?v=243a01e4">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
 <body>
@@ -86,6 +86,14 @@ input[type=range]{accent-color:var(--fi-red-dk)}
         <label class="fld" for="rvTone">Tone<select id="rvTone"><option value="12000">Bright</option><option value="6000" selected>Medium</option><option value="2500">Dark</option></select></label>
         <div class="row"><button class="tbtn" id="rvPreview" type="button">▶ Preview with reverb</button><button class="tbtn" data-op="reverb" type="button">Apply reverb</button></div>
         <p class="note">Applied to the whole clip, the reverb's tail is added to the end.</p></div>
+      <div class="grp"><h3>Delay (echo)</h3>
+        <label class="fld" for="dlTime">Time: <output id="dlTimeO">350 ms</output><input type="range" id="dlTime" min="20" max="1500" step="5" value="350"></label>
+        <label class="fld" for="dlFb">Feedback (repeats): <output id="dlFbO">35%</output><input type="range" id="dlFb" min="0" max="90" step="1" value="35"></label>
+        <label class="fld" for="dlMix">Wet mix: <output id="dlMixO">30%</output><input type="range" id="dlMix" min="0" max="100" step="1" value="30"></label>
+        <label class="fld" for="dlTone">Tone<select id="dlTone"><option value="12000">Bright</option><option value="5000" selected>Medium</option><option value="2000">Dark (tape echo)</option></select></label>
+        <label class="fld" for="dlPing"><span>Ping-pong (echoes bounce left and right)</span><input type="checkbox" id="dlPing"></label>
+        <div class="row"><button class="tbtn" id="dlPreview" type="button">▶ Preview with delay</button><button class="tbtn" data-op="delay" type="button">Apply delay</button></div>
+        <p class="note">Applied to the whole clip, the echoes ring on past the end. Feedback sets how many repeats you hear.</p></div>
       <div class="grp"><h3>Format</h3><div class="row">
         <label class="fld" for="rate">Sample rate<select id="rate"><option value="">keep</option><option>22050</option><option>32000</option><option>44100</option><option>48000</option><option>88200</option><option>96000</option></select></label>
         <label class="fld" for="chans">Channels<select id="chans"><option value="">keep</option><option value="1">mono (mix down)</option><option value="2">stereo</option></select></label>
@@ -214,6 +222,19 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     s.connect(dry); dry.connect(off.destination); s.connect(cv2); cv2.connect(lp); lp.connect(wet); wet.connect(off.destination); s.start();
     return off.startRendering();
   }
+  async function delayRender(input, whole) {
+    const t = +$("dlTime").value / 1000, fb = +$("dlFb").value / 100, mix = +$("dlMix").value / 100, tone = +$("dlTone").value, ping = $("dlPing").checked;
+    const rep = fb > 0 ? Math.ceil(Math.log(.001) / Math.log(fb)) : 1, tail = whole ? Math.ceil(Math.min(12, t * (rep + 1)) * input.sampleRate) : 0;
+    const off = new OfflineAudioContext(2, input.length + tail, input.sampleRate), s = off.createBufferSource(); s.buffer = input;
+    const dry = off.createGain(), wet = off.createGain(), lp = off.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = tone;
+    dry.gain.value = Math.cos(mix * Math.PI / 2); wet.gain.value = Math.sin(mix * Math.PI / 2); s.connect(dry); dry.connect(off.destination); wet.connect(off.destination);
+    if (!ping) { const d = off.createDelay(2), g = off.createGain(); d.delayTime.value = t; g.gain.value = fb; s.connect(d); d.connect(lp); lp.connect(g); g.connect(d); lp.connect(wet); }
+    else { const dl = off.createDelay(2), dr = off.createDelay(2), gl = off.createGain(), gr = off.createGain(), lp2 = off.createBiquadFilter(), m = off.createChannelMerger(2), mono = off.createGain();
+      lp2.type = "lowpass"; lp2.frequency.value = tone; dl.delayTime.value = t; dr.delayTime.value = t; gl.gain.value = fb; gr.gain.value = fb;
+      s.connect(mono); mono.connect(dl); dl.connect(lp); lp.connect(gl); gl.connect(dr); dr.connect(lp2); lp2.connect(gr); gr.connect(dl);
+      lp.connect(m, 0, 0); lp2.connect(m, 0, 1); m.connect(wet); }
+    s.start(); return off.startRendering();
+  }
   async function resample(input, rate, chs) {
     const off = new OfflineAudioContext(chs, Math.ceil(input.duration * rate), rate), s = off.createBufferSource(); s.buffer = input;
     s.connect(off.destination);   // a mono destination mixes stereo down to (L + R) / 2
@@ -242,10 +263,17 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       else { const part = splice(a, z, "in"), wetBuf = await reverbRender(part, false), chs = Math.max(buf.numberOfChannels, wetBuf.numberOfChannels), o = newBuf(chs, buf.length);
         for (let c = 0; c < chs; c++) { const d = buf.getChannelData(Math.min(c, buf.numberOfChannels - 1)), od = o.getChannelData(c); od.set(d); od.set(wetBuf.getChannelData(c).subarray(0, z - a), a); }
         setBuf(o, "Reverb added to the selection."); } }
+    if (op === "delay") { status("Adding delay…");
+      if (!has) { setBuf(await delayRender(buf, true), "Delay added to the whole clip (with its echoes)."); }
+      else { const part = splice(a, z, "in"), wetBuf = await delayRender(part, false), chs = Math.max(buf.numberOfChannels, wetBuf.numberOfChannels), o = newBuf(chs, buf.length);
+        for (let c = 0; c < chs; c++) { const d = buf.getChannelData(Math.min(c, buf.numberOfChannels - 1)), od = o.getChannelData(c); od.set(d); od.set(wetBuf.getChannelData(Math.min(c, wetBuf.numberOfChannels - 1)).subarray(0, z - a), a); }
+        setBuf(o, "Delay added to the selection."); } }
     if (op === "convert") { const r = +$("rate").value || buf.sampleRate, ch = +$("chans").value || buf.numberOfChannels; if (r === buf.sampleRate && ch === buf.numberOfChannels) { status("Nothing to change: choose a new sample rate or channel setting."); return; }
       status("Converting…"); setBuf(await resample(buf, r, ch), `Converted to ${r.toLocaleString("en-US")} Hz, ${ch === 1 ? "mono" : "stereo"}.`); }
   });
   ["rvSize", "rvMix", "rvPre"].forEach(id => $(id).addEventListener("input", () => { const v = +$(id).value; $(id + "O").textContent = id === "rvSize" ? v.toFixed(1) + " s" : id === "rvMix" ? v + "%" : v + " ms"; }));
+  ["dlTime", "dlFb", "dlMix"].forEach(id => $(id).addEventListener("input", () => { const v = +$(id).value; $(id + "O").textContent = id === "dlTime" ? v + " ms" : v + "%"; }));
+  $("dlPreview").onclick = async () => { if (!buf) return; const has = sel[1] > sel[0], [a, z] = range(), part = has ? splice(a, z, "in") : buf; status("Rendering preview…"); const r = await delayRender(part, true); status("Preview (not applied yet)."); playRange(0, r.duration, r); };
   $("rvPreview").onclick = async () => { if (!buf) return; const has = sel[1] > sel[0], [a, z] = range(), part = has ? splice(a, z, "in") : buf; status("Rendering preview…"); const r = await reverbRender(part, true); status("Preview (not applied yet)."); playRange(0, r.duration, r); };
 
   // ---------- export ----------

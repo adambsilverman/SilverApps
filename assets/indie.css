@@ -281,7 +281,7 @@ button,a,input,select,label,[role="button"]{touch-action:manipulation}
 /* Enlarge music images (assets/site.js) */
 .sa-lb-wrap{position:relative;display:block}
 .sa-lb-box img.sa-lb-img{cursor:zoom-in}
-.wrap .sa-lb-btn, .sa-lb-btn { position: absolute; top: 6px; right: 6px; z-index: 4; font: 700 12px/1 var(--fi-ui, sans-serif); letter-spacing: .03em; padding: 6px 9px !important; min-height: 0 !important; border-radius: 999px; border: 1.5px solid #222; background: #fff; color: #222; cursor: zoom-in; opacity: .88; }
+.wrap .sa-lb-btn, .sa-lb-btn { position: absolute; bottom: 6px; right: 6px; z-index: 4; font: 700 12px/1 var(--fi-ui, sans-serif); letter-spacing: .03em; padding: 6px 9px !important; min-height: 0 !important; border-radius: 999px; border: 1.5px solid #222; background: #fff; color: #222; cursor: zoom-in; opacity: .88; }
 .sa-lb-btn:hover, .sa-lb-btn:focus-visible { opacity: 1; }
 .sa-lb { width: min(96vw, 1400px); max-width: 96vw; max-height: 94vh; padding: 0; border: 0; border-radius: 12px; background: #fff; color: #111; overflow: hidden; }
 .sa-lb::backdrop { background: rgba(0, 0, 0, .72); }

@@ -257,8 +257,8 @@ window.FAM = (() => {
 
   // ================= mini mixer: channels, buses, sends =================
   const TR = [["drums", "Drums"], ["bass", "Bass"], ["keys", "Keys"], ["lead", "Lead"]];
-  const MX = { ch: {}, bus: 0.8, rev: 0.7, master: 0.85, busComp: false, playing: false };
-  TR.forEach(([k]) => MX.ch[k] = { vol: .8, pan: k === "keys" ? -.4 : k === "lead" ? .4 : 0, mute: false, solo: false, send: k === "lead" ? .3 : 0, out: "master" });
+  const MX = { ch: {}, bus: 0.8, rev: 0.7, dly: 0.6, master: 0.85, busComp: false, playing: false };
+  TR.forEach(([k]) => MX.ch[k] = { vol: .8, pan: k === "keys" ? -.4 : k === "lead" ? .4 : 0, mute: false, solo: false, send: k === "lead" ? .3 : 0, send2: k === "lead" ? .25 : 0, out: "master" });
   let G = null;
   function mixGraph() {
     if (G) return G; G = { ch: {} };
@@ -267,18 +267,20 @@ window.FAM = (() => {
     G.busIn.connect(G.bus); G.bus.connect(G.bAn); G.bAn.connect(G.master);
     const len = AC.sampleRate * 2.6, ir = AC.createBuffer(2, len, AC.sampleRate); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
     G.revIn = AC.createGain(); G.conv = AC.createConvolver(); G.conv.buffer = ir; G.ret = AC.createGain(); G.rAn = AC.createAnalyser(); G.rAn.fftSize = 512; G.revIn.connect(G.conv); G.conv.connect(G.ret); G.ret.connect(G.rAn); G.rAn.connect(G.master);
-    TR.forEach(([k]) => { const c = { in: AC.createGain(), fader: AC.createGain(), pan: AC.createStereoPanner(), mute: AC.createGain(), send: AC.createGain(), an: AC.createAnalyser() };
-      c.an.fftSize = 512; c.in.connect(c.fader); c.fader.connect(c.pan); c.pan.connect(c.mute); c.mute.connect(c.an); c.mute.connect(c.send); c.send.connect(G.revIn); G.ch[k] = c; });
+    G.dlyIn = AC.createGain(); G.dl = AC.createDelay(2); G.dl.delayTime.value = 60 / MBPM * .75; G.dfb = AC.createGain(); G.dfb.gain.value = .38; G.dlp = AC.createBiquadFilter(); G.dlp.type = "lowpass"; G.dlp.frequency.value = 4000; G.dret = AC.createGain(); G.dAn = AC.createAnalyser(); G.dAn.fftSize = 512;
+    G.dlyIn.connect(G.dl); G.dl.connect(G.dlp); G.dlp.connect(G.dfb); G.dfb.connect(G.dl); G.dlp.connect(G.dret); G.dret.connect(G.dAn); G.dAn.connect(G.master);   // a dotted-eighth echo, timed to the loop
+    TR.forEach(([k]) => { const c = { in: AC.createGain(), fader: AC.createGain(), pan: AC.createStereoPanner(), mute: AC.createGain(), send: AC.createGain(), send2: AC.createGain(), an: AC.createAnalyser() };
+      c.an.fftSize = 512; c.in.connect(c.fader); c.fader.connect(c.pan); c.pan.connect(c.mute); c.mute.connect(c.an); c.mute.connect(c.send); c.send.connect(G.revIn); c.mute.connect(c.send2); c.send2.connect(G.dlyIn); G.ch[k] = c; });
     mixApply(); return G;
   }
   function mixApply() {
     if (!G) return; const anySolo = TR.some(([k]) => MX.ch[k].solo);
-    TR.forEach(([k]) => { const s = MX.ch[k], c = G.ch[k]; c.fader.gain.value = s.vol; c.pan.pan.value = s.pan; c.mute.gain.value = s.mute || (anySolo && !s.solo) ? 0 : 1; c.send.gain.value = s.send; c.an.disconnect(); c.an.connect(s.out === "bus" ? G.busIn : G.master); });
-    G.bus.gain.value = MX.bus; G.ret.gain.value = MX.rev; G.master.gain.value = MX.master;
+    TR.forEach(([k]) => { const s = MX.ch[k], c = G.ch[k]; c.fader.gain.value = s.vol; c.pan.pan.value = s.pan; c.mute.gain.value = s.mute || (anySolo && !s.solo) ? 0 : 1; c.send.gain.value = s.send; c.send2.gain.value = s.send2; c.an.disconnect(); c.an.connect(s.out === "bus" ? G.busIn : G.master); });
+    G.bus.gain.value = MX.bus; G.ret.gain.value = MX.rev; G.dret.gain.value = MX.dly; G.master.gain.value = MX.master;
     G.busIn.disconnect(); if (MX.busComp) { G.busIn.connect(G.comp); G.comp.connect(G.bus); } else G.busIn.connect(G.bus);
     const fl = $q("#mixFlow"); if (fl) fl.innerHTML = flowText();
   }
-  const flowText = () => TR.map(([k, l]) => { const s = MX.ch[k]; return `${l} → ${s.out === "bus" ? "Bus 1 → " : ""}Master${s.send > 0 ? ` (and a send → Reverb → Master)` : ""}`; }).join("<br>");
+  const flowText = () => TR.map(([k, l]) => { const s = MX.ch[k]; return `${l} → ${s.out === "bus" ? "Bus 1 → " : ""}Master${((x) => x.length ? ` (and ${x.length > 1 ? "sends" : "a send"} → ${x.join(" and ")} → Master)` : "")([s.send > 0 ? "Reverb" : "", s.send2 > 0 ? "Delay" : ""].filter(Boolean))}`; }).join("<br>");
   // a 2-bar loop at 104 BPM
   const MBPM = 104, CH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], BASS = [45, 41, 36, 43], LEAD = [76, 74, 72, 74, 76, 79, 76, 74, 72, 69, 72, 74, 72, 71, 67, 69];
   function mixNote(k, t, m, dur) {
@@ -306,7 +308,7 @@ window.FAM = (() => {
   function level(an) { an.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; return Math.sqrt(s / buf.length); }
   function meters() {
     if (!G) return; const set = (id, an) => { const el = document.getElementById(id); if (el) el.style.height = Math.min(100, Math.max(0, (20 * Math.log10(level(an) + 1e-6) + 48) / 48 * 100)) + "%"; };
-    TR.forEach(([k]) => set("mtr-" + k, G.ch[k].an)); set("mtr-bus", G.bAn); set("mtr-rev", G.rAn); set("mtr-master", G.mAn);
+    TR.forEach(([k]) => set("mtr-" + k, G.ch[k].an)); set("mtr-bus", G.bAn); set("mtr-rev", G.rAn); set("mtr-dly", G.dAn); set("mtr-master", G.mAn);
     if (MX.playing || level(G.mAn) > .001) requestAnimationFrame(meters);
   }
   const dB = v => v <= .001 ? "−∞" : (20 * Math.log10(v)).toFixed(1);
@@ -317,15 +319,17 @@ window.FAM = (() => {
       <div class="ms"><button class="mbtn" data-mx="${k}:mute" aria-pressed="${s.mute}" aria-label="Mute ${l}">M</button><button class="mbtn" data-mx="${k}:solo" aria-pressed="${s.solo}" aria-label="Solo ${l}">S</button></div>
       <label class="mk">Pan<input type="range" data-mx="${k}:pan" min="-1" max="1" step=".05" value="${s.pan}"></label>
       <label class="mk">Send → Reverb<input type="range" data-mx="${k}:send" min="0" max="1" step=".01" value="${s.send}"></label>
+      <label class="mk">Send → Delay<input type="range" data-mx="${k}:send2" min="0" max="1" step=".01" value="${s.send2}"></label>
       <label class="mk">Output<select data-mx="${k}:out"><option value="master" ${s.out === "master" ? "selected" : ""}>Master</option><option value="bus" ${s.out === "bus" ? "selected" : ""}>Bus 1</option></select></label>`); }).join("")}
       <span class="mixdiv" aria-hidden="true"></span>
       ${strip("bus", "Bus 1", MX.bus, `<label class="mk"><input type="checkbox" data-mx="bus:comp" ${MX.busComp ? "checked" : ""}> Compressor</label>`)}
       ${strip("rev", "Reverb return", MX.rev, `<p class="mk lnote">An aux (FX) bus fed by the sends.</p>`)}
+      ${strip("dly", "Delay return", MX.dly, `<p class="mk lnote">A second aux bus: a dotted-eighth echo.</p>`)}
       ${strip("master", "Master", MX.master)}</div>
     <p class="lnote"><b>Signal flow:</b><br><span id="mixFlow">${flowText()}</span></p></div>`;
   document.addEventListener("input", e => { const x = e.target.closest("[data-mx]"); if (!x) return; const [id, k] = x.dataset.mx.split(":"), v = +x.value;
-    if (k === "vol") { if (id === "bus") MX.bus = v; else if (id === "rev") MX.rev = v; else if (id === "master") MX.master = v; else MX.ch[id].vol = v; const o = $q(`[data-mxo="${id}"]`); if (o) o.textContent = dB(v) + " dB"; }
-    if (k === "pan" || k === "send") MX.ch[id][k] = v; mixApply(); });
+    if (k === "vol") { if (id === "bus") MX.bus = v; else if (id === "rev") MX.rev = v; else if (id === "dly") MX.dly = v; else if (id === "master") MX.master = v; else MX.ch[id].vol = v; const o = $q(`[data-mxo="${id}"]`); if (o) o.textContent = dB(v) + " dB"; }
+    if (k === "pan" || k === "send" || k === "send2") MX.ch[id][k] = v; mixApply(); });
   document.addEventListener("change", e => { const x = e.target.closest("[data-mx]"); if (!x) return; const [id, k] = x.dataset.mx.split(":");
     if (k === "out") MX.ch[id].out = x.value; if (k === "comp") MX.busComp = x.checked; mixApply(); });
   document.addEventListener("click", e => { const x = e.target.closest("[data-mx]"); if (x && x.tagName === "BUTTON") { const [id, k] = x.dataset.mx.split(":"); MX.ch[id][k] = !MX.ch[id][k]; x.setAttribute("aria-pressed", MX.ch[id][k]); mixApply(); return; }
