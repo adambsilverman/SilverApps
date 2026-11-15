@@ -529,3 +529,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z157 (2026-11-15)
 - Chord Progressions in Real Songs: In Bloom and Fast Car (no lead-sheet images yet) get generated chord reductions: block chords with chord symbols and Roman numerals, playable; no melody or lyrics. Betty, Wild World and Prelude to a Kiss already use Adam's lead sheets. Waiting on Adam's typeset lead sheets for the other two.
+
+## z158 (2026-11-15)
+- Chord Progressions in Real Songs: In Bloom and Fast Car now use Adam's chord-sheet layout (artist: title, then one bold line of chords per line of the song, grouped as in his handout); generated reductions removed. Lyric lines are not typed into the site.
