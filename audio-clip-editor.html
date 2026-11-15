@@ -87,6 +87,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
         <div class="row"><button class="tbtn" id="rvPreview" type="button">▶ Preview with reverb</button><button class="tbtn" data-op="reverb" type="button">Apply reverb</button></div>
         <p class="note">Applied to the whole clip, the reverb's tail is added to the end.</p></div>
       <div class="grp"><h3>Delay (echo)</h3>
+        <div class="row"><label class="fld" for="dlSync">Sync to tempo<select id="dlSync"><option value="0">free (use Time)</option><option value="2">half note</option><option value="1.5">dotted quarter</option><option value="1">quarter</option><option value="0.6667">quarter triplet</option><option value="0.75" selected>dotted eighth</option><option value="0.5">eighth</option><option value="0.3333">eighth triplet</option><option value="0.25">sixteenth</option></select></label><label class="fld" for="dlBpm">Tempo (BPM)<input type="number" id="dlBpm" min="30" max="300" value="120"></label></div>
         <label class="fld" for="dlTime">Time: <output id="dlTimeO">350 ms</output><input type="range" id="dlTime" min="20" max="1500" step="5" value="350"></label>
         <label class="fld" for="dlFb">Feedback (repeats): <output id="dlFbO">35%</output><input type="range" id="dlFb" min="0" max="90" step="1" value="35"></label>
         <label class="fld" for="dlMix">Wet mix: <output id="dlMixO">30%</output><input type="range" id="dlMix" min="0" max="100" step="1" value="30"></label>
@@ -222,8 +223,10 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     s.connect(dry); dry.connect(off.destination); s.connect(cv2); cv2.connect(lp); lp.connect(wet); wet.connect(off.destination); s.start();
     return off.startRendering();
   }
+  const dlMs = () => { const q = +$("dlSync").value, b = Math.max(30, Math.min(300, +$("dlBpm").value || 120)); return q ? Math.min(1990, 60000 / b * q) : +$("dlTime").value; };
+  function dlSyncUI() { const on = +$("dlSync").value > 0; $("dlTime").disabled = on; $("dlBpm").disabled = !on; if (on) { const ms = Math.round(dlMs()); $("dlTime").value = Math.min(1500, ms); $("dlTimeO").textContent = ms + " ms (synced)"; } else $("dlTimeO").textContent = $("dlTime").value + " ms"; }
   async function delayRender(input, whole) {
-    const t = +$("dlTime").value / 1000, fb = +$("dlFb").value / 100, mix = +$("dlMix").value / 100, tone = +$("dlTone").value, ping = $("dlPing").checked;
+    const t = dlMs() / 1000, fb = +$("dlFb").value / 100, mix = +$("dlMix").value / 100, tone = +$("dlTone").value, ping = $("dlPing").checked;
     const rep = fb > 0 ? Math.ceil(Math.log(.001) / Math.log(fb)) : 1, tail = whole ? Math.ceil(Math.min(12, t * (rep + 1)) * input.sampleRate) : 0;
     const off = new OfflineAudioContext(2, input.length + tail, input.sampleRate), s = off.createBufferSource(); s.buffer = input;
     const dry = off.createGain(), wet = off.createGain(), lp = off.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = tone;
@@ -272,6 +275,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       status("Converting…"); setBuf(await resample(buf, r, ch), `Converted to ${r.toLocaleString("en-US")} Hz, ${ch === 1 ? "mono" : "stereo"}.`); }
   });
   ["rvSize", "rvMix", "rvPre"].forEach(id => $(id).addEventListener("input", () => { const v = +$(id).value; $(id + "O").textContent = id === "rvSize" ? v.toFixed(1) + " s" : id === "rvMix" ? v + "%" : v + " ms"; }));
+  ["dlSync", "dlBpm"].forEach(id => $(id).addEventListener("input", dlSyncUI)); dlSyncUI();
   ["dlTime", "dlFb", "dlMix"].forEach(id => $(id).addEventListener("input", () => { const v = +$(id).value; $(id + "O").textContent = id === "dlTime" ? v + " ms" : v + "%"; }));
   $("dlPreview").onclick = async () => { if (!buf) return; const has = sel[1] > sel[0], [a, z] = range(), part = has ? splice(a, z, "in") : buf; status("Rendering preview…"); const r = await delayRender(part, true); status("Preview (not applied yet)."); playRange(0, r.duration, r); };
   $("rvPreview").onclick = async () => { if (!buf) return; const has = sel[1] > sel[0], [a, z] = range(), part = has ? splice(a, z, "in") : buf; status("Rendering preview…"); const r = await reverbRender(part, true); status("Preview (not applied yet)."); playRange(0, r.duration, r); };

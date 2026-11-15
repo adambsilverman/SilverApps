@@ -151,7 +151,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   drop.addEventListener("drop", e => open(e.dataTransfer.files[0]).catch(() => {}));
 
   // ---------- audio: mastering chain (works on live and offline contexts) ----------
-  const P = { hp: 20, low: 0, mud: 0, mid: 0, midF: 2500, high: 0, ess: 0, compOn: true, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revMix: 0, revSize: 1.6, dlyMix: 0, dlyTime: 300, dlyFb: 30, limOn: true, ceil: -1, out: 0 };
+  const P = { hp: 20, low: 0, mud: 0, mid: 0, midF: 2500, high: 0, ess: 0, compOn: true, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revMix: 0, revSize: 1.6, dlyMix: 0, dlyTime: 300, dlyFb: 30, dlySync: 0, dlyBpm: 120, limOn: true, ceil: -1, out: 0 };
   const PRESETS = {
     clean: ["Clean (normalize only)", { hp: 20, low: 0, mid: 0, high: 0, compOn: false, revMix: 0, limOn: true, ceil: -1, out: 0 }],
     podcast: ["Podcast voice (speech from a computer mic)", { hp: 90, low: 2.5, mud: -4, mid: 3, midF: 4000, high: 2, ess: -4, compOn: true, thr: -32, ratio: 4, atk: 4, rel: 140, makeup: 10, revMix: 0, limOn: true, ceil: -1.5, out: 0 }, "-16"],
@@ -168,6 +168,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     ["Reverb, limiter, output", [["revMix", "Reverb amount", 0, 60, 1, "%"], ["revSize", "Room size", .3, 5, .1, "s"], ["ceil", "Limiter ceiling", -6, 0, .1, "dB"], ["out", "Output gain", -12, 12, .5, "dB"]]],
     ["Delay (echo)", [["dlyMix", "Delay amount", 0, 60, 1, "%"], ["dlyTime", "Delay time", 40, 1000, 10, "ms"], ["dlyFb", "Repeats (feedback)", 0, 80, 1, "%"]]]];
   const db = x => Math.pow(10, x / 20);
+  const dlyMs = () => +P.dlySync ? Math.min(1990, 60000 / Math.max(30, Math.min(300, +P.dlyBpm || 120)) * P.dlySync) : P.dlyTime;
   function chain(C) {
     const G = v => { const g = C.createGain(); g.gain.value = v; return g; }, BQ = (type, f, g, q) => { const b = C.createBiquadFilter(); b.type = type; b.frequency.value = f; if (g != null) b.gain.value = g; if (q) b.Q.value = q; return b; };
     const input = G(1), norm = G(1), hp = BQ("highpass", 20, null, .7), lo = BQ("lowshelf", 120, 0), mud = BQ("peaking", 300, 0, 1.2), mid = BQ("peaking", 2500, 0, .9), hi = BQ("highshelf", 8000, 0), ess = BQ("peaking", 7000, 0, 2.5), comp = C.createDynamicsCompressor(), mk = G(1), dry = G(1), wet = G(0), cv = C.createConvolver(), lim = C.createDynamicsCompressor(), out = G(1), byp = G(0), main = G(1), output = G(1), dl = C.createDelay(2), dlLp = BQ("lowpass", 5000), dlFb = G(0), dlWet = G(0);
@@ -181,7 +182,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       if (P.compOn) { s(comp.threshold, P.thr); s(comp.ratio, P.ratio); s(comp.attack, P.atk / 1000); s(comp.release, P.rel / 1000); s(mk.gain, db(P.makeup)); } else { s(comp.threshold, 0); s(comp.ratio, 1); s(mk.gain, 1); }
       if (irSize !== P.revSize) { const L = Math.floor(C.sampleRate * P.revSize), b = C.createBuffer(2, L, C.sampleRate); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3) * .5; } cv.buffer = b; irSize = P.revSize; }
       s(wet.gain, P.revMix / 100); s(dry.gain, 1 - P.revMix / 250);
-      s(dl.delayTime, P.dlyTime / 1000); s(dlFb.gain, P.dlyFb / 100); s(dlWet.gain, P.dlyMix / 100);
+      s(dl.delayTime, dlyMs() / 1000); s(dlFb.gain, P.dlyFb / 100); s(dlWet.gain, P.dlyMix / 100);
       if (P.limOn) { s(lim.threshold, P.ceil - .5); s(lim.ratio, 20); } else { s(lim.threshold, 0); s(lim.ratio, 1); }
       s(out.gain, db(P.out)); s(main.gain, bypass ? 0 : 1); s(byp.gain, bypass ? 1 : 0);
     }
@@ -204,16 +205,17 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   // knobs UI
   $("preset").innerHTML = Object.entries(PRESETS).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("") + `<option value="custom">Custom</option>`;
   function drawKnobs() {
-    $("knobs").innerHTML = KN.map(([g, list], gi) => `<fieldset><legend>${g}${gi === 1 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="compOn" ${P.compOn ? "checked" : ""}> on</label>` : gi === 2 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="limOn" ${P.limOn ? "checked" : ""}> limiter on</label>` : ""}</legend>${list.map(([k, l, mn, mx, st, u]) => `<label class="sl">${l}<input type="range" data-k="${k}" min="${mn}" max="${mx}" step="${st}" value="${P[k]}"><output data-o="${k}">${P[k]} ${u}</output></label>`).join("")}</fieldset>`).join("");
+    $("knobs").innerHTML = KN.map(([g, list], gi) => `<fieldset><legend>${g}${gi === 1 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="compOn" ${P.compOn ? "checked" : ""}> on</label>` : gi === 2 ? ` <label style="text-transform:none;font-weight:600"><input type="checkbox" id="limOn" ${P.limOn ? "checked" : ""}> limiter on</label>` : ""}</legend>${gi === 3 ? `<label class="sl">Sync to tempo<select id="dlySync">${[[0, "free (use Delay time)"], [2, "half note"], [1.5, "dotted quarter"], [1, "quarter"], [.6667, "quarter triplet"], [.75, "dotted eighth"], [.5, "eighth"], [.3333, "eighth triplet"], [.25, "sixteenth"]].map(([v, n]) => `<option value="${v}"${+P.dlySync === v ? " selected" : ""}>${n}</option>`).join("")}</select></label><label class="sl">Tempo (BPM)<input type="number" id="dlyBpm" min="30" max="300" value="${P.dlyBpm}"${+P.dlySync ? "" : " disabled"}></label>` : ""}${list.map(([k, l, mn, mx, st, u]) => `<label class="sl">${l}<input type="range" data-k="${k}" min="${mn}" max="${mx}" step="${st}" value="${P[k]}"><output data-o="${k}">${P[k]} ${u}</output></label>`).join("")}</fieldset>`).join("");
   }
   function applyPreset(k) {
-    Object.assign(P, { mud: 0, ess: 0, midF: 2500, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revSize: 1.6, dlyMix: 0, dlyTime: 300, dlyFb: 30 }, PRESETS[k][1]); drawKnobs(); upd();
+    Object.assign(P, { mud: 0, ess: 0, midF: 2500, thr: -18, ratio: 2.5, atk: 10, rel: 200, makeup: 2, revSize: 1.6, dlyMix: 0, dlyTime: 300, dlyFb: 30, dlySync: 0 }, PRESETS[k][1]); drawKnobs(); upd();
     if (PRESETS[k][2]) { $("norm").value = PRESETS[k][2]; setNorm(); }
     $("presetNote").textContent = k === "podcast" ? "Podcast voice: cuts rumble and boxiness, adds warmth and presence, tames harsh \"s\" sounds, and compresses firmly so every word sits at the same level, then normalizes to −16 LUFS, the podcast standard. Works best close to the mic (a hand's width or two away) in a quiet room: compression also raises background noise." : "";
   }
   $("preset").onchange = e => { if (e.target.value !== "custom") applyPreset(e.target.value); };
   $("knobs").addEventListener("input", e => { const k = e.target.dataset.k; if (k) { P[k] = +e.target.value; const u = KN.flatMap(x => x[1]).find(x => x[0] === k)[5]; document.querySelector(`[data-o="${k}"]`).textContent = `${P[k]} ${u}`; $("preset").value = "custom"; upd(); } });
-  $("knobs").addEventListener("change", e => { if (e.target.id === "compOn") { P.compOn = e.target.checked; $("preset").value = "custom"; upd(); } if (e.target.id === "limOn") { P.limOn = e.target.checked; $("preset").value = "custom"; upd(); } });
+  $("knobs").addEventListener("change", e => { if (e.target.id === "compOn") { P.compOn = e.target.checked; $("preset").value = "custom"; upd(); } if (e.target.id === "limOn") { P.limOn = e.target.checked; $("preset").value = "custom"; upd(); }
+    if (e.target.id === "dlySync" || e.target.id === "dlyBpm") { P.dlySync = +$("dlySync").value; P.dlyBpm = +$("dlyBpm").value || 120; $("dlyBpm").disabled = !P.dlySync; const tk = document.querySelector('[data-k="dlyTime"]'); tk.disabled = !!P.dlySync; document.querySelector('[data-o="dlyTime"]').textContent = `${Math.round(dlyMs())} ms${P.dlySync ? " (synced)" : ""}`; $("preset").value = "custom"; upd(); } });
   $("bypass").onclick = e => { bypass = !bypass; e.currentTarget.setAttribute("aria-pressed", bypass); audioUp(); upd(); };
   applyPreset("music"); $("preset").value = "music";
 
@@ -379,7 +381,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     for (let i = 0; i < L.length; i += 1152) { const x = enc.encodeBuffer(L.subarray(i, i + 1152), R.subarray(i, i + 1152)); if (x.length) parts.push(new Uint8Array(x)); } const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" }); }
   $("exAudio").onclick = async () => {
     if (!S.buf) { status("The sound couldn't be read from this video, so audio-only export isn't available."); return; }
-    status("Rendering the audio…"); const b = S.buf, sr = b.sampleRate, s0 = Math.floor(S.inT * sr), n = Math.floor((S.outT - S.inT) * sr) + Math.floor(sr * Math.max(P.revMix ? Math.min(P.revSize, 3) : .05, P.dlyMix ? Math.min(4, P.dlyTime / 1000 * (P.dlyFb > 0 ? Math.ceil(Math.log(.001) / Math.log(P.dlyFb / 100)) : 1)) : 0));
+    status("Rendering the audio…"); const b = S.buf, sr = b.sampleRate, s0 = Math.floor(S.inT * sr), n = Math.floor((S.outT - S.inT) * sr) + Math.floor(sr * Math.max(P.revMix ? Math.min(P.revSize, 3) : .05, P.dlyMix ? Math.min(4, dlyMs() / 1000 * (P.dlyFb > 0 ? Math.ceil(Math.log(.001) / Math.log(P.dlyFb / 100)) : 1)) : 0));
     const C = new OfflineAudioContext(2, n, sr), ch = chain(C); ch.update(bypass); ch.output.connect(C.destination);
     const src = C.createBufferSource(); src.buffer = b; src.connect(ch.input); src.start(0, S.inT, S.outT - S.inT);
     const out = await C.startRendering(), fmt = $("afmt").value, blob = fmt === "mp3" ? await mp3(out) : wav(out), name = `${S.name}-audio.${fmt}`; save(blob, name);

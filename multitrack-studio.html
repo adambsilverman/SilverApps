@@ -113,6 +113,8 @@ main.tool .daw .dmrow .lab{min-height:24px!important}
 .fxs{display:grid;grid-template-columns:62px 1fr 48px;align-items:center;gap:4px;font:600 11px var(--fi-ui);color:var(--mu)}
 .fxs output{font:600 10px ui-monospace,Menlo,monospace;color:var(--tx);text-align:right;white-space:nowrap}
 main.tool .daw .fxs input[type=range]{width:100%!important}
+main.tool .daw .fxs select{height:22px!important;min-height:22px!important;font-size:11px!important;width:100%;padding:0 3px!important}
+.fxs input:disabled{opacity:.45}
 main.tool .daw .fxu .tbtn{min-height:22px!important;min-width:22px!important;padding:0 5px!important;font-size:11px!important;border-radius:4px!important}
 .fxflow{font:600 11px var(--fi-ui);color:var(--mu);margin:0}
 /* mixer */
@@ -124,6 +126,7 @@ main.tool .daw .fxu .tbtn{min-height:22px!important;min-width:22px!important;pad
 main.tool .daw .mxins .tbtn{width:100%;text-align:left!important;min-height:20px!important;padding:0 5px!important;font-size:10px!important;border-radius:3px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:3px solid var(--hl)!important}
 main.tool .daw .mxins .tbtn.off{border-left-color:#666!important;color:var(--mu)!important}
 main.tool .daw .mxs select{height:22px!important;min-height:22px!important;font-size:11px!important;width:100%}
+main.tool .daw .mxs [data-mxa="add"]{width:100%;min-height:22px!important;padding:0 5px!important;font-size:11px!important}
 main.tool .daw .mxs input[type=range].hz{width:100%!important}
 .mxf{display:flex;gap:6px;justify-content:center;align-items:stretch;height:132px}
 main.tool .daw .mxf input[type=range]{writing-mode:vertical-lr;direction:rtl;width:24px!important;height:128px;margin:0}
@@ -133,6 +136,17 @@ main.tool .daw .mxf input[type=range]{writing-mode:vertical-lr;direction:rtl;wid
 .mxms{display:flex;gap:3px;justify-content:center}
 main.tool .daw .mxms .tbtn{min-height:22px!important;min-width:26px!important;padding:0 5px!important;font-size:11px!important}
 .mxms .m[aria-pressed="true"]{background:#e3b505!important;color:#111!important}.mxms .s[aria-pressed="true"]{background:#3d8bfd!important;color:#111!important}
+/* multi-select effect picker */
+.fxpick{background:#1d1e21;color:#e9eaec;border:1px solid #000;border-top:3px solid #ffb02e;border-radius:8px;padding:10px 12px;max-width:min(420px,92vw);font:13px/1.3 var(--fi-ui)}
+.fxpick::backdrop{background:rgba(0,0,0,.55)}
+.fxpick form{display:grid;gap:8px}
+.fxpick .note{font-size:11px;color:#b4b8bf;margin:0}
+.fxpl{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}
+.fxpl label{display:flex;gap:6px;align-items:center;font:600 12px var(--fi-ui);color:#e9eaec;min-height:26px}
+.fxpl input{accent-color:#ffb02e;width:16px;height:16px}
+.fxpick .tbtn{font:700 12px/1.1 var(--fi-ui)!important;text-transform:none!important;border-radius:5px!important;border:1px solid #0b0b0c!important;background:linear-gradient(#45484e,#36383d)!important;color:#e9eaec!important;padding:5px 10px!important;min-height:30px!important;box-shadow:none!important}
+.fxpick .tbtn.primary{background:linear-gradient(#3f8f4d,#2f6f3b)!important;color:#fff!important}
+.fxpick .tbtn:focus-visible,.fxpl input:focus-visible{outline:2px solid #ffb02e;outline-offset:1px}
 /* mini synth panel */
 .syg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
 .sys{background:#26282c;border:1px solid #000;border-radius:6px;padding:5px 7px 7px;display:grid;gap:3px;align-content:start}
@@ -188,14 +202,22 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
       <div class="edv" id="edV"><canvas id="edKeys" aria-hidden="true"></canvas><div class="edh" id="edScroll"><canvas id="edC" tabindex="0" role="application" aria-roledescription="timeline editor" aria-describedby="edHelp"></canvas></div></div>
       <p class="sr" id="edSay" aria-live="polite"></p>
     </section>
+    <dialog class="fxpick" id="fxPick" aria-labelledby="fxPickH">
+      <form method="dialog">
+        <h2 class="dmh" id="fxPickH">Add effects</h2>
+        <p class="note" id="fxPickN">Tick as many as you like. They're added in this order, which is a typical signal chain.</p>
+        <fieldset class="fxpl" id="fxPickL"><legend class="sr">Effects</legend></fieldset>
+        <div class="bar" style="padding:0;background:none;border:0"><button class="tbtn sm primary" id="fxPickGo" value="add" type="submit">Add selected</button><button class="tbtn sm" value="" type="submit">Cancel</button></div>
+      </form>
+    </dialog>
     <section class="dmwrap" id="mx" aria-labelledby="mxH" hidden>
-      <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="mxH">Mixer</h2><span class="note">Each channel's inserts run top to bottom before its fader. Select an insert to edit it; add effects with + FX. The Master channel's effects process the whole mix.</span><button class="tbtn sm" id="mxClose" type="button" style="margin-left:auto">Close ✕</button></div>
+      <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="mxH">Mixer</h2><span class="note">Each channel's inserts run top to bottom before its fader. Select an insert to edit it; + FX adds one or several at once. The Master channel's effects process the whole mix.</span><button class="tbtn sm" id="mxClose" type="button" style="margin-left:auto">Close ✕</button></div>
       <div class="mxr" id="mxR" role="group" aria-label="Mixer channels"></div>
     </section>
     <section class="dmwrap" id="fx" aria-labelledby="fxH" hidden>
       <div class="bar" style="padding:0;background:none;border:0">
         <h2 class="dmh" id="fxH">Effects</h2>
-        <label for="fxAdd"><span class="lbl">Add</span><select id="fxAdd"></select></label>
+        <button class="tbtn sm" id="fxAdd" type="button" aria-haspopup="dialog">+ Add effects…</button>
         <button class="tbtn sm" id="fxClose" type="button" style="margin-left:auto">Close ✕</button>
       </div>
       <p class="fxflow" id="fxFlow"></p>
@@ -284,11 +306,14 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     const live = C === AC, grp = live ? newGrp() : { oscs: [], inst: [] }, inp = fxChain(C, MT, mv, grp); MASTER.connect(inp); mv.connect(comp); comp.connect(C.destination);
     if (live) { const an = C.createAnalyser(); an.fftSize = 512; comp.connect(an); MS = { mv, inp, grp, an }; } NZ = C.createBuffer(1, C.sampleRate, C.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+  // velocity (0–1, MIDI velocity ÷ 127): softer notes are quieter and darker
+  const velAmp = v => Math.pow(Math.max(.03, Math.min(1, v)), 1.5);
+  const velLP = (C, v) => { const f = C.createBiquadFilter(); f.type = "lowpass"; f.Q.value = .5; f.frequency.value = 1200 + 16000 * Math.pow(Math.max(.03, Math.min(1, v)), 2); return f; };
   // a synth voice; returns { stop(t) }
   function voice(C, inst, m, t, vel, dest) {
     const f = mf(m), g = C.createGain(), os = [], add = (type, fr, a, det) => { const o = C.createOscillator(), og = C.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = a; o.connect(og); og.connect(pre); os.push(o); return o; };
-    const pre = C.createBiquadFilter(); pre.type = "lowpass"; pre.frequency.value = 12000; pre.connect(g); g.connect(dest);
-    let A = .01, peak = .22 * vel, sus = .7, D = .3, R = .15, perc = false;
+    const pre = C.createBiquadFilter(), vlp = velLP(C, vel); pre.type = "lowpass"; pre.frequency.value = 12000; pre.connect(vlp); vlp.connect(g); g.connect(dest);
+    let A = .01, peak = .22 * velAmp(vel), sus = .7, D = .3, R = .15, perc = false;
     if (inst === "piano") { add("triangle", f, 1); add("sine", f * 2, .3); add("sine", f * 3, .1); A = .004; sus = .15; D = .6; R = .2; perc = true; }
     if (inst === "epiano") { const car = add("sine", f, 1), md = C.createOscillator(), mg = C.createGain(); md.frequency.value = f; mg.gain.setValueAtTime(f * 1.2, t); mg.gain.setTargetAtTime(f * .08, t, .15); md.connect(mg); mg.connect(car.frequency); os.push(md); A = .004; sus = .25; D = .8; R = .25; perc = true; }
     if (inst === "lead") { add("sawtooth", f, .5, -6); add("square", f, .3, 6); pre.frequency.setValueAtTime(f * 6, t); pre.frequency.setTargetAtTime(f * 3, t, .2); peak *= .8; sus = .85; }
@@ -314,13 +339,13 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   const SYS = [["Oscillators", [["wave"], ["osc2"], ["det", "Detune", 0, 50, 1, " ct"]]], ["Filter", [["cut", "Cutoff", 80, 8000, 1, " Hz"], ["q", "Resonance", .5, 20, .1, ""], ["env", "Env → filter", 0, 100, 1, "%"]]],
     ["Envelope", [["a", "Attack", .002, 2, .001, " s"], ["d", "Decay", .02, 2, .01, " s"], ["s", "Sustain", 0, 1, .01, ""], ["r", "Release", .02, 3, .01, " s"]]], ["Vibrato", [["lfoD", "Depth", 0, 50, 1, " ct"], ["lfoR", "Speed", .5, 10, .1, " Hz"], ["vol", "Level", 0, 1, .01, ""]]]];
   function miniVoice(C, S, m, t, vel, dest) {
-    const f = mf(m), lp = C.createBiquadFilter(), g = C.createGain(), lfo = C.createOscillator(), lg = C.createGain(), pk = .3 * vel * S.vol;
+    const f = mf(m), lp = C.createBiquadFilter(), g = C.createGain(), lfo = C.createOscillator(), lg = C.createGain(), pk = .3 * velAmp(vel) * S.vol, vlp = velLP(C, vel);
     lp.type = "lowpass"; lp.Q.value = S.q; const top = Math.min(16000, S.cut * Math.pow(2, S.env / 100 * 5));
     lp.frequency.setValueAtTime(S.env ? top : S.cut, t); lp.frequency.setTargetAtTime(S.cut, t + S.a, Math.max(.01, S.d / 3));
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(pk, t + S.a); g.gain.setTargetAtTime(pk * S.s, t + S.a, Math.max(.01, S.d / 3));
     lfo.frequency.value = S.lfoR; lg.gain.value = S.lfoD; lfo.connect(lg); lfo.start(t);
     const os = (S.osc2 ? [0, 1] : [0]).map(i => { const o = C.createOscillator(); o.type = S.wave; o.frequency.value = f; o.detune.value = i ? S.det : 0; lg.connect(o.detune); o.connect(lp); o.start(t); return o; });
-    os.push(lfo); lp.connect(g); g.connect(dest);
+    os.push(lfo); lp.connect(vlp); vlp.connect(g); g.connect(dest);
     return { stop(te) { const at = Math.max(te, t + .005); if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(at); else { g.gain.cancelScheduledValues(at); g.gain.setValueAtTime(pk * S.s, at); } g.gain.setTargetAtTime(0, at, Math.max(.005, S.r / 4)); os.forEach(o => { try { o.stop(at + S.r * 1.5 + .05); } catch (e) {} }); } };
   }
   // ---------- arpeggiator: a synth track's chords play as broken chords on a grid (rate = steps per quarter note) ----------
@@ -358,7 +383,11 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     delay: ["Delay", [["time", "Time", 20, 1500, 10, 375, " ms"], ["fb", "Feedback", 0, 90, 1, 35, "%"], ["mix", "Mix", 0, 100, 1, 30, "%"]]],
     reverb: ["Reverb", [["size", "Length", .3, 6, .1, 2, " s"], ["tone", "Brightness", 0, 100, 1, 60, "%"], ["mix", "Mix", 0, 100, 1, 30, "%"]]],
   };
-  const fxNew = k => ({ k, on: true, p: Object.fromEntries(FXD[k][1].map(x => [x[0], x[5]])) });
+  // delay times as note values (in quarter notes), for tempo sync
+  const SYNC = [["off", "Free (ms)", 0], ["1/2", "half note", 2], ["1/4.", "dotted quarter", 1.5], ["1/4", "quarter", 1], ["1/4t", "quarter triplet", 2 / 3], ["1/8.", "dotted eighth", .75], ["1/8", "eighth", .5], ["1/8t", "eighth triplet", 1 / 3], ["1/16", "sixteenth", .25]];
+  const syncMs = p => { const x = SYNC.find(y => y[0] === p.sync); return x && x[2] ? Math.min(3900, qtr() * x[2] * 1000) : p.time; };
+  const fxNew = k => { const f = { k, on: true, p: Object.fromEntries(FXD[k][1].map(x => [x[0], x[5]])) }; if (k === "delay") f.p.sync = "1/8."; return f; };
+  const fxRetime = () => GRPS.forEach(g => g.inst.forEach(([f, n]) => { if (f.k === "delay") n.set(f.p); }));   // tempo changed: synced delays follow
   const IRC = {};
   function impulse(C, size, tone) {   // decaying stereo noise, darker as brightness drops
     const key = C.sampleRate + ":" + size + ":" + tone; if (IRC[key]) return IRC[key];
@@ -388,8 +417,8 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
       set = p => { l.frequency.value = p.rate; lg.gain.value = p.depth / 100 * .0018; }; }
     if (f.k === "tremolo") { const a = C.createGain(), l = lfo(6), lg = C.createGain(); l.connect(lg); lg.connect(a.gain); inp.connect(a); a.connect(wet); full();
       set = p => { l.frequency.value = p.rate; a.gain.value = 1 - p.depth / 200; lg.gain.value = p.depth / 200; }; }
-    if (f.k === "delay") { const d = C.createDelay(2), fb = C.createGain(), tn = C.createBiquadFilter(); tn.type = "lowpass"; tn.frequency.value = 5000; inp.connect(d); d.connect(tn); tn.connect(fb); fb.connect(d); tn.connect(wet);
-      set = p => { d.delayTime.value = p.time / 1000; fb.gain.value = p.fb / 100; mix(p.mix); }; }
+    if (f.k === "delay") { const d = C.createDelay(4), fb = C.createGain(), tn = C.createBiquadFilter(); tn.type = "lowpass"; tn.frequency.value = 5000; inp.connect(d); d.connect(tn); tn.connect(fb); fb.connect(d); tn.connect(wet);
+      set = p => { d.delayTime.value = syncMs(p) / 1000; fb.gain.value = p.fb / 100; mix(p.mix); }; }
     if (f.k === "reverb") { let cv = null, ir = "";
       set = p => { const key = p.size + ":" + p.tone; if (key !== ir) { ir = key; const old = cv; cv = C.createConvolver(); cv.buffer = impulse(C, p.size, p.tone); inp.connect(cv); cv.connect(wet); if (old) { inp.disconnect(old); setTimeout(() => old.disconnect(), 50); } } mix(p.mix); }; }
     return { inp, out, set };
@@ -637,7 +666,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   window.addEventListener("keyup", e => { const st = P.tracks[P.sel]; if (st && st.type === "drum") return; const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) noteOff(P.oct + i); });
   $("octDn").onclick = () => { P.oct = Math.max(24, P.oct - 12); drawKbd(); }; $("octUp").onclick = () => { P.oct = Math.min(84, P.oct + 12); drawKbd(); };
   $("midi").onclick = async () => { if (!navigator.requestMIDIAccess) { status("This browser doesn't support MIDI keyboards (try Chrome or Edge)."); return; }
-    try { const acc = await navigator.requestMIDIAccess(); let n = 0; acc.inputs.forEach(inp => { n++; inp.onmidimessage = m => { const [s, d1, d2] = m.data, c = s & 0xf0; if (c === 0x90 && d2 > 0) noteOn(d1, .4 + d2 / 210); else if (c === 0x80 || (c === 0x90 && d2 === 0)) noteOff(d1); }; }); status(n ? `Connected ${n} MIDI input${n > 1 ? "s" : ""}.` : "No MIDI keyboard found. Plug one in and try again."); }
+    try { const acc = await navigator.requestMIDIAccess(); let n = 0; acc.inputs.forEach(inp => { n++; inp.onmidimessage = m => { const [s, d1, d2] = m.data, c = s & 0xf0; if (c === 0x90 && d2 > 0) noteOn(d1, d2 / 127); else if (c === 0x80 || (c === 0x90 && d2 === 0)) noteOff(d1); }; }); status(n ? `Connected ${n} MIDI input${n > 1 ? "s" : ""}.` : "No MIDI keyboard found. Plug one in and try again."); }
     catch (e) { status("MIDI access was refused."); } };
   $("quant").onchange = e => { const q = +e.target.value; e.target.value = "0"; const t = P.tracks[P.sel];
     if (q && t && t.type === "drum") { undoSnap = { id: t.id, hits: t.hits.map(h => Object.assign({}, h)) }; $("undo").disabled = false; const g = qtr() * 4 / q; t.hits.forEach(h => { h.t = Math.max(0, Math.round(h.t / g) * g); }); draw(); status(`Quantized ${t.name}'s recorded hits.`); return; }
@@ -733,8 +762,8 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   function edOpen(tr) {
     ED.tr = tr; ED.sel = -1; $("ed").hidden = false; $("edH").textContent = "Editor: " + tr.name;
     if (tr.type === "synth" && tr.notes.length) { const lo = Math.min(...tr.notes.map(n => n.m)), hi = Math.max(...tr.notes.map(n => n.m)); ED.lo = Math.max(21, Math.min(48, lo - 6)); ED.hi = Math.min(108, Math.max(84, hi + 6)); } else { ED.lo = 36; ED.hi = 96; }
-    $("edHelp").textContent = tr.type === "synth" ? "Click an empty spot to add a note (drag right to lengthen it). Drag a note to move it, drag its right edge to resize. Selected note: arrow keys move it, Shift+arrows change its length, Delete removes it."
-      : tr.type === "drum" ? "Recorded hits, one row per sound. Click an empty spot to add a hit, drag to move, Delete removes the selected one. Faded blocks are the loop from the drum machine (edit those there)."
+    $("edHelp").textContent = tr.type === "synth" ? "Click an empty spot to add a note (drag right to lengthen it). Drag a note to move it, drag its right edge to resize. Selected note: arrow keys move it, Shift+arrows change its length, + and − change its velocity (paler = softer), Delete removes it."
+      : tr.type === "drum" ? "Recorded hits, one row per sound. Click an empty spot to add a hit, drag to move, + and − change the selected hit's velocity (paler = softer), Delete removes it. Faded blocks are the loop from the drum machine (edit those there)."
       : "Drag the clip to move it. Drag either end to trim it. Arrow keys move the clip by the snap value.";
     edDraw(); const sc = $("edScroll"); sc.scrollLeft = Math.max(0, P.pos * edPps() - 60);
     if (tr.type === "synth") { const v = $("edV"), y = (ED.hi - (tr.notes.length ? tr.notes[0].m : 72)) * 12 - 120; v.scrollTop = Math.max(0, y); }
@@ -753,9 +782,9 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     const g16 = edSnap() || sxt(); for (let x = 0, i = 0; x < W; i++, x = i * beat() * pps) { g.fillStyle = i % P.meter === 0 ? "rgba(255,255,255,.28)" : "rgba(255,255,255,.1)"; g.fillRect(Math.round(x), 0, 1, H); if (i % P.meter === 0) { g.fillStyle = "#c9ccd2"; g.font = "10px sans-serif"; g.fillText(String(i / P.meter + 1), x + 3, 10); } }
     if (g16 * pps > 6) { g.fillStyle = "rgba(255,255,255,.04)"; for (let x = 0, i = 0; x < W; i++, x = i * g16 * pps) g.fillRect(Math.round(x), 0, 1, H); }
     g.fillStyle = tr.color;
-    if (tr.type === "synth") tr.notes.forEach((n, i) => { const x = n.t * pps, y = (ED.hi - n.m) * rh; g.globalAlpha = .9; g.fillStyle = i === ED.sel ? "#fff" : tr.color; g.fillRect(x, y + 1, Math.max(3, n.d * pps - 1), rh - 2); g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(x + Math.max(3, n.d * pps - 1) - 3, y + 1, 3, rh - 2); });
+    if (tr.type === "synth") tr.notes.forEach((n, i) => { const x = n.t * pps, y = (ED.hi - n.m) * rh; g.globalAlpha = .3 + .65 * Math.min(1, n.v == null ? .8 : n.v); g.fillStyle = i === ED.sel ? "#fff" : tr.color; g.fillRect(x, y + 1, Math.max(3, n.d * pps - 1), rh - 2); g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(x + Math.max(3, n.d * pps - 1) - 3, y + 1, 3, rh - 2); });
     if (tr.type === "drum") { const sd = sxt(), L = tr.bars * spb(); g.globalAlpha = .22; for (let s2 = 0; s2 < tr.rep * spb(); s2++) tr.grid.forEach((row, r) => { if (row[s2 % L]) g.fillRect(s2 * sd * pps, r * rh + 3, Math.max(2, sd * pps - 2), rh - 6); });
-      g.globalAlpha = 1; tr.hits.forEach((h, i) => { const r = Math.max(0, DK[tr.kit][1].findIndex(x => x[1] === h.id)); g.fillStyle = i === ED.sel ? "#fff" : RC[r]; g.fillRect(h.t * pps - 1, r * rh + 2, Math.max(6, sd * pps * .6), rh - 4); }); }
+      g.globalAlpha = 1; tr.hits.forEach((h, i) => { const r = Math.max(0, DK[tr.kit][1].findIndex(x => x[1] === h.id)); g.globalAlpha = .3 + .7 * Math.min(1, h.v == null ? .9 : h.v); g.fillStyle = i === ED.sel ? "#fff" : RC[r]; g.fillRect(h.t * pps - 1, r * rh + 2, Math.max(6, sd * pps * .6), rh - 4); }); }
     if (tr.type === "audio" && tr.buf) { const x0 = (tr.start + tr.nudge / 1000) * pps, w = tr.buf.duration * pps, d = tr.buf.getChannelData(0), n = Math.max(1, Math.floor(w)), st = d.length / n;
       g.globalAlpha = 1; g.fillStyle = "rgba(255,255,255,.07)"; g.fillRect(x0, 2, w, rh - 4); g.fillStyle = tr.color; for (let i = 0; i < n; i++) { let mx = 0; for (let j = Math.floor(i * st), e = Math.floor((i + 1) * st); j < e; j += 8) mx = Math.max(mx, Math.abs(d[j])); const hh = Math.max(1, mx * (rh - 12)); g.fillRect(x0 + i, rh / 2 - hh / 2, 1, hh); }
       g.fillStyle = "#ffb02e"; g.fillRect(x0, 2, 4, rh - 4); g.fillRect(x0 + w - 4, 2, 4, rh - 4); }
@@ -797,6 +826,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   $("edDel").onclick = edDelete;
   $("edC").addEventListener("keydown", e => { const tr = ED.tr; if (!tr) return; const g = edSnap() || sxt(), it = edItems(tr), x = it[ED.sel];
     if ((e.key === "Delete" || e.key === "Backspace") && x) { e.preventDefault(); edDelete(); return; }
+    if (x && tr.type !== "audio" && (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_")) { e.preventDefault(); snapUndo(tr); const d = e.key === "-" || e.key === "_" ? -1 : 1; x.v = Math.max(.05, Math.min(1, Math.round(((x.v == null ? .8 : x.v) + d * .1) * 20) / 20)); $("edSay").textContent = `Velocity ${Math.round(x.v * 127)}`; edDraw(); liveEdit(); return; }
     const dx = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0, dy = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : 0; if (!dx && !dy) return; e.preventDefault(); e.stopPropagation(); snapUndo(tr);
     if (tr.type === "audio") { tr.start = Math.max(0, tr.start + dx * g); }
     else if (x) { if (tr.type === "synth" && e.shiftKey) x.d = Math.max(g, x.d + dx * g); else x.t = Math.max(0, x.t + dx * g); if (tr.type === "synth" && dy && !e.shiftKey) x.m = Math.max(ED.lo, Math.min(ED.hi, x.m + dy));
@@ -821,9 +851,9 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     addTrack("audio", { name: x.name, buf, color: "#555" }); status(`Added “${x.name}” as a track at ${P.bpm} BPM. Record over it, or add drums and a melody.`); });
   $("undo").onclick = () => { if (!undoSnap) return; const t = P.tracks.find(x => x.id === undoSnap.id); if (t) { if (undoSnap.notes) t.notes = undoSnap.notes; if (undoSnap.hits) t.hits = undoSnap.hits; if (undoSnap.grid) t.grid = undoSnap.grid; if ("buf" in undoSnap) { t.buf = undoSnap.buf; t.start = undoSnap.start || 0; t.peaks = null; } } undoSnap = null; $("undo").disabled = true; drawTracks(); draw(); status("Undone."); };
   $("file").onchange = async e => { const f = e.target.files[0]; if (!f || !ac()) return; try { const buf = await AC.decodeAudioData(await f.arrayBuffer()); addTrack("audio", { name: f.name.replace(/\.[^.]+$/, ""), buf }); status(`Opened ${f.name}.`); } catch (x) { status("This browser couldn't read that file."); } e.target.value = ""; };
-  $("bpm").onchange = e => { P.bpm = Math.max(40, Math.min(220, +e.target.value || 100)); draw(); };
+  $("bpm").onchange = e => { P.bpm = Math.max(40, Math.min(220, +e.target.value || 100)); draw(); fxRetime(); if (FX.tr) fxDraw(); };
   $("meter").innerHTML = MG.map(([g, l]) => `<optgroup label="${g}">${l.map(m => `<option value="${m}" ${m === P.ts ? "selected" : ""}>${m}</option>`).join("")}</optgroup>`).join("");
-  const setTs = ts => { if (!METERS[ts]) return; P.ts = ts; P.meter = METERS[ts][0]; $("meter").value = ts; draw(); if (DM.tr) dmDraw(); if (ED.tr) edDraw(); };
+  const setTs = ts => { if (!METERS[ts]) return; P.ts = ts; P.meter = METERS[ts][0]; $("meter").value = ts; draw(); if (typeof fxRetime === "function") { fxRetime(); if (FX.tr) fxDraw(); } if (DM.tr) dmDraw(); if (ED.tr) edDraw(); };
   $("meter").onchange = e => { setTs(e.target.value); status(`${P.ts}: ${P.meter} beats a bar; the tempo counts ${({ 1: "quarter notes", 2: "half notes", .5: "eighth notes", 1.5: "dotted quarters", 3: "dotted halves" })[bq()]}.`); };
   $("click").onclick = e => { P.click = !P.click; e.currentTarget.setAttribute("aria-pressed", P.click); };
   $("cin").onclick = e => { P.countIn = !P.countIn; e.currentTarget.setAttribute("aria-pressed", P.countIn); };
@@ -832,27 +862,34 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
 
   // ---------- effects panel ----------
   const FX = { tr: null };
-  $("fxAdd").innerHTML = `<option value="">effect…</option>` + Object.entries(FXD).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("");
+  $("fxPickL").innerHTML += Object.entries(FXD).map(([k, [l]]) => `<label><input type="checkbox" value="${k}"> ${l}</label>`).join("");
+  let PICK = null;
+  function fxPick(tr) { PICK = tr; $("fxPickH").textContent = "Add effects to " + tr.name; $("fxPickL").querySelectorAll("input").forEach(c => c.checked = false); const d = $("fxPick"); if (d.showModal) d.showModal(); else d.setAttribute("open", ""); }
+  $("fxPick").addEventListener("close", () => { const d = $("fxPick"), tr = PICK; PICK = null; if (d.returnValue !== "add" || !tr) return; d.returnValue = "";
+    const ks = [...$("fxPickL").querySelectorAll("input:checked")].map(c => c.value); if (!ks.length) return;
+    tr.fx = tr.fx || []; ks.forEach(k => tr.fx.push(fxNew(k))); FX.tr = tr; $("fx").hidden = false; fxShape(); status(`Added to ${tr.name}: ${ks.map(k => FXD[k][0]).join(", ")}.`); });
   const fxFmt = (x, v) => (x[4] < 1 ? (+v).toFixed(x[4] < .1 ? 2 : 1) : Math.round(v)) + x[6];
   function fxDraw() {
     const tr = FX.tr; if (!tr) return; $("fxH").textContent = "Effects: " + tr.name;
-    $("fxFlow").textContent = tr.fx.length ? "The sound runs through these from left to right, then to the track's volume and pan. Switch one off to compare." : "No effects yet. Choose one from Add.";
+    $("fxFlow").textContent = tr.fx.length ? "The sound runs through these from left to right, then to the track's volume and pan. Switch one off to compare." : "No effects yet. Press Add effects and tick the ones you want.";
     $("fxRack").innerHTML = tr.fx.map((f, i) => { const [l, ps] = FXD[f.k]; return `<div class="fxu ${f.on ? "on" : "off"}" data-fi="${i}" role="group" aria-label="${l}">
       <div class="fxh"><button class="tbtn" data-fa="on" aria-pressed="${f.on}" aria-label="${l} on" title="On/off">⏻</button><b>${l}</b><button class="tbtn" data-fa="l" aria-label="Move ${l} earlier"${i ? "" : " disabled"}>◀</button><button class="tbtn" data-fa="r" aria-label="Move ${l} later"${i < tr.fx.length - 1 ? "" : " disabled"}>▶</button><button class="tbtn" data-fa="x" aria-label="Remove ${l}">✕</button></div>
-      ${ps.map(x => `<label class="fxs"><span>${x[1]}</span><input type="range" data-fp="${x[0]}" min="${x[2]}" max="${x[3]}" step="${x[4]}" value="${f.p[x[0]]}" aria-label="${l} ${x[1]}"><output>${fxFmt(x, f.p[x[0]])}</output></label>`).join("")}</div>`; }).join("");
+      ${f.k === "delay" ? `<label class="fxs"><span>Sync</span><select data-fsync aria-label="${l} tempo sync">${SYNC.map(([v, n]) => `<option value="${v}"${(f.p.sync || "off") === v ? " selected" : ""}>${n}</option>`).join("")}</select><span></span></label>` : ""}
+      ${ps.map(x => { const synced = f.k === "delay" && x[0] === "time" && f.p.sync && f.p.sync !== "off";
+        return `<label class="fxs"><span>${x[1]}</span><input type="range" data-fp="${x[0]}" min="${x[2]}" max="${x[3]}" step="${x[4]}" value="${synced ? Math.min(x[3], Math.round(syncMs(f.p))) : f.p[x[0]]}" aria-label="${l} ${x[1]}"${synced ? " disabled" : ""}><output>${synced ? Math.round(syncMs(f.p)) + " ms" : fxFmt(x, f.p[x[0]])}</output></label>`; }).join("")}</div>`; }).join("");
   }
   function fxOpen(tr) { tr.fx = tr.fx || []; FX.tr = tr; $("fx").hidden = false; fxDraw(); drawTracks(); $("fx").scrollIntoView({ block: "nearest" }); }
   function fxClose() { $("fx").hidden = true; FX.tr = null; }
   const fxShape = () => { FX.tr.fxv = (FX.tr.fxv || 0) + 1; fxDraw(); drawTracks(); if (FX.tr === MT) masterRebuild(); else liveEdit(); };
   $("fxClose").onclick = fxClose;
-  $("fxAdd").onchange = e => { const k = e.target.value; if (!k || !FX.tr) return; FX.tr.fx.push(fxNew(k)); e.target.value = ""; fxShape(); status(`${FXD[k][0]} added to ${FX.tr.name}.`); };
+  $("fxAdd").onclick = () => { if (FX.tr) fxPick(FX.tr); };
   // ---------- mixer ----------
   const mxDb = v => v <= 0 ? "−∞" : (20 * Math.log10(v / 100)).toFixed(1);
   const mxTr = el => { const i = el.closest("[data-mi]").dataset.mi; return i === "m" ? MT : P.tracks[+i]; };
   function mxStrip(t, i) { const m = t === MT, nm = esc(t.name);
     return `<div class="mxs${m ? " mst" : ""}" style="--tc:${t.color || "#888"}" data-mi="${m ? "m" : i}" role="group" aria-label="${nm} channel"><b class="nm" title="${nm}">${nm}</b>
       <span class="lbl">Inserts</span><div class="mxins">${(t.fx || []).map((f, j) => `<button type="button" class="tbtn${f.on ? "" : " off"}" data-mxa="fxo" aria-label="${FXD[f.k][0]}${f.on ? "" : " (off)"} on ${nm}: edit">${FXD[f.k][0]}</button>`).join("") || '<span class="note">none</span>'}</div>
-      <select data-mxa="add" aria-label="Add an effect to ${nm}"><option value="">+ FX</option>${Object.entries(FXD).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("")}</select>
+      <button type="button" class="tbtn" data-mxa="add" aria-haspopup="dialog" aria-label="Add effects to ${nm}">+ FX</button>
       ${m ? "" : `<label><span class="lbl">Pan</span><input class="hz" type="range" data-mxa="pan" min="-100" max="100" value="${t.pan}" aria-label="Pan of ${nm}"></label>`}
       <div class="mxf"><input type="range" data-mxa="vol" min="0" max="120" value="${t.vol}" aria-label="Fader: ${nm}"><span class="mxm" aria-hidden="true"><i id="mxm-${t.id}"></i></span></div>
       <output class="mxdb" data-mxo="${t.id}">${mxDb(t.vol)} dB</output>
@@ -870,13 +907,15 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   $("mxR").addEventListener("input", e => { const a = e.target.dataset.mxa; if (a !== "vol" && a !== "pan") return; const t = mxTr(e.target); t[a] = +e.target.value;
     if (a === "vol") e.target.closest(".mxs").querySelector(".mxdb").textContent = mxDb(t.vol) + " dB";
     if (t !== MT) { const h = document.querySelector(`#tracks [data-i="${P.tracks.indexOf(t)}"] [data-a="${a}"]`); if (h) h.value = t[a]; } applyMix(); });
-  $("mxR").addEventListener("change", e => { if (e.target.dataset.mxa !== "add" || !e.target.value) return; const t = mxTr(e.target), k = e.target.value; t.fx = t.fx || []; t.fx.push(fxNew(k)); FX.tr = t; $("fx").hidden = false; fxShape(); status(`${FXD[k][0]} added to ${t.name}.`); const sel = document.querySelector(`#mxR [data-mi="${t === MT ? "m" : P.tracks.indexOf(t)}"] [data-mxa="add"]`); if (sel) sel.focus(); });
+
   $("mxR").addEventListener("click", e => { const b = e.target.closest("[data-mxa]"); if (!b || b.tagName !== "BUTTON") return; const t = mxTr(b), a = b.dataset.mxa;
+    if (a === "add") { fxPick(t); return; }
     if (a === "fxo") { const j = [...b.parentNode.children].indexOf(b); fxOpen(t); const u = document.querySelector(`#fxRack [data-fi="${j}"]`); if (u) { u.scrollIntoView({ block: "nearest", inline: "nearest" }); const f = u.querySelector("[data-fa]"); if (f) f.focus(); } return; }
     if (a === "mute" || a === "solo") { t[a] = !t[a]; b.setAttribute("aria-pressed", String(t[a])); applyMix(); const i = P.tracks.indexOf(t); $("tracks").querySelectorAll(`[data-i="${i}"] [data-a="${a}"]`).forEach(x => x.setAttribute("aria-pressed", String(t[a]))); } });
   $("fxRack").addEventListener("click", e => { const b = e.target.closest("[data-fa]"); if (!b || !FX.tr) return; const i = +b.closest("[data-fi]").dataset.fi, L = FX.tr.fx, a = b.dataset.fa;
     if (a === "on") L[i].on = !L[i].on; if (a === "x") L.splice(i, 1); if (a === "l" && i) L.splice(i - 1, 0, L.splice(i, 1)[0]); if (a === "r" && i < L.length - 1) L.splice(i + 1, 0, L.splice(i, 1)[0]);
     fxShape(); const nb = document.querySelector(`#fxRack [data-fi="${Math.min(a === "l" ? i - 1 : a === "r" ? i + 1 : i, L.length - 1)}"] [data-fa="${a === "x" ? "on" : a}"]`); if (nb && !nb.disabled) nb.focus(); });
+  $("fxRack").addEventListener("change", e => { if (!e.target.matches("[data-fsync]") || !FX.tr) return; const i = +e.target.closest("[data-fi]").dataset.fi, f = FX.tr.fx[i]; f.p.sync = e.target.value; if (f.p.sync === "off") f.p.time = Math.round(Math.min(1500, syncMs(Object.assign({}, f.p, { sync: "1/8." })))); fxRetime(); fxDraw(); const sel = document.querySelector(`#fxRack [data-fi="${i}"] [data-fsync]`); if (sel) sel.focus(); });
   $("fxRack").addEventListener("input", e => { const k = e.target.dataset.fp; if (!k || !FX.tr) return; const f = FX.tr.fx[+e.target.closest("[data-fi]").dataset.fi], x = FXD[f.k][1].find(y => y[0] === k); f.p[k] = +e.target.value; e.target.nextElementSibling.textContent = fxFmt(x, f.p[k]);
     GRPS.forEach(g => g.inst.forEach(([ff, n]) => { if (ff === f) n.set(f.p); })); });
 

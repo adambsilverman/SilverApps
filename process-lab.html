@@ -79,6 +79,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     <div class="row"><button class="tbtn" id="addV" type="button">+ Add a voice</button>
       <label class="fld" for="space">Reverb: <output id="spaceO">30%</output><input type="range" id="space" min="0" max="100" value="30"></label>
       <label class="fld" for="echo">Delay (echo): <output id="echoO">0%</output><input type="range" id="echo" min="0" max="100" value="0"></label>
+      <label class="fld" for="echoN">Delay time (synced)<select id="echoN"><option value="1">quarter</option><option value="0.75" selected>dotted eighth</option><option value="0.5">eighth</option><option value="0.3333">eighth triplet</option><option value="0.25">sixteenth</option><option value="1.5">dotted quarter</option></select></label>
       <label class="fld" for="vol">Volume: <output id="volO">80%</output><input type="range" id="vol" min="0" max="100" value="80"></label></div>
   </section>
 
@@ -217,13 +218,13 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     if (AC.state === "suspended") AC.resume(); return AC; }
   function build() { { const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .8; comp.connect(master); master.connect(AC.destination); OUT = AC.createGain(); DRY = AC.createGain(); REV = AC.createGain(); OUT.connect(DRY); DRY.connect(comp);
       const L = AC.sampleRate * 3, ir = AC.createBuffer(2, L, AC.sampleRate); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < L; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / L, 3.5); } const cv = AC.createConvolver(); cv.buffer = ir; OUT.connect(cv); cv.connect(REV); REV.connect(comp);
-      ECHO = { d: AC.createDelay(2), fb: AC.createGain(), lp: AC.createBiquadFilter(), w: AC.createGain() }; ECHO.lp.type = "lowpass"; ECHO.lp.frequency.value = 4500; ECHO.fb.gain.value = .4; ECHO.w.gain.value = 0;
+      ECHO = { d: AC.createDelay(3), fb: AC.createGain(), lp: AC.createBiquadFilter(), w: AC.createGain() }; ECHO.lp.type = "lowpass"; ECHO.lp.frequency.value = 4500; ECHO.fb.gain.value = .4; ECHO.w.gain.value = 0;
       OUT.connect(ECHO.d); ECHO.d.connect(ECHO.lp); ECHO.lp.connect(ECHO.fb); ECHO.fb.connect(ECHO.d); ECHO.lp.connect(ECHO.w); ECHO.w.connect(comp); ECHO.lp.connect(cv); setEcho();
       NZ = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const nd = NZ.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1; AC.__master = master; setSpace(); setVol(); } }
   function setSpace() { const v = +$("space").value; $("spaceO").textContent = v + "%"; if (AC) { DRY.gain.value = 1 - v / 250; REV.gain.value = v / 100 * .7; } }
   function setVol() { const v = +$("vol").value; $("volO").textContent = v + "%"; if (AC) AC.__master.gain.value = v / 100; }
-  function setEcho() { const v = +$("echo").value; $("echoO").textContent = v + "%"; if (AC && ECHO) { ECHO.w.gain.value = v / 100 * .6; ECHO.d.delayTime.value = Math.min(1.5, 60 / F.bpm * .75); } }   // a dotted-eighth echo, in time with the tempo
-  $("echo").oninput = setEcho;
+  function setEcho() { const v = +$("echo").value; $("echoO").textContent = v + "%"; if (AC && ECHO) { ECHO.w.gain.value = v / 100 * .6; ECHO.d.delayTime.value = Math.min(1.9, 60 / F.bpm * +$("echoN").value); } }   // an echo on a note value, in time with the tempo
+  $("echo").oninput = setEcho; $("echoN").onchange = setEcho;
   $("space").oninput = setSpace; $("vol").oninput = setVol;
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   // one note on a synthesized instrument

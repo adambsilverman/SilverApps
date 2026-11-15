@@ -147,7 +147,8 @@ html.gp-embed .gp{padding:0;max-width:none}
       <label class="fld" for="vB">Bass <input type="range" id="vB" min="0" max="100" value="85"></label>
       <label class="fld" for="vD">Drums <input type="range" id="vD" min="0" max="100" value="65"></label>
       <label class="fld" for="space">Reverb <input type="range" id="space" min="0" max="100" value="20"></label>
-      <label class="fld" for="echo" title="A dotted-eighth echo on the chords and bass, in time with the tempo">Delay <input type="range" id="echo" min="0" max="100" value="0"></label>
+      <label class="fld" for="echo" title="An echo on the chords and bass, in time with the tempo">Delay <input type="range" id="echo" min="0" max="100" value="0"></label>
+      <label class="fld" for="echoN">Delay time (synced)<select id="echoN"><option value="1">quarter</option><option value="0.75" selected>dotted eighth</option><option value="0.5">eighth</option><option value="0.3333">eighth triplet</option><option value="0.25">sixteenth</option><option value="1.5">dotted quarter</option></select></label>
       <label class="fld" for="dist" id="distL" hidden>Beatbox distortion <output id="distO">0</output><input type="range" id="dist" min="0" max="100" value="0"></label>
     </div>
     <svg id="kb" viewBox="0 0 700 110" role="img" aria-label="Keyboard showing the notes of the current chord"></svg>
@@ -416,13 +417,13 @@ html.gp-embed .gp{padding:0;max-width:none}
     const cv = AC.createConvolver(); cv.buffer = ir; OUT.connect(cv); cv.connect(wet); wet.connect(comp);
     NZ = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const nd = NZ.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
     if (!CURVE) { CURVE = new Float32Array(1024); for (let i = 0; i < 1024; i++) CURVE[i] = Math.tanh((i / 512 - 1) * 6); }
-    const dl = AC.createDelay(2), dfb = AC.createGain(), dlp = AC.createBiquadFilter(), dwet = AC.createGain(); dlp.type = "lowpass"; dlp.frequency.value = 4500; dfb.gain.value = .35; dwet.gain.value = 0;
+    const dl = AC.createDelay(3), dfb = AC.createGain(), dlp = AC.createBiquadFilter(), dwet = AC.createGain(); dlp.type = "lowpass"; dlp.frequency.value = 4500; dfb.gain.value = .35; dwet.gain.value = 0;
     OUT.connect(dl); dl.connect(dlp); dlp.connect(dfb); dfb.connect(dl); dlp.connect(dwet); dwet.connect(comp); dlp.connect(cv);
     BUS = { C: AC.createGain(), B: AC.createGain(), D: AC.createGain(), dry, wet, comp, cv, dl, dwet };
     BUS.C.connect(OUT); BUS.B.connect(OUT); BUS.D.connect(comp); const dsend = AC.createGain(); dsend.gain.value = .15; BUS.D.connect(dsend); dsend.connect(cv);
     mix();
   }
-  function mix() { if (!AC) return; const t = AC.currentTime || 0, set = (p, v) => p.setTargetAtTime(v, t, .03); set(BUS.C.gain, S.vol.C / 100 * .9); set(BUS.B.gain, S.vol.B / 100 * 1.15); set(BUS.D.gain, S.vol.D / 100 * .9); set(BUS.dry.gain, 1 - S.vol.R / 250); set(BUS.wet.gain, S.vol.R / 100 * .8); set(BUS.dwet.gain, (S.vol.E || 0) / 100 * .6); BUS.dl.delayTime.setValueAtTime(Math.min(1.5, 60 / S.bpm * .75), t); }
+  function mix() { if (!AC) return; const t = AC.currentTime || 0, set = (p, v) => p.setTargetAtTime(v, t, .03); set(BUS.C.gain, S.vol.C / 100 * .9); set(BUS.B.gain, S.vol.B / 100 * 1.15); set(BUS.D.gain, S.vol.D / 100 * .9); set(BUS.dry.gain, 1 - S.vol.R / 250); set(BUS.wet.gain, S.vol.R / 100 * .8); set(BUS.dwet.gain, (S.vol.E || 0) / 100 * .6); BUS.dl.delayTime.setValueAtTime(Math.min(1.9, 60 / S.bpm * (+(document.getElementById("echoN") || {}).value || .75)), t); }
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   function tone(inst, m, t, dur, vel, dest) {
     const f = mf(m), g = AC.createGain(); g.connect(dest);
@@ -673,6 +674,7 @@ html.gp-embed .gp{padding:0;max-width:none}
     syncControls(); saveHash(); if (isBx()) { if (playing) bxLoad().then(refresh); status("Beatbox: eight rows, one sound per box. Turning on a sound in a box replaces the one that was there."); } else refresh(); };
   $("dist").oninput = e => { S.dist = +e.target.value; $("distO").textContent = S.dist; saveHash(); };
   $("swing").oninput = e => { S.swing = +e.target.value; $("swingO").textContent = S.swing + "%"; saveHash(); refresh(); };
+  $("echoN").onchange = () => mix();
   [["vC", "C"], ["vB", "B"], ["vD", "D"], ["space", "R"], ["echo", "E"]].forEach(([id, k]) => $(id).oninput = e => { S.vol[k] = +e.target.value; mix(); });
   $("smooth").onclick = e => { S.smooth = !S.smooth; e.currentTarget.setAttribute("aria-pressed", S.smooth); drawTable(); saveHash(); refresh(); };
   $("loop").onclick = e => { S.loop = !S.loop; e.currentTarget.setAttribute("aria-pressed", S.loop); };

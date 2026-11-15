@@ -514,3 +514,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z153 (2026-11-15)
 - Multitrack Studio: Mixer panel (toolbar "Mixer"): a channel strip per track (inserts list, + FX, pan, vertical fader with dB, live meter, M/S) plus a Master channel whose inserts process the whole mix (also in export). Fader/pan/mute/solo now change the song live while it plays; strips and track headers stay in sync.
+
+## z154 (2026-11-15)
+- Delay tempo sync: Studio FX Delay has a Sync menu (free, 1/2, dotted 1/4, 1/4, 1/4 triplet, dotted 1/8 [default], 1/8, 1/8 triplet, 1/16) following BPM/meter changes live; Audio Clip Editor and Video Clip Editor have Sync to tempo + BPM; Groove Maker and Process Lab have a synced note-value menu.
+- Studio: multi-select effect picker (dialog with checkboxes) from the FX panel and each mixer strip.
+- Studio velocity: MIDI velocity stored as d2/127 (was compressed to 0.4-1); synth voices (all instruments and Mini synth) scale loudness (v^1.5) and brightness (velocity low-pass) by velocity; editor shades notes/hits by velocity and +/- changes the selected one.
