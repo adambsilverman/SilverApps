@@ -522,3 +522,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z155 (2026-11-15)
 - Non-chord tones, Step, leap or hold: step is now keyed (major); each finder answer shows a generated example in the chosen key (PT, NT, ET, ANT by step, APP, ANT by leap, SUS, RET, PED); the two non-standard answers show text only. Merged into the Mac version (kept its 33-question quiz).
+
+## z156 (2026-11-15)
+- Cadences, Four cadences in one song: hotspot boxes redrawn so no border crosses text: IAC and Turn boxes cover the chord symbols and staff only (not the lyric line), split cleanly before C#o7; labels sit above the boxes (.cad-map has top margin); smaller labels under 560px.
+- Lightbox: the Enlarge button now sits under each image (span.sa-lb-under) instead of on top of it.

@@ -266,7 +266,7 @@ window.SAquiz = (function () {
       box.dataset.lbBox = "1"; box.classList.add("sa-lb-box"); im.dataset.lb = "1";
       box.querySelectorAll("img").forEach(function (x) { x.dataset.lb = "1"; x.classList.add("sa-lb-img"); });
       var b = document.createElement("button"); b.type = "button"; b.className = "sa-lb-btn"; b.innerHTML = '<span aria-hidden="true">⤢</span> Enlarge'; b.setAttribute("aria-label", "Enlarge this music");
-      b.addEventListener("click", function (e) { e.stopPropagation(); open(box); }); box.appendChild(b);
+      b.addEventListener("click", function (e) { e.stopPropagation(); open(box); }); var row = document.createElement("span"); row.className = "sa-lb-under"; row.appendChild(b); box.parentNode.insertBefore(row, box.nextSibling);   // under the image, so it never covers the music
       box.addEventListener("click", function (e) { if (e.target.closest("button, a, .cad-hs")) return; if (e.target.tagName === "IMG") open(box); });
     });
   }
