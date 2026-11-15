@@ -635,3 +635,16 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 /* Cadences: Auld Lang Syne example (cadences.js step 1) */
 .cad-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 8px auto 0; background: #fff; border-radius: 8px; }
 .cad-fig audio { width: 100%; max-width: 520px; display: block; margin: 0 auto; }
+/* Cadences: America the Beautiful hotspots (cadences.js step 2) */
+.cad-map { position: relative; max-width: 900px; margin: 8px auto 0; }
+.cad-map img { margin: 0; max-width: 100%; }
+.cad-hs { position: absolute; display: block; }
+.cad-hot { width: 100%; height: 100%; min-height: 0; padding: 0; border: 2px solid #C98A00 !important; border-radius: 8px !important; background: rgba(255, 196, 0, .16); cursor: help; display: flex; align-items: flex-start; justify-content: flex-end; }
+.cad-hot:hover, .cad-hot:focus-visible, .cad-hs.open .cad-hot { background: rgba(255, 196, 0, .32); outline: none; box-shadow: 0 0 0 3px rgba(201, 138, 0, .45); }
+.cad-badge { font: 800 11px/1 var(--fi-ui, sans-serif); letter-spacing: .04em; background: #8A5A00; color: #fff; padding: 3px 5px; border-radius: 0 6px 0 6px; white-space: nowrap; }
+.cad-tip { visibility: hidden; opacity: 0; position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; width: min(320px, 78vw); background: #FFF8E1; color: #222; border: 1.5px solid #8A5A00; border-radius: 8px; padding: 9px 12px; font-size: .95rem; line-height: 1.4; box-shadow: 0 6px 18px rgba(0,0,0,.18); text-align: left; transition: opacity .12s; pointer-events: none; }
+.cad-hs.up .cad-tip { top: auto; bottom: calc(100% + 6px); }
+.cad-hs:hover .cad-tip, .cad-hs:focus-within .cad-tip, .cad-hs.open .cad-tip { visibility: visible; opacity: 1; }
+.cad-more { margin-top: 10px; } .cad-more summary { cursor: pointer; font-weight: 700; }
+.wrap .cad-map .cad-hot { border-radius: 8px !important; border: 2px solid #C98A00 !important; min-height: 0 !important; padding: 0 !important; }
+.cad-hot { position: relative; } .cad-badge { position: absolute; top: -17px; right: -2px; border-radius: 6px 6px 0 0; }
