@@ -76,6 +76,38 @@
 .tbl th,.tbl td{border-bottom:1px solid var(--fi-soft);padding:3px 6px;text-align:left}
 .twrap{overflow-x:auto}
 .note{font-size:.88rem;color:var(--fi-muted);margin:0}
+/* compact dark "DAW" skin, matching the Multitrack Studio */
+.gpbox{--fi-ink:#e9eaec;--fi-card:#2a2c31;--fi-line:#4a4d54;--fi-muted:#b4b8bf;--fi-soft:#3a3c41;--e5:#8fb6ff;
+  background:#1d1e21;color:#e9eaec;border:1px solid #000;box-shadow:var(--fi-shadow);gap:6px;padding:0 10px 10px}
+.gpbox .gp-head{background:linear-gradient(#34363b,#2a2c30);border-bottom:1px solid #000;color:#fff;margin:0 -10px;padding:6px 10px}
+.gpbox .gp-head h2{font-size:24px}
+.gpbox h3{color:#b4b8bf;margin:4px 0 0;font-size:10px}
+.gpbox .row{gap:4px 10px}
+.gpbox .fld{font-size:10px;color:#b4b8bf}
+.gpbox select{background:#15161a;color:#e9eaec;border:1px solid #0b0b0c;min-height:26px;font-size:13px;padding:2px 5px}
+.gpbox input[type=range]{accent-color:#ffb02e;width:96px}
+.gpbox .tb{background:linear-gradient(#45484e,#36383d);border:1px solid #0b0b0c;color:#e9eaec;min-height:26px;padding:2px 8px;font-size:11px}
+.gpbox .tb:hover{background:linear-gradient(#50535a,#3e4046)}
+.gpbox .tb[aria-pressed="true"]{background:#e8e8ea;color:#111}
+.gpbox .tb.go{background:linear-gradient(#3f8f4d,#2f6f3b);color:#fff;border-color:#0b0b0c}
+.gpbox .styles .tb{min-height:24px}
+.gpbox .ch{min-height:40px;font-size:15px}
+.gpbox .blk{min-height:50px}
+.gpbox .prog{background:#141518;min-height:56px}
+.gpbox .cell{height:20px;background:#3a3c42;border:1px solid #000}
+.gpbox .cell.ft{background:#4a4d54}
+.gpbox .cell[aria-pressed="true"]{background:#ffb02e;border-color:#000}
+.gpbox .cnt.now{background:#ffb02e;color:#111}
+.gpbox .edit{background:#26282c;border-color:#4a4d54}
+.gpbox a{color:#ffc766}
+.gpbox .status{font-size:12px;color:#b4b8bf;min-height:1.2em}
+.gpbox #kb{max-height:90px;background:#f4f4f4;border:1px solid #000}
+.gpbox .tbl th,.gpbox .tbl td{border-color:#3a3c41}
+.gpbox .tb:focus-visible,.gpbox .ch:focus-visible,.gpbox .blk:focus-visible,.gpbox .cell:focus-visible{outline:2px solid #ffb02e;outline-offset:1px}
+/* inside the Multitrack Studio (iframe): just the instrument */
+html.gp-embed .site-strip,html.gp-embed .fi-credit,html.gp-embed .gp > header,html.gp-embed .skip,html.gp-embed #gpStudioNote{display:none!important}
+html.gp-embed body{background:#1d1e21}
+html.gp-embed .gp{padding:0;max-width:none}
 [hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
@@ -132,13 +164,14 @@
     <div class="row"><label class="fld" for="expN">Export<select id="expN"><option value="1">once through</option><option value="2" selected>twice through</option><option value="4">four times</option></select></label>
       <label class="fld" for="expFmt">Format<select id="expFmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label>
       <button class="tb" id="export" type="button">Export audio</button><button class="tb go" id="studio" type="button">Open in Multitrack Studio</button></div>
-    <p class="note"><b>Multitrack Studio</b> opens this groove as a backing track so you can add a melody or record yourself. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL). Nothing is uploaded: everything runs in your browser.</p>
+    <p class="note" id="gpStudioNote"><b>Multitrack Studio</b> opens this groove as a backing track so you can add a melody or record yourself. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL). Nothing is uploaded: everything runs in your browser.</p>
   </section>
 </main>
 
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  const EMB = window.self !== window.top; if (EMB) document.documentElement.classList.add("gp-embed");   // opened inside the Multitrack Studio
   const LET = "CDEFGAB", NAT = [0, 2, 4, 5, 7, 9, 11], ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
   const TONICS = ["C", "C♯", "D♭", "D", "E♭", "E", "F", "F♯", "G♭", "G", "A♭", "A", "B♭", "B"];
   const mod = (x, m) => ((x % m) + m) % m;
@@ -733,11 +766,15 @@
       for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, p * one.len + e.t); } catch (x) {} });
       const buf = await AC.startRendering();
       await idbPut("incoming", { ch: [buf.getChannelData(0), buf.getChannelData(1)], sr: buf.sampleRate, bpm: M().comp ? S.bpm * 2 : S.bpm, meter: M().comp ? M().beats.length : M().n / 4, name: `Backing: ${S.ch.map(c => rn(c).text).join(" ")} in ${S.tonic} ${S.mode}`, swing: S.swing, len: one.len * nPass });
-      ({ AC, OUT, BUS, NZ } = save); location.href = "multitrack-studio.html#from=lab";
+      ({ AC, OUT, BUS, NZ } = save);
+      if (EMB) { const x = { type: "sa-groove", ch: [buf.getChannelData(0).slice(), buf.getChannelData(1).slice()], sr: buf.sampleRate, bpm: M().comp ? S.bpm * 2 : S.bpm, meter: M().comp ? M().beats.length : M().n / 4, name: `Groove: ${S.ch.map(c => rn(c).text).join(" ")} in ${S.tonic} ${S.mode}` };
+        parent.postMessage(x, location.origin); btn.disabled = false; status("Added to the studio as a new track."); if (was) start(); return; }
+      location.href = "multitrack-studio.html#from=lab";
     } catch (e) { ({ AC, OUT, BUS, NZ } = save); status("Couldn't send it to the studio: " + e.message); btn.disabled = false; if (was) start(); }
   };
 
   // ---------- start ----------
+  if (EMB) { $("studio").textContent = "Add to the studio"; }
   if (!loadHash()) { S.meter = "4/4"; preset("axis"); } else { tab = 0; syncControls(); drawPalette(); drawProg(); }
   syncControls(); drawKb(null);
   window.__pl = { S, events, voiceAll, rn, sym, tones, preset, applyStyle, setMeter };   // used by automated tests

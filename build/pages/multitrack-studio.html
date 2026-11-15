@@ -1,4 +1,4 @@
-<!-- title: Multitrack Studio | desc: Layer tracks over a backing track: play melodies on a synth (on-screen keys, computer keyboard or MIDI keyboard), record your voice or instrument, mix, and export audio. Works with the Groove Maker. -->
+<!-- title: Multitrack Studio | desc: Layer tracks over a backing track or a drum loop (drum machine with standard kits and beatbox sounds, playable pads): play melodies on a synth (on-screen keys, computer keyboard or MIDI keyboard), record your voice or instrument, mix, and export audio. Works with the Groove Maker. -->
 <style>
 .tool{max-width:1200px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:12px}
 .tool h1{font:400 clamp(40px,7vw,64px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -69,13 +69,30 @@ main.tool .daw .trk .knob input[type=range]{width:clamp(34px,6vw,58px)!important
 main.tool .daw .bar label input[type=range]{width:110px}
 .status:empty{display:none}
 @media (max-width:560px){.arr{grid-template-columns:200px 1fr}.trk .knob .lbl{display:none}.trk .meta{display:none}}
+/* drum machine (pops out under the arrange view) */
+.dmwrap{background:#1a1b1e;border-top:2px solid var(--hl);padding:6px 10px 10px;display:grid;gap:8px}
+.dmh{font:800 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.08em;margin:0;color:var(--hl)}
+.dmgrid{display:grid;gap:3px;overflow-x:auto;padding-bottom:2px}
+.dmrow{display:grid;grid-template-columns:96px repeat(var(--n),minmax(18px,1fr));gap:3px;align-items:center;min-width:calc(96px + var(--n) * 21px)}
+.dmrow .lab{font:700 11px var(--fi-ui);color:var(--tx);background:#2a2c31;border:1px solid #000;border-radius:4px;height:24px;padding:0 6px;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stp{height:24px;border-radius:3px;border:1px solid #000;background:#3a3c42;cursor:pointer;padding:0}
+.stp.b{background:#4a4d54}
+.stp[aria-pressed="true"]{background:var(--rc,#ffb02e);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.stp.now{outline:2px solid #fff;outline-offset:-2px}
+.pads{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:8px;max-width:520px;touch-action:none;user-select:none;-webkit-user-select:none}
+.pad{height:64px;border-radius:8px;border:1px solid #000;background:linear-gradient(#3b3e44,#2c2e33);color:var(--tx);font:700 12px var(--fi-ui);display:grid;place-items:center;align-content:center;gap:2px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.4)}
+.pad kbd{font:700 10px ui-monospace,monospace;color:#111;background:#cfd2d8;border-radius:3px;padding:1px 4px}
+.pad.hit{background:var(--rc,#ffb02e);color:#111;box-shadow:none}
+.dmcols{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+@media (max-width:760px){.dmcols{grid-template-columns:1fr}}
+main.tool .daw .dmrow .lab{min-height:24px!important}
 [hidden]{display:none!important}
 </style>
 
 <main class="tool" id="main">
   <header>
     <h1>Multitrack <span>Studio</span></h1>
-    <p>Build a song in layers. Start with a backing track (send one from the <a href="groove-maker.html">Groove Maker</a> or open an audio file), then add tracks: play a melody on a synth with the on-screen keys, your computer keyboard or a MIDI keyboard, or record yourself through the microphone. Mix the tracks and export the result. Everything stays on your device; export your song to keep it.</p>
+    <p>Build a song in layers. Start with a backing track or a drum loop (send one from the <a href="groove-maker.html">Groove Maker</a> or open an audio file), then add tracks: play a melody on a synth with the on-screen keys, your computer keyboard or a MIDI keyboard, or record yourself through the microphone. Mix the tracks and export the result. Everything stays on your device; export your song to keep it.</p>
   </header>
 
   <section class="daw" aria-label="Studio">
@@ -93,7 +110,7 @@ main.tool .daw .bar label input[type=range]{width:110px}
     <p class="status" id="status" aria-live="polite"></p>
     <h2 class="sr">Tracks</h2>
     <div class="bar" role="toolbar" aria-label="Tracks">
-      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button>
+      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button><button class="tbtn sm" id="addDrum" type="button">+ Drums</button><button class="tbtn sm" id="addGroove" type="button" aria-expanded="false" aria-controls="gm">+ Groove Maker</button>
       <label class="tbtn sm" for="file" style="display:inline-flex;align-items:center">Open audio…</label><input type="file" id="file" accept="audio/*" class="sr">
       <button class="tbtn sm" id="undo" type="button" disabled>Undo take</button>
       <span class="note">● arms a track for recording. Use headphones with the mic.</span>
@@ -102,6 +119,25 @@ main.tool .daw .bar label input[type=range]{width:110px}
       <div class="heads"><div class="ruler" aria-hidden="true"></div><div id="tracks"></div></div>
       <div class="lanewrap" tabindex="0" role="region" aria-label="Timeline. Select a spot to move the playhead there."><canvas id="lanes" height="80"></canvas></div>
     </div>
+    <section class="dmwrap gmwrap" id="gm" aria-labelledby="gmH" hidden>
+      <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="gmH">Groove Maker</h2><span class="note">Build a progression and groove, then press <b>Add to the studio</b> to drop it in as a backing track.</span><button class="tbtn sm" id="gmClose" type="button" style="margin-left:auto">Close ✕</button></div>
+      <iframe id="gmFrame" title="Groove Maker" style="width:100%;height:min(1500px,150vh);border:0;display:block;background:#1d1e21"></iframe>
+    </section>
+    <section class="dmwrap" id="dm" aria-labelledby="dmH" hidden>
+      <div class="bar" style="padding:0;background:none;border:0">
+        <h2 class="dmh" id="dmH">Drum machine</h2>
+        <label for="dmKit"><span class="lbl">Kit</span><select id="dmKit"></select></label>
+        <label for="dmBars"><span class="lbl">Pattern</span><select id="dmBars"><option value="1">1 bar</option><option value="2">2 bars</option></select></label>
+        <label for="dmRep"><span class="lbl">Repeat for</span><input type="number" id="dmRep" min="1" max="128" value="8"><span class="lbl">bars</span></label>
+        <button class="tbtn sm" id="dmAud" type="button" aria-pressed="false">▶ Loop</button><button class="tbtn sm" id="dmClr" type="button">Clear pattern</button>
+        <button class="tbtn sm" id="dmClose" type="button" style="margin-left:auto">Close ✕</button>
+      </div>
+      <div class="dmcols">
+        <div class="dmgrid" id="dmGrid" role="group" aria-label="Step grid: each row is a sound, each button a sixteenth note"></div>
+        <div><div class="pads" id="pads" role="group" aria-label="Drum pads"></div></div>
+      </div>
+      <p class="note">Click steps to build a loop; it repeats on the track from bar 1. Tap the pads (or press <b>Q W E R</b> / <b>A S D F</b> while a drum track is selected) to play live, and arm the track (●) and press Rec to record what you play.</p>
+    </section>
     <div class="kbwrap">
       <h2 class="sr">Keyboard</h2>
       <div class="bar" style="padding:0;background:none;border:0" role="toolbar" aria-label="Keyboard">
@@ -131,7 +167,7 @@ main.tool .daw .bar label input[type=range]{width:110px}
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const status = t => { $("status").textContent = t; };
   const beat = () => 60 / P.bpm, barLen = () => beat() * P.meter;
-  const projLen = () => Math.max(barLen() * 8, ...P.tracks.map(t => t.type === "audio" ? (t.buf ? t.start + t.nudge / 1000 + t.buf.duration : 0) : Math.max(0, ...t.notes.map(n => n.t + n.d))));
+  const projLen = () => Math.max(barLen() * 8, ...P.tracks.map(t => t.type === "audio" ? (t.buf ? t.start + t.nudge / 1000 + t.buf.duration : 0) : t.type === "drum" ? Math.max(t.rep * barLen(), ...t.hits.map(h => h.t + .3)) : Math.max(0, ...t.notes.map(n => n.t + n.d))));
 
   // ---------- audio ----------
   let AC = null, MASTER = null, NZ = null;
@@ -166,6 +202,9 @@ main.tool .daw .bar label input[type=range]{width:110px}
       if (opts.skip && opts.skip === tr.id) return;
       const s = strips[tr.id] = strip(C, tr, dest, soloOn);
       if (tr.type === "audio" && tr.buf) { const st = tr.start + tr.nudge / 1000, src = C.createBufferSource(); src.buffer = tr.buf; src.connect(s); const off = Math.max(0, from - st); if (off < tr.buf.duration) { src.start(Math.max(t0 + st, t0 + from), off); opts.nodes && opts.nodes.push(src); } }
+      if (tr.type === "drum") { const sd = beat() / 4, L = tr.bars * P.meter * 4, rows = DK[tr.kit][1];
+        for (let k = 0; k < tr.rep * P.meter * 4; k++) { const t = k * sd; if (t + 1e-4 < from) continue; tr.grid.forEach((row, r) => { if (row[k % L] && rows[r]) drumHit(C, rows[r][1], t0 + t, .85, s); }); }
+        tr.hits.forEach(h => { if (h.t + 1e-4 >= from) drumHit(C, h.id, t0 + h.t, h.v, s); }); }
       if (tr.type === "synth") tr.notes.forEach(n => { if (n.t + .001 < from) return; const v = voice(C, tr.inst, n.m, t0 + n.t, n.v, s); v.stop(t0 + n.t + n.d); });
     });
     return strips;
@@ -174,7 +213,7 @@ main.tool .daw .bar label input[type=range]{width:110px}
   // ---------- transport ----------
   let playing = false, recording = false, T0 = 0, tick = 0, raf = 0, nodes = [], playBus = null, nextClick = 0, recInfo = null;
   function play(rec = false) {
-    if (!ac()) return; stopAll(true);
+    if (!ac()) return; stopAll(true); if (DM.aud) audStop();
     playBus = AC.createGain(); playBus.connect(MASTER); nodes = [];
     const pre = rec && P.countIn ? barLen() : 0, now = AC.currentTime + .12;
     T0 = now + pre - P.pos;   // song time zero
@@ -198,7 +237,8 @@ main.tool .daw .bar label input[type=range]{width:110px}
     if (playing && !quiet) P.pos = Math.max(0, Math.min(projLen(), AC.currentTime - T0));
     playing = false; $("play").textContent = "▶ Play"; $("rec").setAttribute("aria-pressed", "false"); draw(); clock();
   }
-  function follow() { if (!playing) return; const pos = AC.currentTime - T0; clock(pos); draw(pos); const wrap = document.querySelector(".lanewrap"), x = pos * P.pps; if (x > wrap.scrollLeft + wrap.clientWidth - 40) wrap.scrollLeft = x - 60; raf = requestAnimationFrame(follow); }
+  function follow() { if (!playing) return; const pos = AC.currentTime - T0; clock(pos); draw(pos);
+    if (DM.tr && !$("dm").hidden && pos >= 0 && pos < DM.tr.rep * barLen()) { const k = Math.floor(pos / (beat() / 4)) % steps(DM.tr); if (DM.lit !== k) { DM.lit = k; document.querySelectorAll(".stp.now").forEach(b => b.classList.remove("now")); document.querySelectorAll(`.stp[data-k="${k}"]`).forEach(b => b.classList.add("now")); } } const wrap = document.querySelector(".lanewrap"), x = pos * P.pps; if (x > wrap.scrollLeft + wrap.clientWidth - 40) wrap.scrollLeft = x - 60; raf = requestAnimationFrame(follow); }
   function clock(pos = P.pos) { const b = Math.max(0, pos) / beat(); $("clock").textContent = pos < 0 ? "count-in" : `${Math.floor(b / P.meter) + 1}.${Math.floor(b % P.meter) + 1}`; }
 
   // ---------- recording ----------
@@ -216,15 +256,16 @@ main.tool .daw .bar label input[type=range]{width:110px}
     const tr = P.tracks[P.sel]; if (!tr) { status("Select or add a track to record on first."); return; }
     if (!ac()) return;
     if (tr.type === "audio" && !(await micReady())) return;
-    undoSnap = { id: tr.id, notes: tr.notes ? tr.notes.slice() : null, buf: tr.buf, start: tr.start }; $("undo").disabled = false;
+    undoSnap = tr.type === "drum" ? { id: tr.id, hits: tr.hits.slice() } : { id: tr.id, notes: tr.notes ? tr.notes.slice() : null, buf: tr.buf, start: tr.start }; $("undo").disabled = false;
     recInfo = { tr, from: P.pos }; chunks = [];
     if (tr.type === "audio") { tr.buf = null; }
     const { T0: t0 } = play(true); recording = true; $("rec").setAttribute("aria-pressed", "true");
-    status(tr.type === "audio" ? "Recording from the microphone…" : "Recording: play the keyboard. Press Stop when you're done.");
+    status(tr.type === "audio" ? "Recording from the microphone…" : tr.type === "drum" ? "Recording: play the pads. Press Stop when you're done." : "Recording: play the keyboard. Press Stop when you're done.");
     recInfo.t0 = t0;
   }
   function finishRec() {
     recording = false; const r = recInfo; if (!r) return; recInfo = null;
+    if (r.tr.type === "drum") status(`Recorded ${r.tr.hits.length} hits on ${r.tr.name}.`);
     if (r.tr.type === "synth") { Object.values(live).forEach(n => noteOff(n.m)); status(`Recorded ${r.tr.notes.length} notes on ${r.tr.name}.`); }
     if (r.tr.type === "audio" && chunks.length) {
       const sr = AC.sampleRate, L = (AC.outputLatency || 0) + (AC.baseLatency || 0) + 4096 / sr + .01 + P.lat / 1000;
@@ -248,17 +289,17 @@ main.tool .daw .bar label input[type=range]{width:110px}
   }
 
   // ---------- tracks UI ----------
-  function addTrack(type, extra = {}) { const tr = Object.assign({ id: nextId++, type, name: type === "synth" ? `Synth ${nextId - 1}` : `Audio ${nextId - 1}`, vol: 80, pan: 0, mute: false, solo: false, nudge: 0, start: 0, buf: null, notes: [], inst: "lead", color: COLORS[(nextId - 2) % COLORS.length] }, extra); P.tracks.push(tr); P.sel = P.tracks.length - 1; drawTracks(); draw(); return tr; }
+  function addTrack(type, extra = {}) { const tr = Object.assign({ id: nextId++, type, name: type === "synth" ? `Synth ${nextId - 1}` : `Audio ${nextId - 1}`, vol: 80, pan: 0, mute: false, solo: false, nudge: 0, start: 0, buf: null, notes: [], hits: [], inst: "lead", color: COLORS[(nextId - 2) % COLORS.length] }, extra); P.tracks.push(tr); P.sel = P.tracks.length - 1; drawTracks(); draw(); return tr; }
   function drawTracks() {
     $("tracks").innerHTML = P.tracks.map((t, i) => `<div class="trk${i === P.sel ? " sel" : ""}" style="--tc:${t.color}" data-i="${i}">
       <div class="r1"><button class="tbtn arm" data-a="sel" aria-pressed="${i === P.sel}" aria-label="Arm ${esc(t.name)} for recording" title="Arm for recording">●</button>
         <input type="text" data-a="name" value="${esc(t.name)}" aria-label="Track name">
         <button class="tbtn m" data-a="mute" aria-pressed="${t.mute}" aria-label="Mute ${esc(t.name)}" title="Mute">M</button><button class="tbtn s" data-a="solo" aria-pressed="${t.solo}" aria-label="Solo ${esc(t.name)}" title="Solo">S</button>
-        ${t.type === "synth" ? `<button class="tbtn" data-a="clear" aria-label="Clear the notes on ${esc(t.name)}" title="Clear notes">⌫</button>` : ""}<button class="tbtn" data-a="del" aria-label="Delete ${esc(t.name)}" title="Delete track">✕</button></div>
-      <div class="r2">${t.type === "synth" ? `<select data-a="inst" aria-label="Instrument for ${esc(t.name)}">${Object.entries(INST).map(([k, l]) => `<option value="${k}" ${k === t.inst ? "selected" : ""}>${l}</option>`).join("")}</select>` : `<label class="knob" title="Nudge"><span class="lbl">Nudge</span><input type="range" data-a="nudge" min="-500" max="500" step="5" value="${t.nudge}" aria-label="Nudge ${esc(t.name)} (ms)"><output class="meta">${t.nudge}</output></label>`}
+        ${t.type === "synth" ? `<button class="tbtn" data-a="clear" aria-label="Clear the notes on ${esc(t.name)}" title="Clear notes">⌫</button>` : t.type === "drum" ? `<button class="tbtn" data-a="clear" aria-label="Clear the recorded hits on ${esc(t.name)}" title="Clear recorded hits">⌫</button>` : ""}<button class="tbtn" data-a="del" aria-label="Delete ${esc(t.name)}" title="Delete track">✕</button></div>
+      <div class="r2">${t.type === "drum" ? `<button class="tbtn" data-a="dm" aria-label="Open the drum machine for ${esc(t.name)}" title="Drum machine" style="padding:0 6px">▦ Edit</button><select data-a="kit" aria-label="Kit for ${esc(t.name)}">${Object.entries(DK).map(([k, [l]]) => `<option value="${k}" ${k === t.kit ? "selected" : ""}>${l}</option>`).join("")}</select>` : t.type === "synth" ? `<select data-a="inst" aria-label="Instrument for ${esc(t.name)}">${Object.entries(INST).map(([k, l]) => `<option value="${k}" ${k === t.inst ? "selected" : ""}>${l}</option>`).join("")}</select>` : `<label class="knob" title="Nudge"><span class="lbl">Nudge</span><input type="range" data-a="nudge" min="-500" max="500" step="5" value="${t.nudge}" aria-label="Nudge ${esc(t.name)} (ms)"><output class="meta">${t.nudge}</output></label>`}
         <label class="knob" title="Volume"><span class="lbl">Vol</span><input type="range" data-a="vol" min="0" max="120" value="${t.vol}" aria-label="Volume of ${esc(t.name)}"></label>
         <label class="knob" title="Pan"><span class="lbl">Pan</span><input type="range" data-a="pan" min="-100" max="100" value="${t.pan}" aria-label="Pan of ${esc(t.name)}"></label>
-        <span class="meta">${t.type === "synth" ? t.notes.length + " notes" : t.buf ? t.buf.duration.toFixed(1) + " s" : "empty"}</span></div></div>`).join("") || `<p class="empty">No tracks yet. Add a synth or mic track, open an audio file, or send a progression from the Groove Maker.</p>`;
+        <span class="meta">${t.type === "drum" ? t.grid.flat().filter(Boolean).length + " steps" + (t.hits.length ? ", " + t.hits.length + " hits" : "") : t.type === "synth" ? t.notes.length + " notes" : t.buf ? t.buf.duration.toFixed(1) + " s" : "empty"}</span></div></div>`).join("") || `<p class="empty">No tracks yet. Add a synth or mic track, open an audio file, or send a progression from the Groove Maker.</p>`;
   }
   $("tracks").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!row) return; const i = +row.dataset.i, t = P.tracks[i];
@@ -267,14 +308,15 @@ main.tool .daw .bar label input[type=range]{width:110px}
     if (a === "sel") P.sel = i;
     if (a === "mute") t.mute = !t.mute;
     if (a === "solo") t.solo = !t.solo;
-    if (a === "clear") { undoSnap = { id: t.id, notes: t.notes.slice() }; $("undo").disabled = false; t.notes = []; }
-    if (a === "del") { if (!confirmDel(t)) return; P.tracks.splice(i, 1); if (P.sel >= P.tracks.length) P.sel = P.tracks.length - 1; }
+    if (a === "clear") { if (t.type === "drum") { undoSnap = { id: t.id, hits: t.hits.slice() }; t.hits = []; } else { undoSnap = { id: t.id, notes: t.notes.slice() }; t.notes = []; } $("undo").disabled = false; }
+    if (a === "dm") { P.sel = i; dmOpen(t); }
+    if (a === "del") { if (!confirmDel(t)) return; if (DM.tr === t) dmClose(); P.tracks.splice(i, 1); if (P.sel >= P.tracks.length) P.sel = P.tracks.length - 1; }
     drawTracks(); draw(); const nb = document.querySelector(`[data-i="${Math.min(i, P.tracks.length - 1)}"] [data-a="${a}"]`); if (nb) nb.focus();
   });
   const confirmDel = t => { if (t.notes.length || t.buf) { const ok = row => true; return ok(); } return true; };
   $("tracks").addEventListener("input", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; const t = P.tracks[+row.dataset.i], a = b.dataset.a;
     if (a === "name") t.name = b.value; if (a === "vol") t.vol = +b.value; if (a === "pan") t.pan = +b.value; if (a === "nudge") { t.nudge = +b.value; b.nextElementSibling.textContent = t.nudge; draw(); } });
-  $("tracks").addEventListener("change", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; if (b.dataset.a === "inst") P.tracks[+row.dataset.i].inst = b.value; });
+  $("tracks").addEventListener("change", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; if (b.dataset.a === "inst") P.tracks[+row.dataset.i].inst = b.value; if (b.dataset.a === "kit") { const t = P.tracks[+row.dataset.i]; t.kit = b.value; if (t.kit === "beatbox") bxLoad(); if (DM.tr === t) dmDraw(); draw(); liveEdit(); } });
 
   // ---------- timeline ----------
   const LH = 56;
@@ -289,6 +331,10 @@ main.tool .daw .bar label input[type=range]{width:110px}
       const y = 18 + i * LH; g.fillStyle = i === P.sel ? "rgba(255,176,46,.10)" : (i % 2 ? "rgba(255,255,255,.025)" : "rgba(0,0,0,0)"); g.fillRect(0, y, W, LH - 1); g.fillStyle = "rgba(0,0,0,.8)"; g.fillRect(0, y + LH - 1, W, 1);
       g.fillStyle = t.color; g.globalAlpha = t.mute ? .3 : .85;
       if (t.type === "audio" && t.buf) { const pk = peaks(t).out, x0 = (t.start + t.nudge / 1000) * P.pps, mid = y + LH / 2 - 1; for (let k = 0; k < pk.length; k++) { const h = Math.max(1, pk[k] * (LH - 10)); g.fillRect(x0 + k, mid - h / 2, 1, h); } }
+      if (t.type === "drum") { const sd = beat() / 4, L = t.bars * P.meter * 4, rh = (LH - 8) / 8;
+        for (let k = 0; k < t.rep * P.meter * 4; k++) t.grid.forEach((row, r) => { if (row[k % L]) g.fillRect(k * sd * P.pps, y + 4 + r * rh, Math.max(2, sd * P.pps - 1), Math.max(2, rh - 1)); });
+        g.globalAlpha = 1; g.fillStyle = "#fff"; t.hits.forEach(h => { const r = DK[t.kit][1].findIndex(x => x[1] === h.id); g.fillRect(h.t * P.pps, y + 4 + Math.max(0, r) * rh, 2, Math.max(2, rh - 1)); }); g.fillStyle = t.color; g.globalAlpha = t.mute ? .3 : .85;
+        g.globalAlpha = .18; g.fillRect(t.rep * barLen() * P.pps, y, 2, LH - 2); g.globalAlpha = t.mute ? .3 : .85; }
       if (t.type === "synth" && t.notes.length) { const lo = Math.min(...t.notes.map(n => n.m)) - 1, hi = Math.max(...t.notes.map(n => n.m)) + 1, sp = (LH - 8) / Math.max(12, hi - lo); t.notes.forEach(n => g.fillRect(n.t * P.pps, y + LH - 5 - (n.m - lo) * sp, Math.max(2, n.d * P.pps - 1), Math.max(3, sp - 1))); }
       g.globalAlpha = 1;
     });
@@ -316,13 +362,94 @@ main.tool .daw .bar label input[type=range]{width:110px}
   $("kbd").addEventListener("keyup", e => { const b = e.target.closest("[data-m]"); if (b && (e.key === "Enter" || e.key === " ")) noteOff(+b.dataset.m); });
   const typing = e => /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) && e.target.type !== "range";
   window.addEventListener("keydown", e => { if (typing(e) || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return; const k = e.key.toLowerCase(), i = KEYMAP.indexOf(k);
+    const st = P.tracks[P.sel]; if (st && st.type === "drum") { const pi = PADKEYS.indexOf(k); if (pi >= 0) { e.preventDefault(); padHit(pi); } return; }
     if (i >= 0) { e.preventDefault(); noteOn(P.oct + i); } else if (k === "z") { P.oct = Math.max(24, P.oct - 12); drawKbd(); } else if (k === "x") { P.oct = Math.min(84, P.oct + 12); drawKbd(); } });
-  window.addEventListener("keyup", e => { const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) noteOff(P.oct + i); });
+  window.addEventListener("keyup", e => { const st = P.tracks[P.sel]; if (st && st.type === "drum") return; const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) noteOff(P.oct + i); });
   $("octDn").onclick = () => { P.oct = Math.max(24, P.oct - 12); drawKbd(); }; $("octUp").onclick = () => { P.oct = Math.min(84, P.oct + 12); drawKbd(); };
   $("midi").onclick = async () => { if (!navigator.requestMIDIAccess) { status("This browser doesn't support MIDI keyboards (try Chrome or Edge)."); return; }
     try { const acc = await navigator.requestMIDIAccess(); let n = 0; acc.inputs.forEach(inp => { n++; inp.onmidimessage = m => { const [s, d1, d2] = m.data, c = s & 0xf0; if (c === 0x90 && d2 > 0) noteOn(d1, .4 + d2 / 210); else if (c === 0x80 || (c === 0x90 && d2 === 0)) noteOff(d1); }; }); status(n ? `Connected ${n} MIDI input${n > 1 ? "s" : ""}.` : "No MIDI keyboard found. Plug one in and try again."); }
     catch (e) { status("MIDI access was refused."); } };
-  $("quant").onchange = e => { const q = +e.target.value; e.target.value = "0"; const t = P.tracks[P.sel]; if (!q || !t || t.type !== "synth") { status("Select a synth track to quantize."); return; } undoSnap = { id: t.id, notes: t.notes.map(n => Object.assign({}, n)) }; $("undo").disabled = false; const g = beat() * 4 / q; t.notes.forEach(n => { const s = Math.round(n.t / g) * g, en = Math.max(s + g, Math.round((n.t + n.d) / g) * g); n.t = s; n.d = en - s; }); draw(); status(`Quantized ${t.name}.`); };
+  $("quant").onchange = e => { const q = +e.target.value; e.target.value = "0"; const t = P.tracks[P.sel];
+    if (q && t && t.type === "drum") { undoSnap = { id: t.id, hits: t.hits.map(h => Object.assign({}, h)) }; $("undo").disabled = false; const g = beat() * 4 / q; t.hits.forEach(h => { h.t = Math.max(0, Math.round(h.t / g) * g); }); draw(); status(`Quantized ${t.name}'s recorded hits.`); return; }
+    if (!q || !t || t.type !== "synth") { status("Select a synth or drum track to quantize."); return; } undoSnap = { id: t.id, notes: t.notes.map(n => Object.assign({}, n)) }; $("undo").disabled = false; const g = beat() * 4 / q; t.notes.forEach(n => { const s = Math.round(n.t / g) * g, en = Math.max(s + g, Math.round((n.t + n.d) / g) * g); n.t = s; n.d = en - s; }); draw(); status(`Quantized ${t.name}.`); };
+
+  // ---------- drum machine (step grid + pads) ----------
+  const DK = {
+    kit: ["Drum kit", [["Kick", "k"], ["Snare", "s"], ["Clap", "c"], ["Rim", "r"], ["Closed hat", "h"], ["Open hat", "oh"], ["Low tom", "lt"], ["High tom", "ht"]]],
+    e808: ["808", [["808 kick", "k8"], ["Snare", "s"], ["Clap", "c"], ["Rim", "r"], ["Hat", "h"], ["Open hat", "oh"], ["Ride", "y"], ["Cowbell", "cb"]]],
+    beatbox: ["Beatbox", [["Kick", "bx:kick:4"], ["Snare", "bx:snare:4"], ["KKhh 1", "bx:kkhh-1:0"], ["KKhh 2", "bx:kkhh-2:0"], ["Hi-hat", "bx:hihat:5"], ["Shaker", "bx:shaker:0"], ["Ooh", "bx:ooh:3"], ["Sweep", "bx:sweep:0"]]] };   // rows line up by role with the other kits, so switching kits keeps the beat
+  const RC = ["#ff6b5e", "#ffb02e", "#ffd84d", "#9be564", "#4fd1c5", "#63b3ff", "#b794f4", "#f687b3"], PADKEYS = "qwerasdf";
+  // Adam's beatbox samples (assets/audio/beatbox), loudness-matched, round-robin through the takes
+  const BXB = {}, BXR = {}; let BXP = null;
+  const bxUrls = () => DK.beatbox[1].flatMap(([, k]) => { const [, f, n] = k.split(":"); return +n ? Array.from({ length: +n }, (_, i) => `assets/audio/beatbox/${f}-${i + 1}.wav`) : [`assets/audio/beatbox/${f}.wav`]; });
+  const bxLevel = b => { const d = b.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } } const r = n ? Math.sqrt(ss / n) : .1; return Math.min(.14 / Math.max(r, 1e-4), .95 / Math.max(pk, 1e-4)); };
+  function bxLoad() { if (BXP) return BXP; if (!ac()) return Promise.resolve(); BXP = Promise.all(bxUrls().map(u => fetch(u).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(a => new Promise((ok, no) => AC.decodeAudioData(a, ok, no))).then(b => { b._lv = bxLevel(b); BXB[u] = b; }).catch(() => {}))); return BXP; }
+  function drumHit(C, kind, t, v, dest) {
+    const g = C.createGain(); g.connect(dest);
+    if (kind.startsWith("bx:")) { const [, f, n] = kind.split(":"), i = BXR[f] = ((BXR[f] || 0) + 1) % (+n || 1), u = +n ? `assets/audio/beatbox/${f}-${i + 1}.wav` : `assets/audio/beatbox/${f}.wav`, b = BXB[u]; if (!b) return;
+      const src = C.createBufferSource(); src.buffer = b; g.gain.value = b._lv * (.55 + .45 * v) * 1.3; src.connect(g); src.start(t); return; }
+    const nz = (type, f, len, a, q) => { const n = C.createBufferSource(), fl = C.createBiquadFilter(), ng = C.createGain(); n.buffer = NZ; fl.type = type; fl.frequency.value = f; if (q) fl.Q.value = q; ng.gain.setValueAtTime(a * v, t); ng.gain.exponentialRampToValueAtTime(.001, t + len); n.connect(fl); fl.connect(ng); ng.connect(g); n.start(t, Math.random() * .5); n.stop(t + len + .02); };
+    const osc = (f0, f1, len, a, type) => { const o = C.createOscillator(), og = C.createGain(); if (type) o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len * .5); og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(a * v, t + .002); og.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(og); og.connect(g); o.start(t); o.stop(t + len + .02); };
+    if (kind === "k") osc(150, 45, .42, .95);
+    if (kind === "k8") osc(110, 38, .8, 1);
+    if (kind === "s") { nz("bandpass", 2000, .2, .5); osc(200, 150, .12, .3); }
+    if (kind === "c") [0, 1, 2].forEach(() => nz("bandpass", 1300, .2, .3));
+    if (kind === "r") { osc(1700, 1600, .04, .25, "square"); nz("bandpass", 3000, .03, .2); }
+    if (kind === "h") nz("highpass", 8000, .05, .25);
+    if (kind === "oh") nz("highpass", 7000, .38, .2);
+    if (kind === "y") { nz("highpass", 6000, .5, .12); osc(3200, 3100, .5, .03, "square"); }
+    if (kind === "lt") osc(140, 90, .35, .7);
+    if (kind === "ht") osc(220, 150, .28, .6);
+    if (kind === "cb") { osc(800, 790, .25, .18, "square"); osc(540, 535, .25, .18, "square"); }
+  }
+  const DM = { tr: null, aud: 0, next: 0, k: 0 };
+  const steps = tr => tr.bars * P.meter * 4;
+  function newGrid(tr) { const n = 2 * 4 * 4; tr.grid = DK[tr.kit][1].map(() => Array(n).fill(0)); }
+  function dmDraw() {
+    const tr = DM.tr; if (!tr) return; const n = steps(tr), rows = DK[tr.kit][1];
+    $("dmH").textContent = "Drum machine: " + tr.name; $("dmKit").value = tr.kit; $("dmBars").value = String(tr.bars); $("dmRep").value = tr.rep;
+    $("dmGrid").innerHTML = rows.map(([l, id], r) => `<div class="dmrow" style="--n:${n};--rc:${RC[r]}"><button type="button" class="lab" data-pad="${r}" title="Play ${l}">${esc(l)}</button>${Array.from({ length: n }, (_, k) => `<button type="button" class="stp${Math.floor(k / 4) % 2 ? " b" : ""}" data-r="${r}" data-k="${k}" aria-pressed="${!!tr.grid[r][k]}" aria-label="${esc(l)}, beat ${Math.floor(k / 4) + 1}${k % 4 ? ", sixteenth " + (k % 4 + 1) : ""}"></button>`).join("")}</div>`).join("");
+    $("pads").innerHTML = rows.map(([l], r) => `<button type="button" class="pad" data-pad="${r}" style="--rc:${RC[r]}">${esc(l)}<kbd>${PADKEYS[r].toUpperCase()}</kbd></button>`).join("");
+  }
+  function dmOpen(tr) { DM.tr = tr; $("dm").hidden = false; if (tr.kit === "beatbox") bxLoad(); dmDraw(); drawTracks(); }
+  function dmClose() { audStop(); $("dm").hidden = true; DM.tr = null; }
+  // edits made while the song plays take effect at once: restart from where the playhead is
+  function liveEdit() { drawTracks(); draw(); if (playing && !recording) { const pos = AC.currentTime - T0; stopAll(true); P.pos = Math.max(0, pos); play(false); } }
+  function padTrack() { const t = P.tracks[P.sel]; return t && t.type === "drum" ? t : DM.tr; }
+  function padHit(r) {
+    if (!ac()) return; const tr = padTrack(), kit = tr ? tr.kit : "kit", row = DK[kit][1][r]; if (!row) return;
+    if (kit === "beatbox" && !BXP) bxLoad();
+    const out = AC.createGain(); out.gain.value = tr ? tr.vol / 100 : .8; out.connect(MASTER); drumHit(AC, row[1], AC.currentTime, .95, out);
+    document.querySelectorAll(`#pads [data-pad="${r}"]`).forEach(p => { p.classList.add("hit"); setTimeout(() => p.classList.remove("hit"), 110); });
+    if (recording && recInfo && recInfo.tr === tr) { const t = AC.currentTime - T0; if (t >= recInfo.from - .05) { tr.hits.push({ t: Math.max(0, t), id: row[1], v: .95 }); draw(); } }
+  }
+  // audition: loop the pattern on its own, with a moving step light
+  function audStop() { clearInterval(DM.aud); DM.aud = 0; $("dmAud").setAttribute("aria-pressed", "false"); $("dmAud").textContent = "▶ Loop"; document.querySelectorAll(".stp.now").forEach(b => b.classList.remove("now")); }
+  function audStart() {
+    const tr = DM.tr; if (!tr || !ac()) return; if (playing) stopAll(true); if (tr.kit === "beatbox") bxLoad();
+    const out = AC.createGain(); out.gain.value = tr.vol / 100; out.connect(MASTER); DM.next = AC.currentTime + .08; DM.k = 0;
+    $("dmAud").setAttribute("aria-pressed", "true"); $("dmAud").textContent = "■ Stop loop";
+    DM.aud = setInterval(() => { const sd = beat() / 4, n = steps(tr), rows = DK[tr.kit][1];
+      while (DM.next < AC.currentTime + .12) { const k = DM.k % n, at = DM.next; tr.grid.forEach((row, r) => { if (row[k] && rows[r]) drumHit(AC, rows[r][1], at, .85, out); });
+        setTimeout(() => { document.querySelectorAll(".stp.now").forEach(b => b.classList.remove("now")); document.querySelectorAll(`.stp[data-k="${k}"]`).forEach(b => b.classList.add("now")); }, Math.max(0, (at - AC.currentTime) * 1000));
+        DM.next += sd; DM.k++; } }, 25);
+  }
+  $("dmGrid").addEventListener("click", e => { const b = e.target.closest(".stp"); if (!b || !DM.tr) return; const r = +b.dataset.r, k = +b.dataset.k; DM.tr.grid[r][k] = DM.tr.grid[r][k] ? 0 : 1; b.setAttribute("aria-pressed", String(!!DM.tr.grid[r][k])); if (DM.tr.grid[r][k] && !DM.aud) padHit(r); liveEdit(); });
+  const padDown = e => { const b = e.target.closest("[data-pad]"); if (!b) return; e.preventDefault(); padHit(+b.dataset.pad); };
+  $("pads").addEventListener("pointerdown", padDown); $("dmGrid").addEventListener("pointerdown", e => { if (e.target.closest(".lab")) padDown(e); });
+  $("pads").addEventListener("keydown", e => { const b = e.target.closest("[data-pad]"); if (b && (e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); padHit(+b.dataset.pad); } });
+  $("dmKit").innerHTML = Object.entries(DK).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("");
+  $("dmKit").onchange = e => { if (!DM.tr) return; DM.tr.kit = e.target.value; if (DM.tr.kit === "beatbox") bxLoad(); dmDraw(); liveEdit(); };
+  $("dmBars").onchange = e => { if (!DM.tr) return; DM.tr.bars = +e.target.value; dmDraw(); liveEdit(); };
+  $("dmRep").onchange = e => { if (!DM.tr) return; DM.tr.rep = Math.max(1, Math.min(128, Math.round(+e.target.value) || 8)); e.target.value = DM.tr.rep; liveEdit(); };
+  $("dmAud").onclick = () => DM.aud ? audStop() : audStart();
+  $("dmClr").onclick = () => { if (!DM.tr) return; undoSnap = { id: DM.tr.id, grid: DM.tr.grid.map(r => r.slice()) }; $("undo").disabled = false; newGrid(DM.tr); dmDraw(); liveEdit(); };
+  $("dmClose").onclick = dmClose;
+  function addDrums() {
+    const tr = addTrack("drum", { name: `Drums ${nextId}`, kit: "kit", bars: 1, rep: 8, hits: [], grid: DK.kit[1].map(() => Array(32).fill(0)), color: "#e0823a" });
+    [0, 8].forEach(k => tr.grid[0][k] = 1); [4, 12].forEach(k => tr.grid[1][k] = 1); for (let k = 0; k < 16; k += 2) tr.grid[4][k] = 1;   // a basic rock beat to start from
+    drawTracks(); draw(); dmOpen(tr); status("A drum track with a basic beat. Change the steps, pick a kit (Beatbox uses Adam's samples), or play the pads.");
+  }
 
   // ---------- buttons ----------
   $("play").onclick = () => playing ? stopAll() : play(false);
@@ -330,7 +457,15 @@ main.tool .daw .bar label input[type=range]{width:110px}
   $("home").onclick = () => { if (playing) stopAll(true); P.pos = 0; document.querySelector(".lanewrap").scrollLeft = 0; draw(); clock(); };
   $("addSynth").onclick = () => addTrack("synth");
   $("addAudio").onclick = () => addTrack("audio");
-  $("undo").onclick = () => { if (!undoSnap) return; const t = P.tracks.find(x => x.id === undoSnap.id); if (t) { if (undoSnap.notes) t.notes = undoSnap.notes; if ("buf" in undoSnap) { t.buf = undoSnap.buf; t.start = undoSnap.start || 0; t.peaks = null; } } undoSnap = null; $("undo").disabled = true; drawTracks(); draw(); status("Undone."); };
+  $("addDrum").onclick = () => addDrums();
+  // Groove Maker, embedded: it posts its rendered groove back here
+  const gmShow = on => { $("gm").hidden = !on; $("addGroove").setAttribute("aria-expanded", String(on)); if (on && !$("gmFrame").src) $("gmFrame").src = "groove-maker.html"; if (on) $("gm").scrollIntoView({ block: "nearest" }); };
+  $("addGroove").onclick = () => gmShow($("gm").hidden); $("gmClose").onclick = () => gmShow(false);
+  window.addEventListener("message", e => { if (e.origin !== location.origin || !e.data || e.data.type !== "sa-groove" || !ac()) return; const x = e.data;
+    const buf = AC.createBuffer(2, x.ch[0].length, x.sr); buf.getChannelData(0).set(x.ch[0]); buf.getChannelData(1).set(x.ch[1]);
+    if (!P.tracks.some(t => t.buf || (t.notes && t.notes.length) || (t.hits && t.hits.length))) { P.bpm = x.bpm; P.meter = x.meter; $("bpm").value = x.bpm; $("meter").value = String(x.meter); }
+    addTrack("audio", { name: x.name, buf, color: "#555" }); status(`Added “${x.name}” as a track at ${P.bpm} BPM. Record over it, or add drums and a melody.`); });
+  $("undo").onclick = () => { if (!undoSnap) return; const t = P.tracks.find(x => x.id === undoSnap.id); if (t) { if (undoSnap.notes) t.notes = undoSnap.notes; if (undoSnap.hits) t.hits = undoSnap.hits; if (undoSnap.grid) t.grid = undoSnap.grid; if ("buf" in undoSnap) { t.buf = undoSnap.buf; t.start = undoSnap.start || 0; t.peaks = null; } } undoSnap = null; $("undo").disabled = true; drawTracks(); draw(); status("Undone."); };
   $("file").onchange = async e => { const f = e.target.files[0]; if (!f || !ac()) return; try { const buf = await AC.decodeAudioData(await f.arrayBuffer()); addTrack("audio", { name: f.name.replace(/\.[^.]+$/, ""), buf }); status(`Opened ${f.name}.`); } catch (x) { status("This browser couldn't read that file."); } e.target.value = ""; };
   $("bpm").onchange = e => { P.bpm = Math.max(40, Math.min(220, +e.target.value || 100)); draw(); };
   $("meter").onchange = e => { P.meter = +e.target.value; draw(); };
@@ -373,6 +508,6 @@ main.tool .daw .bar label input[type=range]{width:110px}
   }
   drawKbd(); drawTracks(); draw(); clock();
   if (/from=lab/.test(location.hash)) incoming();
-  window.__studio = { P, addTrack, noteOn, noteOff, play, stopAll, record, projLen };   // used by automated tests
+  window.__studio = { P, addTrack, noteOn, noteOff, play, stopAll, record, projLen, padHit, addDrums };   // used by automated tests
 })();
 </script>
