@@ -97,6 +97,11 @@ window.FAM = (() => {
   const ROW = (label, chords) => `<tr><th scope="row">${label}</th><td>${chords.map(c => `<span class="ps-ch">${c}</span>`).join("")}</td></tr>`;
   const CHART = (cap, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable ps-chart"><caption>${cap}</caption><tbody>${rows.join("")}</tbody></table></div>`;
 
+  // chord reductions for the songs without one of Adam's lead sheets: block chords only (no melody, no lyrics), with chord symbols and Roman numerals
+  const RED = (H, U, vf, sig, cols, cap) => U.fig({ type: "grand", vf, sig, syms: true, cols: cols.map(([sym, t, b, lab]) => ({ sym, t, b: [b], lab, labNear: true })) }, cap,
+    { play: { chords: cols.map(([, t, b]) => t.concat([b]).map(x => H.midi(H.parse(x)))), gap: 1.1, dur: .95 } });
+  const BLOOM = [["B♭", ["B♭4", "F5"], "B♭2", "I"], ["G♭", ["G♭4", "D♭5"], "G♭2", "♭VI"], ["E♭", ["E♭4", "B♭4"], "E♭2", "IV"], ["B", ["B4", "F♯5"], "B2", "♭II"], ["A", ["A4", "E5"], "A2", "VII"], ["D", ["D5", "A5"], "D3", "III"]];
+  const FAST = [["E", ["E4", "G♯4", "B4"], "E3", "V"], ["D", ["D4", "F♯4", "A4"], "D3", "IV"], ["A", ["C♯4", "E4", "A4"], "A2", "I"], ["F♯m", ["C♯4", "F♯4", "A4"], "F♯2", "vi"], ["E", ["B3", "E4", "G♯4"], "E3", "V"], ["D", ["D4", "F♯4", "A4"], "D3", "IV"], ["F♯m", ["C♯4", "F♯4", "A4"], "F♯2", "vi"], ["E", ["B3", "E4", "G♯4"], "E3", "V"]];
   const lesson = { steps: [
     { title: "How this works", kick: "Before you start", render: () => `<p>Five songs, one per step. Play the recording, look at the chords, and talk through the questions before anyone opens the <b>Analysis</b>. Most of these progressions do something the chart in <a href="harmonic-succession-lesson.html">Harmonic Succession</a> predicts. A couple don't, and those are the interesting ones.</p>
       <p>For each song, look for two things. Which chords carry the progression, and which ones only fill in or decorate? And where does the harmony move toward the tonic, where does it stall, and where does it go backward?</p>` },
@@ -113,14 +118,16 @@ window.FAM = (() => {
         <p>The first five roots fall by 5ths: A, D, G, C, F. That's a descending-fifths sequence, and from {rn:VII} on it follows the minor chart box by box: {rn:VII} → {rn:III} → {rn:VI} → {rn:iv} → {rn:V}. The phrase stops on {rn:V}, a half cadence, which is why the next line has to come.</p>
         <p>D7 is a major {rn:IV} with an F♯, the raised 6th degree. It makes the opening a little brighter than plain natural minor would.</p>`) },
 
-    { title: "Nirvana, “In Bloom”", kick: "Chromatic power chords", render: () => FIG(AUD("in-bloom", "Nirvana, In Bloom, excerpt"), "Nirvana, “In Bloom” (1991), Kurt Cobain.")
+    { title: "Nirvana, “In Bloom”", kick: "Chromatic power chords", render: (H, k, U) => FIG(AUD("in-bloom", "Nirvana, In Bloom, excerpt"), "Nirvana, “In Bloom” (1991), Kurt Cobain.")
+      + RED(H, U, "Bb", { 6: -1, 2: -1 }, BLOOM, "The verse's chords as power chords (root and 5th over the root), Roman numerals in B♭ major. The last chord, D, replaces A at the end of line 4. Melody not shown.")
       + CHART("“In Bloom,” verse (lyrics omitted)", [ROW("Line 1", ["B♭", "G♭", "E♭", "B", "A"]), ROW("Line 2", ["B♭", "G♭", "E♭", "B", "A"]), ROW("Line 3", ["B♭", "G♭", "E♭", "B", "A"]), ROW("Line 4", ["B♭", "G♭", "E♭", "B", "D"])])
       + QS(["Which of these chords belong to B♭ major? Which don't?", "How do the roots move? Look at the distance from each chord to the next.", "Nothing here works like a dominant. How does A lead back to B♭ anyway?"])
       + ANS(`<p>Only B♭ ({rn:I}) and E♭ ({rn:IV}) belong to B♭ major. G♭ is {rn:♭VI}, borrowed from B♭ minor. B is really C♭, a {rn:♭II}. A is a major chord on the leading tone.</p>
         <p>The roots fall by 3rds: B♭ down to G♭ (a major 3rd), G♭ down to E♭ (a minor 3rd), E♭ down to B (another major 3rd), then a step down to A. A goes back to B♭ by a half step in the bass, so it does the leading tone's job without being a dominant chord.</p>
         <p>These are power chords, the same hand shape slid up and down the neck. The progression comes from the guitar as much as from any theory of function. The fourth line swaps A for D, a chromatic mediant, to break the loop before the chorus.</p>`) },
 
-    { title: "Tracy Chapman, “Fast Car”", kick: "Where's home?", render: () => FIG(AUD("fast-car", "Tracy Chapman, Fast Car, excerpt"), "Tracy Chapman, “Fast Car” (1988).")
+    { title: "Tracy Chapman, “Fast Car”", kick: "Where's home?", render: (H, k, U) => FIG(AUD("fast-car", "Tracy Chapman, Fast Car, excerpt"), "Tracy Chapman, “Fast Car” (1988).")
+      + RED(H, U, "A", { 3: 1, 0: 1, 4: 1 }, FAST, "The verse's chords, lines 1 to 4, as block chords with Roman numerals in A major (the analysis below tries E as well). Melody not shown.")
       + CHART("“Fast Car,” verse (lyrics omitted)", [ROW("Lines 1–2", ["E", "D", "A"]), ROW("Line 3", ["F♯m", "E"]), ROW("Line 4", ["D", "F♯m", "E"]), ROW("Line 5", ["D", "F♯m", "E", "D", "E"])])
       + QS(["Which chord sounds like home? Vote before you argue.", "Give Roman numerals with A as the tonic. Now do it again with E as the tonic.", "What chord never shows up that would settle the question?"])
       + ANS(`<p>Two readings work. In A major: <b>E – D – A</b> is {rn:V} – {rn:IV} – {rn:I}, and the later lines are {rn:vi} – {rn:V} and {rn:IV} – {rn:vi} – {rn:V}. In E: {rn:I} – {rn:♭VII} – {rn:IV}, then {rn:ii} – {rn:I} and {rn:♭VII} – {rn:ii} – {rn:I}, which is E <b>Mixolydian</b> (E major with a lowered 7th, D♮).</p>

@@ -526,3 +526,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z156 (2026-11-15)
 - Cadences, Four cadences in one song: hotspot boxes redrawn so no border crosses text: IAC and Turn boxes cover the chord symbols and staff only (not the lyric line), split cleanly before C#o7; labels sit above the boxes (.cad-map has top margin); smaller labels under 560px.
 - Lightbox: the Enlarge button now sits under each image (span.sa-lb-under) instead of on top of it.
+
+## z157 (2026-11-15)
+- Chord Progressions in Real Songs: In Bloom and Fast Car (no lead-sheet images yet) get generated chord reductions: block chords with chord symbols and Roman numerals, playable; no melody or lyrics. Betty, Wild World and Prelude to a Kiss already use Adam's lead sheets. Waiting on Adam's typeset lead sheets for the other two.
