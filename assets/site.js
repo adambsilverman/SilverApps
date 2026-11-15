@@ -233,14 +233,14 @@ window.SAquiz = (function () {
   try { window.parent.postMessage({ type: "silverapps-ready", page: (location.pathname.split("/").pop() || "").replace(/\.html?$/, "") }, "*"); } catch (e) {}
 })();
 
-/* ===== Enlarge notation: every <figure> holding notation (an engine staff or a score image) gets an "Enlarge" button that opens it
-   full-screen in a <dialog>. Lessons re-render figures as steps change, so a MutationObserver keeps adding buttons. ===== */
+/* ===== Enlarge music images: every score image on a page (not the generated staves) can be clicked, or opened with its
+   "Enlarge" button, to view it full-screen in a <dialog>. Lessons re-render as steps change, so a MutationObserver keeps up. ===== */
 (function () {
   var dlg = null;
-  function open(fig) {
-    var src = fig.querySelector(".staff svg") || fig.querySelector("img"); if (!src) return;
+  function open(box) {
+    var imgs = Array.prototype.filter.call(box.querySelectorAll("img"), function (im) { return !im.hidden && getComputedStyle(im).display !== "none"; }); if (!imgs.length) return;
     if (!dlg) {
-      dlg = document.createElement("dialog"); dlg.className = "sa-lb"; dlg.setAttribute("aria-label", "Enlarged notation");
+      dlg = document.createElement("dialog"); dlg.className = "sa-lb"; dlg.setAttribute("aria-label", "Enlarged music");
       dlg.innerHTML = '<div class="sa-lb-bar"><button type="button" class="sa-lb-zoom" aria-pressed="false">Zoom in</button><button type="button" class="sa-lb-x">Close ✕</button></div><div class="sa-lb-body"></div><p class="sa-lb-cap"></p>';
       document.body.appendChild(dlg);
       dlg.querySelector(".sa-lb-x").addEventListener("click", function () { dlg.close(); });
@@ -248,28 +248,30 @@ window.SAquiz = (function () {
       dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
       dlg.addEventListener("close", function () { dlg.querySelector(".sa-lb-body").innerHTML = ""; if (dlg._from) try { dlg._from.focus(); } catch (e) {} });
     }
-    var body = dlg.querySelector(".sa-lb-body"), c;
-    if (src.tagName.toLowerCase() === "img") { c = document.createElement("img"); c.src = src.currentSrc || src.src; c.alt = src.alt || ""; }
-    else { c = src.cloneNode(true); c.removeAttribute("width"); c.removeAttribute("height"); c.style.width = ""; c.style.height = ""; c.setAttribute("role", "img"); c.setAttribute("aria-label", "Enlarged notation"); c.querySelectorAll("[id]").forEach(function (n) { n.removeAttribute("id"); }); }
-    body.innerHTML = ""; body.appendChild(c);
-    var cap = fig.querySelector("figcaption"); dlg.querySelector(".sa-lb-cap").textContent = cap ? cap.textContent.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+    var body = dlg.querySelector(".sa-lb-body"), st = document.createElement("div"); st.className = "sa-lb-stack";
+    imgs.forEach(function (im, i) { var c = document.createElement("img"); c.src = im.currentSrc || im.src; c.alt = i ? "" : (im.alt || ""); if (i) c.className = "sa-lb-layer"; st.appendChild(c); });   // layered images (labels over a score) stay stacked
+    body.innerHTML = ""; body.appendChild(st);
+    var fig = box.closest("figure"), cap = fig && fig.querySelector("figcaption"), cc = cap && cap.cloneNode(true); if (cc) cc.querySelectorAll("button, .fair-use, [data-fair-use]").forEach(function (x) { x.remove(); }); dlg.querySelector(".sa-lb-cap").textContent = cc ? cc.textContent.replace(/\s+/g, " ").trim().slice(0, 300) : "";
     dlg.classList.remove("zoom"); var zb = dlg.querySelector(".sa-lb-zoom"); zb.setAttribute("aria-pressed", "false"); zb.textContent = "Zoom in";
-    dlg._from = document.activeElement;
-    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    dlg._from = document.activeElement; if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   }
-  function scan(root) {
-    (root.querySelectorAll ? root : document).querySelectorAll("figure").forEach(function (fig) {
-      if (fig.dataset.lb || fig.closest(".sa-lb")) return;
-      if (!fig.querySelector(".staff, img")) return;
-      fig.dataset.lb = "1"; fig.classList.add("sa-lb-fig");
-      var b = document.createElement("button"); b.type = "button"; b.className = "sa-lb-btn"; b.innerHTML = '<span aria-hidden="true">⤢</span> Enlarge';
-      b.setAttribute("aria-label", "Enlarge this example");
-      b.addEventListener("click", function () { open(fig); });
-      fig.appendChild(b);
+  function big(im) { var w = +im.getAttribute("width") || im.naturalWidth || 0; return w >= 400; }
+  function scan() {
+    document.querySelectorAll("img").forEach(function (im) {
+      if (im.dataset.lb || im.closest(".sa-lb, .site-strip, .fi-credit, button, a") || !big(im)) return;
+      var par = im.parentElement, box;
+      if (par.dataset.lbBox) { im.dataset.lb = "1"; return; }   // a second layer in a box already handled
+      if (getComputedStyle(par).position !== "static" && par.tagName !== "FIGURE") box = par;   // e.g. a hotspot map or layered labels
+      else { box = document.createElement("span"); box.className = "sa-lb-wrap"; par.insertBefore(box, im); box.appendChild(im); }
+      box.dataset.lbBox = "1"; box.classList.add("sa-lb-box"); im.dataset.lb = "1";
+      box.querySelectorAll("img").forEach(function (x) { x.dataset.lb = "1"; x.classList.add("sa-lb-img"); });
+      var b = document.createElement("button"); b.type = "button"; b.className = "sa-lb-btn"; b.innerHTML = '<span aria-hidden="true">⤢</span> Enlarge'; b.setAttribute("aria-label", "Enlarge this music");
+      b.addEventListener("click", function (e) { e.stopPropagation(); open(box); }); box.appendChild(b);
+      box.addEventListener("click", function (e) { if (e.target.closest("button, a, .cad-hs")) return; if (e.target.tagName === "IMG") open(box); });
     });
   }
   var t = null;
-  function kick() { clearTimeout(t); t = setTimeout(function () { scan(document); }, 120); }
+  function kick() { clearTimeout(t); t = setTimeout(scan, 120); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", kick); else kick();
   try { new MutationObserver(kick).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
 })();

@@ -244,9 +244,37 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .sykb .sykey.blk { position: absolute; top: 0; width: calc(100% / 15 * .6); height: 60%; background: #222; border: 1.5px solid #000; border-radius: 0 0 4px 4px !important; z-index: 2; }
 .sykb .sykey.on.wht { background: #F7C3B5; } .sykb .sykey.on.blk { background: #E8573F; }
 .sykb .sykey:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -3px; }
-.sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
-.sygrid .sl { display: grid; gap: 2px; font-weight: 600; font-size: 15px; }
-.sygrid output { font: 13px var(--mono); }
+/* the synth as a compact, dark instrument panel (matches the Multitrack Studio) */
+#syToy.sydaw { --tx: #e9eaec; --mu: #b4b8bf; --hl: #ffb02e; background: #1d1e21; color: var(--tx); border: 1px solid #000; border-radius: 10px; padding: 0; gap: 0; overflow: hidden; font: 13px/1.3 var(--ui, system-ui, sans-serif); }
+#syToy .sybar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 10px; background: linear-gradient(#34363b, #2a2c30); border-bottom: 1px solid #000; }
+#syToy .sylbl { font: 700 10px var(--ui, sans-serif); text-transform: uppercase; letter-spacing: .07em; color: var(--mu); }
+#syToy .sysep { width: 1px; align-self: stretch; background: #000; margin: 0 4px; }
+#syToy .synote { font-size: 11px; color: var(--mu); margin: 0; flex: 1; min-width: 180px; }
+#syToy > .synote { padding: 4px 10px 8px; }
+#syToy .synote a { color: #ffc766; }
+#syToy .syb { font: 700 12px/1.1 var(--ui, sans-serif) !important; text-transform: none !important; letter-spacing: .02em !important; border-radius: 5px !important; border: 1px solid #0b0b0c !important; background: linear-gradient(#45484e, #36383d) !important; color: var(--tx) !important; padding: 4px 8px !important; min-height: 28px !important; min-width: 0 !important; box-shadow: none !important; cursor: pointer; gap: 0 !important; }
+#syToy .syb:hover { background: linear-gradient(#50535a, #3e4046) !important; }
+#syToy .syb[aria-pressed="true"] { background: #e8e8ea !important; color: #111 !important; }
+#syToy .syb:focus-visible, #syToy input:focus-visible, #syToy select:focus-visible { outline: 2px solid var(--hl); outline-offset: 1px; }
+#syToy .sytop { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; background: #26282c; border-bottom: 1px solid #000; }
+#syToy #syScope { width: 100%; height: auto; display: block; background: #0c120c; border: 1px solid #000; border-radius: 5px; box-shadow: inset 0 0 8px rgba(0,0,0,.8); }
+#syToy .sylcd { margin: 0; font: 700 12px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #9df59d; background: #0c120c; border: 1px solid #000; border-radius: 5px; padding: 6px 9px; width: 15ch; text-align: center; }
+#syToy .sylcd b { font-size: 18px; display: block; }
+@media (max-width: 560px) { #syToy .sytop { grid-template-columns: 1fr; } #syToy .sylcd { width: auto; } #syToy .sylcd b { display: inline; font-size: 15px; margin-right: 6px; } #syToy .sylcd br { display: none; } }
+#syToy .sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; padding: 8px 10px; background: #1a1b1e; }
+#syToy .sysec { background: #26282c; border: 1px solid #000; border-radius: 6px; padding: 5px 7px 7px; display: grid; gap: 3px; align-content: start; }
+#syToy .sysec h4 { font: 800 11px var(--ui, sans-serif); text-transform: uppercase; letter-spacing: .07em; margin: 0 0 2px; color: var(--hl); }
+#syToy label.syrow { display: grid !important; grid-template-columns: 70px 1fr 54px; align-items: center; gap: 4px; font: 600 11px var(--ui, sans-serif); color: var(--mu); }
+#syToy label.syck { display: flex !important; gap: 6px; align-items: center; font: 600 11px var(--ui, sans-serif); color: var(--mu); }
+#syToy .syrow input[type=range] { width: 100%; min-width: 0; margin: 0; accent-color: var(--hl); }
+#syToy .syrow output { font: 600 10px ui-monospace, Menlo, monospace; color: var(--tx); text-align: right; white-space: nowrap; }
+#syToy .syrow select { font: 12px var(--ui, sans-serif) !important; min-height: 22px !important; height: 22px; padding: 0 4px !important; border-radius: 4px !important; background: #15161a !important; color: var(--tx) !important; border: 1px solid #0b0b0c !important; }
+#syToy #syKb { padding: 8px 10px 4px; background: #26282c; border-top: 1px solid #000; }
+#syToy .sykb { height: 120px; max-width: none; }
+#syToy .sykb .sykey.wht { border-color: #222; border-radius: 0 0 4px 4px !important; background: linear-gradient(#f4f4f4, #fff); color: #555; }
+#syToy .sykb .sykey.blk { background: linear-gradient(#333, #111); }
+#syToy .sykb .sykey.on.wht { background: #ffd27a; } #syToy .sykb .sykey.on.blk { background: #c98a00; }
+#syToy .sykb .sykey:focus-visible { outline: 2px solid var(--hl); }
 /* answer pickers (intervals: any interval / any pitch) */
 .pick { display: grid; gap: 10px; justify-items: center; }
 .pick-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }

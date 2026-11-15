@@ -502,3 +502,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z150 — Studio drum machine + Groove Maker inside the studio
 - multitrack-studio.html: "+ Drums" adds a drum track (kit, 1–2 bar 16th-step pattern, repeat N bars, recorded pad hits); drum machine panel (#dm: grid, ▶ Loop audition, pads Q W E R / A S D F, tap/click) — kits Drum kit, 808, Beatbox (Adam's samples, rows aligned by role); hits recordable, quantizable, exported. "+ Groove Maker" opens groove-maker.html in an iframe; its "Add to the studio" posts the rendered groove (postMessage sa-groove) as a new audio track.
 - groove-maker.html: dark compact skin on .gpbox; embed mode (html.gp-embed) hides site chrome.
+
+## z151 (2026-11-15)
+- Multitrack Studio: per-track effects rack (compressor, EQ, distortion, chorus, flanger, phaser, vibrato, tremolo, delay, reverb; reorder/bypass, live knobs, included in export); "Mini synth" instrument (the Introduction to Pitch synth, per-track settings + presets); arpeggiator for synth tracks (ascending/descending/up-down/skipping/random; 32nd, 16th-triplet, 16th, 8th-triplet, 8th; 1-2 octaves; live and playback); Vocal Tuner embedded (Tune button on audio tracks; vocal-tuner.html embed mode posts the result back: replace or new track); timeline editor, Add/Replace recording, all meters.
+- Introduction to Pitch: synth restyled as a compact dark panel (sectioned knobs, LCD readout, green scope).
+- Lightbox on music images only; cadences: Dylan chord chart removed (sheet music still to come), Hear-it column and Phrygian HC removed.

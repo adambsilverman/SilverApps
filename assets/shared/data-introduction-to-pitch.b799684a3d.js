@@ -258,20 +258,23 @@ window.FAM = (() => {
     const k = document.querySelector(`[data-sykey="${m}"]`); if (k) k.classList.remove("on");
   }
   const syAllOff = () => Object.keys(SY.voices).forEach(m => syOff(+m));
-  function syShow(m) { const el = document.getElementById("syNote"); if (el) el.innerHTML = `<b>${NN[m % 12]}${Math.floor(m / 12) - 1}</b> · MIDI ${m} · ${syHz(m).toFixed(1)} Hz`; }
+  function syShow(m) { const el = document.getElementById("syNote"); if (el) el.innerHTML = `<b>${NN[m % 12]}${Math.floor(m / 12) - 1}</b>MIDI ${m}<br>${syHz(m).toFixed(1)} Hz`; }
   function syScope() {
     const cv = document.getElementById("syScope"); if (!cv || !SY.an) { SY.raf = 0; return; }
     const c = cv.getContext("2d"), W = cv.width, Hh = cv.height, d = new Float32Array(SY.an.fftSize); SY.an.getFloatTimeDomainData(d);
     let st = 0; for (let i = 1; i < d.length / 2; i++) if (d[i - 1] < 0 && d[i] >= 0) { st = i; break; }   // trigger on a rising zero crossing so the wave stands still
-    c.clearRect(0, 0, W, Hh); c.strokeStyle = "rgba(0,0,0,.15)"; c.beginPath(); c.moveTo(0, Hh / 2); c.lineTo(W, Hh / 2); c.stroke();
+    c.clearRect(0, 0, W, Hh); c.strokeStyle = "rgba(157,245,157,.18)"; c.beginPath(); c.moveTo(0, Hh / 2); c.lineTo(W, Hh / 2); c.stroke();
     let pk = .05; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); SY.pk = Math.max(pk, (SY.pk || .05) * .97);   // auto-scale, easing back down slowly
-    c.strokeStyle = "#E8573F"; c.lineWidth = 2; c.beginPath(); const n = 900; for (let i = 0; i < n; i++) { const x = i / n * W, y = Hh / 2 - (d[st + i] || 0) / SY.pk * Hh * .42; i ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
+    c.strokeStyle = "#9df59d"; c.lineWidth = 2; c.beginPath(); const n = 900; for (let i = 0; i < n; i++) { const x = i / n * W, y = Hh / 2 - (d[st + i] || 0) / SY.pk * Hh * .42; i ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
     SY.raf = requestAnimationFrame(syScope);
   }
   const syFmt = (k, v) => { const sp = SYK.find(x => x[0] === k); return (k === "cut" ? Math.round(v) : +(+v).toFixed(sp[4] < .01 ? 3 : sp[4] < 1 ? 2 : 0)) + sp[5]; };
+  const SYG = [["Oscillators", ["sy", "det"]], ["Filter", ["cut", "q", "env"]], ["Envelope", ["a", "d", "s", "r"]], ["Vibrato and level", ["lfoD", "lfoR", "vol"]]];
+  const SYSHORT = { det: "Detune", cut: "Cutoff", q: "Resonance", env: "Env → filter", a: "Attack", d: "Decay", s: "Sustain", r: "Release", lfoD: "Depth", lfoR: "Speed", vol: "Volume" };
   function syKnobs() {
-    return SYK.map(([k, l, mn, mx, st]) => k === "sy" ? `<label class="sl">${l}<select id="syWave">${["sine", "triangle", "square", "sawtooth"].map(w => `<option value="${w}"${SY.wave === w ? " selected" : ""}>${w}</option>`).join("")}</select></label><label class="sl"><span><input type="checkbox" id="syOsc2"${SY.osc2 ? " checked" : ""}> Oscillator 2 (a second, detuned copy)</span></label>`
-      : `<label class="sl">${l}<input type="range" data-syk="${k}" min="${mn}" max="${mx}" step="${st}" value="${SY[k]}"><output data-syo="${k}">${syFmt(k, SY[k])}</output></label>`).join("");
+    return SYG.map(([h, ks]) => `<div class="sysec" role="group" aria-label="${h}"><h4>${h}</h4>${ks.map(k => { const sp = SYK.find(x => x[0] === k), [, l, mn, mx, st] = sp;
+      return k === "sy" ? `<label class="syrow">Wave<select id="syWave">${["sine", "triangle", "square", "sawtooth"].map(w => `<option value="${w}"${SY.wave === w ? " selected" : ""}>${w}</option>`).join("")}</select><span></span></label><label class="syck"><input type="checkbox" id="syOsc2"${SY.osc2 ? " checked" : ""}> Oscillator 2 (detuned copy)</label>`
+        : `<label class="syrow"><span title="${l}">${SYSHORT[k]}</span><input type="range" data-syk="${k}" min="${mn}" max="${mx}" step="${st}" value="${SY[k]}" aria-label="${l}"><output data-syo="${k}">${syFmt(k, SY[k])}</output></label>`; }).join("")}</div>`).join("");
   }
   function syKeys() {
     const base = 48 + 12 * SY.oct; let w = "", b = "", wi = 0;
@@ -281,15 +284,13 @@ window.FAM = (() => {
     return `<div class="sykb" role="group" aria-label="Keyboard: press keys to play">${w}${b}</div>`;
   }
   function synthToy() {
-    return `<div class="toy" id="syToy">
-      <div class="toy-row" role="group" aria-label="Presets">${Object.keys(SYP).map(n => `<button class="play" data-sypre="${n}">${n}</button>`).join("")}</div>
-      <canvas id="syScope" width="560" height="110" aria-hidden="true" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;background:var(--fi-paper, #fbf6ec);border-radius:10px"></canvas>
-      <p class="msinfo" id="syNote" aria-live="polite" style="margin:0;text-align:center">Play a key: the note, its MIDI number and its frequency appear here.</p>
-      <div class="toy-row"><button class="play" data-syoct="-1" aria-label="Octave down">◀ octave</button><span id="syOctL" class="msinfo">C${3 + SY.oct}–C${5 + SY.oct}</span><button class="play" data-syoct="1" aria-label="Octave up">octave ▶</button></div>
+    return `<div class="toy sydaw" id="syToy">
+      <div class="sybar" role="group" aria-label="Presets"><span class="sylbl">Presets</span>${Object.keys(SYP).map(n => `<button type="button" class="syb" data-sypre="${n}">${n}</button>`).join("")}</div>
+      <div class="sytop"><canvas id="syScope" width="560" height="96" aria-hidden="true"></canvas><p class="sylcd" id="syNote" aria-live="polite">Play a key: its note, MIDI number and frequency show here.</p></div>
+      <div class="sygrid" id="syKnobs">${syKnobs()}</div>
+      <div class="sybar"><button type="button" class="syb" data-syoct="-1" aria-label="Octave down">◀ Oct</button><span id="syOctL" class="sylbl" style="min-width:5.5em;text-align:center">C${3 + SY.oct}–C${5 + SY.oct}</span><button type="button" class="syb" data-syoct="1" aria-label="Octave up">Oct ▶</button><span class="sysep" aria-hidden="true"></span><button type="button" class="syb" id="syMidi" aria-pressed="false">MIDI keyboard</button><span class="synote" id="syMidiS" aria-live="polite">Plug in a USB or Bluetooth MIDI keyboard, then press this (Chrome, Edge, Firefox or Opera).</span></div>
       <div id="syKb">${syKeys()}</div>
-      <p class="small" style="margin:0">Click or touch the keys (hold for a long note), or select a key and type on your computer keyboard: A W S E D F T G Y H U J K… play the white and black keys from C.</p>
-      <div class="toy-row"><button class="play" id="syMidi" aria-pressed="false">Use a MIDI keyboard</button><span class="small" id="syMidiS" aria-live="polite" style="flex:1;min-width:200px">Plug in a USB or Bluetooth MIDI keyboard, then press this (Chrome, Edge, Firefox or Opera).</span></div>
-      <div class="sygrid" id="syKnobs">${syKnobs()}</div></div>`;
+      <p class="synote">Click or touch the keys (hold for a long note), or select a key and type on your computer keyboard: A W S E D F T G Y H U J K… play the white and black keys from C. The same synth is in the <a href="multitrack-studio.html">Multitrack Studio</a>: choose “Mini synth” on a synth track.</p></div>`;
   }
   if (!window.__syWired) { window.__syWired = true;
     const down = new Set();

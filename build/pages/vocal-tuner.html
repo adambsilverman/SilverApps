@@ -26,6 +26,27 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem;color:var(--fi-muted)}
 .legend i{display:inline-block;width:18px;height:4px;vertical-align:middle;margin-right:5px;border-radius:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#vtBack{display:none}
+/* inside the Multitrack Studio (iframe): dark and compact, the clip comes from the studio */
+html.vt-embed .site-strip,html.vt-embed .fi-credit,html.vt-embed .tool > header,html.vt-embed .skip,html.vt-embed #inBox,html.vt-embed #expBox{display:none!important}
+html.vt-embed #vtBack{display:flex}
+html.vt-embed body{background:#1d1e21;color:#e9eaec}
+html.vt-embed .tool{padding:0;max-width:none;gap:8px}
+html.vt-embed .panel2{background:#26282c;border:1px solid #000;border-radius:6px;box-shadow:none;padding:8px 10px;gap:8px;color:#e9eaec}
+html.vt-embed .panel2 h2{display:none}
+html.vt-embed .tbtn{font:700 12px/1.1 var(--fi-ui)!important;text-transform:none!important;letter-spacing:.02em;border-radius:5px!important;border:1px solid #0b0b0c!important;background:linear-gradient(#45484e,#36383d)!important;color:#e9eaec!important;padding:5px 9px!important;min-height:30px!important;box-shadow:none!important}
+html.vt-embed .tbtn.primary{background:linear-gradient(#3f8f4d,#2f6f3b)!important;color:#fff!important}
+html.vt-embed .tbtn[aria-pressed="true"]{background:#e8e8ea!important;color:#111!important}
+html.vt-embed .tbtn:focus-visible{outline:2px solid #ffb02e;outline-offset:1px}
+html.vt-embed label.fld{font:700 10px var(--fi-ui);color:#b4b8bf;gap:2px}
+html.vt-embed label.fld output{color:#e9eaec;font:600 12px ui-monospace,Menlo,monospace}
+html.vt-embed select{font:13px var(--fi-ui)!important;min-height:26px!important;height:26px;padding:2px 6px!important;border-radius:4px!important;background:#15161a!important;color:#e9eaec!important;border:1px solid #0b0b0c!important;box-shadow:none!important}
+html.vt-embed input[type=range]{accent-color:#ffb02e;width:150px}
+html.vt-embed .row{gap:6px 12px}
+html.vt-embed .presets{gap:4px}
+html.vt-embed .note,html.vt-embed .legend{color:#b4b8bf;font-size:11px}
+html.vt-embed .status{font:600 12px var(--fi-ui);color:#b4b8bf}
+html.vt-embed #graph{height:170px;background:#17181b;border-color:#000}
 </style>
 
 <main class="tool" id="main">
@@ -34,7 +55,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     <p>Pitch-correct a vocal the way Auto-Tune does, move it to another key, shift its formants, add harmonies, or play with voice effects. Your recording never leaves your device. Learn how pitch correction works in <a href="music-software-lesson.html#step=9">About Music Software: Editing and pitch correction</a>.</p>
   </header>
 
-  <section class="panel2" aria-labelledby="h-in">
+  <section class="panel2" aria-labelledby="h-in" id="inBox">
     <h2 id="h-in">1. A vocal clip</h2>
     <div class="drop" id="drop"><p><b>Drop a recording here</b> or choose a file (WAV, MP3, M4A…). A dry solo voice works best: one singer, no instruments, little reverb. Up to 2 minutes.</p>
       <label class="sr" for="file">Audio file</label><input type="file" id="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.aif,.aiff,.webm"></div>
@@ -68,6 +89,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     <canvas id="graph" role="img" aria-label="Pitch graph of the original and processed vocal"></canvas>
     <div class="legend"><span><i style="background:#999"></i>sung pitch</span><span><i style="background:#c0392b"></i>after processing</span><span><i style="background:rgba(46,109,180,.8)"></i>harmony</span><span>faint lines: notes of the key</span></div>
     <div class="row"><button class="tbtn" id="playO" type="button">▶ Original</button><button class="tbtn primary" id="playP" type="button">▶ Processed</button><button class="tbtn" id="stop" type="button">■ Stop</button></div>
+    <div class="row" id="vtBack"><button class="tbtn primary" id="toTrack" type="button">Replace the track's clip</button><button class="tbtn" id="toNew" type="button">Add as a new track</button></div>
     <p class="status" id="status" aria-live="polite"></p>
   </section>
 
@@ -84,6 +106,7 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const SCALES = { "Major": [0, 2, 4, 5, 7, 9, 11], "Natural minor": [0, 2, 3, 5, 7, 8, 10], "Major pentatonic": [0, 2, 4, 7, 9], "Minor pentatonic": [0, 3, 5, 7, 10], "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] };
   $("key").innerHTML = NAMES.map((n, i) => `<option value="${i}">${n}</option>`).join("");
+  const EMB = window.self !== window.top; if (EMB) document.documentElement.classList.add("vt-embed");   // opened inside the Multitrack Studio
   let AC = null; const ac = () => { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; AC = new C(); } if (AC.state === "suspended") AC.resume(); return AC; };
   let X = null, SR = 44100, name = "vocal", P = null, OUTB = null, src = null;   // X: mono input; P: pitch analysis; OUTB: processed buffer
 
@@ -95,16 +118,22 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     try {
       const r = fileRate(new Uint8Array(data)) || 44100, rate = [22050, 32000, 44100, 48000].includes(r) ? r : 44100;
       let b; try { b = await new OfflineAudioContext(1, 1, rate).decodeAudioData(data.slice(0)); } catch (e) { b = await new Promise((ok, no) => ac().decodeAudioData(data, ok, no)); }
-      SR = b.sampleRate; const n = Math.min(b.length, SR * 120); X = new Float32Array(n);
-      for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) X[i] += d[i] / b.numberOfChannels; }
+      await useClip([...Array(b.numberOfChannels).keys()].map(c => b.getChannelData(c)), b.sampleRate, nm);
+    } catch (e) { $("info").textContent = "This browser couldn't read that file. Try WAV or MP3."; }
+  }
+  async function useClip(chs, sr, nm) {
+    {
+      SR = sr; const len = chs[0].length, n = Math.min(len, SR * 120); X = new Float32Array(n);
+      chs.forEach(d => { for (let i = 0; i < n; i++) X[i] += d[i] / chs.length; });
       name = nm.replace(/\.[^.]+$/, "");
-      $("info").textContent = `${nm}: ${(n / SR).toFixed(1)} s${b.length > n ? " (shortened to 2 minutes)" : ""}. Analyzing pitch…`;
+      $("info").textContent = `${nm}: ${(n / SR).toFixed(1)} s${len > n ? " (shortened to 2 minutes)" : ""}. Analyzing pitch…`;
+      if (EMB) $("status").textContent = "Analyzing pitch…";
       await new Promise(r => setTimeout(r, 30));
       P = analyze(X, SR); $("fxBox").hidden = false; $("expBox").hidden = false;
       const voiced = P.f0.filter(f => f > 0).length / Math.max(1, P.f0.length);
       $("info").textContent = `${nm}: ${(n / SR).toFixed(1)} s, ${SR.toLocaleString("en-US")} Hz. ${voiced < .1 ? "Very little pitched singing was found; results may be odd." : "Pitch analyzed."}`;
       detectKey(); process();
-    } catch (e) { $("info").textContent = "This browser couldn't read that file. Try WAV or MP3."; }
+    }
   }
   $("file").onchange = async e => { const f = e.target.files[0]; if (f) loadData(await f.arrayBuffer(), f.name); };
   const drop = $("drop");
@@ -267,6 +296,11 @@ input[type=range]{accent-color:var(--fi-red-dk);width:200px;max-width:70vw}
     const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" });
   }
   $("export").onclick = async () => { if (!OUTB) return; const f = $("fmt").value, blob = f === "mp3" ? await mp3(OUTB) : wav(OUTB), url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = `${name}-tuned.${f}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); $("status").textContent = `Saved ${a.download}.`; };
+  // studio round trip: the studio sends a track's clip; the processed clip goes back to that track or a new one
+  window.addEventListener("message", e => { if (e.origin !== location.origin || !e.data || e.data.type !== "sa-vt-load") return; stop(); useClip(e.data.ch, e.data.sr, e.data.name || "vocal"); });
+  const back = mode => { if (!OUTB || !EMB) return; window.parent.postMessage({ type: "sa-vt", mode, sr: OUTB.sampleRate, ch: [OUTB.getChannelData(0).slice(), OUTB.getChannelData(1).slice()] }, location.origin); $("status").textContent = mode === "new" ? "Sent to the studio as a new track." : "Sent back to the track."; };
+  if (EMB && window.ResizeObserver) new ResizeObserver(() => window.parent.postMessage({ type: "sa-vt", mode: "h", h: document.getElementById("main").getBoundingClientRect().height + 4 }, location.origin)).observe(document.getElementById("main"));
+  $("toTrack").onclick = () => back("replace"); $("toNew").onclick = () => back("new");
   window.__vt = { get P() { return P; }, get OUTB() { return OUTB; }, analyze, S, process, loadData };   // used by automated tests
 })();
 </script>

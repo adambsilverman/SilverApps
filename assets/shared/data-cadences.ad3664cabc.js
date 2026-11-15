@@ -53,7 +53,7 @@ window.FAM = (() => {
     switch (x.type) {
       case "PAC": return `${rn}: dominant to tonic with both chords in root position and the tonic (${H.nm(s.S)}) in the soprano: a perfect authentic cadence.`;
       case "IAC": return `${rn}: dominant to tonic, but ${pen.bass ? "the dominant chord is inverted" : `the soprano ends on ${H.nm(s.S)}, not the tonic`}: an imperfect authentic cadence.`;
-      case "HC": return `The phrase stops on {rn:${last.rn}} (the dominant): an open, inconclusive half cadence.${pen.rn.startsWith("iv6") && x.k.mode === "minor" ? " (iv⁶–V in minor is often called a Phrygian half cadence.)" : ""}`;
+      case "HC": return `The phrase stops on {rn:${last.rn}} (the dominant): an open, inconclusive half cadence.`;
       case "PC": return `${rn}: subdominant to tonic, a plagal cadence.`;
       case "DC": return `${rn}: the dominant goes to a “tonic substitute” instead of the tonic: a deceptive cadence.`;
       case "PHC": return `The phrase stops on {rn:${last.rn}} (the subdominant): an open ending, sometimes called a plagal half cadence.`;
@@ -178,16 +178,15 @@ window.FAM = (() => {
       <p>An open phrase is usually answered by one with a stronger cadence, the way “Auld Lang Syne” answers its first phrase. That's how periods work.</p>
       <p>Cadences are described with a handful of formulas. The examples in this lesson are in four voices; choose a key to hear them anywhere.</p>
       <div class="callout"><b>Not every V–I is a cadence</b>The cadence names below describe <i>phrase-ending</i> scenarios only. A V–I (or IV–I, or V–vi) at the start or in the middle of a phrase is simply a progression: in I – V⁶ – I – IV – V⁷ – I, only the final V⁷–I is a cadence; the first V⁶–I just prolongs the tonic.</div>` },
-    { title: "The cadence patterns", kick: "An outline", render: (H) => `<p>Every cadence is named for its last two chords, or for its last chord alone. Here's the whole set before the real examples. The right-hand column says where to hear each one in this lesson.</p>
-      <div class="ltable-wrap" tabindex="0" role="region" aria-label="Cadence patterns"><table class="ltable cad-pat"><thead><tr><th scope="col">Cadence</th><th scope="col">Last chords</th><th scope="col">What makes it</th><th scope="col">Closure</th><th scope="col">Hear it</th></tr></thead><tbody>
-      <tr><th scope="row">Perfect authentic (PAC)</th><td>{rn:V} (or {rn:V7}) → {rn:I}</td><td>Both chords in root position; the tonic in the bass <i>and</i> the melody at the end.</td><td>closed</td><td>“Rubber Duckie,” bars 14–15; “America,” bar 16; “Auld Lang Syne,” phrase 2</td></tr>
-      <tr><th scope="row">Imperfect authentic (IAC)</th><td>{rn:V} → {rn:I}</td><td>Anything short of perfect: the melody ends on 3̂ or 5̂, or a chord is inverted, or vii° stands in for V.</td><td>weak</td><td>“Rubber Duckie,” bars 6–7; “America,” bars 3–4</td></tr>
-      <tr><th scope="row">Half (HC)</th><td>… → {rn:V}</td><td>The phrase stops on the dominant, often after a pre-dominant ({rn:IV}, {rn:ii}), a cadential ⁶₄, or V/V.</td><td>open</td><td>“America,” bar 8; “Don't Think Twice,” lines 2 and 4</td></tr>
-      <tr><th scope="row">Phrygian half</th><td>{rn:iv6} → {rn:V}</td><td>A half cadence in minor, with the bass falling a half step, 6̂ to 5̂.</td><td>open</td><td>—</td></tr>
-      <tr><th scope="row">Secondary half (SHC)</th><td>… → {rn:V7/x}</td><td>The phrase stops on a secondary dominant, the dominant of some chord other than I.</td><td>open</td><td>“America,” bar 12; “Don't Think Twice,” line 6</td></tr>
-      <tr><th scope="row">Plagal (PC)</th><td>{rn:IV} → {rn:I}</td><td>Subdominant to tonic, the “amen” at the end of a hymn.</td><td>closed</td><td>—</td></tr>
-      <tr><th scope="row">Plagal half (PHC)</th><td>… → {rn:IV}</td><td>The phrase stops on IV, the most common open ending in pop.</td><td>open</td><td>“Auld Lang Syne,” phrase 1; “Don't Think Twice,” line 7</td></tr>
-      <tr><th scope="row">Deceptive (DC)</th><td>{rn:V} → {rn:vi}</td><td>V goes somewhere other than I, usually vi (VI in minor). We expect home and don't get it.</td><td>weak</td><td>—</td></tr>
+    { title: "The cadence patterns", kick: "An outline", render: (H) => `<p>Every cadence is named for its last two chords, or for its last chord alone. Here's the whole set before the real examples.</p>
+      <div class="ltable-wrap" tabindex="0" role="region" aria-label="Cadence patterns"><table class="ltable cad-pat"><thead><tr><th scope="col">Cadence</th><th scope="col">Last chords</th><th scope="col">What makes it</th><th scope="col">Closure</th></tr></thead><tbody>
+      <tr><th scope="row">Perfect authentic (PAC)</th><td>{rn:V} (or {rn:V7}) → {rn:I}</td><td>Both chords in root position; the tonic in the bass <i>and</i> the melody at the end.</td><td>closed</td></tr>
+      <tr><th scope="row">Imperfect authentic (IAC)</th><td>{rn:V} → {rn:I}</td><td>Anything short of perfect: the melody ends on 3̂ or 5̂, or a chord is inverted, or vii° stands in for V.</td><td>weak</td></tr>
+      <tr><th scope="row">Half (HC)</th><td>… → {rn:V}</td><td>The phrase stops on the dominant, often after a pre-dominant ({rn:IV}, {rn:ii}), a cadential ⁶₄, or V/V.</td><td>open</td></tr>
+      <tr><th scope="row">Secondary half (SHC)</th><td>… → {rn:V7/x}</td><td>The phrase stops on a secondary dominant, the dominant of some chord other than I.</td><td>open</td></tr>
+      <tr><th scope="row">Plagal (PC)</th><td>{rn:IV} → {rn:I}</td><td>Subdominant to tonic, the “amen” at the end of a hymn.</td><td>closed</td></tr>
+      <tr><th scope="row">Plagal half (PHC)</th><td>… → {rn:IV}</td><td>The phrase stops on IV, the most common open ending in pop.</td><td>open</td></tr>
+      <tr><th scope="row">Deceptive (DC)</th><td>{rn:V} → {rn:vi}</td><td>V goes somewhere other than I, usually vi (VI in minor). We expect home and don't get it.</td><td>weak</td></tr>
       </tbody></table></div>
       <p>Pop songs stretch the open endings further. A phrase can land on <b>♭VII</b> or <b>♭VI</b> (borrowed from Mixolydian or the parallel minor), on a major <b>II</b>, on a minor <b>iv</b>, or on <b>Vsus4</b>, a half cadence with a 4th in place of the leading tone. What makes any of these a cadence is <i>where</i> it falls: at the end of the phrase, usually on its last strong downbeat. The same chord mid-phrase is just a chord.</p>`
       + H.check("V⁷–I, both in root position, but the melody ends on the 3rd of I. Which cadence?", "IAC", ["PAC", "HC", "DC"], "Without the tonic in the melody, it's imperfect.")
@@ -201,18 +200,10 @@ window.FAM = (() => {
       <p><b>Bar 8: turnaround.</b> While the voice fills in (“vo-vo-vo-de-o”), the band plays B°⁷ – Cm⁷ – F⁷. That's motion after the cadence chord: a chromatic step up from B♭ to B, then {rn:ii7} – {rn:V7}, steering straight back to B♭ for the second verse.</p>
       <p><b>Bars 14–15: perfect.</b> The same F⁷ to B♭, and this time the melody lands on B♭. Root-position V⁷ to root-position I, tonic in the bass and on top. Same chords, a different last note, and the song is over.</p>`
       + H.check("Bars 6–7 and 14–15 both go F⁷ → B♭. What makes the second one perfect?", "The melody ends on B♭, the tonic", ["The chords are louder", "F⁷ is in inversion", "It's in a different key"], "Both are root-position V⁷ – I. Only the second has the tonic in the melody.") },
-    { title: "“Don't Think Twice, It's All Right”", kick: "Bob Dylan, 1963", render: (H) => `<p>Dylan plays this in C-major shapes with a capo on the 4th fret, so it sounds in E major. The chart below gives the sounding chords for the first verse, line by line (lyrics left out). Watch from 0:07 to 0:45 and follow along.</p>
+    { title: "“Don't Think Twice, It's All Right”", kick: "Bob Dylan, 1963", render: (H) => `<p>Dylan plays this in C-major shapes with a capo on the 4th fret, so it sounds in E major. Watch the first verse, from 0:07 to 0:45, and listen for where each line stops.</p>
       <figure class="lfig cad-fig cad-video"><div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/1iHhWh9FtsQ?start=7&amp;end=45&amp;rel=0" title="Bob Dylan, Don't Think Twice, It's All Right (YouTube), 0:07 to 0:45" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
         <figcaption><p>Bob Dylan, “Don't Think Twice, It's All Right,” from <i>The Freewheelin' Bob Dylan</i> (1963), first verse.</p><p class="note lcite fair-use" data-fair-use></p></figcaption></figure>
-      <div class="ltable-wrap" tabindex="0" role="region" aria-label="Don't Think Twice, first verse chords"><table class="ltable ps-chart cad-chart"><caption>First verse, sounding chords in E (lyrics omitted)</caption><thead><tr><th scope="col">Line</th><th scope="col">Chords</th><th scope="col">Ends…</th></tr></thead><tbody>
-      <tr><th scope="row">1</th><td>{sym:E} – {sym:B} – {sym:C♯m} – {sym:E/B}</td><td>mid-phrase</td></tr>
-      <tr><th scope="row">2</th><td>{sym:A} – {sym:E} – {sym:B}</td><td><b>HC</b></td></tr>
-      <tr><th scope="row">3</th><td>{sym:E} – {sym:B} – {sym:C♯m} – {sym:E/B}</td><td>mid-phrase</td></tr>
-      <tr><th scope="row">4</th><td>{sym:F♯7/A♯} – {sym:B}</td><td><b>HC</b>, after V⁷/V</td></tr>
-      <tr><th scope="row">5</th><td>{sym:E} – {sym:E7}</td><td>mid-phrase</td></tr>
-      <tr><th scope="row">6</th><td>{sym:A} – {sym:F♯7/A♯}</td><td><b>SHC</b> on V⁷/V</td></tr>
-      <tr><th scope="row">7</th><td>{sym:E} – {sym:B} – {sym:C♯m} – {sym:E/B} – {sym:A}</td><td><b>PHC</b> on IV</td></tr>
-      <tr><th scope="row">8</th><td>{sym:E} – {sym:B} – {sym:E}</td><td><b>authentic</b>, closed</td></tr></tbody></table></div>
+
       <details class="cad-more"><summary>Show the explanations</summary>
       <p><b>Line 2: half cadence.</b> {rn:IV} – {rn:I} – {rn:V}, and the line stops on B. It's the same kind of ending as bar 8 of “America,” but reached from IV instead of V/V.</p>
       <p><b>Line 4: half cadence, approached by V⁷/V.</b> F♯⁷ with A♯ in the bass pushes up a half step into B. The A♯ is a leading tone to B, so for a moment B sounds like a goal. That's what V/V does: it makes V sound more like an arrival without changing the key.</p>
