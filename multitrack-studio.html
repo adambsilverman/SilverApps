@@ -10,38 +10,75 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span></header>
 <style>
-.tool{max-width:1100px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
-.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool{max-width:1200px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:12px}
+.tool h1{font:400 clamp(40px,7vw,64px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
 .tool h1 span{color:var(--fi-red-dk)}
-.tool > header p{max-width:70ch;margin:10px 0 0}
-.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:16px 18px;display:grid;gap:12px;min-width:0}
-.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
-.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end}
-.tbtn{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:8px 14px;min-height:44px;cursor:pointer;touch-action:manipulation}
-.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
-.tbtn.rec{background:#fff;border-color:#b3261e;color:#b3261e}
-.tbtn.rec[aria-pressed="true"]{background:#b3261e;color:#fff}
-.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
-.tbtn.sm{min-height:36px;padding:4px 10px;font-size:13px}
-.tbtn:focus-visible,.wk:focus-visible,.bk:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
-label.fld{display:grid;gap:4px;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
-select,input[type=number],input[type=text]{font:15px var(--fi-serif);padding:6px 8px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:40px;max-width:100%}
-input[type=number]{width:5.5em}
-input[type=range]{accent-color:var(--fi-red-dk)}
-.note{font-size:.92rem;color:var(--fi-muted);margin:0}
-.clock{font:700 28px var(--fi-ui);font-variant-numeric:tabular-nums;min-width:7ch}
-.tracks{display:grid;gap:8px}
-.trk{border:1.5px solid var(--fi-soft);border-left:8px solid var(--tc);border-radius:var(--fi-r-sm);padding:8px 10px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
-.trk.sel{box-shadow:0 0 0 2px var(--fi-red-dk) inset}
-.trk input[type=text]{width:12em}
-.lanewrap{overflow-x:auto;border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);background:var(--fi-paper);touch-action:pan-x}
+.tool > header p{max-width:75ch;margin:8px 0 0;font-size:.95rem}
+/* the studio itself: a dark, compact DAW window */
+.daw{--bg:#1d1e21;--pn:#26282c;--pn2:#2f3136;--ln:#41444a;--tx:#e9eaec;--mu:#b4b8bf;--hl:#ffb02e;
+  background:var(--bg);color:var(--tx);border-radius:10px;border:1px solid #000;box-shadow:var(--fi-shadow);overflow:hidden;font:13px/1.3 var(--fi-ui);min-width:0}
+.daw a{color:#ffc766}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:7px 10px;background:linear-gradient(#34363b,#2a2c30);border-bottom:1px solid #000}
+.bar .grp{display:flex;align-items:center;gap:4px}
+.bar .sep{width:1px;align-self:stretch;background:#000;box-shadow:1px 0 0 #45484e;margin:0 2px}
+.tbtn{font:700 12px var(--fi-ui);letter-spacing:.02em;border-radius:5px;border:1px solid #0b0b0c;background:linear-gradient(#45484e,#36383d);color:var(--tx);padding:5px 9px;min-height:30px;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.tbtn:hover{background:linear-gradient(#50535a,#3e4046)}
+.tbtn:disabled{opacity:.45;cursor:default}
+.tbtn.ico{min-width:34px;font-size:15px;padding:3px 8px}
+.tbtn.primary{background:linear-gradient(#3f8f4d,#2f6f3b);color:#fff}
+.tbtn.rec{color:#ff6b5e}
+.tbtn.rec[aria-pressed="true"]{background:#c62828;color:#fff}
+.tbtn[aria-pressed="true"]{background:#e8e8ea;color:#111}
+.tbtn.sm{min-height:24px;padding:2px 7px;font-size:11px}
+.tbtn:focus-visible,.wk:focus-visible,.bk:focus-visible,.daw input:focus-visible,.daw select:focus-visible{outline:2px solid var(--hl);outline-offset:1px}
+.lbl{font:700 10px var(--fi-ui);text-transform:uppercase;letter-spacing:.07em;color:var(--mu)}
+.bar label{display:flex;align-items:center;gap:5px}
+.daw select,.daw input[type=number],.daw input[type=text]{font:13px var(--fi-ui);padding:3px 6px;border-radius:4px;border:1px solid #0b0b0c;background:#15161a;color:var(--tx);min-height:26px;max-width:100%}
+.daw input[type=number]{width:4.2em}
+.daw input[type=range]{accent-color:var(--hl);height:16px}
+.lcd{font:700 20px/1 ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:#9df59d;background:#0c120c;border:1px solid #000;border-radius:5px;padding:5px 10px;min-width:6.5ch;text-align:center;box-shadow:inset 0 0 8px rgba(0,0,0,.8)}
+.status{font:600 12px var(--fi-ui);color:var(--mu);margin:0;padding:4px 10px;min-height:1.3em;background:var(--pn);border-bottom:1px solid #000}
+/* arrange view: track headers on the left, lanes on the right, rows the same height */
+.arr{display:grid;grid-template-columns:clamp(170px,30vw,264px) 1fr;max-height:60vh;overflow-y:auto;background:var(--pn)}
+.heads{border-right:1px solid #000;background:var(--pn2);position:relative;z-index:1}
+.heads .ruler{height:17px;border-bottom:1px solid #000;background:#232428}
+.trk{height:56px;box-sizing:border-box;border-bottom:1px solid #000;border-left:5px solid var(--tc);padding:4px 6px;display:grid;grid-template-rows:24px 22px;gap:2px;background:var(--pn2)}
+.trk.sel{background:#3a3d44;box-shadow:inset 0 0 0 1px var(--hl)}
+.trk .r1,.trk .r2{display:flex;align-items:center;gap:4px;min-width:0}
+.trk input[type=text]{flex:1;min-width:3em;min-height:22px;padding:1px 5px;font-weight:700}
+.trk select{min-height:20px;padding:0 3px;font-size:11px;max-width:7.5em}
+.trk .tbtn{min-height:22px;min-width:22px;padding:0 5px;font-size:11px;border-radius:4px}
+.trk .arm[aria-pressed="true"]{background:#c62828;color:#fff}
+.trk .m[aria-pressed="true"]{background:#e3b505;color:#111}
+.trk .s[aria-pressed="true"]{background:#3d8bfd;color:#111}
+.trk .knob{display:flex;align-items:center;gap:3px;min-width:0}
+.trk .knob input{width:min(64px,9vw)}
+.trk .meta{font-size:10px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{padding:14px 10px;color:var(--mu);font-size:12px;margin:0}
+.lanewrap{overflow-x:auto;overflow-y:hidden;background:#202125;touch-action:pan-x;min-width:0}
 #lanes{display:block}
-.kbd{display:flex;position:relative;height:150px;user-select:none;-webkit-user-select:none;touch-action:none;overflow-x:auto;padding-bottom:4px}
-.wk{width:44px;flex:none;height:146px;border:1px solid #555;border-radius:0 0 6px 6px;background:#fff;color:#555;display:flex;align-items:flex-end;justify-content:center;font:600 11px var(--fi-ui);padding-bottom:6px;cursor:pointer}
-.bk{position:absolute;width:30px;height:90px;background:#222;border-radius:0 0 4px 4px;z-index:2;cursor:pointer;border:1px solid #000;color:#ddd;font:600 10px var(--fi-ui);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
+.foot{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:6px 10px;background:linear-gradient(#2a2c30,#232428);border-top:1px solid #000}
+.note{font-size:11px;color:var(--mu);margin:0}
+/* keyboard drawer */
+.kbwrap{background:var(--pn);border-top:1px solid #000;padding:6px 10px 8px;display:grid;gap:6px}
+.kbd{display:flex;position:relative;height:96px;user-select:none;-webkit-user-select:none;touch-action:none;overflow-x:auto;padding-bottom:2px}
+.wk{width:32px;flex:none;height:94px;border:1px solid #222;border-radius:0 0 4px 4px;background:linear-gradient(#f4f4f4,#fff);color:#555;display:flex;align-items:flex-end;justify-content:center;font:600 9px var(--fi-ui);padding-bottom:4px;cursor:pointer}
+.bk{position:absolute;width:22px;height:58px;background:linear-gradient(#333,#111);border-radius:0 0 3px 3px;z-index:2;cursor:pointer;border:1px solid #000}
 .wk.on{background:#ffd27a}.bk.on{background:#c98a00}
-.status{font:600 16px var(--fi-serif);margin:0;min-height:1.4em}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* beat the site's global control styles inside the studio */
+main.tool .daw .tbtn{font:700 12px/1.1 var(--fi-ui)!important;text-transform:none!important;letter-spacing:.02em!important;min-height:30px!important;padding:5px 9px!important;border-radius:5px!important;box-shadow:none!important}
+main.tool .daw .tbtn.sm{min-height:24px!important;padding:2px 7px!important;font-size:11px!important}
+main.tool .daw .tbtn.ico{font-size:14px!important}
+main.tool .daw .trk .tbtn{min-height:22px!important;min-width:22px!important;padding:0 5px!important;font-size:11px!important;border-radius:4px!important}
+main.tool .daw select,main.tool .daw input[type=number],main.tool .daw input[type=text]{font:13px/1.2 var(--fi-ui)!important;padding:2px 6px!important;min-height:26px!important;height:26px;box-sizing:border-box!important;border-radius:4px!important;background:#15161a!important;color:var(--tx)!important;border:1px solid #0b0b0c!important;box-shadow:none!important}
+main.tool .daw .trk input[type=text]{min-height:22px!important;height:22px;font-weight:700!important}
+main.tool .daw .trk select{min-height:20px!important;height:20px;font-size:11px!important;padding:0 3px!important}
+main.tool .daw input[type=range]{width:auto;min-width:0;margin:0;padding:0}
+main.tool .daw .trk .knob input[type=range]{width:clamp(34px,6vw,58px)!important}
+main.tool .daw .bar label input[type=range]{width:110px}
+.status:empty{display:none}
+@media (max-width:560px){.arr{grid-template-columns:200px 1fr}.trk .knob .lbl{display:none}.trk .meta{display:none}}
 [hidden]{display:none!important}
 </style>
 
@@ -51,45 +88,46 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     <p>Build a song in layers. Start with a backing track (send one from the <a href="groove-maker.html">Groove Maker</a> or open an audio file), then add tracks: play a melody on a synth with the on-screen keys, your computer keyboard or a MIDI keyboard, or record yourself through the microphone. Mix the tracks and export the result. Everything stays on your device; export your song to keep it.</p>
   </header>
 
-  <section class="panel2" aria-labelledby="h-tr">
-    <h2 id="h-tr">Transport</h2>
-    <div class="row">
-      <button class="tbtn primary" id="play" type="button">▶ Play</button>
-      <button class="tbtn rec" id="rec" type="button" aria-pressed="false">● Record</button>
-      <button class="tbtn" id="home" type="button">⏮ To start</button>
-      <span class="clock" id="clock" aria-live="off">1.1</span>
-      <label class="fld" for="bpm">Tempo (BPM)<input type="number" id="bpm" min="40" max="220" value="100"></label>
-      <label class="fld" for="meter">Meter<select id="meter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
-      <label class="fld"><span>Click</span><button class="tbtn sm" id="click" type="button" aria-pressed="true">Metronome</button></label>
-      <label class="fld"><span>Before recording</span><button class="tbtn sm" id="cin" type="button" aria-pressed="true">1-bar count-in</button></label>
-      <label class="fld" for="zoom">Zoom<input type="range" id="zoom" min="20" max="160" value="60"></label>
+  <section class="daw" aria-label="Studio">
+    <h2 class="sr">Transport</h2>
+    <div class="bar" role="toolbar" aria-label="Transport">
+      <div class="grp"><button class="tbtn ico" id="home" type="button" aria-label="To start" title="To start">⏮</button><button class="tbtn ico primary" id="play" type="button">▶ Play</button><button class="tbtn ico rec" id="rec" type="button" aria-pressed="false">● Rec</button></div>
+      <span class="lcd" id="clock" aria-live="off" title="Bar.beat">1.1</span>
+      <span class="sep" aria-hidden="true"></span>
+      <label for="bpm"><span class="lbl">BPM</span><input type="number" id="bpm" min="40" max="220" value="100"></label>
+      <label for="meter"><span class="lbl">Meter</span><select id="meter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="grp"><button class="tbtn sm" id="click" type="button" aria-pressed="true" title="Metronome">Click</button><button class="tbtn sm" id="cin" type="button" aria-pressed="true" title="One-bar count-in before recording">Count-in</button></div>
+      <label for="zoom"><span class="lbl">Zoom</span><input type="range" id="zoom" min="20" max="160" value="60"></label>
     </div>
     <p class="status" id="status" aria-live="polite"></p>
-  </section>
-
-  <section class="panel2" aria-labelledby="h-tk">
-    <h2 id="h-tk">Tracks</h2>
-    <div class="row"><button class="tbtn" id="addSynth" type="button">+ Synth track</button><button class="tbtn" id="addAudio" type="button">+ Microphone track</button>
-      <label class="tbtn" for="file" style="display:inline-flex;align-items:center">Open audio file…</label><input type="file" id="file" accept="audio/*" class="sr">
-      <button class="tbtn" id="undo" type="button" disabled>Undo last take</button></div>
-    <div class="tracks" id="tracks"></div>
-    <div class="lanewrap" tabindex="0" role="region" aria-label="Timeline. Select a spot to move the playhead there."><canvas id="lanes" height="80"></canvas></div>
-    <p class="note">Select a track to make it the one you record on (●). Use headphones when recording with the microphone, so the mic doesn't pick up the other tracks.</p>
-  </section>
-
-  <section class="panel2" aria-labelledby="h-kb">
-    <h2 id="h-kb">Keyboard</h2>
-    <div class="row"><button class="tbtn sm" id="octDn" type="button">◀ Octave down</button><span id="octL">C4–E5</span><button class="tbtn sm" id="octUp" type="button">Octave up ▶</button><button class="tbtn sm" id="midi" type="button">Connect a MIDI keyboard</button>
-      <label class="fld" for="quant">Quantize the selected synth track<select id="quant"><option value="0">choose…</option><option value="4">to quarter notes</option><option value="8">to eighth notes</option><option value="16">to sixteenth notes</option><option value="12">to eighth-note triplets</option></select></label></div>
-    <div class="kbd" id="kbd" role="group" aria-label="On-screen keyboard: play notes on the selected synth track"></div>
-    <p class="note">Computer keys: <b>A W S E D F T G Y H U J K O L P ;</b> play C up to E (white keys on the middle row, black keys above). <b>Z</b> and <b>X</b> change the octave. Notes play on the selected synth track (or a piano if none is selected).</p>
-  </section>
-
-  <section class="panel2" aria-labelledby="h-ex">
-    <h2 id="h-ex">Export</h2>
-    <div class="row"><label class="fld" for="fmt">Format<select id="fmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label><button class="tbtn" id="export" type="button">Export the mix</button>
-      <label class="fld" for="lat">Microphone timing correction (ms)<input type="number" id="lat" min="-300" max="600" value="0"></label></div>
-    <p class="note">If recorded audio sounds late or early against the backing, change the timing correction (it applies to new recordings) or nudge a track. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL).</p>
+    <h2 class="sr">Tracks</h2>
+    <div class="bar" role="toolbar" aria-label="Tracks">
+      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button>
+      <label class="tbtn sm" for="file" style="display:inline-flex;align-items:center">Open audio…</label><input type="file" id="file" accept="audio/*" class="sr">
+      <button class="tbtn sm" id="undo" type="button" disabled>Undo take</button>
+      <span class="note">● arms a track for recording. Use headphones with the mic.</span>
+    </div>
+    <div class="arr">
+      <div class="heads"><div class="ruler" aria-hidden="true"></div><div id="tracks"></div></div>
+      <div class="lanewrap" tabindex="0" role="region" aria-label="Timeline. Select a spot to move the playhead there."><canvas id="lanes" height="80"></canvas></div>
+    </div>
+    <div class="kbwrap">
+      <h2 class="sr">Keyboard</h2>
+      <div class="bar" style="padding:0;background:none;border:0" role="toolbar" aria-label="Keyboard">
+        <div class="grp"><button class="tbtn sm" id="octDn" type="button" aria-label="Octave down">◀ Oct</button><span id="octL" class="lbl" style="min-width:5.5em;text-align:center">C4–E5</span><button class="tbtn sm" id="octUp" type="button" aria-label="Octave up">Oct ▶</button></div>
+        <button class="tbtn sm" id="midi" type="button">MIDI keyboard</button>
+        <label for="quant"><span class="lbl">Quantize</span><select id="quant"><option value="0">choose…</option><option value="4">quarters</option><option value="8">eighths</option><option value="16">sixteenths</option><option value="12">eighth triplets</option></select></label>
+        <span class="note">Keys <b>A W S E D…</b> play notes; <b>Z</b>/<b>X</b> change octave.</span>
+      </div>
+      <div class="kbd" id="kbd" role="group" aria-label="On-screen keyboard: play notes on the selected synth track"></div>
+    </div>
+    <h2 class="sr">Export</h2>
+    <div class="foot">
+      <label for="fmt"><span class="lbl">Export</span><select id="fmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label><button class="tbtn sm" id="export" type="button">Export the mix</button>
+      <label for="lat"><span class="lbl">Mic timing (ms)</span><input type="number" id="lat" min="-300" max="600" value="0"></label>
+      <span class="note">Timing correction applies to new recordings. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (lamejs, LGPL).</span>
+    </div>
   </section>
 </main>
 
@@ -223,13 +261,14 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   function addTrack(type, extra = {}) { const tr = Object.assign({ id: nextId++, type, name: type === "synth" ? `Synth ${nextId - 1}` : `Audio ${nextId - 1}`, vol: 80, pan: 0, mute: false, solo: false, nudge: 0, start: 0, buf: null, notes: [], inst: "lead", color: COLORS[(nextId - 2) % COLORS.length] }, extra); P.tracks.push(tr); P.sel = P.tracks.length - 1; drawTracks(); draw(); return tr; }
   function drawTracks() {
     $("tracks").innerHTML = P.tracks.map((t, i) => `<div class="trk${i === P.sel ? " sel" : ""}" style="--tc:${t.color}" data-i="${i}">
-      <button class="tbtn sm" data-a="sel" aria-pressed="${i === P.sel}" aria-label="Record on ${esc(t.name)}">●</button>
-      <label class="fld">Name<input type="text" data-a="name" value="${esc(t.name)}"></label>
-      ${t.type === "synth" ? `<label class="fld">Instrument<select data-a="inst">${Object.entries(INST).map(([k, l]) => `<option value="${k}" ${k === t.inst ? "selected" : ""}>${l}</option>`).join("")}</select></label><span class="note">${t.notes.length} notes</span>` : `<span class="note">${t.buf ? t.buf.duration.toFixed(1) + " s of audio" : "empty: select ● and press Record"}</span><label class="fld">Nudge: <output>${t.nudge} ms</output><input type="range" data-a="nudge" min="-500" max="500" step="5" value="${t.nudge}"></label>`}
-      <label class="fld">Volume<input type="range" data-a="vol" min="0" max="120" value="${t.vol}"></label>
-      <label class="fld">Pan<input type="range" data-a="pan" min="-100" max="100" value="${t.pan}"></label>
-      <button class="tbtn sm" data-a="mute" aria-pressed="${t.mute}">Mute</button><button class="tbtn sm" data-a="solo" aria-pressed="${t.solo}">Solo</button>
-      ${t.type === "synth" ? `<button class="tbtn sm" data-a="clear">Clear notes</button>` : ""}<button class="tbtn sm" data-a="del">Delete</button></div>`).join("") || `<p class="note">No tracks yet. Add a synth track or a microphone track, open an audio file, or send a progression from the Groove Maker.</p>`;
+      <div class="r1"><button class="tbtn arm" data-a="sel" aria-pressed="${i === P.sel}" aria-label="Arm ${esc(t.name)} for recording" title="Arm for recording">●</button>
+        <input type="text" data-a="name" value="${esc(t.name)}" aria-label="Track name">
+        <button class="tbtn m" data-a="mute" aria-pressed="${t.mute}" aria-label="Mute ${esc(t.name)}" title="Mute">M</button><button class="tbtn s" data-a="solo" aria-pressed="${t.solo}" aria-label="Solo ${esc(t.name)}" title="Solo">S</button>
+        ${t.type === "synth" ? `<button class="tbtn" data-a="clear" aria-label="Clear the notes on ${esc(t.name)}" title="Clear notes">⌫</button>` : ""}<button class="tbtn" data-a="del" aria-label="Delete ${esc(t.name)}" title="Delete track">✕</button></div>
+      <div class="r2">${t.type === "synth" ? `<select data-a="inst" aria-label="Instrument for ${esc(t.name)}">${Object.entries(INST).map(([k, l]) => `<option value="${k}" ${k === t.inst ? "selected" : ""}>${l}</option>`).join("")}</select>` : `<label class="knob" title="Nudge"><span class="lbl">Nudge</span><input type="range" data-a="nudge" min="-500" max="500" step="5" value="${t.nudge}" aria-label="Nudge ${esc(t.name)} (ms)"><output class="meta">${t.nudge}</output></label>`}
+        <label class="knob" title="Volume"><span class="lbl">Vol</span><input type="range" data-a="vol" min="0" max="120" value="${t.vol}" aria-label="Volume of ${esc(t.name)}"></label>
+        <label class="knob" title="Pan"><span class="lbl">Pan</span><input type="range" data-a="pan" min="-100" max="100" value="${t.pan}" aria-label="Pan of ${esc(t.name)}"></label>
+        <span class="meta">${t.type === "synth" ? t.notes.length + " notes" : t.buf ? t.buf.duration.toFixed(1) + " s" : "empty"}</span></div></div>`).join("") || `<p class="empty">No tracks yet. Add a synth or mic track, open an audio file, or send a progression from the Groove Maker.</p>`;
   }
   $("tracks").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!row) return; const i = +row.dataset.i, t = P.tracks[i];
@@ -244,26 +283,26 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   });
   const confirmDel = t => { if (t.notes.length || t.buf) { const ok = row => true; return ok(); } return true; };
   $("tracks").addEventListener("input", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; const t = P.tracks[+row.dataset.i], a = b.dataset.a;
-    if (a === "name") t.name = b.value; if (a === "vol") t.vol = +b.value; if (a === "pan") t.pan = +b.value; if (a === "nudge") { t.nudge = +b.value; b.previousElementSibling.textContent = t.nudge + " ms"; draw(); } });
+    if (a === "name") t.name = b.value; if (a === "vol") t.vol = +b.value; if (a === "pan") t.pan = +b.value; if (a === "nudge") { t.nudge = +b.value; b.nextElementSibling.textContent = t.nudge; draw(); } });
   $("tracks").addEventListener("change", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; if (b.dataset.a === "inst") P.tracks[+row.dataset.i].inst = b.value; });
 
   // ---------- timeline ----------
-  const LH = 64;
+  const LH = 56;
   function peaks(t) { if (t.peaks && t.peaks.pps === P.pps) return t.peaks; const d = t.buf.getChannelData(0), n = Math.ceil(t.buf.duration * P.pps), step = d.length / n, out = new Float32Array(n); for (let i = 0; i < n; i++) { let m = 0; for (let j = Math.floor(i * step), e = Math.floor((i + 1) * step); j < e; j += 4) { const v = Math.abs(d[j]); if (v > m) m = v; } out[i] = m; } t.peaks = { pps: P.pps, out }; return t.peaks; }
   function draw(pos = P.pos) {
     const cv = $("lanes"), dpr = window.devicePixelRatio || 1, len = projLen() + barLen() * 2, W = Math.ceil(len * P.pps), H = Math.max(1, P.tracks.length) * LH + 18;
     cv.style.width = W + "px"; cv.style.height = H + "px"; if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
     const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-    const ink = getComputedStyle(document.documentElement).getPropertyValue("--fi-ink").trim() || "#222";
-    for (let b = 0, x = 0; x < W; b++, x = b * beat() * P.pps) { g.fillStyle = b % P.meter === 0 ? "rgba(0,0,0,.28)" : "rgba(0,0,0,.08)"; g.fillRect(Math.round(x), 0, 1, H); if (b % P.meter === 0) { g.fillStyle = ink; g.font = "11px sans-serif"; g.fillText(String(b / P.meter + 1), x + 3, 12); } }
+    const ink = "#c9ccd2"; g.fillStyle = "#232428"; g.fillRect(0, 0, W, 18);
+    for (let b = 0, x = 0; x < W; b++, x = b * beat() * P.pps) { g.fillStyle = b % P.meter === 0 ? "rgba(255,255,255,.22)" : "rgba(255,255,255,.06)"; g.fillRect(Math.round(x), 0, 1, H); if (b % P.meter === 0) { g.fillStyle = ink; g.font = "11px sans-serif"; g.fillText(String(b / P.meter + 1), x + 3, 12); } }
     P.tracks.forEach((t, i) => {
-      const y = 18 + i * LH; g.fillStyle = i === P.sel ? "rgba(255,210,122,.25)" : "rgba(0,0,0,.02)"; g.fillRect(0, y, W, LH - 2);
+      const y = 18 + i * LH; g.fillStyle = i === P.sel ? "rgba(255,176,46,.10)" : (i % 2 ? "rgba(255,255,255,.025)" : "rgba(0,0,0,0)"); g.fillRect(0, y, W, LH - 1); g.fillStyle = "rgba(0,0,0,.8)"; g.fillRect(0, y + LH - 1, W, 1);
       g.fillStyle = t.color; g.globalAlpha = t.mute ? .3 : .85;
       if (t.type === "audio" && t.buf) { const pk = peaks(t).out, x0 = (t.start + t.nudge / 1000) * P.pps, mid = y + LH / 2 - 1; for (let k = 0; k < pk.length; k++) { const h = Math.max(1, pk[k] * (LH - 10)); g.fillRect(x0 + k, mid - h / 2, 1, h); } }
       if (t.type === "synth" && t.notes.length) { const lo = Math.min(...t.notes.map(n => n.m)) - 1, hi = Math.max(...t.notes.map(n => n.m)) + 1, sp = (LH - 8) / Math.max(12, hi - lo); t.notes.forEach(n => g.fillRect(n.t * P.pps, y + LH - 5 - (n.m - lo) * sp, Math.max(2, n.d * P.pps - 1), Math.max(3, sp - 1))); }
-      g.globalAlpha = 1; g.fillStyle = ink; g.font = "12px sans-serif"; g.fillText(t.name, 4, y + 14);
+      g.globalAlpha = 1;
     });
-    g.fillStyle = "#b3261e"; g.fillRect(Math.max(0, pos) * P.pps, 0, 2, H);
+    g.fillStyle = "#ff5a4e"; g.fillRect(Math.max(0, pos) * P.pps, 0, 2, H);
   }
   $("lanes").addEventListener("pointerdown", e => { if (playing) return; const r = $("lanes").getBoundingClientRect(); P.pos = Math.max(0, (e.clientX - r.left) / P.pps); const row = Math.floor((e.clientY - r.top - 18) / LH); if (row >= 0 && row < P.tracks.length) { P.sel = row; drawTracks(); } draw(); clock(); });
 
@@ -273,7 +312,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     const k = $("kbd"); let h = "", wx = 0; const lo = P.oct, hi = P.oct + 28;
     for (let m = lo; m <= hi; m++) { const blk = [1, 3, 6, 8, 10].includes(m % 12); if (!blk) { h += `<button type="button" class="wk" data-m="${m}" aria-label="${nmM(m)}">${m % 12 === 0 ? nmM(m) : ""}</button>`; wx++; } }
     k.innerHTML = h; let x = 0;
-    for (let m = lo; m <= hi; m++) { const blk = [1, 3, 6, 8, 10].includes(m % 12); if (!blk) x++; else { const b = document.createElement("button"); b.type = "button"; b.className = "bk"; b.dataset.m = m; b.setAttribute("aria-label", nmM(m)); b.style.left = (x * 44 - 15) + "px"; k.appendChild(b); } }
+    for (let m = lo; m <= hi; m++) { const blk = [1, 3, 6, 8, 10].includes(m % 12); if (!blk) x++; else { const b = document.createElement("button"); b.type = "button"; b.className = "bk"; b.dataset.m = m; b.setAttribute("aria-label", nmM(m)); b.style.left = (x * 32 - 11) + "px"; k.appendChild(b); } }
     $("octL").textContent = `${nmM(P.oct)}–${nmM(P.oct + 16)} on the computer keys`;
   }
   const NM = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"], nmM = m => NM[m % 12] + (Math.floor(m / 12) - 1);

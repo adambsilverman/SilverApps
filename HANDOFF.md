@@ -494,3 +494,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z148 — Enlarge notation; Cadences rebuilt around real examples
 - assets/site.js + indie.css: every <figure> with a staff or image gets an "Enlarge" button opening a <dialog> (fit / zoom, Esc closes).
 - cadences.js: generated SATB steps (Authentic, Half, Plagal and deceptive, Cadences on other chords) replaced by "The cadence patterns" outline table; then America the Beautiful, then new "Don't Think Twice" step (YouTube 1iHhWh9FtsQ 0:07–0:45, sounding chords in E, cadence per line). Quiz renumbered; assemble.py description updated.
+
+## z149 — Multitrack Studio, DAW layout
+- build/pages/multitrack-studio.html: one dark .daw window: transport bar (LCD clock, BPM, meter, click, count-in, zoom), track toolbar, arrange view (.arr grid: 56px track headers with arm/name/M/S/clear/delete + instrument or nudge, vol, pan; canvas lanes with matching row height and ruler), compact keyboard drawer (32px keys), export footer. Same IDs and behaviour; overrides use main.tool .daw to beat global button/input styles.
