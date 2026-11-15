@@ -519,3 +519,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - Delay tempo sync: Studio FX Delay has a Sync menu (free, 1/2, dotted 1/4, 1/4, 1/4 triplet, dotted 1/8 [default], 1/8, 1/8 triplet, 1/16) following BPM/meter changes live; Audio Clip Editor and Video Clip Editor have Sync to tempo + BPM; Groove Maker and Process Lab have a synced note-value menu.
 - Studio: multi-select effect picker (dialog with checkboxes) from the FX panel and each mixer strip.
 - Studio velocity: MIDI velocity stored as d2/127 (was compressed to 0.4-1); synth voices (all instruments and Mini synth) scale loudness (v^1.5) and brightness (velocity low-pass) by velocity; editor shades notes/hits by velocity and +/- changes the selected one.
+
+## z155 (2026-11-15)
+- Non-chord tones, Step, leap or hold: step is now keyed (major); each finder answer shows a generated example in the chosen key (PT, NT, ET, ANT by step, APP, ANT by leap, SUS, RET, PED); the two non-standard answers show text only. Merged into the Mac version (kept its 33-question quiz).

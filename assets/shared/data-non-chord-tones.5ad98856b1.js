@@ -453,15 +453,33 @@ window.FAM = (() => {
       <p class="nci-lab" id="nciL" hidden>How is it left?</p>
       <div class="lbtns" role="group" aria-labelledby="nciL" data-leave hidden></div>
       <div class="nci-res" aria-live="polite"></div></div>`;
+  // a generated example (in the step's key) for each answer the finder can give
+  function finderExamples(H, k, U) {
+    const t0 = dn(H, k, -14), pedB = H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2));
+    const E = {
+      "step.same": [[[1], [1]], [[0, 1], [1, 1, "PT"], [2, 2]], "<b>Passing tone</b>: step up, step up again."],
+      "step.opp": [[[1], [1]], [[4, 1], [5, 1, "NT"], [4, 2]], "<b>Neighbor tone</b>: step up, step back down."],
+      "step.leap": [[[5], [1]], [[6, 1], [5, 1, "ET"], [7, 2]], "<b>Escape tone</b>: step down, then leap up."],
+      "step.hold": [[[5], [1]], [[1, 1], [0, 1, "ANT"], [0, 2]], "<b>Anticipation</b>: steps down to the next chord's note a beat early, then repeats it."],
+      "leap.step": [[[1], [4]], [[2, 1], [4, 1], [6, 1, "APP"], [5, 1]], "<b>Appoggiatura</b>: leaps up on the beat, steps down."],
+      "leap.hold": [[[5], [1]], [[4, 1], [2, 1, "ANT"], [2, 2]], "<b>Anticipation</b> approached by leap, then repeated as the chord arrives."],
+      "same.down": [[[1], [5]], [[7, 2, null, true], [7, 1, "SUS"], [6, 1]], "<b>Suspension</b>: the tonic is held over into V, then steps down."],
+      "same.up": [[[5], [1]], [[6, 2, null, true], [6, 1, "RET"], [7, 1]], "<b>Retardation</b>: the leading tone is held over into I, then steps up."],
+      "same.hold": [[[1], [4], [5], [1]], [[7, 2], [5, 2], [6, 2], [7, 2]], "<b>Pedal tone</b>: the tonic stays in the bass while the chords above it change.", { ped: pedB }],
+    };
+    return `<div class="nci-exs">${Object.entries(E).map(([key, [prog, mel, cap, o]]) => `<div class="nci-ex" data-nex="${key}">${U.fig(ex(H, k, prog, mel, o || {}), cap, { small: true })}</div>`).join("")}</div>
+      <p class="note nci-exnote">Each answer comes with a generated example in the key chosen above.</p>`;
+  }
   function wireFinder(root) {
     const box = root.querySelector(".nci-finder"); if (!box) return; let a = null;
+    const showEx = key => root.querySelectorAll("[data-nex]").forEach(x => x.hidden = x.dataset.nex !== key); showEx("");
     box.addEventListener("click", e => {
       const ap = e.target.closest("[data-appr]"), lv = e.target.closest("[data-lv]");
       if (ap) { a = ap.dataset.appr; box.querySelectorAll("[data-appr]").forEach(x => x.setAttribute("aria-pressed", x === ap));
-        const L = box.querySelector("[data-leave]"); L.hidden = false; box.querySelector("#nciL").hidden = false; box.querySelector(".nci-res").innerHTML = "";
+        const L = box.querySelector("[data-leave]"); L.hidden = false; box.querySelector("#nciL").hidden = false; box.querySelector(".nci-res").innerHTML = ""; showEx("");
         L.innerHTML = Object.entries(LEAVE[a]).map(([k, l]) => `<button class="lk" data-lv="${k}" aria-pressed="false">${l}</button>`).join(""); }
       if (lv && a) { box.querySelectorAll("[data-lv]").forEach(x => x.setAttribute("aria-pressed", x === lv)); const [n, d] = RES[a + "." + lv.dataset.lv];
-        box.querySelector(".nci-res").innerHTML = `<p><b>${n}</b>: ${d}</p>`; }
+        box.querySelector(".nci-res").innerHTML = `<p><b>${n}</b>: ${d}</p>`; showEx(a + "." + lv.dataset.lv); }
     });
   }
 
@@ -576,9 +594,9 @@ window.FAM = (() => {
       <ul><li><b>Progression types.</b> Is something an incomplete iii chord or a V chord? In most cases it will be V.</li>
       <li><b>Sevenths and extensions.</b> In classical and folk music, sevenths are usually dissonances, except on the dominant chord. In jazz they are usually treated as consonant chord tones.</li></ul>` },
 
-    { title: "Step, leap or hold", kick: "How it is approached and left", render: () => `
+    { title: "Step, leap or hold", kick: "How it is approached and left", keyed: "major", render: (H, k, U) => `
       <p>To label a non-chord tone, sort it by how it is <b>approached</b> and how it is <b>resolved</b> (left): by <b>step</b>, by <b>leap</b> or by <b>hold</b> (a held or repeated note). Notes approached and left by step sound more natural than ones that involve leaps.</p>
-      ${finder()}`, after: root => wireFinder(root) },
+      ${finder()}${finderExamples(H, k, U)}`, after: root => wireFinder(root) },
 
     { title: "Passing and neighbor tones", kick: "Step in, step out", keyed: "major", render: (H, k, U) => {
       const pt = ex(H, k, [[1], [1]], [[0, 1], [1, 1, "PT"], [2, 2]], { sym: true }), nt = ex(H, k, [[1], [1]], [[4, 1], [5, 1, "NT"], [4, 2]]), six = ex(H, k, [[1], [1]], [[[2, 7], 1], [[3, 8], 1, "PT"], [[4, 9], 2]]);
