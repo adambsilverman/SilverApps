@@ -105,6 +105,24 @@ main.tool .daw .dmrow .lab{min-height:24px!important}
 main.tool .daw .fxs input[type=range]{width:100%!important}
 main.tool .daw .fxu .tbtn{min-height:22px!important;min-width:22px!important;padding:0 5px!important;font-size:11px!important;border-radius:4px!important}
 .fxflow{font:600 11px var(--fi-ui);color:var(--mu);margin:0}
+/* mixer */
+.mxr{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;align-items:stretch}
+.mxs{flex:none;width:104px;background:#26282c;border:1px solid #000;border-top:4px solid var(--tc,#888);border-radius:6px;padding:5px;display:grid;gap:4px;align-content:start}
+.mxs.mst{border-top-color:var(--hl);background:#2c2a26;width:112px}
+.mxs .nm{font:800 11px var(--fi-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mxins{display:grid;gap:2px;min-height:22px;align-content:start}
+main.tool .daw .mxins .tbtn{width:100%;text-align:left!important;min-height:20px!important;padding:0 5px!important;font-size:10px!important;border-radius:3px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:3px solid var(--hl)!important}
+main.tool .daw .mxins .tbtn.off{border-left-color:#666!important;color:var(--mu)!important}
+main.tool .daw .mxs select{height:22px!important;min-height:22px!important;font-size:11px!important;width:100%}
+main.tool .daw .mxs input[type=range].hz{width:100%!important}
+.mxf{display:flex;gap:6px;justify-content:center;align-items:stretch;height:132px}
+main.tool .daw .mxf input[type=range]{writing-mode:vertical-lr;direction:rtl;width:24px!important;height:128px;margin:0}
+.mxm{width:9px;background:#0c0d0f;border:1px solid #000;border-radius:2px;position:relative;overflow:hidden}
+.mxm i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(to top,#4fc35a 0,#4fc35a 60%,#ffd84d 80%,#ff6b5e 100%);background-size:100% 128px;background-position:bottom}
+.mxdb{font:600 10px ui-monospace,Menlo,monospace;color:var(--tx);text-align:center}
+.mxms{display:flex;gap:3px;justify-content:center}
+main.tool .daw .mxms .tbtn{min-height:22px!important;min-width:26px!important;padding:0 5px!important;font-size:11px!important}
+.mxms .m[aria-pressed="true"]{background:#e3b505!important;color:#111!important}.mxms .s[aria-pressed="true"]{background:#3d8bfd!important;color:#111!important}
 /* mini synth panel */
 .syg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
 .sys{background:#26282c;border:1px solid #000;border-radius:6px;padding:5px 7px 7px;display:grid;gap:3px;align-content:start}
@@ -139,7 +157,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     <p class="status" id="status" aria-live="polite"></p>
     <h2 class="sr">Tracks</h2>
     <div class="bar" role="toolbar" aria-label="Tracks">
-      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button><button class="tbtn sm" id="addDrum" type="button">+ Drums</button><button class="tbtn sm" id="addGroove" type="button" aria-expanded="false" aria-controls="gm">+ Groove Maker</button>
+      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button><button class="tbtn sm" id="addDrum" type="button">+ Drums</button><button class="tbtn sm" id="addGroove" type="button" aria-expanded="false" aria-controls="gm">+ Groove Maker</button><button class="tbtn sm" id="mxBtn" type="button" aria-expanded="false" aria-controls="mx">Mixer</button>
       <label class="tbtn sm" for="file" style="display:inline-flex;align-items:center">Open audio…</label><input type="file" id="file" accept="audio/*" class="sr">
       <button class="tbtn sm" id="undo" type="button" disabled>Undo take</button>
       <span class="note">● arms a track for recording. Use headphones with the mic.</span>
@@ -159,6 +177,10 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
       <p class="note" id="edHelp"></p>
       <div class="edv" id="edV"><canvas id="edKeys" aria-hidden="true"></canvas><div class="edh" id="edScroll"><canvas id="edC" tabindex="0" role="application" aria-roledescription="timeline editor" aria-describedby="edHelp"></canvas></div></div>
       <p class="sr" id="edSay" aria-live="polite"></p>
+    </section>
+    <section class="dmwrap" id="mx" aria-labelledby="mxH" hidden>
+      <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="mxH">Mixer</h2><span class="note">Each channel's inserts run top to bottom before its fader. Select an insert to edit it; add effects with + FX. The Master channel's effects process the whole mix.</span><button class="tbtn sm" id="mxClose" type="button" style="margin-left:auto">Close ✕</button></div>
+      <div class="mxr" id="mxR" role="group" aria-label="Mixer channels"></div>
     </section>
     <section class="dmwrap" id="fx" aria-labelledby="fxH" hidden>
       <div class="bar" style="padding:0;background:none;border:0">
@@ -244,9 +266,13 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   const projLen = () => Math.max(barLen() * 8, ...P.tracks.map(t => t.type === "audio" ? (t.buf ? t.start + t.nudge / 1000 + t.buf.duration : 0) : t.type === "drum" ? Math.max(t.rep * barLen(), ...t.hits.map(h => h.t + .3)) : Math.max(0, ...t.notes.map(n => n.t + n.d))));
 
   // ---------- audio ----------
-  let AC = null, MASTER = null, NZ = null;
+  let AC = null, MASTER = null, NZ = null, MS = null;
+  const MT = { id: "master", type: "master", name: "Master", vol: 90, fx: [], fxv: 0 };   // the master channel: its inserts process the whole mix
+  function masterRebuild() { if (!AC || !MS) return; MASTER.disconnect(); endGrp(MS.grp, 4000); MS.grp = newGrp(); MS.inp = fxChain(AC, MT, MS.mv, MS.grp); MASTER.connect(MS.inp); }
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) { status("This browser can't play audio."); return null; } if (!AC) { AC = new C({ latencyHint: "interactive" }); setup(AC); } if (AC.state === "suspended") AC.resume(); return AC; }
-  function setup(C) { const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 3; MASTER = C.createGain(); MASTER.gain.value = .9; MASTER.connect(comp); comp.connect(C.destination); NZ = C.createBuffer(1, C.sampleRate, C.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  function setup(C) { const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 3; MASTER = C.createGain(); const mv = C.createGain(); mv.gain.value = MT.vol / 100;
+    const live = C === AC, grp = live ? newGrp() : { oscs: [], inst: [] }, inp = fxChain(C, MT, mv, grp); MASTER.connect(inp); mv.connect(comp); comp.connect(C.destination);
+    if (live) { const an = C.createAnalyser(); an.fftSize = 512; comp.connect(an); MS = { mv, inp, grp, an }; } NZ = C.createBuffer(1, C.sampleRate, C.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   // a synth voice; returns { stop(t) }
   function voice(C, inst, m, t, vel, dest) {
@@ -363,7 +389,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     let cur = dest; (tr.fx || []).slice().reverse().forEach(f => { if (!f.on) return; const n = fxNode(C, f, grp.oscs); n.set(f.p); n.out.connect(cur); cur = n.inp; grp.inst.push([f, n]); });
     return cur;
   }
-  const GRPS = new Set(), newGrp = () => { const g = { oscs: [], inst: [] }; GRPS.add(g); return g; }, endGrp = (g, later = 0) => { GRPS.delete(g); setTimeout(() => g.oscs.forEach(o => { try { o.stop(); } catch (e) {} }), later); };
+  const GRPS = new Set(), newGrp = () => { const g = { oscs: [], inst: [], meters: {}, strips: {} }; GRPS.add(g); return g; }, endGrp = (g, later = 0) => { GRPS.delete(g); setTimeout(() => g.oscs.forEach(o => { try { o.stop(); } catch (e) {} }), later); };
   // a per-track chain for live playing (keys, pads, loop audition); rebuilt when the chain's shape changes
   const LIVE = {};
   function liveOut(tr) {
@@ -377,7 +403,13 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   function click(C, t, hi, dest) { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = hi ? 1760 : 1100; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(hi ? .35 : .22, t + .001); g.gain.exponentialRampToValueAtTime(.001, t + .05); o.connect(g); g.connect(dest); o.start(t); o.stop(t + .06); }
 
   // per-track mixer strip (created for each play or render)
-  function strip(C, tr, dest, soloOn, grp) { const g = C.createGain(), p = C.createStereoPanner ? C.createStereoPanner() : null; g.gain.value = (tr.mute || (soloOn && !tr.solo)) ? 0 : tr.vol / 100; if (p) { p.pan.value = tr.pan / 100; g.connect(p); p.connect(dest); } else g.connect(dest); return fxChain(C, tr, g, grp || { oscs: [], inst: [] }); }
+  function strip(C, tr, dest, soloOn, grp) { const g = C.createGain(), p = C.createStereoPanner ? C.createStereoPanner() : null; g.gain.value = (tr.mute || (soloOn && !tr.solo)) ? 0 : tr.vol / 100; if (p) { p.pan.value = tr.pan / 100; g.connect(p); p.connect(dest); } else g.connect(dest);
+    if (grp && grp.meters) { const an = C.createAnalyser(); an.fftSize = 512; (p || g).connect(an); grp.meters[tr.id] = an; grp.strips[tr.id] = { g, p }; }
+    return fxChain(C, tr, g, grp || { oscs: [], inst: [] }); }
+  // mixer changes reach the song while it plays
+  function applyMix() { if (!playGrp || !AC) return; const soloOn = P.tracks.some(t => t.solo), t0 = AC.currentTime;
+    P.tracks.forEach(tr => { const x = playGrp.strips[tr.id]; if (!x) return; x.g.gain.setTargetAtTime((tr.mute || (soloOn && !tr.solo)) ? 0 : tr.vol / 100, t0, .02); if (x.p) x.p.pan.setTargetAtTime(tr.pan / 100, t0, .02); });
+    if (MS) MS.mv.gain.setTargetAtTime(MT.vol / 100, t0, .02); }
   // schedule the whole project (or from `from` seconds) on context C, with time zero of the song at t0
   function schedule(C, dest, t0, from, opts = {}) {
     const soloOn = P.tracks.some(t => t.solo), strips = {};
@@ -411,7 +443,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
       while (nextClick < h) { const pos = nextClick - T0, inCount = pos < P.pos - 1e-6; if (P.click || inCount) click(AC, nextClick, Math.round(pos / beat()) % P.meter === 0, playBus); nextClick += beat(); }
       if (!recording && AC.currentTime - T0 > projLen() + .5) stopAll();
     }, 30);
-    raf = requestAnimationFrame(follow);
+    raf = requestAnimationFrame(follow); if (!$("mx").hidden && !mxRaf) mxRaf = requestAnimationFrame(mxMeters);
     return { T0, pre };
   }
   function stopAll(quiet) {
@@ -521,15 +553,15 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
         <label class="knob" title="Volume"><span class="lbl">Vol</span><input type="range" data-a="vol" min="0" max="120" value="${t.vol}" aria-label="Volume of ${esc(t.name)}"></label>
         <label class="knob" title="Pan"><span class="lbl">Pan</span><input type="range" data-a="pan" min="-100" max="100" value="${t.pan}" aria-label="Pan of ${esc(t.name)}"></label>
         <span class="meta">${t.type === "drum" ? t.grid.flat().filter(Boolean).length + " steps" + (t.hits.length ? ", " + t.hits.length + " hits" : "") : t.type === "synth" ? t.notes.length + " notes" + (arpOn(t) ? " · arp" : "") : t.buf ? t.buf.duration.toFixed(1) + " s" : "empty"}</span></div></div>`).join("") || `<p class="empty">No tracks yet. Add a synth or mic track, open an audio file, or send a progression from the Groove Maker.</p>`;
-    arpSync();
+    arpSync(); if (!$("mx").hidden) mxDraw();
   }
   $("tracks").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!row) return; const i = +row.dataset.i, t = P.tracks[i];
     if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") { if (P.sel !== i && !b) { P.sel = i; drawTracks(); } return; }
     const a = b.dataset.a;
     if (a === "sel") P.sel = i;
-    if (a === "mute") t.mute = !t.mute;
-    if (a === "solo") t.solo = !t.solo;
+    if (a === "mute") { t.mute = !t.mute; applyMix(); }
+    if (a === "solo") { t.solo = !t.solo; applyMix(); }
     if (a === "clear") { if (t.type === "drum") { undoSnap = { id: t.id, hits: t.hits.slice() }; t.hits = []; } else { undoSnap = { id: t.id, notes: t.notes.slice() }; t.notes = []; } $("undo").disabled = false; }
     if (a === "dm") { P.sel = i; dmOpen(t); }
     if (a === "ed") { P.sel = i; edOpen(t); }
@@ -541,7 +573,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   });
   const confirmDel = t => { if (t.notes.length || t.buf) { const ok = row => true; return ok(); } return true; };
   $("tracks").addEventListener("input", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; const t = P.tracks[+row.dataset.i], a = b.dataset.a;
-    if (a === "name") t.name = b.value; if (a === "vol") t.vol = +b.value; if (a === "pan") t.pan = +b.value; if (a === "nudge") { t.nudge = +b.value; b.nextElementSibling.textContent = t.nudge; draw(); } });
+    if (a === "name") t.name = b.value; if (a === "vol") t.vol = +b.value; if (a === "pan") t.pan = +b.value; if (a === "vol" || a === "pan") { applyMix(); mxSync(t); } if (a === "nudge") { t.nudge = +b.value; b.nextElementSibling.textContent = t.nudge; draw(); } });
   $("tracks").addEventListener("change", e => { const b = e.target.closest("[data-a]"), row = e.target.closest("[data-i]"); if (!b || !row) return; if (b.dataset.a === "inst") { const t = P.tracks[+row.dataset.i]; t.inst = b.value; if (t.inst === "mini") { t.sy = t.sy || Object.assign({}, SYD); syOpen(t); } else if (SYT.tr === t) syClose(); drawTracks(); liveEdit(); } if (b.dataset.a === "kit") { const t = P.tracks[+row.dataset.i]; t.kit = b.value; if (t.kit === "beatbox") bxLoad(); if (DM.tr === t) dmDraw(); draw(); liveEdit(); } });
 
   // ---------- timeline ----------
@@ -801,9 +833,37 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   }
   function fxOpen(tr) { tr.fx = tr.fx || []; FX.tr = tr; $("fx").hidden = false; fxDraw(); drawTracks(); $("fx").scrollIntoView({ block: "nearest" }); }
   function fxClose() { $("fx").hidden = true; FX.tr = null; }
-  const fxShape = () => { FX.tr.fxv = (FX.tr.fxv || 0) + 1; fxDraw(); drawTracks(); liveEdit(); };
+  const fxShape = () => { FX.tr.fxv = (FX.tr.fxv || 0) + 1; fxDraw(); drawTracks(); if (FX.tr === MT) masterRebuild(); else liveEdit(); };
   $("fxClose").onclick = fxClose;
   $("fxAdd").onchange = e => { const k = e.target.value; if (!k || !FX.tr) return; FX.tr.fx.push(fxNew(k)); e.target.value = ""; fxShape(); status(`${FXD[k][0]} added to ${FX.tr.name}.`); };
+  // ---------- mixer ----------
+  const mxDb = v => v <= 0 ? "−∞" : (20 * Math.log10(v / 100)).toFixed(1);
+  const mxTr = el => { const i = el.closest("[data-mi]").dataset.mi; return i === "m" ? MT : P.tracks[+i]; };
+  function mxStrip(t, i) { const m = t === MT, nm = esc(t.name);
+    return `<div class="mxs${m ? " mst" : ""}" style="--tc:${t.color || "#888"}" data-mi="${m ? "m" : i}" role="group" aria-label="${nm} channel"><b class="nm" title="${nm}">${nm}</b>
+      <span class="lbl">Inserts</span><div class="mxins">${(t.fx || []).map((f, j) => `<button type="button" class="tbtn${f.on ? "" : " off"}" data-mxa="fxo" aria-label="${FXD[f.k][0]}${f.on ? "" : " (off)"} on ${nm}: edit">${FXD[f.k][0]}</button>`).join("") || '<span class="note">none</span>'}</div>
+      <select data-mxa="add" aria-label="Add an effect to ${nm}"><option value="">+ FX</option>${Object.entries(FXD).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("")}</select>
+      ${m ? "" : `<label><span class="lbl">Pan</span><input class="hz" type="range" data-mxa="pan" min="-100" max="100" value="${t.pan}" aria-label="Pan of ${nm}"></label>`}
+      <div class="mxf"><input type="range" data-mxa="vol" min="0" max="120" value="${t.vol}" aria-label="Fader: ${nm}"><span class="mxm" aria-hidden="true"><i id="mxm-${t.id}"></i></span></div>
+      <output class="mxdb" data-mxo="${t.id}">${mxDb(t.vol)} dB</output>
+      ${m ? "" : `<div class="mxms"><button type="button" class="tbtn m" data-mxa="mute" aria-pressed="${t.mute}" aria-label="Mute ${nm}">M</button><button type="button" class="tbtn s" data-mxa="solo" aria-pressed="${t.solo}" aria-label="Solo ${nm}">S</button></div>`}</div>`; }
+  function mxDraw() { $("mxR").innerHTML = P.tracks.map(mxStrip).join("") + mxStrip(MT); }
+  function mxSync(t) { if ($("mx").hidden) return; const st = document.querySelector(`#mxR [data-mi="${P.tracks.indexOf(t)}"]`); if (!st) return; st.querySelector('[data-mxa="vol"]').value = t.vol; const pn = st.querySelector('[data-mxa="pan"]'); if (pn) pn.value = t.pan; st.querySelector(".mxdb").textContent = mxDb(t.vol) + " dB"; }
+  let mxRaf = 0; const mxBuf = new Float32Array(512);
+  function mxMeters() { if ($("mx").hidden) { mxRaf = 0; return; }
+    const lv = an => { if (!an) return 0; an.getFloatTimeDomainData(mxBuf); let pk = 0; for (let i = 0; i < mxBuf.length; i++) pk = Math.max(pk, Math.abs(mxBuf[i])); return pk; };
+    const set = (id, an) => { const el = document.getElementById("mxm-" + id); if (el) el.style.height = Math.max(0, Math.min(100, (20 * Math.log10(lv(an) + 1e-6) + 48) / 48 * 100)) + "%"; };
+    P.tracks.forEach(t => set(t.id, playing && playGrp ? playGrp.meters[t.id] : null)); set("master", MS && MS.an);
+    mxRaf = requestAnimationFrame(mxMeters); }
+  const mxShow = on => { $("mx").hidden = !on; $("mxBtn").setAttribute("aria-expanded", String(on)); if (on) { mxDraw(); if (!mxRaf) mxRaf = requestAnimationFrame(mxMeters); $("mx").scrollIntoView({ block: "nearest" }); } };
+  $("mxBtn").onclick = () => mxShow($("mx").hidden); $("mxClose").onclick = () => mxShow(false);
+  $("mxR").addEventListener("input", e => { const a = e.target.dataset.mxa; if (a !== "vol" && a !== "pan") return; const t = mxTr(e.target); t[a] = +e.target.value;
+    if (a === "vol") e.target.closest(".mxs").querySelector(".mxdb").textContent = mxDb(t.vol) + " dB";
+    if (t !== MT) { const h = document.querySelector(`#tracks [data-i="${P.tracks.indexOf(t)}"] [data-a="${a}"]`); if (h) h.value = t[a]; } applyMix(); });
+  $("mxR").addEventListener("change", e => { if (e.target.dataset.mxa !== "add" || !e.target.value) return; const t = mxTr(e.target), k = e.target.value; t.fx = t.fx || []; t.fx.push(fxNew(k)); FX.tr = t; $("fx").hidden = false; fxShape(); status(`${FXD[k][0]} added to ${t.name}.`); const sel = document.querySelector(`#mxR [data-mi="${t === MT ? "m" : P.tracks.indexOf(t)}"] [data-mxa="add"]`); if (sel) sel.focus(); });
+  $("mxR").addEventListener("click", e => { const b = e.target.closest("[data-mxa]"); if (!b || b.tagName !== "BUTTON") return; const t = mxTr(b), a = b.dataset.mxa;
+    if (a === "fxo") { const j = [...b.parentNode.children].indexOf(b); fxOpen(t); const u = document.querySelector(`#fxRack [data-fi="${j}"]`); if (u) { u.scrollIntoView({ block: "nearest", inline: "nearest" }); const f = u.querySelector("[data-fa]"); if (f) f.focus(); } return; }
+    if (a === "mute" || a === "solo") { t[a] = !t[a]; b.setAttribute("aria-pressed", String(t[a])); applyMix(); const i = P.tracks.indexOf(t); $("tracks").querySelectorAll(`[data-i="${i}"] [data-a="${a}"]`).forEach(x => x.setAttribute("aria-pressed", String(t[a]))); } });
   $("fxRack").addEventListener("click", e => { const b = e.target.closest("[data-fa]"); if (!b || !FX.tr) return; const i = +b.closest("[data-fi]").dataset.fi, L = FX.tr.fx, a = b.dataset.fa;
     if (a === "on") L[i].on = !L[i].on; if (a === "x") L.splice(i, 1); if (a === "l" && i) L.splice(i - 1, 0, L.splice(i, 1)[0]); if (a === "r" && i < L.length - 1) L.splice(i + 1, 0, L.splice(i, 1)[0]);
     fxShape(); const nb = document.querySelector(`#fxRack [data-fi="${Math.min(a === "l" ? i - 1 : a === "r" ? i + 1 : i, L.length - 1)}"] [data-fa="${a === "x" ? "on" : a}"]`); if (nb && !nb.disabled) nb.focus(); });

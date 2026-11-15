@@ -511,3 +511,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z152 (2026-11-15)
 - Cadences: Dont Think Twice step now uses Adam's annotated lead sheet (assets/img/cadences/dont-think-twice.jpg); explanations, checks and quiz rewritten to match (line 1 plagal + B7 turnaround, line 2 HC via V4/2/V, line 3 no cadence, line 4 PAC with cadential 6/4). Lightbox Enlarge button moved to bottom-right.
 - Delay added: Audio Clip Editor (time/feedback/mix/tone/ping-pong, preview + apply), Video Clip Editor (Delay group in mastering knobs), Groove Maker and Process Lab (tempo-synced dotted-eighth echo slider), Music Software mixer (Send to Delay + Delay return), Intro to Pitch synth (Echo knob). Studio already has Delay in the FX rack.
+
+## z153 (2026-11-15)
+- Multitrack Studio: Mixer panel (toolbar "Mixer"): a channel strip per track (inserts list, + FX, pan, vertical fader with dB, live meter, M/S) plus a Master channel whose inserts process the whole mix (also in export). Fader/pan/mute/solo now change the song live while it plays; strips and track headers stay in sync.
