@@ -497,3 +497,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z149 — Multitrack Studio, DAW layout
 - build/pages/multitrack-studio.html: one dark .daw window: transport bar (LCD clock, BPM, meter, click, count-in, zoom), track toolbar, arrange view (.arr grid: 56px track headers with arm/name/M/S/clear/delete + instrument or nudge, vol, pan; canvas lanes with matching row height and ruler), compact keyboard drawer (32px keys), export footer. Same IDs and behaviour; overrides use main.tool .daw to beat global button/input styles.
+- cadences.js: new step 3 "Imperfect and perfect authentic cadences" (Rubber Duckie: YouTube ltMDeoxT5rs 0:06–0:30 + Adam's annotated lead sheet assets/img/cadences/rubber-duckie.jpg); America the Beautiful moved after Dylan, with separate IAC (bars 3–4) and turnaround (bar 4) hotspots; clicking a hotspot opens/closes the explanations at its paragraph (.cad-cur). Quiz renumbered + one Rubber Duckie question.

@@ -881,6 +881,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cad-more { margin-top: 10px; } .cad-more summary { cursor: pointer; font-weight: 700; }
 .wrap .cad-map .cad-hot { border-radius: 8px !important; border: 2px solid #C98A00 !important; min-height: 0 !important; padding: 0 !important; }
 .cad-hot { position: relative; } .cad-badge { position: absolute; top: -17px; right: -2px; border-radius: 6px 6px 0 0; }
+.cad-more p.cad-cur { background: #FFF4D6; color: #222; border-left: 4px solid #C98A00; padding: 6px 10px; border-radius: 4px; }
+.cad-fig .lvideo + img { margin-top: 10px; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
