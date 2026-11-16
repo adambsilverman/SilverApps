@@ -134,18 +134,13 @@ window.FAM = (() => {
       + PX("chaminade-idylle.png", 2176, 970, "Chaminade, Idylle Op. 126 No. 1, in 6/8 for piano: brackets above the staff mark presentation phase part 1, presentation phase part 2, and a long continuation phase ending at the point of cadence.", "Cécile Chaminade, <i>Idylle</i>, Op. 126 No. 1: a sentence.", "chaminade-idylle")
       + `<p>The <b>12-bar blues</b> can be thought of as a sentence: a series of fragments with no inner cadence. For more, see <a href="https://milnepublishing.geneseo.edu/fundamentals-function-form/chapter/35-sentences-and-periods/" target="_blank" rel="noopener">“Sentences and Periods” in <i>Fundamentals, Function, and Form</i></a>.</p>` },
     { title: "Pairs: periods", kick: "Antecedent and consequent", render: (H, k, U) => {
-      const pp = ex(H, "pp"), cp = ex(H, "cp");
       return `<p>Phrases combine according to <b>closure</b>: the more open a phrase ends, the more likely it's followed by a phrase with a more final cadence. A <b>period</b> is a pair of phrases that group naturally: an <b>antecedent</b> and a <b>consequent</b>, usually with progressively more conclusive cadences. Periods can be:</p>
         <ul><li><b>balanced</b> (phrases the same length) or <b>asymmetrical</b>;</li><li><b>parallel</b> (similar beginnings) or <b>contrasting</b>;</li><li>in one key, or <b>progressive</b> (modulating).</li></ul>`
-        + (pp ? U.fig(pp, "A parallel period: a ends with a half cadence; a′ begins the same way and closes with an authentic cadence.") : "")
-        + (cp ? U.fig(cp, "A contrasting period: a (open), then b (closed).") : "")
-        + `<h3>In a song</h3><p>The first two phrases of Bill Withers' “Lean On Me” make a parallel period: phrase 1 ends on a half cadence, phrase 2 starts the same way and closes with an authentic cadence. The two phrases after them are the next step's subject: a repeated phrase.</p>`
+        + `<p>The first two phrases of Bill Withers' “Lean On Me” make a parallel period: phrase 1 ends on a half cadence, phrase 2 starts the same way and closes with an authentic cadence. The two phrases after them are the next step's subject: a repeated phrase.</p>`
         + PX("lean-on-me.png", 2400, 1419, "Lean On Me in C major, four lines of melody with chord symbols C, F, G. The first two lines are labeled parallel period, a then a prime: phrase 1 ends in a half cadence, phrase 2 in an authentic cadence. The last two lines are labeled repeated phrase, b then b, both ending in authentic cadences.", "Bill Withers, “Lean On Me” (1972) (lyrics not shown).", "lean-on-me");
     } },
     { title: "Phrase groups", kick: "Together, but not a period", render: (H, k, U) => {
-      const g = ex(H, "ppg");
       return `<p>A <b>phrase group</b> is two or more phrases that seem to belong together but don't form antecedent and consequent: for instance, both end closed. It can be parallel or contrasting. The <b>repeated phrase</b> is one kind of phrase group.</p>`
-        + (g ? U.fig(g, "A parallel phrase group: both phrases end with authentic cadences.") : "")
         + `<p>The second pair of phrases in “Lean On Me” (previous step) is a <b>repeated phrase</b>: the same b phrase twice, each ending closed. François Couperin's <i>Le Petit-Rien</i> is a <b>parallel phrase group</b>: the second phrase starts like the first, and both close.</p>`
         + PX("couperin-petit-rien.jpg", 1280, 800, "Couperin, Le Petit-Rien, in D major for keyboard: two phrases that begin alike, the second marked forte.", "François Couperin, <i>Le Petit-Rien</i>, from <i>Pièces de clavecin</i> (1722).", "couperin-petit-rien");
     } },
