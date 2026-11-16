@@ -586,3 +586,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z169h: secondary.js Where Is Love step gets audio assets/audio/secondary/where-is-love.mp3 (from MTC 501 web pages).
 - z169i: mixture.js Picardy step adds Schutz Heu mihi audio (assets/audio/chromatic/schutz-heu-mihi.mp3).
 - z169j: secondary.js God Only Knows audio (assets/audio/secondary/god-only-knows.mp3).
+- z169k: added build/watch.sh (polls build/ every second, JXA syntax check of saved .js on macOS, runs build_all.sh with PermissionError retries, macOS notifications) and "Edit Mode.command" (local preview server on 8000+ and the watcher).
+- z169l: Edit mode: build/editor/server.py (localhost-only server, per-run token, injects build/editor/editor.js|css into served pages; click text -> locate source slice in build/ (js/html/json/py), save with backup in build/editor/backups (gitignored) + syntax check + rebuild; watches build/ for manual saves). "Edit Mode.command" now runs it (watch.sh kept for Terminal use).

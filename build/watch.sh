@@ -8,7 +8,7 @@ LOG="$(mktemp "${TMPDIR:-/tmp}/sa-build.XXXXXX")"
 trap 'rm -f "$STAMP" "$LOG"; echo; echo "Stopped watching."; exit 0' INT TERM
 
 # source files saved since the last build (skips generated output and hidden/editor files)
-changed() { find build \( -path build/gen -o -name __pycache__ -o -name '.*' \) -prune -o -type f -newer "$STAMP" ! -name '*~' ! -name '*.swp' -print 2>/dev/null; }
+changed() { find build \( -path build/gen -o -name __pycache__ -o -name '.*' \) -prune -o -type f -newer "$STAMP" ! -name '*~' ! -name '*.swp' ! -name watch.sh -print 2>/dev/null; }
 
 notify() { command -v osascript >/dev/null 2>&1 && osascript -e "display notification \"$2\" with title \"SilverApps\" subtitle \"$1\"" >/dev/null 2>&1; }
 

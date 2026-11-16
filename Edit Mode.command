@@ -1,13 +1,7 @@
 #!/bin/bash
-# Double-click to edit the site. It opens a local preview in your browser and rebuilds
-# every time you save a file in build/. Close this window (or press Ctrl+C) to stop.
+# Double-click to edit the site. Opens a private preview in your browser (this Mac only).
+# Turn on "Edit" in the page's lower-left corner, click any text, change it, Save: the change is
+# written into the source file under build/ and the site rebuilds. Saving a file in your own
+# editor also triggers a rebuild. Close this window (or press Ctrl+C) to stop.
 cd "$(dirname "$0")" || exit 1
-PORT=8000
-while lsof -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; do PORT=$((PORT + 1)); done
-python3 -m http.server $PORT --bind 127.0.0.1 >/dev/null 2>&1 &
-SERVER=$!
-trap 'kill $SERVER 2>/dev/null' EXIT
-sleep 1
-open "http://localhost:$PORT/"
-echo "Preview: http://localhost:$PORT/"
-bash build/watch.sh
+exec python3 build/editor/server.py
