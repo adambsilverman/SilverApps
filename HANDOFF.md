@@ -566,3 +566,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z167 (2026-11-15)
 - Harmonic Succession: removed the board-drawing image; the interactive progression chart (step 2) now carries PRE-DOMINANTS, DOMINANTS, TONIC and a "deceptive resolution" label on the arc (chartSVG labels option). Removed all generated notation examples (phrase-model expansions, diatonic circle, Andalusian cadence, embellishing-chord figures); their content is now in text (Roman numerals). Phrase model and Embellishing chords steps no longer keyed.
 - Harmonic Succession audio: Autumn Leaves (Nat King Cole) trimmed to 0:17, Here There and Everywhere to 0:07, added the Monkees Steppin Stone excerpt; Willow Weep for Me credited to Louis Armstrong. (harmsucc.js on the Mac had reverted to the pre-removal version; re-committed.)
+
+## z168 (2026-11-15)
+- Harmonic Succession: Embellishing chords now has Adam's annotated G-minor example (assets/img/harmsucc/embellishing-chords.png) and his video assets/video/Real Emotional Chords - audio improved.mp4 (no captions file yet). In context uses the three analyzed phrases of Nearer, My God, to Thee (nearer-phrase-1..3.png) with the MTC 501 commentary.
