@@ -142,7 +142,7 @@ window.FAM = (() => {
   }
 
   // examples from Dr. Silverman's course materials (assets/img|audio/secondary); lyrics removed, excerpts used for educational purposes
-  const SX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/secondary/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/secondary/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const SX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/secondary/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/secondary/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // step 1's switchable circle progression: [diatonic degree, its label, the secondary dominant that replaces it]
   const SWAP = [[3, "iii7", "V7/vi"], [6, "vi7", "V7/ii"], [2, "ii7", "V7/V"]], DEG_AFTER = { 3: 6, 6: 2, 2: 5 }, SWON = [false, false, false];
   // ---------- lesson ----------

@@ -1,7 +1,7 @@
 
 (window.FAMS = window.FAMS || {}).mix = (() => {
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // ===== Mode Mixture: content (lesson + drills). Engine: build/harmony/engine.js =====
   const okSp = c => c.tones.every(n => Math.abs(n.a) < 2);
   // borrowed chords in a major key, built from the parallel (natural) minor
@@ -207,7 +207,7 @@
 
 (window.FAMS = window.FAMS || {}).nea = (() => {
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // ===== Neapolitan Chords: content (lesson + drills). Engine: build/harmony/engine.js =====
   const okSp = c => c.tones.every(n => Math.abs(n.a) < 2);
   const nRoot = (H, k) => H.up(k.tonic, 1, 1);                       // ♭2̂: the letter above the tonic, a half step up
@@ -379,7 +379,7 @@
 
 (window.FAMS = window.FAMS || {}).aug = (() => {
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // ===== Augmented Sixth Chords: content (lesson + drills). Engine: build/harmony/engine.js =====
   const TYPES = ["It", "Fr", "Ger"], RN = { It: "It+6", Fr: "Fr+6", Ger: "Ger+6" }, NAME = { It: "Italian", Fr: "French", Ger: "German" };
   const ADD = { It: "do (1̂)", Fr: "do (1̂) and re (2̂)", Ger: "do (1̂) and me (♭3̂)" };
@@ -562,7 +562,7 @@
 
 (window.FAMS = window.FAMS || {}).med = (() => {
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // ===== Chromatic Mediants (part of Chromatic Chords). Engine: build/harmony/engine.js =====
   const REL = [[2, 4, "a major 3rd above"], [2, 3, "a minor 3rd above"], [-2, -4, "a major 3rd below"], [-2, -3, "a minor 3rd below"]];
   const sigSize = (H, n, q) => { try { const k = H.key(H.nm(n), q === "m" ? "minor" : "major"); return k.scale.reduce((t, x) => t + Math.abs(x.a), 0) + (k.scale.some(x => Math.abs(x.a) > 1) ? 9 : 0); } catch (e) { return 99; } };
@@ -642,7 +642,7 @@
 (window.FAMS = window.FAMS || {}).poly = (() => {
   // ===== Polychords and "improper" slash chords (part of Chromatic Chords; lesson steps only, no drills). Engine: build/harmony/engine.js =====
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic), excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // a polychord symbol: upper chord over a horizontal line over the lower chord
   const PC = (top, bot) => `<span class="polysym" role="img" aria-label="${top} over ${bot}"><span>${top}</span><span>${bot}</span></span>`;
 
