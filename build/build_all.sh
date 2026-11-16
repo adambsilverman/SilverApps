@@ -3,9 +3,11 @@
 cd "$(dirname "$0")/.." || exit 1
 # one build at a time (Edit Mode, the watcher and a manual run can overlap): wait for a running build; clear a lock older than 15 minutes
 LOCK=build/.build.lock
+WAITED=0
 while ! mkdir "$LOCK" 2>/dev/null; do
-  if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +15 2>/dev/null)" ]; then rmdir "$LOCK" 2>/dev/null; continue; fi
-  sleep 1
+  # a lock older than 10 minutes is left over from a build that was killed: clear it (or, if it can't be removed, go ahead anyway)
+  if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +10 2>/dev/null)" ] || [ $WAITED -ge 600 ]; then rmdir "$LOCK" 2>/dev/null || break; continue; fi
+  sleep 1; WAITED=$((WAITED + 1))
 done
 trap 'rmdir "$LOCK" 2>/dev/null' EXIT INT TERM
 python3 build/transposition/assemble.py
