@@ -18,7 +18,7 @@ window.FAM = (() => {
   const TRI_NOTE = { "3-1": "chromatic cluster", "3-2": "", "3-3": "major 3rd split by a half step", "3-4": "perfect 4th with a half step inside", "3-5": "tritone + half step", "3-6": "whole-tone fragment", "3-7": "", "3-8": "", "3-9": "stacked 4ths/5ths", "3-10": "diminished triad", "3-11": "major or minor triad", "3-12": "augmented triad" };
   const pf = s => prime(s).join("");
   // Dr. Silverman's notation images from his blog post "Composition II – Pitch Sets" (assets/img/pitchsets)
-  const IMG = (f, w, h, alt, cap, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}><img src="assets/img/pitchsets/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;padding:6px;box-sizing:border-box;border-radius:6px"><figcaption>${cap}</figcaption></figure>`;
+  const IMG = (f, w, h, alt, cap, max, aud) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/pitchsets/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/pitchsets/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;padding:6px;box-sizing:border-box;border-radius:6px"><figcaption>${cap}</figcaption></figure>`;
   // staff figures: sets as chords (or melodic cells), each labeled under the staff
   const oct = (pcs, base = 60) => { let last = base - 1; return pcs.map(p => { let m = p + 60; while (m <= last) m += 12; last = m; return m; }); };
   const nk = (m, spell) => (spell || SHARP)[m % 12] + (Math.floor(m / 12) - 1);
@@ -71,16 +71,16 @@ window.FAM = (() => {
       + `<p>To name a collection: write its pitch classes, find the most compact way to arrange them (try the inversion too), and transpose that to start on 0. C–E–F, for example, is {0,4,5}; inverted it becomes {0,1,5}, so it's <b>3-4</b>.</p>` },
     { title: "Bartók's String Quartet No. 2", kick: "A set at work", render: () => `<p>In the second movement of Bartók's String Quartet No. 2 (1917), <b>3-3</b> is everywhere. Its sound is easy to spot: a major 3rd divided by a half step on one side or the other.</p>
       <p><b>Rehearsal 1:</b> the motives are framed by 3-3. In bar 19 a G♯ stretches the set toward a scale, and in bar 23 a C♯ produces a second form of 3-3, a half step higher.</p>`
-      + IMG("bartok-sq2-reh1.png", 1024, 240, "Bars 12 to 25 of the first violin in 2/4: repeated F, D, F eighth notes, then F-sharp, F and D with G-sharp added, ending with grace-note figures and a ritard.", "Rehearsal 1, bars 12–25.")
+      + IMG("bartok-sq2-reh1.png", 1024, 240, "Bars 12 to 25 of the first violin in 2/4: repeated F, D, F eighth notes, then F-sharp, F and D with G-sharp added, ending with grace-note figures and a ritard.", "Rehearsal 1, bars 12–25.", 0, ["bartok-sq2-reh1", "Bartók, String Quartet No. 2, II, Rehearsal 1"])
       + `<p><b>Rehearsal 4:</b> the notes of 3-3 are the main pitches of the melody.</p>`
-      + IMG("bartok-sq2-reh4.png", 1024, 294, "Bars 52 to 70 in bass and alto clefs, with brackets labeled 3-3 over the opening figure in bar 52 and over bars 64 to 65.", "Rehearsal 4, bars 52–70, with forms of 3-3 bracketed.")
+      + IMG("bartok-sq2-reh4.png", 1024, 294, "Bars 52 to 70 in bass and alto clefs, with brackets labeled 3-3 over the opening figure in bar 52 and over bars 64 to 65.", "Rehearsal 4, bars 52–70, with forms of 3-3 bracketed.", 0, ["bartok-sq2-reh4", "Bartók, String Quartet No. 2, II, Rehearsal 4"])
       + `<p><b>Rehearsal 7:</b> 3-3 shares the stage with <b>3-4</b> (015), a perfect 4th with a half step inside.</p>`
-      + IMG("bartok-sq2-reh7.png", 1024, 256, "Bars 79 to 88 in alto clef: a bracket labeled 3-3 over bars 79 to 83 and one labeled 3-4 over bars 83 to 85.", "Rehearsal 7, bars 79–88: 3-3, then 3-4.")
+      + IMG("bartok-sq2-reh7.png", 1024, 256, "Bars 79 to 88 in alto clef: a bracket labeled 3-3 over bars 79 to 83 and one labeled 3-4 over bars 83 to 85.", "Rehearsal 7, bars 79–88: 3-3, then 3-4.", 0, ["bartok-sq2-reh7", "Bartók, String Quartet No. 2, II, Rehearsal 7"])
       + `<p><b>Bar 116:</b> a strong chord combines 3-3 and 3-4 into one sonority.</p>`
       + IMG("bartok-sq2-bar116.png", 848, 307, "The chord at bar 116, then its pitches spelled out in a line, with overlapping boxes marking the 3-4 trichord and the 3-3 trichord they contain.", "Bar 116: the chord, and its 3-4 and 3-3 subsets.", 560)
       + `<p><b>Rehearsal 11:</b> the cello melody blends both sets.</p>`
-      + IMG("bartok-sq2-reh11.png", 1024, 353, "Cello melody, bars 116 to 130, in bass and tenor clefs, with brackets labeling forms of 3-3 and 3-4, one marked 3-4 plus F-sharp, and a note that the trichord later adds D.", "Rehearsal 11, bars 116–130: the cello weaves 3-3 and 3-4 together.")
-      + `<p class="note">Recordings of each passage are in Dr. Silverman's post <a href="https://adambsilverman.com/2019/01/composition-ii-pitch-sets/" target="_blank" rel="noopener">Composition II – Pitch Sets</a>.</p>` },
+      + IMG("bartok-sq2-reh11.png", 1024, 353, "Cello melody, bars 116 to 130, in bass and tenor clefs, with brackets labeling forms of 3-3 and 3-4, one marked 3-4 plus F-sharp, and a note that the trichord later adds D.", "Rehearsal 11, bars 116–130: the cello weaves 3-3 and 3-4 together.", 0, ["bartok-sq2-reh11", "Bartók, String Quartet No. 2, II, Rehearsal 11"])
+      + `` },
     { title: "Composing with a set", kick: "Melody, chords, embellishment", render: (H, k, U) => `<p>Pick one or two sets and let them supply both the line and the harmony.</p>
       <ul><li><b>Melodic cells:</b> spin a melody from transpositions and inversions of the set. The ear hears the repeated interval shape even when the notes change.</li>
       <li><b>Chords:</b> stack the same set (or a second one) as harmony, voiced in different registers.</li>
