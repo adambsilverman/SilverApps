@@ -921,7 +921,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     let best = m, bd = 99; for (let o = -2; o <= 10; o++) sc.forEach(pc => { const c = 12 * o + base + pc; if (Math.abs(c - m) < bd) { bd = Math.abs(c - m); best = c; } }); return best; }
   const thHz = x => 440 * Math.pow(2, (thPitch(x) - 69) / 12);
   function thDraw() {
-    const cv = $("thC"); if (!cv || !TH.tr) return; const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (cv.width !== Math.round(r.width * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+    const cv = $("thC"); if (!cv || !TH.tr) return; const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
     const g = cv.getContext("2d"), W = r.width, Hh = r.height, S = thS(), PH = Hh - THKB; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh); g.font = "10px sans-serif";
     const inSc = pc => S.snap === "off" || S.snap === "chrom" || TSC[S.snap].includes((pc - (S.snap === "minor" ? 9 : 0) + 12) % 12), X = m => (m - S.lo) / S.span * W, kw = W / S.span, blk = pc => [1, 3, 6, 8, 10].includes(pc);
     for (let m = S.lo; m <= S.lo + S.span; m++) { const pc = m % 12; g.fillStyle = pc === 0 ? "rgba(255,255,255,.35)" : inSc(pc) && S.snap !== "off" ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.06)"; g.fillRect(Math.round(X(m)), 0, 1, PH); }

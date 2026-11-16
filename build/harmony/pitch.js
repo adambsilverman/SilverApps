@@ -457,7 +457,7 @@ window.FAM = (() => {
     document.addEventListener("keydown", e => { if (e.target.id === "dtNum" && e.key === "Enter") { e.preventDefault(); dtDial(); } });
   }
   // ---------- the theremin: two radio-frequency oscillators, and the audible difference between them ----------
-  const TM = { d: 30, v: 10, on: false, o: null, g: null };
+  const TM = { d: 30, v: 10, on: false, o: null, g: null, hov: false, down: false, inside: false };
   const TMF = 170000, tmDiff = d => 40 * Math.pow(62 / (d + 2), 1.4);   // a model of the pitch field: the closer the hand, the higher, and the field gets steeper near the antenna
   const tmNote = f => { const m = 69 + 12 * Math.log2(f / 440), r = Math.round(m), c = Math.round((m - r) * 100); return `${NN[((r % 12) + 12) % 12]}${Math.floor(r / 12) - 1}${c ? ` ${c > 0 ? "+" : "−"}${Math.abs(c)}¢` : ""}`; };
   const tmAmp = () => .3 * Math.min(1, TM.v / 30);
@@ -471,21 +471,56 @@ window.FAM = (() => {
     return `<div class="tmread"><span>Fixed oscillator <b>${TMF.toLocaleString("en-US")} Hz</b></span><span>Variable oscillator <b>${Math.round(TMF + f).toLocaleString("en-US")} Hz</b></span><span>Difference (what you hear) <b>${f.toFixed(1)} Hz ≈ ${tmNote(f)}</b></span><span>1 cm of hand movement here <b>≈ ${st.toFixed(1)} semitones</b></span></div>`; }
   const tmToy = () => `<div class="toy" id="tmToy">
       <div id="tmPic">${tmSvg()}</div>
+      <div class="tmpad" id="tmPad" tabindex="0" role="application" aria-roledescription="theremin" aria-describedby="tmHelp"><canvas id="tmC"></canvas></div>
+      <p class="small" id="tmHelp" style="margin:0">Play the field: with a mouse or trackpad, click the pad once to turn on the sound, then just move the pointer. Rightward is closer to the pitch antenna; upward lifts the left hand off the volume loop (louder). On a touch screen, press and drag. The keyboard underneath is stretched the way the field is: wide keys far from the antenna, tiny ones close to it. Keyboard: focus the pad, hold Space, use the arrow keys.</p>
       <label class="toy-row" for="tmD" style="gap:10px">Right hand: distance from the pitch antenna<input type="range" id="tmD" min="2" max="60" step=".1" value="${TM.d}" style="flex:1;min-width:160px"><output id="tmDo">${TM.d} cm</output></label>
       <label class="toy-row" for="tmV" style="gap:10px">Left hand: height above the volume loop<input type="range" id="tmV" min="0" max="30" step=".5" value="${TM.v}" style="flex:1;min-width:160px"><output id="tmVo">${TM.v} cm</output></label>
       <div class="toy-row"><button class="play" id="tmPlay" aria-pressed="false"><span aria-hidden="true">▶ </span>Play</button><span class="small">The two radio oscillators are far above hearing. Only their difference is audible.</span></div>
       <div id="tmInfo" aria-live="polite">${tmInfo()}</div></div>`;
-  function tmUpd() { const pic = document.getElementById("tmPic"); if (!pic) return; pic.innerHTML = tmSvg(); document.getElementById("tmInfo").innerHTML = tmInfo(); document.getElementById("tmDo").textContent = TM.d + " cm"; document.getElementById("tmVo").textContent = TM.v + " cm";
+  // the pad: x = right hand from 60 cm away (left edge) to 2 cm (right edge), y = left hand height (top = 30 cm, louder); a keyboard strip warped by the field
+  const TMKB = 34, tmX = d => (60 - d) / 58, tmD = x => 60 - x * 58, tmDofF = f => 62 / Math.pow(f / 40, 1 / 1.4) - 2;
+  const tmHov = () => !!(window.matchMedia && matchMedia("(hover: hover) and (pointer: fine)").matches);
+  function tmPadDraw() {
+    const cv = document.getElementById("tmC"); if (!cv) return; const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+    const g = cv.getContext("2d"), W = r.width, Hh = r.height, PH = Hh - TMKB; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh); g.font = "10px sans-serif";
+    const xm = m => tmX(tmDofF(440 * Math.pow(2, (m - 69) / 12))) * W, blk = pc => [1, 3, 6, 8, 10].includes(pc), lo = 28, hi = 95;
+    for (let m = lo; m <= hi; m++) if (m % 12 === 0) { const x = xm(m); if (x > 0 && x < W) { g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(Math.round(x), 0, 1, PH); } }
+    g.fillStyle = "rgba(255,255,255,.45)"; g.fillText("louder ↑", 6, 13); g.textAlign = "right"; g.fillText("closer to the antenna →", W - 6, 13); g.textAlign = "start";
+    const cur = TM.o ? Math.round(69 + 12 * Math.log2(tmDiff(TM.d) / 440)) : null;
+    g.fillStyle = "#f4f4f2"; g.fillRect(0, PH, W, TMKB);
+    for (let m = lo; m <= hi; m++) { const pc = m % 12; if (blk(pc)) continue; const l = blk((pc + 11) % 12) ? xm(m - 1) : (xm(m) + xm(m - 1)) / 2, rr = blk((pc + 1) % 12) ? xm(m + 1) : (xm(m) + xm(m + 1)) / 2;
+      if (m === cur) { g.fillStyle = "#ffb02e"; g.fillRect(l, PH, rr - l, TMKB); } g.fillStyle = "#666"; g.fillRect(Math.round(rr), PH, 1, TMKB);
+      if (pc === 0 && rr - l > 14) { g.fillStyle = "#333"; g.textAlign = "center"; g.fillText(NN[0] + (Math.floor(m / 12) - 1), Math.max(12, Math.min(W - 12, xm(m))), Hh - 4); g.textAlign = "start"; } }
+    for (let m = lo; m <= hi; m++) { if (!blk(m % 12)) continue; const w = (xm(m + 1) - xm(m - 1)) * .42; g.fillStyle = m === cur ? "#d98a00" : "#1b1c20"; g.fillRect(xm(m) - w / 2, PH, w, TMKB * .6); }
+    g.fillStyle = "#000"; g.fillRect(0, PH, W, 1);
+    const x = tmX(TM.d) * W, y = (1 - TM.v / 30) * PH; g.fillStyle = "#ff5a4e"; g.fillRect(Math.round(x) - 1, PH, 2, TMKB);
+    g.fillStyle = TM.o ? "rgba(255,176,46,.28)" : "rgba(255,255,255,.12)"; g.beginPath(); g.arc(x, y, 20, 0, 7); g.fill(); g.fillStyle = TM.o ? "#ffb02e" : "#b4b8bf"; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill();
+    if (TM.hov && !(AC && AC.state === "running")) { g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, PH / 2 - 20, W, 40); g.fillStyle = "#ffd27a"; g.font = "bold 13px sans-serif"; g.textAlign = "center"; g.fillText("Click once to turn on the sound", W / 2, PH / 2 + 5); g.textAlign = "start"; }
+  }
+  function tmUpd() { tmPadDraw(); const pic = document.getElementById("tmPic"); if (!pic) return; pic.innerHTML = tmSvg(); document.getElementById("tmInfo").innerHTML = tmInfo(); document.getElementById("tmDo").textContent = TM.d + " cm"; document.getElementById("tmVo").textContent = TM.v + " cm";
     if (TM.o) { TM.o.frequency.setTargetAtTime(tmDiff(TM.d), AC.currentTime, .015); TM.g.gain.setTargetAtTime(tmAmp(), AC.currentTime, .03); } }
-  function tmStop() { if (!TM.o) return; const t = AC.currentTime; TM.g.gain.setTargetAtTime(0, t, .04); TM.o.stop(t + .3); TM.lfo.stop(t + .3); TM.o = null; const b = document.getElementById("tmPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.innerHTML = '<span aria-hidden="true">▶ </span>Play'; } }
+  function tmStop() { if (!TM.o) return; const t = AC.currentTime; TM.g.gain.setTargetAtTime(0, t, .04); TM.o.stop(t + .3); TM.lfo.stop(t + .3); TM.o = null; const b = document.getElementById("tmPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.innerHTML = '<span aria-hidden="true">▶ </span>Play'; } tmPadDraw(); }
   function tmStart() { if (!ac()) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), lg = AC.createGain();
     const re = new Float32Array([0, 1, .32, .16, .08, .04, .02]); o.setPeriodicWave(AC.createPeriodicWave(re, new Float32Array(re.length))); o.frequency.value = tmDiff(TM.d);
     l.frequency.value = 5.6; lg.gain.value = 14; l.connect(lg); lg.connect(o.detune); g.gain.value = 0; g.gain.setTargetAtTime(tmAmp(), t, .05); o.connect(g); g.connect(AC.destination); o.start(t); l.start(t);
-    TM.o = o; TM.g = g; TM.lfo = l; const b = document.getElementById("tmPlay"); b.setAttribute("aria-pressed", "true"); b.innerHTML = '<span aria-hidden="true">■ </span>Stop'; }
+    TM.o = o; TM.g = g; TM.lfo = l; const b = document.getElementById("tmPlay"); b.setAttribute("aria-pressed", "true"); b.innerHTML = '<span aria-hidden="true">■ </span>Stop'; tmPadDraw(); }
   if (!window.__tmWired) { window.__tmWired = true;
     document.addEventListener("input", e => { if (e.target.id === "tmD") { TM.d = +e.target.value; tmUpd(); } if (e.target.id === "tmV") { TM.v = +e.target.value; tmUpd(); } });
     document.addEventListener("click", e => { if (e.target.closest("#tmPlay")) { TM.o ? tmStop() : tmStart(); } });
-    setInterval(() => { if (TM.o && !document.getElementById("tmToy")) tmStop(); }, 300);
+    setInterval(() => { if (TM.o && !document.getElementById("tmToy")) tmStop(); const c = document.getElementById("tmC"); if (c && !c.dataset.drawn) { c.dataset.drawn = "1"; TM.hov = tmHov(); tmPadDraw(); } }, 300);
+    const inPad = e => e.target.closest && e.target.closest("#tmPad");
+    const tmPos = e => { const r = document.getElementById("tmPad").getBoundingClientRect(); const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y = Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / (r.height - TMKB)));
+      TM.d = Math.round(tmD(x) * 10) / 10; TM.v = Math.round(y * 30 * 2) / 2; const a = document.getElementById("tmD"), b = document.getElementById("tmV"); if (a) a.value = TM.d; if (b) b.value = TM.v; };
+    const ready = () => AC && AC.state === "running";
+    document.addEventListener("pointerdown", e => { if (!inPad(e)) return; e.preventDefault(); const p = document.getElementById("tmPad"); p.focus(); p.setPointerCapture(e.pointerId); TM.down = true; tmPos(e); if (!TM.o) tmStart(); tmUpd(); });
+    document.addEventListener("pointermove", e => { if (!inPad(e) && !TM.down) return; TM.inside = !!inPad(e); tmPos(e); if (!TM.o && (TM.down || (TM.hov && e.pointerType !== "touch" && ready()))) tmStart(); tmUpd(); });
+    document.addEventListener("pointerup", e => { if (!TM.down) return; TM.down = false; if (!(TM.hov && e.pointerType !== "touch" && inPad(e))) tmStop(); tmPadDraw(); });
+    document.addEventListener("pointerout", e => { if (inPad(e) && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("#tmPad")) && !TM.down && TM.hov) { tmStop(); tmPadDraw(); } });
+    document.addEventListener("keydown", e => { if (e.target.id !== "tmPad") return; if (e.key === " ") { e.preventDefault(); if (!e.repeat && !TM.o) tmStart(); tmUpd(); return; }
+      const dx = e.key === "ArrowRight" ? -1 : e.key === "ArrowLeft" ? 1 : 0, dy = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : 0; if (!dx && !dy) return; e.preventDefault();
+      TM.d = Math.max(2, Math.min(60, Math.round((TM.d + dx * (e.shiftKey ? .2 : 1)) * 10) / 10)); TM.v = Math.max(0, Math.min(30, TM.v + dy * 2)); const a = document.getElementById("tmD"), b = document.getElementById("tmV"); a.value = TM.d; b.value = TM.v; tmUpd(); });
+    document.addEventListener("keyup", e => { if (e.target.id === "tmPad" && e.key === " ") { tmStop(); tmPadDraw(); } });
+    window.addEventListener("resize", () => tmPadDraw());
   }
   const btn = (label, attrs) => `<button class="play" ${Object.entries(attrs).map(([k, v]) => `data-${k}="${v}"`).join(" ")}><span aria-hidden="true">▶ </span>${label}</button>`;
   const stopBtn = `<button class="play" data-px="stop"><span aria-hidden="true">■ </span>Stop</button>`;

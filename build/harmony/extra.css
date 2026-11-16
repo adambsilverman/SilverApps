@@ -688,3 +688,6 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .tmsvg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; color: var(--ink, #222); }
 .tmread { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 14px; font-size: .92rem; }
 .tmread b { font-family: var(--mono, ui-monospace, monospace); display: block; }
+.tmpad { position: relative; height: clamp(190px, 30vh, 250px); border: 1px solid #000; border-radius: 8px; background: linear-gradient(to top, #15161a, #232733); touch-action: none; cursor: crosshair; overflow: hidden; }
+.tmpad canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tmpad:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }

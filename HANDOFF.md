@@ -545,3 +545,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z162 (2026-11-15)
 - Studio theremin pad: keyboard strip along the bottom (THKB = 40 px), each key centered under its pitch line; the sounding key lights up (orange), a red line marks the exact pitch (useful in free mode), in-scale keys tinted when Pitch is snapped to a scale, C keys labeled. Volume now maps to the area above the keyboard.
+
+## z163 (2026-11-15)
+- Introduction to Pitch, The curious theremin: playable pad under the diagram (hover to play with mouse/trackpad after one click; touch = press and drag; Space + arrows on keyboard), synced with the sliders. Keyboard strip along the bottom is warped by the modeled pitch field (wide keys far from the antenna, tiny near it), sounding key lit, red line at the exact pitch.
+- Fix (both theremin pads): canvas resizes when its height changes, not only its width.
