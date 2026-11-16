@@ -570,3 +570,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z168 (2026-11-15)
 - Harmonic Succession: Embellishing chords now has Adam's annotated G-minor example (assets/img/harmsucc/embellishing-chords.png) and his video assets/video/Real Emotional Chords - audio improved.mp4 (no captions file yet). In context uses the three analyzed phrases of Nearer, My God, to Thee (nearer-phrase-1..3.png) with the MTC 501 commentary.
 - Harmonic Succession: Circle progressions no longer keyed (fixed C major for its chord lists).
+- Real Emotional Chords video: captions added (assets/video/real-emotional-chords.vtt, converted from Adam's SRT); caption names the song (Randy Newman, Real Emotional Girl).
