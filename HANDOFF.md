@@ -562,3 +562,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z166 (2026-11-15)
 - Understanding Phrases and Phrase Combinations: MTC 501 examples added (assets/img|audio/phrases): Bach Herz und Mund (indivisible, image only; no audio found), Nearer My God to Thee (divided), Chaminade Idylle (sentence), Lean On Me (parallel period + repeated phrase; lyric lines whited out), Couperin Le Petit-Rien (parallel phrase group), Mozart Giovani liete (three-phrase period), Amy Beach Phantoms, Dodger Blue (lyrics whited out), Clara Schumann concerto III (double periods). Not used: Sweet Home Chicago (no image found), Uptown Girl assignment files. Kept the Mac quiz.
 - Removed all generated (VexFlow) examples from Understanding Phrases and Phrase Combinations; the lesson now uses only the MTC 501 examples.
+
+## z167 (2026-11-15)
+- Harmonic Succession: removed the board-drawing image; the interactive progression chart (step 2) now carries PRE-DOMINANTS, DOMINANTS, TONIC and a "deceptive resolution" label on the arc (chartSVG labels option). Removed all generated notation examples (phrase-model expansions, diatonic circle, Andalusian cadence, embellishing-chord figures); their content is now in text (Roman numerals). Phrase model and Embellishing chords steps no longer keyed.
