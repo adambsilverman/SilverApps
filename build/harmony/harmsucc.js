@@ -259,9 +259,7 @@ window.FAM = (() => {
       <li><b>Meter:</b> chords on strong beats (and strong bars) are more structural. Watch for syncopation and agogic accents.</li>
       <li><b>Inversion:</b> inverted chords tend to be weaker than root-position ones.</li>
       <li><b>Prolongation:</b> chords inside a larger pattern that extends one area (tonic area, dominant area) form a region bordered by a harmony. In I – V⁶ – IV⁶ – I⁶₄ – IV – ii – I⁶₄ – V⁷, the first four chords are a tonic area, the next two pre-dominant, the last two dominant: the first I⁶₄ is a tonic, the second a cadential ⁶₄.</li>
-      <li><b>Cadences:</b> cadence chords are always structural; turnaround chords are not.</li></ul>
-      <h3>Case study: “Goodbye Yellow Brick Road”</h3>
-      <p>Listen to ${YT("wy709iNG6i8", "Elton John's recording")} with the sheet music from class. Mark which chords are structural and which embellish, then check whether the structural ones follow the progression chart.</p>` },
+      <li><b>Cadences:</b> cadence chords are always structural; turnaround chords are not.</li></ul>` },
     { title: "Embellishing chords", kick: "Harmonized non-chord tones", render: (H) => `<p>Embellishing chords share names with non-chord tones: you can think of them as non-chord tones harmonized, with a whole chord made to fit the bass.</p>
       <ul><li><b>Passing chord</b>: {rn:V43} between {rn:I} and {rn:I6}, carrying the bass up by step.</li>
       <li><b>Neighbor chord</b>: {rn:V6} between two tonics; the bass steps down and back.</li>

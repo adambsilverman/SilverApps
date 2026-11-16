@@ -573,3 +573,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - Real Emotional Chords video: captions added (assets/video/real-emotional-chords.vtt, converted from Adam's SRT); caption names the song (Randy Newman, Real Emotional Girl).
 - Embellishing chords: link to Randy Newman recording of Real Emotional Girl (YouTube S2I51Fa8uAs) before the video; the full sheet music PDF was not posted (complete copyrighted arrangement with lyrics); students use the class copy.
 - Embellishing chords: sheet music link to Sheet Music Plus (product 19324266) instead of the class copy.
+- Structural or embellishing?: removed the Goodbye Yellow Brick Road case study.
