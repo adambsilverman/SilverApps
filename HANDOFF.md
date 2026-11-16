@@ -532,3 +532,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z158 (2026-11-15)
 - Chord Progressions in Real Songs: In Bloom and Fast Car now use Adam's chord-sheet layout (artist: title, then one bold line of chords per line of the song, grouped as in his handout); generated reductions removed. Lyric lines are not typed into the site.
+
+## z159 (2026-11-15)
+- Multitrack Studio: + Theremin track type. Pad (x = pitch over a chosen 1-3 octave range from C2-C5, y = volume), tone (classic theremin periodic wave, sine, triangle, saw, square), pitch free or snapped (semitones, C major, A minor, C pentatonic), vibrato, glide, Hover to play; keyboard control (Space sounds, arrows move). Takes recorded as {t,f,g} point lists (Add keeps takes, Replace cuts the stretch), drawn as pitch curves in the lane, played back/exported through the track strip, FX and mixer. Header: Play opens the pad; clear and undo work.
