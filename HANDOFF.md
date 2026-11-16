@@ -539,3 +539,9 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z160 (2026-11-15)
 - Introduction to Pitch: new step 11 "The curious theremin" (capacitance, heterodyning tied to the beats step, uneven pitch field; Rockmore, film scores, Moog) with a two-oscillator toy (hand sliders, readouts, play); 1 check + 2 quiz items (s 11). Quick check is now step 12.
 - Studio theremin: Effects... button in the pad panel (opens the FX rack, or the multi-select picker when the track has none); changing the chain while the pad sounds re-routes the live voice. Theremin tracks use the full FX rack, mixer inserts and export like the other tracks.
+
+## z161 (2026-11-15)
+- Studio theremin: Hover to play is on by default for mouse/trackpad (hover:hover + pointer:fine); any non-touch pointer plays while over the pad, silence when it leaves. Browsers need one click to unlock audio, so the pad shows a prompt until then. Wheel / Mighty Mouse ball / two-finger swipe over the pad nudges volume (vertical) and pitch (horizontal) without scrolling the page. Touch keeps press-and-drag.
+
+## z162 (2026-11-15)
+- Studio theremin pad: keyboard strip along the bottom (THKB = 40 px), each key centered under its pitch line; the sounding key lights up (orange), a red line marks the exact pitch (useful in free mode), in-scale keys tinted when Pitch is snapped to a scale, C keys labeled. Volume now maps to the area above the keyboard.
