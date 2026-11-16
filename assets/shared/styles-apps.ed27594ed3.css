@@ -940,6 +940,12 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 /* Harmonic Succession: Adam's MTC 501 examples */
 .hs-fig img { display: block; margin: 8px 0 0; }
 .hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }
+/* polychord symbol: upper chord over a horizontal line over the lower chord */
+.polysym{display:inline-grid;vertical-align:middle;text-align:center;font-weight:700;line-height:1.05;margin:0 .15em}
+.polysym>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}
+/* Secondary Function Chords step 1: switches that swap diatonic 7ths for secondary dominants */
+.sw-tog { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.sw-tog .lk { font-size: 16px; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
