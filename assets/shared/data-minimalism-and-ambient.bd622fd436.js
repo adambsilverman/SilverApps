@@ -1,0 +1,119 @@
+
+window.FAM = (() => {
+  // ===== Minimalist and ambient music techniques. =====
+  const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const F = {
+    proc: [
+      ["Process music is music in which…", "a gradual, audible process shapes the piece", ["every note is improvised freely", "the form is verse–chorus", "nothing repeats"], "Listeners can follow the process as it unfolds."],
+      ["Phasing is…", "two identical patterns drifting or stepping out of alignment and back", ["a sudden key change", "a vocal technique", "playing in unison throughout"], "Steve Reich explored it with tape loops and then live performers."],
+      ["Additive process means…", "a pattern grows by adding notes or units (1; 1 2; 1 2 3…)", ["notes are removed one at a time", "two melodies alternate", "the tempo doubles"], "Subtractive process removes them. Philip Glass used both in early works."],
+      ["In many minimalist pieces, a steady pulse…", "runs underneath slowly changing patterns", ["is avoided", "changes every bar", "is replaced by silence"], "The pulse makes small changes easy to hear."],
+      ["Modules that performers repeat and move through at their own pace…", "create ever-shifting overlaps between players", ["require strict unison", "are always written for solo piano", "remove repetition"], "Terry Riley used this idea in an influential 1960s ensemble piece."],
+      ["Minimalism emerged as a recognized style in…", "the 1960s, in the United States", ["the 1830s, in Vienna", "the 1990s, in Japan", "the Renaissance"], "La Monte Young, Terry Riley, Steve Reich and Philip Glass are often named as founders."],
+      ["In Reich's Drumming, the opening pattern…", "fills in one note at a time as each repeated bar adds a note", ["is played backward", "changes key every bar", "is improvised"], "An additive process: rests are replaced by notes until the pattern is complete."],
+      ["In Reich's Clapping Music, one performer…", "shifts the shared pattern by one eighth note at a time", ["claps twice as fast", "stops clapping", "changes to a new pattern every bar"], "After twelve shifts the two parts line up again."],
+      ["Louis Andriessen's Hout is an example of…", "very close canon: each player one note behind the last", ["a drone piece", "a twelve-tone piece", "free improvisation"], "Four players chase the same line a single note apart."],
+      ["David Lang's Cheating, Lying, Stealing varies its repeated pattern by…", "slipping tiny pauses between notes (permutation)", ["changing key", "adding a drone", "speeding up"], "The pattern stays; its rhythm keeps shifting."],
+      ["In Michael Gordon's Trance, layers…", "enter and drop out abruptly", ["fade in and out over minutes", "never change", "are improvised"], "Compare Reich's Music for 18 Musicians, where layers fade in and out gradually."],
+    ],
+    harm: [
+      ["A drone is…", "a sustained or repeated pitch (or pitches) under changing music", ["a fast scale", "a rest", "a type of cadence"], "Found in many traditions; La Monte Young built long works on drones in just intonation."],
+      ["Slow harmonic rhythm in minimalist and ambient music…", "lets a single chord or mode last a long time so details come forward", ["means chords change every beat", "requires twelve-tone rows", "avoids all chords"], "Listeners focus on timbre, rhythm and small changes."],
+      ["Arvo Pärt's tintinnabuli technique pairs…", "a melodic voice moving mostly by step with a voice using only the notes of one triad", ["two twelve-tone rows", "a drum and a drone", "random notes"], "From the Latin for little bells."],
+      ["Just intonation is attractive for drone-based music because…", "pure intervals ring without beating against a sustained drone", ["it uses more notes", "it's easier to notate", "it requires electronic instruments"], "Try the Drone app's just-intonation settings."],
+      ["In Pärt's Cantus in Memoriam Benjamin Britten, each lower voice…", "plays the same descending line at half the speed of the one above (mensuration canon)", ["plays a different melody", "plays twice as fast as the one above", "holds a single note"], "Layers at different speeds of one line."],
+      ["In Torke's The Yellow Pages, one of the main ways the music moves is…", "changing key signature", ["changing tempo", "adding a drone", "stopping completely"], "The patterns stay similar while the key shifts under them."],
+      ["Pauline Oliveros developed 'Deep Listening', a practice of…", "attentive listening to all sounds, including the environment and one's own", ["listening at high volume", "listening only to recordings", "transcribing solos"], "Influential in improvisation and ambient practice."],
+    ],
+    amb: [
+      ["The term 'ambient music' was popularized by…", "Brian Eno in the late 1970s", ["Ludwig van Beethoven", "Hildegard of Bingen", "Scott Joplin"], "He described music that could be listened to closely or simply sit in the background."],
+      ["Erik Satie's idea of 'furniture music' (musique d'ameublement) anticipated…", "music meant to be part of the environment rather than the focus", ["the symphony", "opera", "the march"], "An early precursor of ambient music."],
+      ["Layering loops of different lengths (e.g. 7 and 9 seconds) produces…", "constantly changing combinations that repeat only after a long time", ["exact repetition every 7 seconds", "silence", "a key change"], "Eno used tape loops of unrelated lengths this way."],
+      ["Generative music is…", "music produced by a system of rules or chance, so it may never repeat exactly", ["music written note by note", "only improvised jazz", "a film score"], "The composer designs the system rather than every note."],
+      ["Long reverb and delay in ambient music…", "blur attacks and blend sounds into a continuous texture", ["make every note short", "remove the bass", "speed up the tempo"], "Sounds overlap and decay slowly."],
+      ["Field recordings in ambient music are…", "recordings of environmental sounds (rain, birds, cities) used as material", ["recordings of orchestras only", "MIDI files", "metronome clicks"], "They place the music in a sense of place."],
+      ["Éliane Radigue is known for…", "slowly evolving electronic drones", ["rapid piano études", "marching band music", "opera overtures"], "Her music changes so gradually that listeners notice shifts only over minutes."],
+    ],
+    people: [
+      ["Steve Reich is closely associated with…", "phasing and rhythmic process", ["twelve-tone rows", "bebop", "Baroque opera"], "Also with pulse-based ensemble music and speech melody."],
+      ["Philip Glass is known for…", "repeating arpeggios and additive and subtractive rhythmic processes", ["serialism", "atonal opera only", "Gregorian chant"], "He wrote for his own ensemble, for opera and for film."],
+      ["La Monte Young is known for…", "very long durations, drones and just intonation", ["fast virtuosic études", "hip-hop production", "string quartets in sonata form"], "His work influenced drone, ambient and rock musicians."],
+      ["Terry Riley is known for…", "repeating modules, tape-delay loops and improvisation", ["twelve-tone symphonies", "marching band arrangements", "church cantatas"], "He also drew on Indian classical music."],
+      ["Julius Eastman was…", "a composer and performer whose minimalist works built up by accumulation and repetition", ["a Baroque organist", "a film editor", "a lute maker"], "His music has been widely rediscovered in recent years."],
+      ["Meredith Monk is known for…", "extended vocal techniques and repetitive, layered vocal music", ["electric guitar solos", "serial piano music", "brass band marches"], "She works across music, theater and film."],
+      ["Arvo Pärt is known for…", "tintinnabuli: triad-based bell-like voices with stepwise melody", ["phasing tape loops", "big-band jazz", "twelve-tone rows only"], "An Estonian composer whose style emerged in the 1970s."],
+    ],
+  };
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const TRI = { A: "C", B: "C", C: "E", D: "E", E: "A", F: "A", G: "A" };
+  const GEN = {
+    proc: H => {
+      if (Math.random() < .5) { const n = H.rnd([4, 5]), u = "1 2 3 4 5".split(" ").slice(0, n), k = 3 + Math.floor(Math.random() * (n - 2)); const stage = j => u.slice(0, j).join(" ");
+        return H.mc(`An additive process grows the pattern ${u.join(" ")} like this: “${stage(1)}”, then “${stage(2)}”… What is stage ${k}?`, stage(k), [stage(k - 1), stage(k + 1 > n ? k - 2 || 1 : k + 1), u.slice(n - k).join(" "), u.slice(0, k).reverse().join(" ")], `Each stage adds the next unit: stage ${k} = ${stage(k)}.`); }
+      const a = H.rnd([3, 4, 5, 6]), b = H.rnd([4, 5, 7, 8, 9].filter(x => x !== a)), l = a * b / gcd(a, b);
+      return H.mc(`Two loops start together. One is ${a} beats long, the other ${b}. After how many beats do they start together again?`, `${l} beats`, [a + b, Math.max(a, b) * 2, a * b + a, l / 2 > Math.max(a, b) ? l / 2 : l + a].filter(x => x !== l).map(x => `${x} beats`), `The least common multiple of ${a} and ${b} is ${l}.`);
+    },
+    harm: H => { const m = H.rnd(Object.keys(TRI)); return H.mc(`Tintinnabuli in A minor: the triad voice uses only A, C and E, taking the nearest triad note above the melody note. If the melody note is ${m}, which note does the triad voice take?`, TRI[m], ["A", "C", "E"].filter(x => x !== TRI[m]).concat([m]), `The nearest A-minor triad note above ${m} is ${TRI[m]}.`); },
+  };
+  // additive process: each bar adds an eighth, so the meter grows (2/8, 3/8, 4/8, 5/8); each bar beamed as one group
+  const ADD = ["C5", "G4", "E5", "G4", "D5"];
+  const add = { type: "score", clefs: ["treble"], time: "2/8", vf: "C", sig: {}, bpm: 160, minBar: 60, final: true, bars: [2, 3, 4, 5].map((n, b) => Object.assign({ t: [ADD.slice(0, n).map((k, i) => Object.assign({ k: [k], d: "8" }, i === 0 ? { ly: String(b + 1) } : {}))], groups: [n + "/8"] }, b ? { time: n + "/8" } : {})) };
+  const lesson = { steps: [
+    { title: "Less, slowly", kick: "What minimalism is", render: () => `<p><b>Minimalism</b> began in the 1960s in New York's Downtown scene, in the work of La Monte Young, Terry Riley, Steve Reich and Philip Glass. It's a style, an aesthetic and a set of techniques, and its focus is a piece's internal process rather than motion toward a goal. Typical features:</p>
+      <ul><li><b>Consonant harmony</b>, often one chord or mode for a long time.</li><li>A <b>steady pulse</b>, or the opposite: an unmoving drone.</li><li><b>Stasis or gradual transformation</b> instead of contrast and development.</li><li><b>Repetition</b> of phrases, figures, motives or cells.</li></ul>
+      <p>Pieces built on strict rules are often called <b>process music</b>; music built on phase shifting, <b>phase music</b>. The composer and critic Tom Johnson argued that the idea is much larger than these labels: any music that limits its materials, whether to a few notes or words, a single long electronic rumble, a recording of a river or a tempo of two notes a minute, is minimalist in spirit.</p>
+      <p>Because so little changes, each change becomes an event: a new note, a shifted accent, a different instrument.</p>` },
+    { title: "Processes", kick: "Cells, adding, phasing, canon", render: (H, k, U) => `<p>Short <b>cells</b> and ostinati take the place of a long melody.</p>
+      <ul><li><b>Cells to move through:</b> in Terry Riley's <i>In C</i>, any number of players work through 53 short cells at their own pace over a pulsing C, so the overlaps keep changing. Philip Glass's <i>Two Pages</i> repeats each figure a set number of times; Reich's <i>Nagoya Marimbas</i> repeats figures for open counts.</li>
+      <li><b>Additive and subtractive process:</b> a pattern grows one unit at a time, or shrinks. Frederic Rzewski's <i>Coming Together</i> works this way; in Reich's <i>Drumming</i>, each repeated bar adds one note until the pattern is full.</li>
+      <li><b>Permutation:</b> David Lang's <i>Cheating, Lying, Stealing</i> varies a repeated pattern by slipping tiny pauses between its notes.</li>
+      <li><b>Very close canon:</b> in Reich's <i>Clapping Music</i>, one performer shifts the pattern by one eighth note at a time; in Louis Andriessen's <i>Hout</i>, four players each follow one note behind the last.</li>
+      <li><b>Phasing:</b> two players (or tape loops) play the same pattern, one gradually moving ahead, through every alignment until they meet again, as in Reich's <i>Piano Phase</i>. Try it in the Clapping Music modes of <a href="rhythm-performance.html">Ear Training – Rhythm</a> (Perform tab).</li></ul>
+      ${U.fig(add, "Additive process: each repetition adds one note to the pattern.")}` },
+    { title: "Layers, motion and stillness", kick: "Texture, dynamics, instruments", render: () => `<ul><li><b>Layering:</b> layers can enter and drop out abruptly, as in Michael Gordon's <i>Trance</i>, or fade in and out gradually, as in Reich's <i>Music for 18 Musicians</i>.</li>
+      <li><b>Stillness or motor energy:</b> David Lang's <i>The Passing Measures</i> is slow and still; John Adams's <i>Shaker Loops</i> never stops moving.</li>
+      <li><b>Dynamics</b> usually stay steady (uniformly loud or soft) or move in one direction across the whole piece.</li>
+      <li><b>Instruments:</b> early works were often written for the composers' own ensembles: percussion and pianos for Reich; keyboards, voices and saxophones for Glass. Some pieces use one family of sounds, like Reich's <i>New York Counterpoint</i> (multi-tracked clarinets) or <i>Different Trains</i> (string quartets with recorded speech). Brian Eno's <i>Music for Airports</i> took the style into ambient electronic music.</li></ul>` },
+    { title: "Harmony that stands still", kick: "Drones, triads, tintinnabuli", render: () => `<ul><li><b>Drones</b> and pulsing drones: La Monte Young's <i>The Well-Tuned Piano</i> rests on tuning in <b>just intonation</b>, where pure intervals ring without beating. Julius Eastman's <i>Gay Guerrilla</i> builds up by repeating notes and fragments over a long span.</li>
+      <li><b>Triadic or pan-diatonic</b> harmony is the norm, though chromatic harmony is possible. Glass leans on plain triads; Reich prefers extended, jazz-like chords.</li>
+      <li><b>Slow harmonic rhythm</b>: one chord or mode for minutes, so timbre and rhythm come forward.</li>
+      <li><b>Key changes as events:</b> in Michael Torke's <i>The Yellow Pages</i> and Robert Maggio's <i>A Ring That Has No End</i> (from <i>Riddle</i>), a new key signature is one of the main ways the music moves.</li>
+      <li><b>Tintinnabuli</b> (Arvo Pärt): a melodic voice moves mostly by step while a second voice uses only the notes of one triad, like bells. In <i>Cantus in Memoriam Benjamin Britten</i>, a <b>mensuration canon</b>, each lower voice plays the same descending line at half the speed of the one above. In <i>Fratres</i>, a short chord sequence grows from the outside in, is answered by its inversion, and returns again and again at new transpositions.</li>
+      <li><b>Deep Listening</b> (Pauline Oliveros): attending to every sound, including the room and the listener's own body.</li></ul>
+      ${tbl("Tintinnabuli in A minor: triad note above each melody note", ["Melody", "A", "B", "C", "D", "E", "F", "G"], [["Triad voice", ...["A", "B", "C", "D", "E", "F", "G"].map(m => TRI[m])]])}` },
+    { title: "Ambient music", kick: "Music as environment", render: () => `<p>Erik Satie's idea of <b>furniture music</b> (around 1917) imagined music as part of a room's environment. In the late 1970s <b>Brian Eno</b> popularized the term <b>ambient music</b>: music that rewards close listening but can also sit in the background.</p>
+      <ul><li><b>Loops of different lengths</b>: layered loops that don't divide evenly (7 and 9 seconds, say) realign only rarely, so the texture keeps changing.</li>
+      <li><b>Generative systems</b>: rules and chance produce the music, so it may never repeat exactly.</li>
+      <li><b>Texture and timbre</b> over melody; slow attacks and long releases.</li>
+      <li><b>Long reverb and delay</b> blur notes into a continuous wash.</li>
+      <li><b>Field recordings</b> and environmental sound.</li>
+      <li><b>Slowly evolving drones</b>, as in Éliane Radigue's electronic music.</li></ul>` },
+    { title: "Two generations", kick: "History and listening", render: () => `<p><b>Early, conceptual minimalism</b> lets a simple process run with little intervention from the composer, usually in one or two layers, or one layer against a copy of itself. <b>Later, progressive minimalism</b> mixes those techniques with more intuitive choices, or runs several at once, and cares as much about static or expansive textures and vivid color as about the process.</p>`
+      + tbl("More listening", ["Year", "Composer", "Work"], [["1974–76", "Steve Reich", "<i>Music for 18 Musicians</i>"], ["1976", "Philip Glass", "<i>Einstein on the Beach</i>"], ["1978/83", "John Adams", "<i>Shaker Loops</i>"], ["1989", "Pauline Oliveros", "<i>A Woman Sees How the World Goes with No Eyes</i>"], ["1993", "Michael Torke", "<i>Four Proverbs</i>"], ["1993", "David Lang", "<i>Cheating, Lying, Stealing</i>"], ["1995", "Michael Gordon", "<i>Trance</i>"], ["2011", "Anna Thorvaldsdottir", "<i>Aeriality</i>"], ["2012", "Nico Muhly", "<i>Drones</i>"]])
+      + `<p class="note">Links to recordings and scores for these pieces are in Dr. Silverman's post <a href="https://adambsilverman.com/2019/01/composition-ii-minimalism/" target="_blank" rel="noopener">Composition II – Minimalism</a>.</p>` },
+    { title: "Writing a minimalist piece", kick: "Five decisions", render: () => `<ol><li><b>Timbres.</b> Special instruments or effects, long tones or flurries, interlocking patterns, amplification, similar or contrasting families, spoken word, dense or sparse sound, chords and layers that fade in and out.</li>
+      <li><b>Process or style.</b> An <i>audible process</i> (additive or subtractive in the line, the texture or the harmony; phasing or canon; a gradual rotation of keys) or a <i>steady state</i> (polyrhythmic layers, or other unpredictable variety within a fixed texture).</li>
+      <li><b>Rhythm.</b> Consistent or changing phrase lengths, symmetrical or irregular meters (5/4, 7/8), a pulse or free time.</li>
+      <li><b>Notation.</b> Fully written out; strict, with loose numbers of repeats; cells with repetition or improvisation; or written instructions.</li>
+      <li><b>Duration.</b> <i>Infinite</i> (cyclical) or <i>finite</i>: one complete cycle, sections of successive processes or new material, or rounded, with the opening returning at the end.</li></ol>
+      <p>Try these ideas in the <a href="process-lab.html">Minimalist Process Lab</a>: write a fragment and run canons, phasing, additive and subtractive processes, chord loops, swells and drones in several voices.</p>` },
+    { title: "Quick check", kick: "Before the drills", render: H => Object.keys(F).map(m => { const [q, a, w, y] = F[m][0]; return H.check(q, a, w, y); }).join("") },
+  ] };
+  const ALL = Object.values(F).flat();
+  function make(mode, H) { if (GEN[mode] && Math.random() < .4) return GEN[mode](H); const [q, a, w, y] = H.rnd(F[mode] || ALL); return H.mc(q, a, w, y); }
+  const reference = () => `<ul><li><b>Minimalism</b> (1960s, US): repetition, pulse, gradual audible process, limited material.</li><li><b>Processes</b>: phasing, additive and subtractive process, modules, augmentation.</li><li><b>Harmony</b>: drones, just intonation, slow harmonic rhythm, modal collections, tintinnabuli.</li><li><b>Ambient</b>: furniture music (Satie), ambient music (Eno), loops of different lengths, generative systems, reverb and delay, field recordings, drones.</li><li><b>People</b>: La Monte Young, Terry Riley, Steve Reich, Philip Glass, Pauline Oliveros, Julius Eastman, Meredith Monk, Arvo Pärt, Brian Eno, Éliane Radigue.</li></ul>`;
+  return { key: "silverapps-minimal-v1", lesson, make, reference, modes: [{ id: "proc", kicker: "Process" }, { id: "harm", kicker: "Harmony and listening" }, { id: "amb", kicker: "Ambient" }, { id: "people", kicker: "Composers" }], topics: [] };
+})();
+// ===== Test yourself quiz (engine adds it as the step before Practice; s = step to look back at) =====
+window.FAM.quiz = [
+  {"s": 1, "q": "Minimalism began in the 1960s in…", "a": "New York's Downtown scene", "w": ["Vienna's concert halls", "Nashville's recording studios", "the Paris Conservatoire"], "hint": "Young, Riley, Reich and Glass.", "why": "It grew out of the Downtown New York scene of the 1960s."},
+  {"s": 1, "q": "Minimalist music typically focuses on…", "a": "a piece's internal process rather than motion toward a goal", "w": ["dramatic contrasts between sections", "constant modulation to distant keys", "virtuoso solos"], "hint": "What's the listener asked to follow?", "why": "Steady pulse, consonance, repetition and gradual change put the process in the foreground."},
+  {"s": 2, "q": "In Terry Riley's In C, the performers…", "a": "move through short cells at their own pace over a pulsing C", "w": ["all play the same cell together", "improvise freely without notation", "follow a conductor bar by bar"], "hint": "Overlaps keep changing.", "why": "Each player decides when to move to the next of 53 cells."},
+  {"s": 2, "q": "In Reich's Clapping Music, one part shifts by…", "a": "one eighth note at a time", "w": ["one bar at a time", "one beat per second", "a gradual change of tempo"], "hint": "A very close canon.", "why": "The shifts are sudden steps; in Piano Phase the change is gradual."},
+  {"s": 3, "q": "How do layers enter and leave in Reich's Music for 18 Musicians?", "a": "they fade in and out gradually", "w": ["they start and stop abruptly", "they never change", "they enter one per bar"], "hint": "Compare Gordon's Trance.", "why": "Gordon's Trance adds and removes layers abruptly instead."},
+  {"s": 4, "q": "Arvo Pärt's Cantus in Memoriam Benjamin Britten is a mensuration canon. That means…", "a": "each layer plays the same line at a different speed", "w": ["each layer plays a different melody", "the layers change key in turn", "the canon is improvised"], "hint": "Each lower voice is slower.", "why": "Each layer moves at half the rate of the one above."},
+  {"s": 4, "q": "In Michael Torke's The Yellow Pages, an important source of change is…", "a": "shifting key signatures", "w": ["metric modulation", "a drone", "silence"], "hint": "The patterns stay; the ground under them moves.", "why": "Key changes are events in an otherwise steady texture."},
+  {"s": 5, "q": "Who popularized the term “ambient music”?", "a": "Brian Eno", "w": ["Erik Satie", "Philip Glass", "La Monte Young"], "hint": "Music for Airports.", "why": "Satie's “furniture music” was an early precursor."},
+  {"s": 6, "q": "Compared with early minimalism, later (progressive) minimalism tends to…", "a": "combine processes with intuitive choices and care about texture and color", "w": ["avoid repetition entirely", "use only one layer", "require tape loops"], "hint": "Less strict.", "why": "Early pieces let one simple process run; later ones mix techniques."},
+  {"s": 7, "q": "Which is a duration choice for a minimalist piece?", "a": "cyclical, one complete cycle, sectional, or rounded", "w": ["always exactly three minutes", "verse–chorus only", "sonata form only"], "hint": "Infinite or finite.", "why": "Infinite pieces cycle; finite ones run one cycle, a series of sections or return to the opening."},
+];

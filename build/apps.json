@@ -9,7 +9,7 @@
         {
           "name": "Introduction to Pitch",
           "topic": "Sound & pitch",
-          "blurb": "Frequency, overtones, absolute and relative pitch, how voices, instruments and synths make pitch, and polyrhythms that become intervals.",
+          "blurb": "Frequency, overtones, absolute and relative pitch, how voices, instruments and synths make pitch, polyrhythms that become intervals.",
           "lesson": "introduction-to-pitch-lesson.html",
           "drills": "introduction-to-pitch.html",
           "class": true
@@ -65,7 +65,7 @@
         {
           "name": "More About Intervals",
           "topic": "Intervals",
-          "blurb": "Consonance and dissonance, half steps vs. 2nds, compound intervals and extensions, intervals in scales, and inversion by the rule of nine. Example: Over the Rainbow.",
+          "blurb": "Consonance and dissonance, half steps vs. 2nds, compound intervals and extensions, intervals in scales, and inversion by the rule of nine.",
           "lesson": "more-about-intervals-lesson.html"
         },
         {
@@ -103,7 +103,7 @@
         {
           "name": "Lead Sheets",
           "topic": "Reading songs",
-          "blurb": "How a lead sheet works: melody, lyrics and chord symbols, what's left to the players, and chords as regions of harmony, with Brother, Can You Spare a Dime?",
+          "blurb": "How a lead sheet works: melody, lyrics and chord symbols, what's left to the players, and chords as regions of harmony.",
           "lesson": "lead-sheets-lesson.html"
         },
         {
@@ -163,7 +163,7 @@
         {
           "name": "Chord Progressions in Real Songs",
           "topic": "Progression",
-          "blurb": "An in-class study: Betty, Wild World, In Bloom, Fast Car and Prelude to a Kiss. Listen, discuss, then open each analysis.",
+          "blurb": "Songs for in-class study of chord progressions.",
           "lesson": "chord-progressions-in-real-songs.html"
         },
         {
@@ -380,6 +380,22 @@
           "class": true
         },
         {
+          "name": "Pitch Sets",
+          "topic": "Composing beyond the triad",
+          "blurb": "Pitch-class numbers, transposing and inverting sets, the twelve trichords, and building melodies and chords from a set, with Bartók as a model.",
+          "lesson": "pitch-sets-lesson.html",
+          "drills": "pitch-sets.html",
+          "class": true
+        },
+        {
+          "name": "Contemporary Rhythm",
+          "topic": "Meter, tempo and pulse",
+          "blurb": "Loosely coordinated music, propulsive beats, unbalanced and changing meters, metric modulation, additive rhythm and polyrhythm.",
+          "lesson": "contemporary-rhythm-lesson.html",
+          "drills": "contemporary-rhythm.html",
+          "class": true
+        },
+        {
           "name": "Improvisation",
           "topic": "Improvising",
           "blurb": "Phrasing, pentatonic and blues scales, guide tones and modes, traditions from jazz to raga, and how to practice.",
@@ -406,7 +422,7 @@
         {
           "name": "Minimalism and Ambient Music",
           "topic": "Repetition and texture",
-          "blurb": "Phasing, additive process, drones, tintinnabuli, loops of different lengths and generative ambient music.",
+          "blurb": "Cells, additive process, phasing and close canon, layering, drones, tintinnabuli, ambient loops, a listening list and five decisions for writing your own piece.",
           "lesson": "minimalism-and-ambient-lesson.html",
           "drills": "minimalism-and-ambient.html",
           "class": true

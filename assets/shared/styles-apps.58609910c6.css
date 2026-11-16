@@ -946,6 +946,12 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 /* Secondary Function Chords step 1: switches that swap diatonic 7ths for secondary dominants */
 .sw-tog { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
 .sw-tog .lk { font-size: 16px; }
+/* Contemporary Rhythm: metric modulation calculator */
+.mmcalc { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; margin: 14px 0; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); }
+.mmcalc label { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: .95rem; }
+.mmcalc input, .mmcalc select { min-height: 40px; font: inherit; font-weight: 400; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+.mmcalc input { width: 7em; }
+.mmcalc .mmout { flex-basis: 100%; margin: 4px 0 0; font-weight: 700; font-size: 1.1rem; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
