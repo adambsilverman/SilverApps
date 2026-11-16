@@ -1,4 +1,6 @@
 (window.FAMS = window.FAMS || {}).mix = (() => {
+  // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
+  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
   // ===== Mode Mixture: content (lesson + drills). Engine: build/harmony/engine.js =====
   const okSp = c => c.tones.every(n => Math.abs(n.a) < 2);
   // borrowed chords in a major key, built from the parallel (natural) minor
@@ -140,7 +142,9 @@
       const list = BOR.map(b => bor(H, k, b));
       return `<p>These chords become available in ${H.esc(k.label)} by borrowing from ${H.esc(pm(H, k).label)}:</p>`
       + U.fig(H.grand({ key: k, chords: list.slice(0, 5).map(s => s.c), labels: list.slice(0, 5).map(s => s.rn), syms: list.slice(0, 5).map(s => s.c.sym) }), "")
-      + U.fig(H.grand({ key: k, chords: list.slice(5).map(s => s.c), labels: list.slice(5).map(s => s.rn), syms: list.slice(5).map(s => s.c.sym) }), "Each one contains at least one note from the parallel minor: me (♭3̂), le (♭6̂) or te (♭7̂).");
+      + U.fig(H.grand({ key: k, chords: list.slice(5).map(s => s.c), labels: list.slice(5).map(s => s.rn), syms: list.slice(5).map(s => s.c.sym) }), "Each one contains at least one note from the parallel minor: me (♭3̂), le (♭6̂) or te (♭7̂).")
+      + `<p>The same idea in G, both directions. Borrowing runs the other way too: a minor key can take I, ii, ♯iii and ♮vi from its parallel major.</p>`
+      + CX("mixture-chords.png", 2224, 658, "Mode mixture chords in G major: Gm (i), A diminished or A half-diminished 7th (ii° or iiø7), B-flat (flat III), Cm (iv), Dm (v), E-flat (flat VI), F (flat VII). Mode mixture chords in G minor: G (I), Am (ii), Bm (sharp iii), Em (natural vi).", "Borrowed chords in G major (from G minor) and in G minor (from G major).");
     } },
     { title: "Borrowed or secondary?", kick: "The rule of thumb", keyed: "major", defKey: "F", render: (H, k, U) => {
       const iv = bor(H, k, BOR[4]), II = H.chord(H.up(H.deg(k, 5), 4, 7), "M");
@@ -156,12 +160,19 @@
       + U.fig(H.grand({ key: k, chords: [I, s6, s7, I], labels: ["I", "♭VI", "♭VII", "I"], hl: [1, 2] }), "I – ♭VI – ♭VII – I", { small: true })
       + U.fig(H.grand({ key: k, chords: [I, IV, iv, I], labels: ["I", "IV", "iv", "I"], hl: 2 }), "I – IV – iv – I", { small: true })
       + U.fig(H.grand({ key: k, chords: [I, s3, IV, I], labels: ["I", "♭III", "IV", "I"], hl: 1 }), "I – ♭III – IV – I", { small: true })
-      + U.fig(H.grand({ key: k, chords: [I, ii, V, I], labels: ["I", "iiø7", "V", "I"], hl: 1 }), "I – iiø⁷ – V – I", { small: true }) + `</div>`;
+      + U.fig(H.grand({ key: k, chords: [I, ii, V, I], labels: ["I", "iiø7", "V", "I"], hl: 1 }), "I – iiø⁷ – V – I", { small: true }) + `</div>`
+      + `<h3>In real songs</h3><p>Label every diatonic chord first. Color additions such as add2 or sus9 don't change the Roman numeral: C(add2) in G major is just IV. Then sort the chromatic chords: dom7, dim or a major chord replacing a diatonic minor one points to a secondary function; the rest is often mixture.</p>`
+      + CX("youll-be-back.png", 2864, 1580, "Voice and piano excerpt in G major with chord symbols C add 2, D sus 9, D, G, G over F, C over E, A half-diminished 7th, D. The A half-diminished chord has an E-flat in the melody and the piano.", "Lin-Manuel Miranda, “You'll Be Back” from <i>Hamilton</i> (lyrics removed).", ["youll-be-back", "You'll Be Back, excerpt"])
+      + `<ul><li>Diatonic: {sym:C(add2)} ({rn:IV}), {sym:D(sus9)} and {sym:D} ({rn:V}), {sym:G} ({rn:I}), {sym:C/E} ({rn:IV6}).</li><li>Secondary: {sym:G/F} is {rn:V42/IV}. The F♮ in the bass leads down to E.</li><li>Mixture: {sym:Aø7} is {rn:iiø7}, borrowed from G minor. Its E♭ is le.</li></ul>`
+      + CX("you-keep-me-hangin-on.png", 2928, 1834, "Lead sheet in A major with chord symbols A, Em over G, D, F, then A, Em over G, G, F, Am over E, then C7 sus 4, F, C, and finally G and E7.", "Holland, Dozier and Holland, “You Keep Me Hangin' On,” sung by the Supremes. Notation and recording are raised a half step, into A major, to make the analysis easier. Lyrics removed.", ["you-keep-me-hangin-on", "You Keep Me Hangin' On, excerpt"])
+      + `<ul><li>Diatonic: {sym:A} ({rn:I}), {sym:D} ({rn:IV}), {sym:E7} ({rn:V7}).</li><li>Mixture in the first twelve bars: {sym:Em} ({rn:v}, in two inversions), {sym:F} ({rn:♭VI}), {sym:G} ({rn:♭VII}), {sym:Am/E} ({rn:i64}, almost a stand-in for the dominant) and {sym:C} ({rn:♭III}).</li><li>The next twelve bars can be heard two ways. Keep the same functions, and {sym:C7(sus4)} becomes a dominant of a dominant: {rn:V7/IV} in C, which is ♭III. Or hear a modulation to C major, and every chord from {sym:C7(sus4)} to {sym:G} is diatonic in the new key.</li></ul>`;
     } },
     { title: "The Picardy third", kick: "And its opposite", keyed: "minor", defKey: "A", render: (H, k, U) => {
       const I = H.chord(k.tonic, "M");
       return `<p>Mixture works the other way too. The <b>Picardy third</b> is a <b>major tonic</b> in a minor key, usually at the very end of a piece or phrase. (Where the name comes from has been lost to history.) Label it <b>I</b>.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 6), H.diat(k, 2, false, 1), H.diat(k, 5), I], labels: ["i", "VI", "ii°6", "V", "I"], syms: [], hl: 4 }), `${k.label}: i – VI – ii°⁶ – V – I`)
+      + `<p>The Beatles play with this in “I'll Be Back,” closing minor-mode phrases on major tonics and sliding between the parallel keys all through the song.</p>`
+      + `<figure class="lfig"><audio controls preload="none" src="assets/audio/chromatic/ill-be-back.mp3" aria-label="I'll Be Back, excerpt" style="width:100%">Your browser can't play this audio clip.</audio><figcaption>The Beatles, “I'll Be Back” (excerpt).</figcaption></figure>`
       + `<p>The opposite, a <b>minor tonic</b> in a major key, is much rarer. It has a name too: see the next step.</p>`;
     } },
     { title: "The Mercury third", kick: "A term by Adam Silverman", render: (H, _k, U) => {

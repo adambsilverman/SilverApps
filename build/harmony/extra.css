@@ -707,3 +707,6 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 /* Harmonic Succession: Adam's MTC 501 examples */
 .hs-fig img { display: block; margin: 8px 0 0; }
 .hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }
+/* polychord symbol: upper chord over a horizontal line over the lower chord */
+.polysym{display:inline-grid;vertical-align:middle;text-align:center;font-weight:700;line-height:1.05;margin:0 .15em}
+.polysym>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}

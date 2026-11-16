@@ -1,4 +1,6 @@
 (window.FAMS = window.FAMS || {}).aug = (() => {
+  // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
+  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
   // ===== Augmented Sixth Chords: content (lesson + drills). Engine: build/harmony/engine.js =====
   const TYPES = ["It", "Fr", "Ger"], RN = { It: "It+6", Fr: "Fr+6", Ger: "Ger+6" }, NAME = { It: "Italian", Fr: "French", Ger: "German" };
   const ADD = { It: "do (1̂)", Fr: "do (1̂) and re (2̂)", Ger: "do (1̂) and me (♭3̂)" };
@@ -133,6 +135,8 @@
       <tr><td>{rn:Fr+6} French</td><td>do and re (2̂)</td><td>M3, +4, +6</td><td>${H.esc(spell(H, cs[1]))}</td></tr>
       <tr><td>{rn:Ger+6} German</td><td>do and me (♭3̂)</td><td>M3, P5, +6</td><td>${H.esc(spell(H, cs[2]))}</td></tr></tbody></table></div>`
       + U.fig(H.grand({ key: k, chords: cs, labels: TYPES.map(t => RN[t]) }), "Italian, French and German sixths over the same bass.")
+      + CX("aug6-types.png", 2120, 304, "The augmented sixth G to E-sharp, then the Italian sixth (adds a major 3rd, B), the French sixth (adds an augmented 4th, C-sharp), and the German sixth (adds a perfect 5th, D).", "Built up from the interval: It+6 adds a M3 to the +6; Fr+6 adds a +4 to the It+6; Ger+6 adds a P5 to the It+6.")
+      + CX("aug6-in-keys.png", 2120, 308, "Three augmented sixth chords with key signatures: Italian sixth in B minor (G, B, E-sharp), French sixth in G minor (E-flat, G, A, C-sharp), German sixth in C minor (A-flat, C, E-flat, F-sharp).", "1) It+6 in B minor; 2) Fr+6 in G minor; 3) Ger+6 in C minor.")
       + H.check("Which chord contains le, do, re and fi?", "Fr+6", ["It+6", "Ger+6", "V7/V"], "French adds re (2̂).", "rn");
     } },
     { title: "Resolving to the dominant", kick: "Pre-dominant", keyed: "both", defKey: "A", render: (H, k, U) => {
@@ -141,6 +145,7 @@
       const it = A6(H, k, "It"), fr = A6(H, k, "Fr"), ger = A6(H, k, "Ger");
       return `<p>All three are <b>pre-dominants</b>: think of them as an embellishment of the dominant, with le and fi closing in on sol from both sides. They move to <b>V</b>, or to the cadential six-four (${t0}⁶₄) and then V.</p>
       <div class="lfigs">${U.fig(H.grand({ key: k, chords: [it, V, I], labels: ["It+6", "V", t0], hl: 0 }), "Italian → V", { small: true })}${U.fig(H.grand({ key: k, chords: [fr, V, I], labels: ["Fr+6", "V", t0], hl: 0 }), "French → V", { small: true })}${U.fig(H.grand({ key: k, chords: [ger, i64, V, I], labels: ["Ger+6", t0 + "64", "V", t0], hl: 0 }), `German → ${t0}⁶₄ → V`, { small: true })}</div>
+      ${CX("aug6-resolution.png", 2152, 318, "The augmented sixth F to D-sharp opens out to the octave E. Then an Italian sixth resolves either straight to an E major chord (V) or to an A minor six-four chord (i 6 4).", "le and fi open out to an octave on sol, straight to V or through i⁶₄ (A minor).")}
       <div class="callout"><b>Why the German detours</b>Going straight from Ger+6 to V, le–me moves to sol–re: parallel perfect fifths. Passing through ${H.esc(t0)}⁶₄ (or using the French sixth) avoids them.</div>`;
     } },
     { title: "The German sixth's double identity", kick: "Spelling = function", keyed: "minor", defKey: "C", render: (H, k, U) => {
@@ -155,7 +160,8 @@
       const cs = TYPES.map(t => A6(H, k, t));
       return `<p>In a major key, le (♭6̂) is borrowed from the parallel minor, and the German sixth borrows me (♭3̂) as well. In ${H.esc(k.label)}: ${cs.map(c => H.esc(spell(H, c))).join(", ")}.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 4, false, 1), cs[2], H.diat(k, 1, false, 2), H.diat(k, 5), H.diat(k, 1)], labels: ["I", "IV6", "Ger+6", "I64", "V", "I"], hl: 2 }), `${k.label}: the bass walks down la – le – sol.`)
-      + `<p>Augmented sixth chords don't <i>have</i> to resolve to V. The same sound can embellish any major or minor chord a half step below its bass. A common jazz version is the <b>tritone substitution</b>: a dom7 a half step above the target, whose tritone resolves just like the dominant's.</p>`;
+      + `<p>Augmented sixth chords don't <i>have</i> to resolve to V. The same sound can embellish any major or minor chord a half step below its bass. A common jazz version is the <b>tritone substitution</b>: a dom7 a half step above the target, whose tritone resolves just like the dominant's.</p>`
+      + CX("tritone-sub.png", 2144, 439, "Piano progression in D minor: i, V7, i, then i, flat II plus 6, i. In both the tritone C-sharp and G resolves to D and F.", "D minor: V⁷ (A7) and its tritone substitute, ♭II⁺⁶ (E♭7), resolve the same tritone to the same tonic.");
     } },
     { title: "Quick check", kick: "Before the drills", keyed: "both", defKey: "D", render: (H, k) => {
       if (!usable(H, k)) return `<p>Choose another key above.</p>`;

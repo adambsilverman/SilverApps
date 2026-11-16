@@ -1,4 +1,6 @@
 (window.FAMS = window.FAMS || {}).nea = (() => {
+  // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
+  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
   // ===== Neapolitan Chords: content (lesson + drills). Engine: build/harmony/engine.js =====
   const okSp = c => c.tones.every(n => Math.abs(n.a) < 2);
   const nRoot = (H, k) => H.up(k.tonic, 1, 1);                       // ♭2̂: the letter above the tonic, a half step up
@@ -133,7 +135,9 @@
       const n6 = N(H, k, 1), V = H.diat(k, 5), I = H.diat(k, 1), i64 = H.diat(k, 1, false, 2), lt = lt5(H, k), t = T(k);
       return `<p>♭II⁶ is a strong <b>pre-dominant</b>: it moves to <b>V</b>. Because ♭2̂ falls toward the leading tone, a melodic diminished 3rd (♭2̂ down to 7̂) can appear; composers often put a chord in between to fill it in:</p>
       <ul><li><b>${t}⁶₄</b> (cadential six-four): ♭2̂ → 1̂ → 7̂.</li><li><b>vii°⁷/V</b>: the bass moves up chromatically (4̂ → ♯4̂ → 5̂).</li></ul>
-      <div class="lfigs">${U.fig(H.grand({ key: k, chords: [n6, V, I], labels: ["♭II6", "V", t], hl: 0 }), "Straight to V", { small: true })}${U.fig(H.grand({ key: k, chords: [n6, i64, V, I], labels: ["♭II6", t + "64", "V", t], hl: 0 }), `Through ${t}⁶₄`, { small: true })}${U.fig(H.grand({ key: k, chords: [n6, lt, V, I], labels: ["♭II6", "vii°7/V", "V", t], hl: 0 }), "Through vii°⁷/V", { small: true })}</div>`;
+      <div class="lfigs">${U.fig(H.grand({ key: k, chords: [n6, V, I], labels: ["♭II6", "V", t], hl: 0 }), "Straight to V", { small: true })}${U.fig(H.grand({ key: k, chords: [n6, i64, V, I], labels: ["♭II6", t + "64", "V", t], hl: 0 }), `Through ${t}⁶₄`, { small: true })}${U.fig(H.grand({ key: k, chords: [n6, lt, V, I], labels: ["♭II6", "vii°7/V", "V", t], hl: 0 }), "Through vii°⁷/V", { small: true })}</div>`
+      + `<p>An example from class, in E minor. ♭II⁶ passes through i⁶₄ on its way to V, so the F♮ drops to E before D♯ shows up.</p>`
+      + CX("neapolitan-sixth.png", 1032, 451, "Four-voice progression in E minor: iv, flat II 6, i 6 4, V, i. The F natural of the Neapolitan moves down to E in the six-four chord.", "E minor: iv – ♭II⁶ – i⁶₄ – V – i.", ["neapolitan-sixth", "Neapolitan sixth progression in E minor"], 560);
     } },
     { title: "In major keys", kick: "Borrowed color", keyed: "major", defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>In ${H.esc(k.label)} the Neapolitan would need a double flat. Choose another key above.</p>`;

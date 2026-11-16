@@ -1,4 +1,6 @@
 (window.FAMS = window.FAMS || {}).med = (() => {
+  // examples from Dr. Silverman's course materials (assets/img|audio/chromatic); lyrics removed, excerpts used for educational purposes
+  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
   // ===== Chromatic Mediants (part of Chromatic Chords). Engine: build/harmony/engine.js =====
   const REL = [[2, 4, "a major 3rd above"], [2, 3, "a minor 3rd above"], [-2, -4, "a major 3rd below"], [-2, -3, "a minor 3rd below"]];
   const sigSize = (H, n, q) => { try { const k = H.key(H.nm(n), q === "m" ? "minor" : "major"); return k.scale.reduce((t, x) => t + Math.abs(x.a), 0) + (k.scale.some(x => Math.abs(x.a) > 1) ? 9 : 0); } catch (e) { return 99; } };
@@ -55,7 +57,8 @@
       return `<p>A <b>chromatic mediant relationship</b> joins two chords (or keys) that are:</p>
       <ol><li>a <b>3rd apart</b>, major or minor;</li><li>the <b>same quality</b>, both major or both minor;</li><li><b>not diatonically related</b> (not found together in one key);</li><li>sharing a <b>common tone</b>.</li></ol>
       <p>They're <i>chromatic</i> because they bring in notes outside the home key, and <i>mediants</i> because they relate by 3rds.</p>`
-        + `<div class="lfigs">${M.map(m => U.fig(pair(H, I, m.c, ["I", MRN[String(REL.find(r => r[2] === m.how)[1])]]), `{sym:${I.sym}} → {sym:${m.c.sym}}: ${m.how}, common tone ${ct(H, I, m.c).map(H.nm).join("")}`, { small: true })).join("")}</div>`;
+        + `<div class="lfigs">${M.map(m => U.fig(pair(H, I, m.c, ["I", MRN[String(REL.find(r => r[2] === m.how)[1])]]), `{sym:${I.sym}} → {sym:${m.c.sym}}: ${m.how}, common tone ${ct(H, I, m.c).map(H.nm).join("")}`, { small: true })).join("")}</div>`
+        + CX("chromatic-mediants.png", 2206, 374, "1. The four chromatic mediants of F major: D-flat, D, A-flat and A, a major or minor 3rd below or above. 2. The four chromatic mediants of F minor: C-sharp minor, D minor, G-sharp minor and A minor. Common tones with F or F minor are color-coded.", "The chromatic mediants of F (1) and F minor (2). Colors mark the notes each one shares with F or Fm. C♯m and G♯m are spelled with sharps because they're more common that way than D♭m and A♭m.");
     } },
     { title: "Finding them", kick: "Four for every chord", render: (H) => `<p>Any major or minor chord has four chromatic mediants: the chords of the same quality with roots a major 3rd and a minor 3rd above and below. Enharmonic spellings are often used to make the chords more common: for F minor, C♯m rather than D♭m, and G♯m rather than A♭m.</p>${reference(H)}`
       + H.check("Which is a chromatic mediant of C major?", "E", ["Em", "Am", "D"], "E major: a major 3rd up, same quality, common tone E. Em and Am are diatonic to C.", "sym") },
@@ -64,7 +67,7 @@
       return `<p>Chromatic mediants create expressive harmonic shifts: color and contrast, while keeping a connection to the home key through the common tone (often, but not always, present in the melody).</p>
       <ul><li><b>Modulation:</b> because they share tones with the original key, chromatic mediants can be pivot or destination chords for smooth yet striking key changes.</li><li><b>Substitution:</b> a chromatic mediant can replace a diatonic chord for a surprising color.</li></ul>`
         + U.fig(H.grand({ key: k, chords: [I, c6, I, c3, H.diat(k, 4), H.diat(k, 5), I], labels: ["I", "♭VI", "I", "♭III", "IV", "V", "I"], syms: [I, c6, I, c3, H.diat(k, 4), H.diat(k, 5), I].map(c => c.sym) }), "Chromatic mediants as color chords between tonics.")
-        + `<p>In some jazz, the “main chords” move by chromatic mediants that divide the octave into major 3rds (B → G → E♭), each embellished with secondary chords.</p>`;
+        + `<p>John Coltrane's <i>Giant Steps</i> is the famous case. Its main chords, Bmaj7 → Gmaj7 → E♭maj7, move by chromatic mediants and split the octave into three major 3rds. Each one is approached by its own dominant 7th (D7 to G, B♭7 to E♭, F♯7 to B), which makes them secondary dominants in the key of the moment.</p>`;
     } },
     { title: "Quick check", kick: "Chromatic mediants", render: (H) => H.check("Are C and A♭ chromatic mediants?", "Yes", ["No: they're diatonically related", "No: their qualities differ"], "A major 3rd apart, both major, not in one key, sharing C.")
       + H.check("Are C and Am chromatic mediants?", "No: they're diatonically related", ["Yes", "No: their qualities differ"], "Am is vi in C major: a diatonic mediant.")
