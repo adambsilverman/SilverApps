@@ -583,3 +583,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z169e: secondary.js step 1 now I–iii7–vi7–ii7–V7–I (major keys only) with three switches (SWAP/SWON) swapping iii7→V7/vi, vi7→V7/ii, ii7→V7/V; own staff #swFig drawn in after(); .sw-tog CSS in extra.css.
 - z169f: secondary.js step 1 hand-voiced (c.v): melody 5-5-5-4-4-3 (raised to #5/#4 when a switched-in V7/x needs it), inner notes just below, root in bass.
 - z169g: CX/SX figure helpers: a number in the aud slot is treated as max width (three figures had shown an empty audio player for undefined.mp3).
+- z169h: secondary.js Where Is Love step gets audio assets/audio/secondary/where-is-love.mp3 (from MTC 501 web pages).
+- z169i: mixture.js Picardy step adds Schutz Heu mihi audio (assets/audio/chromatic/schutz-heu-mihi.mp3).
+- z169j: secondary.js God Only Knows audio (assets/audio/secondary/god-only-knows.mp3).

@@ -172,6 +172,8 @@
       const I = H.chord(k.tonic, "M");
       return `<p>Mixture works the other way too. The <b>Picardy third</b> is a <b>major tonic</b> in a minor key, usually at the very end of a piece or phrase. (Where the name comes from has been lost to history.) Label it <b>I</b>.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 6), H.diat(k, 2, false, 1), H.diat(k, 5), I], labels: ["i", "VI", "ii°6", "V", "I"], syms: [], hl: 4 }), `${k.label}: i – VI – ii°⁶ – V – I`)
+      + `<p>Hear one in Heinrich Schütz's “Heu mihi, Domine” (from <i>Cantiones sacrae</i>, 1625): i – VI – ii°⁶ – I, with the major tonic arriving at the end.</p>`
+      + `<figure class="lfig"><audio controls preload="none" src="assets/audio/chromatic/schutz-heu-mihi.mp3" aria-label="Schütz, Heu mihi, Domine, excerpt" style="width:100%">Your browser can't play this audio clip.</audio><figcaption>Heinrich Schütz, “Heu mihi, Domine,” <i>Cantiones sacrae</i> (1625), excerpt.</figcaption></figure>`
       + `<p>The Beatles play with this in “I'll Be Back,” closing minor-mode phrases on major tonics and sliding between the parallel keys all through the song.</p>`
       + `<figure class="lfig"><audio controls preload="none" src="assets/audio/chromatic/ill-be-back.mp3" aria-label="I'll Be Back, excerpt" style="width:100%">Your browser can't play this audio clip.</audio><figcaption>The Beatles, “I'll Be Back” (excerpt).</figcaption></figure>`
       + `<p>The opposite, a <b>minor tonic</b> in a major key, is much rarer. It has a name too: see the next step.</p>`;
