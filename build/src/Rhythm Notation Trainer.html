@@ -895,7 +895,7 @@ details.panel[open] summary::after { content: "−"; }
       if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
       const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
       if (Math.abs(need - end) <= 2) return w;
-      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      const nw = Math.max(10, Math.min(avail, w * (end - x0) / (need - x0)));   // never wider than the bar: a short last note would otherwise run into the bar line if (Math.abs(nw - w) < .5) return w;
       w = nw; fmt.format(vs, w);
     }
     return w;
@@ -927,6 +927,10 @@ details.panel[open] summary::after { content: "−"; }
     const rowH = 100 + (spec.nums ? 16 : 0);
     let W = spec.snippet ? natural.reduce((a, b) => a + b, 0) + 8 : avail;
     rows.forEach(r => { const need = r.reduce((s, i) => s + natural[i], 0) + 12; if (need > W) W = need; });
+    // stretch each row to the width, but no more than 1.5× its natural spacing: a short example stays compact instead of being spread across the page
+    const STR = rows.map((r, ri) => { const sum = r.reduce((s, i) => s + natural[i], 0); let st = spec.snippet ? 1 : Math.min((W - 12) / sum, 1.5);
+      if (ri === rows.length - 1 && rows.length > 1 && r.length < rows[0].length) st = Math.min(st, 1.3); return st; });
+    if (!spec.snippet && !spec.fill) W = Math.min(W, Math.ceil(Math.max(...rows.map((r, ri) => r.reduce((s, i) => s + natural[i], 0) * STR[ri])) + 14));
     const H = rows.length * rowH + 20;
     const ren = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     ren.resize(W, H);
@@ -935,9 +939,7 @@ details.panel[open] summary::after { content: "−"; }
     const info = { staves: [], notes: [], rowOf: [], ghosts: [] };
     rows.forEach((r, ri) => {
       const sum = r.reduce((s, i) => s + natural[i], 0);
-      let stretch = spec.snippet ? 1 : (W - 12) / sum;
-      if (ri === rows.length - 1 && rows.length > 1 && r.length < rows[0].length) stretch = Math.min(stretch, 1.3);
-      if (r.length === 1 && rows.length === 1 && !spec.snippet && !spec.fill) stretch = Math.min(stretch, 2.2);
+      let stretch = spec.fill ? (W - 12) / sum : STR[ri];
       let x = 6;
       r.forEach(bi => {
         const sw = natural[bi] * stretch, y = ri * rowH + 18 + (spec.nums ? 0 : 0);
@@ -1034,7 +1036,7 @@ details.panel[open] summary::after { content: "−"; }
     svg.removeAttribute("width"); svg.removeAttribute("height");
     if (spec.snippet) { svg.style.width = Math.round(vw * 0.85) + "px"; svg.style.maxWidth = "100%"; svg.style.height = "auto"; }
     else if (W > avail && avail / W < .62) { svg.style.width = W + "px"; svg.style.height = "auto"; }
-    else { svg.style.width = "100%"; svg.style.height = "auto"; }
+    else { svg.style.width = vw + "px"; svg.style.maxWidth = "100%"; svg.style.height = "auto"; svg.style.display = "block"; svg.style.margin = "0 auto"; }   // natural size, never blown up to fill the card
     svg.style.aspectRatio = `${vw} / ${vh}`;
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", spec.label || describeSpec(spec));

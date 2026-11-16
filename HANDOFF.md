@@ -549,3 +549,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z163 (2026-11-15)
 - Introduction to Pitch, The curious theremin: playable pad under the diagram (hover to play with mouse/trackpad after one click; touch = press and drag; Space + arrows on keyboard), synced with the sliders. Keyboard strip along the bottom is warped by the modeled pitch field (wide keys far from the antenna, tiny near it), sounding key lit, red line at the exact pitch.
 - Fix (both theremin pads): canvas resizes when its height changes, not only its width.
+
+## z164 (2026-11-15)
+- Meter and Beaming drills: new "Add the bar lines" mode (widget "barlines": unbeamed notes in a row, tap gaps to place bar lines; answer shows the notated, beamed version with Play with the beat). Modes now: Kinds of meter and terms (terms merged in) / Find the meter / Add the bar lines / Beaming and asymmetrical (group merged in) / Rhythmic devices. assemble.py modes updated.
+- Spacing: justifyW never formats wider than the bar (engine.js, rhythm-performance.html, Rhythm Notation Trainer.html), fixing last notes colliding with bar lines.
+- Rhythm Notation Trainer: short examples are no longer stretched across the card (row stretch capped at 1.5x natural; SVG shown at natural size, centered).

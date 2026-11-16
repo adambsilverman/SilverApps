@@ -691,3 +691,16 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .tmpad { position: relative; height: clamp(190px, 30vh, 250px); border: 1px solid #000; border-radius: 8px; background: linear-gradient(to top, #15161a, #232733); touch-action: none; cursor: crosshair; overflow: hidden; }
 .tmpad canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tmpad:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }
+/* Meter: add the bar lines */
+.blrow { display: flex; flex-wrap: wrap; align-items: stretch; row-gap: 18px; padding: 10px 6px; }
+.blrow .bln, .blrow .blgap { background: linear-gradient(to bottom, transparent calc(50% - 1px), var(--ink, #222) calc(50% - 1px), var(--ink, #222) calc(50% + 1px), transparent calc(50% + 1px)) !important; }
+.blts { display: grid; align-content: center; font: 700 22px/0.95 Literata, serif; margin-right: 10px; text-align: center; background: var(--surface, #fffdf8); padding: 0 2px; }
+.bln { display: inline-flex; align-items: center; justify-content: center; min-width: var(--w); height: 64px; font: 34px/1 "Noto Music", "Bravura Text", "Segoe UI Symbol", serif; color: var(--ink, #222); }
+.blgap { width: 22px; min-width: 22px !important; height: 64px; min-height: 64px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; cursor: pointer; display: flex; justify-content: center; border-radius: 4px !important; }
+.blgap i { display: block; width: 2px; height: 46px; margin-top: 9px; border-left: 2px dashed rgba(0,0,0,.18); }
+.blgap:hover i, .blgap:focus-visible i { border-left-color: rgba(0,0,0,.5); }
+.blgap:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -2px; }
+.blgap.on i { border-left: 3px solid var(--ink, #222); }
+.blgap.good i { border-left: 3px solid #1b7a3a; } .blgap.bad i { border-left: 3px solid #b3261e; } .blgap.miss i { border-left: 3px dashed #1b7a3a; }
+.blend { width: 7px; margin: 9px 0 9px 6px; border-left: 2px solid var(--ink, #222); border-right: 4px solid var(--ink, #222); }
+.bllegend { font-size: .9rem; display: flex; gap: 6px 14px; flex-wrap: wrap; margin: 6px 0 0; } .bllegend .good { color: #1b7a3a; } .bllegend .bad { color: #b3261e; } .bllegend .miss { color: #1b7a3a; font-weight: 700; }

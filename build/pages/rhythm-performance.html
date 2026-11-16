@@ -388,7 +388,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       if (t1 <= t0 || t1 >= tot) return w;   // a single note, or a bar without a meter
       const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
       if (Math.abs(need - end) <= 2) return w;
-      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) return w;
+      const nw = Math.max(10, Math.min(avail, w * (end - x0) / (need - x0)));   // never wider than the bar, or a short last note runs into the bar line if (Math.abs(nw - w) < .5) return w;
       w = nw; fmt.format(vs, w);
     }
     return w;
