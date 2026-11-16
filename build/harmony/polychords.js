@@ -1,7 +1,7 @@
 (window.FAMS = window.FAMS || {}).poly = (() => {
   // ===== Polychords and "improper" slash chords (part of Chromatic Chords; lesson steps only, no drills). Engine: build/harmony/engine.js =====
   // examples from Dr. Silverman's course materials (assets/img|audio/chromatic), excerpts used for educational purposes
-  const CX = (f, w, h, alt, cap, aud, max) => `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+  const CX = (f, w, h, alt, cap, aud, max) => { if (aud && !Array.isArray(aud)) { max = aud; aud = null; } return `<figure class="lfig"${max ? ` style="max-width:${max}px;margin-inline:auto"` : ""}>${aud ? `<audio controls preload="none" src="assets/audio/chromatic/${aud[0]}.mp3" aria-label="${aud[1]}" style="width:100%">Your browser can't play this audio clip.</audio>` : ""}<img src="assets/img/chromatic/${f}" width="${w}" height="${h}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff">${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`; };
   // a polychord symbol: upper chord over a horizontal line over the lower chord
   const PC = (top, bot) => `<span class="polysym" role="img" aria-label="${top} over ${bot}"><span>${top}</span><span>${bot}</span></span>`;
 
