@@ -296,7 +296,7 @@
       if (t1 <= t0 || t1 >= tot) return fitInside(VF, fmt, vs, avail, w);   // a single note, or a bar without a meter
       const need = x0 + (x1 - x0) / (t1 - t0) * (tot - t0), end = avail + 6;
       if (Math.abs(need - end) <= 2) break;
-      const nw = Math.max(10, Math.min(avail * 2, w * (end - x0) / (need - x0))); if (Math.abs(nw - w) < .5) break;
+      const nw = Math.max(10, Math.min(avail, w * (end - x0) / (need - x0)));   // never wider than the bar, or a short last note runs into the bar line if (Math.abs(nw - w) < .5) break;
       w = nw; fmt.format(vs, w);
     }
     return fitInside(VF, fmt, vs, avail, w);

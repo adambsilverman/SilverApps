@@ -87,6 +87,49 @@ window.FAM = (() => {
     ["3/4 and 6/8 both hold six eighth notes. What tells them apart?", "the grouping: 3/4 beams in twos (three beats), 6/8 in threes (two beats)", ["nothing", "6/8 is faster", "3/4 always has quarter notes"], "Beaming shows the beat."],
   ];
 
+  // ---------- add the bar lines: notes in a row with no bar lines; tap the gaps where each bar ends ----------
+  const EI = { w: 8, hd: 6, h: 4, qd: 3, q: 2, "8d": 1.5, "8": 1, "16": .5 };
+  const GL = { w: "𝅝", hd: "𝅗𝅥.", h: "𝅗𝅥", qd: "♩.", q: "♩", "8d": "♪.", "8": "♪", "16": "𝅘𝅥𝅯" };
+  const GN = { w: "whole note", hd: "dotted half note", h: "half note", qd: "dotted quarter note", q: "quarter note", "8d": "dotted eighth note", "8": "eighth note", "16": "sixteenth note" };
+  const LONG = { "2/4": ["h", "q q"], "3/4": ["hd", "h q", "q h"], "4/4": ["w", "h h", "h q q", "q q h", "hd q", "q hd"], "6/8": ["hd", "qd qd"], "9/8": ["hd qd", "qd hd"], "12/8": ["hd hd", "hd qd qd"] };
+  const blAns = list => list.length ? `bar lines after note${list.length > 1 ? "s" : ""} ${list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0]}` : "no bar lines";
+  function barsQ(H) {
+    let ts, bars, notes;
+    for (let k = 0; k < 40; k++) {
+      ts = H.rnd(Object.keys(METERS)); const nb = /4\/4|12\/8/.test(ts) ? 3 : 4;
+      bars = Array.from({ length: nb }, () => Math.random() < .3 ? H.rnd(LONG[ts]) : barOf(H, ts));
+      notes = bars.map(b => b.split(" ")); const n = notes.flat().length;
+      if (n >= 8 && n <= 26 && new Set(bars).size > 1) break;
+    }
+    const after = []; let c = 0; notes.slice(0, -1).forEach(b => { c += b.length; after.push(c); });
+    const flat = notes.flat(), sp = rh(ts, bars, { groups: METERS[ts][2], final: true });
+    const ans = blAns(after), eighths = METERS[ts][0] === "s" ? METERS[ts][1] * 2 : METERS[ts][1] * 3;
+    const wrong = [blAns(after.map(x => x + 1)), blAns(after.map(x => Math.max(1, x - 1))), blAns(after.slice(0, -1))];
+    return H.mc(`The time signature is ${ts}. Tap the gaps between the notes where each bar ends. The last bar line is already there.`, ans, wrong,
+      `Each bar of ${ts} holds ${BEATS[ts][0]} ${BEATS[ts][1]} beat${BEATS[ts][0] > 1 ? "s" : ""}, the length of ${eighths} eighth notes. Counting in eighths, the bars end after notes ${after.join(", ")}. Here it is with bar lines and beaming.`,
+      { widget: "barlines", blTs: ts, blNotes: flat, blAfter: after, staffAns: sp, play: H.withClick(sp), playLabel: "Play with the beat" });
+  }
+  const widgets = { barlines: {
+    html(c, q) {
+      if (!q.blSel) q.blSel = [];
+      const n = c.blNotes.length, ok = new Set(c.blAfter);
+      let h = `<div class="blrow" role="group" aria-label="Notes in ${c.blTs} without bar lines. Each gap is a button: press it to add or remove a bar line."><span class="blts" aria-hidden="true"><span>${c.blTs.split("/")[0]}</span><span>${c.blTs.split("/")[1]}</span></span>`;
+      c.blNotes.forEach((t, i) => { h += `<span class="bln" style="--w:${16 + EI[t] * 9}px" role="img" aria-label="Note ${i + 1}: ${GN[t]}">${GL[t]}</span>`;
+        if (i < n - 1) { const on = q.blSel.includes(i + 1), st = !q.done ? "" : on && ok.has(i + 1) ? " good" : on ? " bad" : ok.has(i + 1) ? " miss" : "";
+          h += `<button type="button" class="blgap${on ? " on" : ""}${st}" data-bl="${i + 1}" aria-pressed="${on}" aria-label="Bar line after note ${i + 1}"${q.done ? " disabled" : ""}><i></i></button>`; } });
+      h += `<span class="blend" aria-hidden="true"></span></div>`;
+      if (q.done) h += `<p class="bllegend"><span class="good">█</span> correct bar line <span class="bad">█</span> not a bar line <span class="miss">┆</span> missed bar line</p>`;
+      return h;
+    },
+    wire(root, c, q) {
+      root._bl = { c, q }; const btn = root.querySelector("[data-wcheck]");
+      const upd = () => { if (btn) btn.disabled = !q.blSel.length; };
+      root.querySelectorAll("[data-bl]").forEach(b => b.onclick = () => { const i = +b.dataset.bl, k = q.blSel.indexOf(i); if (k < 0) q.blSel.push(i); else q.blSel.splice(k, 1); const on = k < 0; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); upd(); });
+      upd();
+    },
+    value(root) { const x = root._bl; if (!x || !x.q.blSel.length) return null; return blAns(x.q.blSel.slice().sort((a, b) => a - b)); },
+  } };
+
   function make(mode, H) {
     if (mode === "classify") {
       if (Math.random() < .15) {
@@ -108,6 +151,9 @@ window.FAM = (() => {
       const sp = rh(ts, [toks, toks], { groups: g.split("+").map(n => n + "/8") });
       return H.mc(`How are the eighth notes grouped in this ${ts} bar?`, g, opts[1].concat(["2+2+2+2", "3+3"]).filter((v, i, a) => a.indexOf(v) === i), `The beams group ${g.split("+").join(", ")} eighths: ${g}. Each group is one (unequal) beat${ts === "8/8" ? "; 3+3+2 is a classic “tresillo” grouping" : ""}.`, { kicker: "Asymmetrical grouping", staff: sp, playQ: Object.assign(H.scorePlay(sp), {}), playQLabel: "Play" });
     }
+    if (mode === "bars") return barsQ(H);
+    if (mode === "beam" && Math.random() < .4) mode = "group";   // beaming and asymmetrical grouping share a mode
+    if (mode === "classify" && Math.random() < .5) mode = "terms";   // kinds of meter and terms share a mode
     if (mode === "beam") {
       const ts = H.rnd(["2/4", "3/4", "4/4", "6/8", "9/8"]), good = Math.random() < .45;
       const b = METERS[ts] ? Array(+ts.split("/")[0] * (ts.endsWith("8") ? 1 : 2)).fill("8").join(" ") : "";
@@ -195,8 +241,8 @@ window.FAM = (() => {
   ] };
 
   return {
-    key: "silverapps-meter-v1", lesson, make, reference,
-    modes: [{ id: "classify", kicker: "Kinds of meter" }, { id: "which", kicker: "Find the meter" }, { id: "group", kicker: "Asymmetrical grouping" }, { id: "beam", kicker: "Beaming" }, { id: "device", kicker: "Pick-ups, syncopation, hemiola" }, { id: "terms", kicker: "Terms" }],
+    key: "silverapps-meter-v1", lesson, make, reference, widgets,
+    modes: [{ id: "classify", kicker: "Kinds of meter and terms" }, { id: "which", kicker: "Find the meter" }, { id: "bars", kicker: "Add the bar lines" }, { id: "beam", kicker: "Beaming and asymmetrical grouping" }, { id: "device", kicker: "Pick-ups, syncopation, hemiola" }],
     topics: [],
   };
 })();
