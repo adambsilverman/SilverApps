@@ -5,3 +5,4 @@ __pycache__/
 build/gen/
 # edit mode backups (local only)
 build/editor/backups/
+build/.build.lock/

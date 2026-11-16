@@ -32,8 +32,7 @@ def name_of(kind, body, users):
         return "data-" + stem
     return "styles-" + ("apps" if len(users) > 20 else min(u.stem for u in users).replace("-lesson", ""))
 
-if OUT.exists(): shutil.rmtree(OUT)
-OUT.mkdir(parents=True)
+OUT.mkdir(parents=True, exist_ok=True)   # old files are pruned at the end, only if no page uses them (safe to run twice)
 shared = {}
 for (kind, body), users in uses.items():
     if len(users) < 2: continue
@@ -46,6 +45,12 @@ for p, s in text.items():
     n = SCRIPT.sub(lambda m: f'<script src="{shared[("js", m.group(1))]}"></script>' if ("js", m.group(1)) in shared else m.group(0), s)
     n = STYLE.sub(lambda m: f'<link rel="stylesheet" href="{shared[("css", m.group(1))]}">' if ("css", m.group(1)) in shared else m.group(0), n)
     if n != s: p.write_text(n, encoding="utf-8")
+
+# remove shared files that no built page references any more
+used = set()
+for p in pages: used.update(re.findall(r'assets/shared/([\w.-]+\.(?:js|css))', p.read_text(encoding="utf-8")))
+for f in OUT.iterdir():
+    if f.is_file() and f.name not in used: f.unlink()
 
 total_before = sum(len(s) for s in text.values()); total_after = sum(p.stat().st_size for p in pages)
 print(f"externalized {len(shared)} shared blocks into assets/shared/; pages {total_before / 1e6:.1f} MB -> {total_after / 1e6:.1f} MB")
