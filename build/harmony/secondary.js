@@ -148,7 +148,7 @@ window.FAM = (() => {
   const lesson = { steps: [
     { part: "Reading secondary chords", title: "What makes a chord “secondary”?", kick: "Tonicization", keyed: "major", render: (H, k, U) => `<p>A <b>secondary</b> chord is a chromatic chord that briefly treats some chord other than the tonic as if it were a tonic. That is called <b>tonicization</b>. It doesn't change the key: only a cadence can confirm a new key.</p>
       <p>The three common kinds are <b>secondary dominants</b> ({rn:V/x}, {rn:V7/x}), <b>secondary leading-tone chords</b> ({rn:vii°7/x}) and <b>secondary pre-dominants</b> ({rn:ii/x} or {rn:ii7/x} for a major target, {rn:iiø7/x} for a minor target). The “x” is the <b>target</b>: the chord being tonicized.</p>
-      <p>Hear it in a circle progression. Each switch turns a diatonic minor 7th chord into the dom7 that leads to the next chord: the 3rd goes up a half step and becomes a secondary leading tone.</p>
+      <p>Hear it in a circle progression with 5̂–5̂–5̂–4̂–4̂–3̂ on top. Each switch turns a diatonic minor 7th chord into the dom7 that leads to the next chord: its 3rd goes up a half step and becomes a secondary leading tone. When that note is in the melody, you'll hear 5̂ or 4̂ raised.</p>
       <div class="sw-tog" role="group" aria-label="Swap in secondary dominants">${SWAP.map((w, i) => `<button class="lk" data-swap="${i}" aria-pressed="${!!SWON[i]}">${U.rn(w[1])} → ${U.rn(w[2])}</button>`).join("")}</div>
       <figure class="lfig"><div class="staff wide" id="swFig"></div><figcaption id="swCap"></figcaption><button class="play" id="swPlay"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 4v16l13-8z" fill="currentColor"/></svg>Play</button></figure>`.replace(/\{rn:([^}]+)\}/g, (_, t) => U.rn(t))
       + `<div class="callout"><b>The short version</b>Major or 7 (dom7) where the key would give a different chord → secondary dominant. °7 (dim7) → secondary leading-tone chord. Minor or m7 where the key would give a different chord → secondary pre-dominant of a <i>major</i> chord; ø7 (half-dim7) → secondary pre-dominant of a <i>minor</i> chord.</div>`,
@@ -159,6 +159,16 @@ window.FAM = (() => {
           const ch = [H.diat(k, 1)], lb = ["I"], chromatic = [];
           SWAP.forEach(([d, rn], i) => { if (SWON[i]) { const s = sec(H, k, "dom", DEG_AFTER[d], 0, "7"); ch.push(s.c); lb.push(s.rn); chromatic.push(`{sym:${s.c.sym}} = ${H.nm(s.c.tones[1])} leads up to ${H.nm(H.deg(k, DEG_AFTER[d]))}`); } else { ch.push(H.diat(k, d, true)); lb.push(rn); } });
           ch.push(H.diat(k, 5, true), H.diat(k, 1)); lb.push("V7", "I");
+          // hand voicing: the melody is 5̂–5̂–5̂–4̂–4̂–3̂ (raised to ♯5̂ or ♯4̂ when a secondary dominant needs it), two inner notes just below it, the root in the bass
+          const top = [5, 5, 5, 4, 4, 3]; let prevS = null;
+          ch.forEach((c, i) => {
+            const L = H.deg(k, top[i]).l, st = c.tones.find(t => t.l === L), rest = c.tones.filter(t => t !== st);
+            const inner = (rest.length > 2 ? rest.filter(t => t !== c.tones[0]) : rest).slice(0, 2);
+            const at = (t, lo, hi) => { for (let o = 1; o < 7; o++) { const n = H.N(t.l, t.a, o), m = H.midi(n); if (m >= lo && m <= hi) return n; } return H.N(t.l, t.a, 4); };
+            const sop = prevS == null ? at(st, 65, 76) : at(st, H.midi(prevS) - 6, H.midi(prevS) + 5); prevS = sop;
+            const upper = inner.map(t => at(t, H.midi(sop) - 12, H.midi(sop) - 1)).concat(sop).sort((x, y) => H.midi(x) - H.midi(y));
+            c.v = { bass: at(c.tones[0], 41, 52), upper };
+          });
           spec = H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: SWAP.map((_, i) => SWON[i] ? i + 1 : -1).filter(x => x > 0) });
           tools.drawStaff(root.querySelector("#swFig"), spec);
           root.querySelector("#swCap").innerHTML = H.rich(`In ${k.label}: ${lb.map(l => "{rn:" + l + "}").join(" – ")}. ` + (chromatic.length ? `Highlighted: ${chromatic.join("; ")}.` : "All six chords are diatonic. Switch one on to hear a secondary dominant."));
