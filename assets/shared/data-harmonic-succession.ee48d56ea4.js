@@ -214,7 +214,8 @@ window.FAM = (() => {
     { title: "The phrase model", kick: "T → PD → D → (T)", render: (H) => `<p>Common-practice phrases tend to move through “areas”: <b>tonic area (T) → pre-dominant area (PD) → dominant area (D) → (T)</b>. T can move to PD or D; PD only to D; D only to T.</p>
       <p>Each area can be expanded: the tonic as in {rn:I}–{rn:IV}–{rn:I6}–{rn:V43}–{rn:I}, the pre-dominant as {rn:IV}–{rn:ii} before {rn:V}, the dominant with the cadential six-four, {rn:I64}–{rn:V7}.</p>
       <p>The tonic area can change position (I–I⁶), move to a chord sharing two tones (vi or iii), or insert ornamental chords between tonics. The pre-dominant area can include IV, ii and iii, and substitutes for them (secondary chords, augmented sixths, the Neapolitan). The dominant area most often uses the cadential ⁶₄, or V–V⁷, or vii°⁶(⁵)–V⁷.</p>` },
-    { title: "Circle progressions", kick: "Down by 5ths", keyed: "major", render: (H, k, U) => {
+    { title: "Circle progressions", kick: "Down by 5ths", render: (H) => {
+      const k = H.key("C", "major");
       const circ = [1, 4, 7, 3, 6, 2, 5, 1].map(d => H.diat(k, d).sym).map(s => `{sym:${s}}`).join(" – ");
       const chrom = [3, 6, 2, 5].map(d => H.chord(H.deg(k, d), "7").sym).concat([H.diat(k, 1).sym]).map(s => `{sym:${s}}`).join(" – ");
       return `<p>A <b>circle progression</b> moves counterclockwise around the circle of fifths for an extended passage: each root falls a 5th (or rises a 4th).</p>
