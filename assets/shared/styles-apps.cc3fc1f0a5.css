@@ -937,6 +937,9 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .blgap.good i { border-left: 3px solid #1b7a3a; } .blgap.bad i { border-left: 3px solid #b3261e; } .blgap.miss i { border-left: 3px dashed #1b7a3a; }
 .blend { width: 7px; margin: 9px 0 9px 6px; border-left: 2px solid var(--ink, #222); border-right: 4px solid var(--ink, #222); }
 .bllegend { font-size: .9rem; display: flex; gap: 6px 14px; flex-wrap: wrap; margin: 6px 0 0; } .bllegend .good { color: #1b7a3a; } .bllegend .bad { color: #b3261e; } .bllegend .miss { color: #1b7a3a; font-weight: 700; }
+/* Harmonic Succession: Adam's MTC 501 examples */
+.hs-fig img { display: block; margin: 8px 0 0; }
+.hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
