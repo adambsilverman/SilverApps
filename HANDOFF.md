@@ -577,3 +577,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z169 (process lab)
 - build/pages/process-lab.html: dark DAW restyle like the Multitrack Studio; per-voice and drum effect chains (studio FXD set, delay tempo sync, reorder/bypass); drum kit select with beatbox samples; new process "Chord swells" (chord type, pattern, shape, held/pulsed, length and spacing in beats, overlapping); preset "Pulsing chord swells"; share link carries drums and effects.
+- z169b: mixture.js Mercury third step uses the user's lead sheet (assets/img/mixture/we-are-the-champions.png, lyrics removed) + audio excerpt (assets/audio/mixture); chromatic.js quiz: removed subjective "What effect do borrowed chords…", chromatic-mediant item now asks common-tone count; nct.js quiz s8 "sounds more expressive" replaced with an accented/unaccented definition item.

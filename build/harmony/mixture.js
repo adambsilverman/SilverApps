@@ -165,20 +165,15 @@
       + `<p>The opposite, a <b>minor tonic</b> in a major key, is much rarer. It has a name too: see the next step.</p>`;
     } },
     { title: "The Mercury third", kick: "A term by Adam Silverman", render: (H, _k, U) => {
-      // The end of the chorus of "We Are the Champions" (chords only, in F major as in the published version), from Dr. Silverman's analysis.
-      const k = H.key("F", "major"), P = s => H.parse(s);
-      const ch = (sym, bass, upper) => ({ sym, v: { bass: P(bass), upper: upper.map(P) } });
-      const C = [ch("F", "F2", ["C4", "F4", "A4"]), ch("E♭9(♯11)/G", "G2", ["B♭3", "D♭4", "E♭4", "F4", "A4"]), ch("A♭6", "A♭2", ["C4", "E♭4", "F4", "A♭4"]),
-        ch("B♭", "B♭2", ["D4", "F4", "B♭4"]), ch("C7(sus4)", "C3", ["B♭3", "F4", "G4"]), ch("Fm", "F2", ["A♭3", "C4", "F4"])];
-      const labs = ["I", "♭VII6", "♭III", "IV", "V7sus4", "i"];
-      const g = H.grand({ key: k, chords: C, labels: labs, syms: C.map(c => c.sym), hl: 5 });
+      // The end of the chorus of "We Are the Champions": Dr. Silverman's lead sheet (lyrics removed) and recording excerpt, used for educational purposes
+      const fig = `<figure class="lfig"><audio controls preload="none" src="assets/audio/mixture/we-are-the-champions.mp3" aria-label="We Are the Champions, end of the chorus, excerpt" style="width:100%">Your browser can't play this audio clip.</audio><img src="assets/img/mixture/we-are-the-champions.png" width="2248" height="500" alt="Lead sheet, F major: F, E-flat 9 sharp 11 over G, A-flat 6, B-flat 7, C 7 sus 4, then F minor and B-flat over F, twice. The melody's A falls to A-flat in bar 3 and the phrase lands on a long F." loading="lazy" style="width:100%;height:auto;background:#fff"><figcaption>Queen, “We Are the Champions” (Freddie Mercury), end of the chorus. Listen for the major tonic at the start and the minor one at the end. Excerpt used for educational purposes.</figcaption></figure>`;
       return `<p>If a major tonic in a minor key is a Picardy third, what do you call the opposite: a <b>minor tonic chord (i) arriving in a major-key context</b>? Dr. Adam Silverman calls it the <b>Mercury third</b>, after Freddie Mercury, Queen's singer and the composer of <i>We Are the Champions</i>, whose chorus ends on one. (Dr. Silverman suggests the name; please pass it on!)</p>
       <p>The chorus is in F major (as in the published version), and every diatonic chord of F major appears in it. Only at the end do borrowed chords take over:</p>`
-      + U.fig(g, `The chords at the end of the chorus, in F major. Play them and listen for the minor tonic at the end.`)
+      + fig
       + `<ul><li>{sym:E♭9(♯11)/G} is {rn:♭VII6}: borrowed from F minor, with color tones (9th and ♯11th) added.</li>
-      <li>{sym:A♭6} (an A♭ chord with F added) is {rn:♭III}.</li>
-      <li>{sym:B♭} is the diatonic {rn:IV}, and {sym:C7(sus4)} is the dominant. The E♭ sung over it makes it sound like Cm⁷, which would be mode mixture too ({rn:v7}).</li>
-      <li>{sym:Fm} is the <b>Mercury third</b>: {rn:i}, a minor tonic where a major one is expected. It also points toward the minor-key verse that follows.</li></ul>`
+      <li>{sym:A♭6} (an A♭ chord with F added) is {rn:♭III}. The melody's A turns to A♭ right here.</li>
+      <li>{sym:B♭7} is {rn:IV7}, but its 7th is A♭, the lowered 3rd of F, borrowed again. Then {sym:C7(sus4)} is the dominant; the E♭ sung over it makes it sound like Cm⁷, which would be mode mixture too ({rn:v7}).</li>
+      <li>{sym:Fm} is the <b>Mercury third</b>: {rn:i}, a minor tonic where a major one is expected. Rocking between it and {sym:B♭/F} ({rn:IV64} over an F pedal) keeps the minor color going into the verse that follows.</li></ul>`
       + `<div class="callout"><b>Picardy third vs. Mercury third</b>Picardy third: minor key, ends on a <i>major</i> tonic (I). Mercury third: major key, ends on a <i>minor</i> tonic (i). Both are mode mixture applied to the tonic chord itself.</div>`
       + H.check("A phrase full of F-major chords ends on {sym:Fm}. What is it called?", "a Mercury third", ["a Picardy third", "a Neapolitan", "a secondary dominant"], "A minor tonic in a major key: Adam Silverman's “Mercury third.”");
     } },
