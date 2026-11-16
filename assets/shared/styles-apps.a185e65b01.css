@@ -917,5 +917,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cad-fig .lvideo + img { margin-top: 10px; }
 @media (max-width: 560px) { .cad-badge { font-size: 8px; padding: 2px 3px; } .cad-hot .cad-badge { top: -12px; } .cad-map { margin-top: 18px; } .wrap .cad-map .cad-hot { border-width: 1.5px !important; } }
 
+/* theremin toy (Introduction to Pitch) */
+.tmsvg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; color: var(--ink, #222); }
+.tmread { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 14px; font-size: .92rem; }
+.tmread b { font-family: var(--mono, ui-monospace, monospace); display: block; }
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

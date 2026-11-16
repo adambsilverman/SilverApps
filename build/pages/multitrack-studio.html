@@ -214,6 +214,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
         <label for="thSnap"><span class="lbl">Pitch</span><select id="thSnap"><option value="off">free (slides)</option><option value="chrom">nearest semitone</option><option value="major">C major scale</option><option value="minor">A minor scale</option><option value="pent">C major pentatonic</option></select></label>
         <label for="thVib"><span class="lbl">Vibrato</span><input type="range" id="thVib" min="0" max="60" value="12"></label>
         <label for="thGlide"><span class="lbl">Glide</span><input type="range" id="thGlide" min="0" max="300" value="40"></label>
+        <button class="tbtn sm" id="thFx" type="button" aria-haspopup="dialog">Effects…</button>
         <button class="tbtn sm" id="thHover" type="button" aria-pressed="false" title="Play whenever the pointer is over the pad, like a real theremin">Hover to play</button>
         <span class="thread" id="thRead" aria-live="off">–</span>
         <button class="tbtn sm" id="thClose" type="button" style="margin-left:auto">Close ✕</button>
@@ -926,9 +927,11 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   function thDown() { if (!ac() || TH.live || !TH.tr) return; TH.live = thVoice(AC, thS(), liveOut(TH.tr), AC.currentTime); TH.live.o.frequency.value = thHz(TH.x); TH.take = null; thSet(); }
   function thUp(silent) { const v = TH.live; if (!v) return; TH.live = null; const t = AC.currentTime; v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, .03); v.o.stop(t + .3); v.l.stop(t + .3);
     if (TH.take && recording) { const tt = t - T0; TH.take.push({ t: tt, f: TH.take[TH.take.length - 1].f, g: 0 }); } TH.take = null; if (!silent) { thSet(); draw(); } }
-  function thOpen(tr) { TH.tr = tr; $("th").hidden = false; $("thH").textContent = "Theremin: " + tr.name; const S = tr.th; $("thWave").value = S.wave; $("thLo").value = S.lo; $("thSpan").value = S.span; $("thSnap").value = S.snap; $("thVib").value = S.vib; $("thGlide").value = S.glide; drawTracks(); requestAnimationFrame(thDraw); $("th").scrollIntoView({ block: "nearest" }); }
+  function thOpen(tr) { TH.tr = tr; $("th").hidden = false; $("thH").textContent = "Theremin: " + tr.name; const S = tr.th; $("thWave").value = S.wave; $("thLo").value = S.lo; $("thSpan").value = S.span; $("thSnap").value = S.snap; $("thVib").value = S.vib; $("thGlide").value = S.glide; drawTracks(); thFxLabel(); requestAnimationFrame(thDraw); $("th").scrollIntoView({ block: "nearest" }); }
   function thClose() { thUp(); $("th").hidden = true; TH.tr = null; }
   $("thClose").onclick = thClose;
+  const thFxLabel = () => { if (!TH.tr) return; const n = (TH.tr.fx || []).length; $("thFx").textContent = n ? `Effects (${n})…` : "Effects…"; };
+  $("thFx").onclick = () => { if (!TH.tr) return; if ((TH.tr.fx || []).length) fxOpen(TH.tr); else fxPick(TH.tr); };
   ["thWave", "thLo", "thSpan", "thSnap", "thVib", "thGlide"].forEach(id => $(id).addEventListener("input", e => { if (!TH.tr) return; const S = thS(), k = { thWave: "wave", thLo: "lo", thSpan: "span", thSnap: "snap", thVib: "vib", thGlide: "glide" }[id]; S[k] = k === "wave" || k === "snap" ? e.target.value : +e.target.value;
     if (TH.live && (k === "wave" || k === "vib")) { thUp(true); thDown(); } thDraw(); draw(); if (k === "wave" || k === "vib") liveEdit(); }));
   $("thHover").onclick = () => { TH.hover = !TH.hover; $("thHover").setAttribute("aria-pressed", String(TH.hover)); if (!TH.hover) thUp(); };
@@ -966,7 +969,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   }
   function fxOpen(tr) { tr.fx = tr.fx || []; FX.tr = tr; $("fx").hidden = false; fxDraw(); drawTracks(); $("fx").scrollIntoView({ block: "nearest" }); }
   function fxClose() { $("fx").hidden = true; FX.tr = null; }
-  const fxShape = () => { FX.tr.fxv = (FX.tr.fxv || 0) + 1; fxDraw(); drawTracks(); if (FX.tr === MT) masterRebuild(); else liveEdit(); };
+  const fxShape = () => { FX.tr.fxv = (FX.tr.fxv || 0) + 1; fxDraw(); drawTracks(); if (TH.tr) thFxLabel(); if (FX.tr === MT) masterRebuild(); else liveEdit(); if (TH.live && TH.tr === FX.tr) { thUp(true); thDown(); } };
   $("fxClose").onclick = fxClose;
   $("fxAdd").onclick = () => { if (FX.tr) fxPick(FX.tr); };
   // ---------- mixer ----------

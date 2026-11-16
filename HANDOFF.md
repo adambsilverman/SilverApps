@@ -535,3 +535,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z159 (2026-11-15)
 - Multitrack Studio: + Theremin track type. Pad (x = pitch over a chosen 1-3 octave range from C2-C5, y = volume), tone (classic theremin periodic wave, sine, triangle, saw, square), pitch free or snapped (semitones, C major, A minor, C pentatonic), vibrato, glide, Hover to play; keyboard control (Space sounds, arrows move). Takes recorded as {t,f,g} point lists (Add keeps takes, Replace cuts the stretch), drawn as pitch curves in the lane, played back/exported through the track strip, FX and mixer. Header: Play opens the pad; clear and undo work.
+
+## z160 (2026-11-15)
+- Introduction to Pitch: new step 11 "The curious theremin" (capacitance, heterodyning tied to the beats step, uneven pitch field; Rockmore, film scores, Moog) with a two-oscillator toy (hand sliders, readouts, play); 1 check + 2 quiz items (s 11). Quick check is now step 12.
+- Studio theremin: Effects... button in the pad panel (opens the FX rack, or the multi-select picker when the track has none); changing the chain while the pad sounds re-routes the live voice. Theremin tracks use the full FX rack, mixer inserts and export like the other tracks.
