@@ -10,40 +10,55 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span></header>
 <style>
-.tool{max-width:1000px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
-.tool h1{font:400 clamp(44px,8vw,76px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tool{max-width:1100px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:12px}
+.tool h1{font:400 clamp(40px,7vw,64px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
 .tool h1 span{color:var(--fi-red-dk)}
-.tool > header p{max-width:66ch;margin:10px 0 0}
-.panel2{background:var(--fi-card);border:1.5px solid var(--fi-line);border-radius:var(--fi-r);box-shadow:var(--fi-shadow);padding:16px 18px;display:grid;gap:12px;min-width:0}
-.panel2 h2{font:400 28px/1 var(--fi-display);margin:0}
-.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
-.tbtn{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.03em;border-radius:var(--fi-pill);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);padding:8px 14px;min-height:44px;cursor:pointer}
-.tbtn.primary{background:var(--fi-red);border-color:var(--fi-red-dk)}
-.tbtn[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
-.tbtn:focus-visible,.cell:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
-label.fld{display:grid;gap:4px;font:700 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em}
-select,input[type=number]{font:15px var(--fi-serif);padding:6px 8px;border-radius:var(--fi-r-sm);border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);min-height:40px;max-width:100%}
-input[type=number]{width:5.5em}
-input[type=range]{accent-color:var(--fi-red-dk)}
-.note{font-size:.92rem;color:var(--fi-muted);margin:0}
-.gridwrap{overflow-x:auto;border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);background:var(--fi-paper);padding:6px}
+.tool > header p{max-width:75ch;margin:8px 0 0;font-size:.95rem}
+/* the lab itself: a dark, compact window like the Multitrack Studio */
+.daw{--bg:#1d1e21;--pn:#26282c;--pn2:#2f3136;--ln:#41444a;--tx:#e9eaec;--mu:#b4b8bf;--hl:#ffb02e;
+  background:var(--bg);color:var(--tx);border-radius:10px;border:1px solid #000;box-shadow:var(--fi-shadow);overflow:hidden;font:13px/1.35 var(--fi-ui);min-width:0}
+.daw a{color:#ffc766}
+.panel2{background:var(--pn);border-bottom:1px solid #000;padding:8px 10px 10px;display:grid;gap:8px;min-width:0}
+.panel2:last-child{border-bottom:0}
+.panel2 h2{font:800 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.08em;margin:0;color:var(--hl)}
+.row{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:end}
+main.tool .daw .tbtn{font:700 12px/1.1 var(--fi-ui)!important;text-transform:none!important;letter-spacing:.02em!important;border-radius:5px!important;border:1px solid #0b0b0c!important;background:linear-gradient(#45484e,#36383d)!important;color:var(--tx)!important;padding:5px 10px!important;min-height:30px!important;box-shadow:none!important;cursor:pointer;white-space:nowrap}
+main.tool .daw .tbtn:hover{background:linear-gradient(#50535a,#3e4046)!important}
+main.tool .daw .tbtn.primary{background:linear-gradient(#3f8f4d,#2f6f3b)!important;color:#fff!important}
+main.tool .daw .tbtn[aria-pressed="true"]{background:#e8e8ea!important;color:#111!important}
+.tbtn:focus-visible,.cell:focus-visible,.daw input:focus-visible,.daw select:focus-visible{outline:2px solid var(--hl);outline-offset:1px}
+label.fld{display:grid;gap:3px;font:700 10px var(--fi-ui);text-transform:uppercase;letter-spacing:.07em;color:var(--mu)}
+label.fld output{color:var(--tx);font:600 11px ui-monospace,Menlo,monospace;text-transform:none;letter-spacing:0}
+main.tool .daw select,main.tool .daw input[type=number]{font:13px/1.2 var(--fi-ui)!important;padding:2px 6px!important;min-height:26px!important;height:26px;box-sizing:border-box!important;border-radius:4px!important;background:#15161a!important;color:var(--tx)!important;border:1px solid #0b0b0c!important;box-shadow:none!important;max-width:100%}
+main.tool .daw input[type=number]{width:5em}
+.daw input[type=range]{accent-color:var(--hl)}
+.note{font-size:11px;color:var(--mu);margin:0}
+.gridwrap{overflow-x:auto;border:1px solid #000;border-radius:5px;background:#17181b;padding:6px}
 .grid{display:grid;gap:2px;touch-action:none;user-select:none;-webkit-user-select:none;width:max-content}
-.rlab{font:700 11px var(--fi-ui);padding-right:6px;display:flex;align-items:center;justify-content:flex-end;color:var(--fi-muted)}
-.rlab.ton{color:var(--fi-ink)}
-.cell{width:30px;height:22px;border:1px solid var(--fi-soft);background:var(--fi-card);border-radius:4px;padding:0;cursor:pointer}
-.cell.beat{border-left:2px solid var(--fi-line)}
-.cell.ton{background:#F6EFE0}
-.cell.on{background:var(--fi-ink);border-color:var(--fi-ink)}
-.cell.cont{background:#6b6257;border-color:#6b6257}
-.cell.now{box-shadow:inset 0 0 0 2px #ffb400}
-.voices{display:grid;gap:10px}
-.voice{border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm);padding:10px 12px;display:grid;gap:8px;border-left:8px solid var(--vc)}
+.rlab{font:700 10px var(--fi-ui);padding-right:6px;display:flex;align-items:center;justify-content:flex-end;color:var(--mu)}
+.rlab.ton{color:var(--tx)}
+main.tool .daw .cell{width:30px;height:22px;min-height:0!important;min-width:0!important;border:1px solid #000!important;background:#34363b!important;border-radius:3px!important;padding:0!important;cursor:pointer;box-shadow:none!important}
+main.tool .daw .cell.beat{border-left:2px solid #6a6d74!important}
+main.tool .daw .cell.ton{background:#3e4046!important}
+main.tool .daw .cell.on{background:var(--hl)!important;border-color:#000!important}
+main.tool .daw .cell.cont{background:#b07a1e!important}
+main.tool .daw .cell.now{box-shadow:inset 0 0 0 2px #fff!important}
+.voices{display:grid;gap:6px}
+.voice{background:var(--pn2);border:1px solid #000;border-radius:6px;padding:6px 8px 8px;display:grid;gap:6px;border-left:6px solid var(--vc)}
 .voice.off{opacity:.55}
-.voice h3{margin:0;font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.05em;display:flex;gap:10px;align-items:center}
-.vrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.voice h3{margin:0;font:800 11px var(--fi-ui);text-transform:uppercase;letter-spacing:.07em;display:flex;gap:8px;align-items:center;color:var(--tx)}
+.vrow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:end}
 .vrow [hidden]{display:none}
-#roll{width:100%;height:220px;display:block;background:var(--fi-paper);border:1.5px solid var(--fi-soft);border-radius:var(--fi-r-sm)}
-.status{font:600 15px var(--fi-serif);margin:0;min-height:1.3em}
+.voice h3 .tbtn{margin-left:0}
+.fxbox{background:#1f2024;border:1px solid #000;border-radius:5px;padding:6px 8px;display:grid;gap:6px}
+.fxu{border-top:1px solid var(--ln);padding-top:5px;display:grid;gap:4px}
+.fxu.off .vrow{opacity:.45}
+.fxh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font:800 11px var(--fi-ui);text-transform:uppercase;letter-spacing:.06em;color:var(--hl)}
+.fxh b{margin-right:4px}
+main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;font-size:11px!important}
+.fxu input[type=range]{width:110px}
+#roll{width:100%;height:200px;display:block;background:#17181b;border:1px solid #000;border-radius:5px}
+.status{font:600 12px var(--fi-ui);color:var(--mu);margin:0;min-height:1.3em}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 
@@ -53,6 +68,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     <p>Write a short fragment, then let processes do the composing: canons, phasing, additive and subtractive growth, augmentation, retrograde, inversion, chord loops and drones, in up to six voices with different instruments. Learn the ideas in <a href="minimalism-and-ambient-lesson.html">Understanding Minimalist and Ambient Music</a>.</p>
   </header>
 
+  <div class="daw">
   <section class="panel2" aria-labelledby="h-frag">
     <h2 id="h-frag">1. The fragment</h2>
     <div class="row">
@@ -64,18 +80,19 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     </div>
     <div class="gridwrap" tabindex="0" role="region" aria-label="Fragment grid"><div class="grid" id="grid" role="group" aria-label="Fragment: rows are pitches, columns are steps. Press a cell to add a note; drag right to lengthen it; press a note to remove it."></div></div>
     <div class="row"><button class="tbtn" id="audition" type="button">▶ Hear the fragment</button><button class="tbtn" id="clear" type="button">Clear</button><button class="tbtn" id="rand" type="button">Random fragment</button>
-      <label class="fld" for="preset">Preset<select id="preset"><option value="">Choose a preset…</option><option value="phase">Phasing (step by step)</option><option value="drift">Phasing (gradual drift)</option><option value="canon">Canon at the 4th and octave</option><option value="additive">Additive process</option><option value="subtractive">Subtractive process</option><option value="ambient">Ambient: augmentation and drone</option><option value="chords">Chord loop and arpeggio</option></select></label></div>
+      <label class="fld" for="preset">Preset<select id="preset"><option value="">Choose a preset…</option><option value="phase">Phasing (step by step)</option><option value="drift">Phasing (gradual drift)</option><option value="canon">Canon at the 4th and octave</option><option value="additive">Additive process</option><option value="subtractive">Subtractive process</option><option value="ambient">Ambient: augmentation and drone</option><option value="chords">Chord loop and arpeggio</option><option value="swells">Pulsing chord swells</option></select></label></div>
     <p class="note">Press a cell to add a note, drag to the right to hold it longer, press a note to remove it. Changing the key or scale moves the whole fragment.</p>
   </section>
 
-  <section class="panel2" aria-labelledby="h-voices">
+  <section class="panel2" aria-labelledby="h-voices" id="vsec">
     <h2 id="h-voices">2. Voices and processes</h2>
     <div class="voices" id="voices"></div>
-    <div class="voice" style="--vc:#555"><h3>Drums</h3><div class="vrow">
+    <div class="voice" style="--vc:#555" data-fxwrap="d"><h3>Drums<button class="tbtn" data-fxa="open" id="dFxB" aria-expanded="false" aria-label="Effects for the drums">Effects</button></h3><div class="vrow">
+      <label class="fld" for="dKit">Kit<select id="dKit"><option value="synth">Synthesized drums</option><option value="beatbox">Beatbox (voice)</option></select></label>
       <label class="fld" for="dStyle">Beat<select id="dStyle"><option value="off">Off</option><option value="pulse">Steady pulse</option><option value="shaker">Shaker</option><option value="four">Four on the floor</option><option value="back">Backbeat</option><option value="half">Half-time</option><option value="break">Breakbeat</option><option value="six">6/8 groove</option></select></label>
       <label class="fld" for="dVol">Volume<input type="range" id="dVol" min="0" max="100" value="60"></label>
       <label class="fld" for="dIn">Comes in after (bars)<input type="number" id="dIn" min="0" max="32" value="0"></label></div>
-      <p class="note">The drums follow the tempo above, in 4/4 (for the 6/8 groove, the tempo counts the dotted-quarter beat).</p></div>
+      <p class="note">The drums follow the tempo above, in 4/4 (for the 6/8 groove, the tempo counts the dotted-quarter beat). The beatbox kit is recorded voice sounds.</p><div id="dFx"></div></div>
     <div class="row"><button class="tbtn" id="addV" type="button">+ Add a voice</button>
       <label class="fld" for="space">Reverb: <output id="spaceO">30%</output><input type="range" id="space" min="0" max="100" value="30"></label>
       <label class="fld" for="echo">Delay (echo): <output id="echoO">0%</output><input type="range" id="echo" min="0" max="100" value="0"></label>
@@ -93,6 +110,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     <canvas id="roll" role="img" aria-label="Scrolling picture of the notes each voice is playing"></canvas>
     <p class="status" id="status" aria-live="polite"></p>
   </section>
+  </div>
 </main>
 
 <script>
@@ -102,14 +120,19 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const SCALES = { "Major": [0, 2, 4, 5, 7, 9, 11], "Natural minor": [0, 2, 3, 5, 7, 8, 10], "Dorian": [0, 2, 3, 5, 7, 9, 10], "Mixolydian": [0, 2, 4, 5, 7, 9, 10], "Lydian": [0, 2, 4, 6, 7, 9, 11], "Major pentatonic": [0, 2, 4, 7, 9], "Minor pentatonic": [0, 3, 5, 7, 10], "Whole tone": [0, 2, 4, 6, 8, 10] };
   const INST = { marimba: "Marimba", vibes: "Vibraphone", piano: "Piano", epiano: "Electric piano", pluck: "Plucked string", flute: "Flute", strings: "Strings", pad: "Synth pad", organ: "Organ", bass: "Synth bass", bell: "Bells" };
-  const PROCS = { orig: "Repeat the fragment", canon: "Canon (delayed copy)", phase: "Phasing, step by step", drift: "Phasing, gradual drift", add: "Additive process", sub: "Subtractive process", aug: "Augmentation", retro: "Retrograde (backwards)", inv: "Inversion (upside down)", chords: "Chord loop", drone: "Drone" };
+  const PROCS = { orig: "Repeat the fragment", canon: "Canon (delayed copy)", phase: "Phasing, step by step", drift: "Phasing, gradual drift", add: "Additive process", sub: "Subtractive process", aug: "Augmentation", retro: "Retrograde (backwards)", inv: "Inversion (upside down)", chords: "Chord loop", swell: "Chord swells", drone: "Drone" };
   const XP = [[-7, "an octave below"], [-5, "a 6th below"], [-4, "a 5th below"], [-3, "a 4th below"], [-2, "a 3rd below"], [-1, "a 2nd below"], [0, "at pitch"], [1, "a 2nd above"], [2, "a 3rd above"], [3, "a 4th above"], [4, "a 5th above"], [5, "a 6th above"], [7, "an octave above"]];
   const PROGS = { "I": [0], "I–IV": [0, 3], "I–V–vi–IV": [0, 4, 5, 3], "vi–IV–I–V": [5, 3, 0, 4], "i–VI–III–VII": [0, 5, 2, 6], "i–iv–v–i": [0, 3, 4, 0], "I–iii–vi–IV": [0, 2, 5, 3] };
+  // chord types as scale steps above the root; swell shapes as gain curves over the swell's length
+  const CHT = { triad: ["Triad", [0, 2, 4]], seventh: ["Seventh chord", [0, 2, 4, 6]], ninth: ["Ninth chord", [0, 2, 4, 6, 8]], add9: ["Add 9", [0, 2, 4, 8]], sus2: ["Sus 2", [0, 1, 4]], sus4: ["Sus 4", [0, 3, 4]], quartal: ["Stacked 4ths", [0, 3, 6, 9]], fifths: ["Open 5ths", [0, 4, 7, 11]], wide: ["Wide spread", [-7, 0, 4, 9, 13]], cluster: ["Cluster", [0, 1, 2, 3]] };
+  const SWS = { breath: "Swell in and out", in: "Slow in, quick out", out: "Quick in, slow fade", plateau: "In, hold, out" };
+  const SWT = { held: "Held", pulsed: "Pulsed on each step", pulse2: "Pulsed, every other step" };
+  const SWPROG = { "Drift through the scale": null, ...PROGS };
   const COLORS = ["#c0392b", "#2e6db4", "#2e8b57", "#b8860b", "#7b4ea3", "#d2691e"];
 
   // ---------- state ----------
   const F = { tonic: 0, scale: "Major", len: 8, stepv: 2, bpm: 96, notes: [] };   // notes: { s: step, d: degree row, n: length in steps }
-  const def = (o) => Object.assign({ on: true, inst: "marimba", proc: "orig", xp: 0, oct: 0, vol: 80, pan: 0, delay: 2, every: 4, drift: 2, aug: 2, prog: "I–V–vi–IV", arp: false, restart: true }, o);
+  const def = (o) => Object.assign({ on: true, inst: "marimba", proc: "orig", xp: 0, oct: 0, vol: 80, pan: 0, delay: 2, every: 4, drift: 2, aug: 2, prog: "I–V–vi–IV", arp: false, restart: true, ch: "seventh", swLen: 8, swGap: 4, swShape: "breath", swTex: "pulsed", swProg: "I–iii–vi–IV", fx: [] }, o);
   let V = [def({ inst: "marimba", pan: -40 }), def({ inst: "marimba", proc: "phase", pan: 40 })];
   const seedFrag = () => { F.notes = [[0, 7], [1, 4], [2, 9], [3, 4], [4, 8], [5, 4], [6, 10], [7, 9]].map(([s, d]) => ({ s, d, n: 1 })); };
   seedFrag();
@@ -128,7 +151,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   $("scale").onchange = e => { const oldL = SC().length; F.scale = e.target.value; const r = rows(); F.notes.forEach(n => { n.d = Math.min(r - 1, Math.round(n.d * SC().length / oldL)); }); drawGrid(); };
   $("len").onchange = e => { F.len = Math.max(2, Math.min(24, Math.round(+e.target.value) || 8)); e.target.value = F.len; F.notes = F.notes.filter(n => n.s < F.len).map(n => Object.assign(n, { n: Math.min(n.n, F.len - n.s) })); drawGrid(); };
   $("stepv").onchange = e => { F.stepv = +e.target.value; drawGrid(); };
-  $("bpm").oninput = e => { F.bpm = +e.target.value; $("bpmO").textContent = F.bpm; if (typeof setEcho === "function") setEcho(); };
+  $("bpm").oninput = e => { F.bpm = +e.target.value; $("bpmO").textContent = F.bpm; if (typeof setEcho === "function") setEcho(); if (typeof fxRetime === "function") fxRetime(); };
 
   // ---------- fragment grid ----------
   const grid = $("grid");
@@ -173,7 +196,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   const opt = (obj, cur) => Object.entries(obj).map(([k, v]) => `<option value="${k}" ${k === String(cur) ? "selected" : ""}>${v}</option>`).join("");
   function drawVoices() {
     $("voices").innerHTML = V.map((v, i) => `<div class="voice${v.on ? "" : " off"}" style="--vc:${COLORS[i]}" data-v="${i}">
-      <h3>Voice ${i + 1}<button class="tbtn" data-vk="on" aria-pressed="${v.on}">${v.on ? "On" : "Off"}</button>${V.length > 1 ? `<button class="tbtn" data-vk="del" aria-label="Remove voice ${i + 1}">Remove</button>` : ""}</h3>
+      <h3>Voice ${i + 1}<button class="tbtn" data-vk="on" aria-pressed="${v.on}">${v.on ? "On" : "Off"}</button><button class="tbtn" data-fxa="open" aria-expanded="${FXO.has(String(i))}" aria-label="Effects for voice ${i + 1}">Effects${v.fx.length ? " (" + v.fx.length + ")" : ""}</button>${V.length > 1 ? `<button class="tbtn" data-vk="del" aria-label="Remove voice ${i + 1}">Remove</button>` : ""}</h3>
       <div class="vrow">
         <label class="fld">Process<select data-vk="proc">${opt(PROCS, v.proc)}</select></label>
         <label class="fld">Instrument<select data-vk="inst">${opt(INST, v.inst)}</select></label>
@@ -185,20 +208,27 @@ input[type=range]{accent-color:var(--fi-red-dk)}
         <label class="fld" ${v.proc === "aug" ? "" : "hidden"}>Slower by (×)<select data-vk="aug">${[2, 3, 4, 8].map(a => `<option ${a === v.aug ? "selected" : ""}>${a}</option>`).join("")}</select></label>
         <label class="fld" ${v.proc === "chords" ? "" : "hidden"}>Chords<select data-vk="prog">${Object.keys(PROGS).map(p => `<option ${p === v.prog ? "selected" : ""}>${p}</option>`).join("")}</select></label>
         <label class="fld" ${v.proc === "chords" ? "" : "hidden"}><span>Arpeggiate</span><input type="checkbox" data-vk="arp" ${v.arp ? "checked" : ""}></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>Chord type<select data-vk="ch">${Object.entries(CHT).map(([k, [l]]) => `<option value="${k}" ${k === v.ch ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>Chord pattern<select data-vk="swProg">${Object.keys(SWPROG).map(p => `<option ${p === v.swProg ? "selected" : ""}>${p}</option>`).join("")}</select></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>Swell shape<select data-vk="swShape">${opt(SWS, v.swShape)}</select></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>Sound<select data-vk="swTex">${opt(SWT, v.swTex)}</select></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>Each swell lasts (beats)<select data-vk="swLen">${[2, 3, 4, 6, 8, 12, 16, 24].map(a => `<option ${a === v.swLen ? "selected" : ""}>${a}</option>`).join("")}</select></label>
+        <label class="fld" ${v.proc === "swell" ? "" : "hidden"}>New swell every (beats)<select data-vk="swGap">${[1, 2, 3, 4, 6, 8, 12, 16].map(a => `<option ${a === v.swGap ? "selected" : ""}>${a}</option>`).join("")}</select></label>
         <label class="fld" ${["add", "sub"].includes(v.proc) ? "" : "hidden"}><span>Start over when done</span><input type="checkbox" data-vk="restart" ${v.restart ? "checked" : ""}></label>
         <label class="fld">Volume<input type="range" data-vk="vol" min="0" max="100" value="${v.vol}"></label>
         <label class="fld">Pan<input type="range" data-vk="pan" min="-100" max="100" value="${v.pan}"></label>
-      </div><p class="note">${explain(v)}</p></div>`).join("");
+      </div><p class="note">${explain(v)}</p>${FXO.has(String(i)) ? fxBox(String(i), v.fx) : ""}</div>`).join("");
   }
   function explain(v) {
-    return { orig: "Plays the fragment over and over.", canon: `Plays the fragment, starting ${v.delay} step${v.delay == 1 ? "" : "s"} later: a canon (round) with the other voices.`, phase: `Every ${v.every} repeats, moves the pattern one step ahead of the others, until it comes back into unison.`, drift: `Plays ${v.drift}% faster, so it slowly slides out of step with the others and back again.`, add: `Starts with the first note and adds one more every ${v.every} repeat${v.every == 1 ? "" : "s"}.`, sub: `Starts with the whole fragment and drops the last note every ${v.every} repeat${v.every == 1 ? "" : "s"}.`, aug: `Plays the fragment ${v.aug} times slower.`, retro: "Plays the fragment backwards.", inv: "Turns the fragment upside down: each step up becomes a step down.", chords: `Holds a chord for each repeat of the fragment: ${v.prog}${v.arp ? ", broken into an arpeggio" : ""}.`, drone: "Holds the tonic and the 5th underneath everything." }[v.proc];
+    return { orig: "Plays the fragment over and over.", canon: `Plays the fragment, starting ${v.delay} step${v.delay == 1 ? "" : "s"} later: a canon (round) with the other voices.`, phase: `Every ${v.every} repeats, moves the pattern one step ahead of the others, until it comes back into unison.`, drift: `Plays ${v.drift}% faster, so it slowly slides out of step with the others and back again.`, add: `Starts with the first note and adds one more every ${v.every} repeat${v.every == 1 ? "" : "s"}.`, sub: `Starts with the whole fragment and drops the last note every ${v.every} repeat${v.every == 1 ? "" : "s"}.`, aug: `Plays the fragment ${v.aug} times slower.`, retro: "Plays the fragment backwards.", inv: "Turns the fragment upside down: each step up becomes a step down.", swell: (() => { const ov = v.swLen > v.swGap; return `${CHT[v.ch][0]}s that ${{ breath: "swell in and out", in: "grow slowly and stop", out: "start loud and fade", plateau: "rise, hold and fall" }[v.swShape]} over ${v.swLen} beats, a new one every ${v.swGap} beat${v.swGap == 1 ? "" : "s"}${ov ? ", so each swell overlaps the next" : v.swLen < v.swGap ? ", with silence between them" : ""}. ${v.swTex === "held" ? "Sustaining instruments (strings, pad, organ, flute) suit held chords best." : "The pulsing comes from the step value of the fragment."}`; })(), chords: `Holds a chord for each repeat of the fragment: ${v.prog}${v.arp ? ", broken into an arpeggio" : ""}.`, drone: "Holds the tonic and the 5th underneath everything." }[v.proc];
   }
   $("voices").addEventListener("change", e => { const t = e.target.closest("[data-vk]"), box = e.target.closest("[data-v]"); if (!t || !box) return; const v = V[+box.dataset.v], k = t.dataset.vk;
-    if (t.type === "checkbox") v[k] = t.checked; else if (["inst", "proc", "prog"].includes(k)) v[k] = t.value; else v[k] = +t.value;
-    if (["proc", "arp", "every", "delay", "drift", "aug", "prog", "restart"].includes(k)) { drawVoices(); if (playing) restart(); } else if (k === "inst" || k === "xp" || k === "oct") { /* takes effect on the next notes */ } });
+    if (t.type === "checkbox") v[k] = t.checked; else if (["inst", "proc", "prog", "ch", "swShape", "swTex", "swProg"].includes(k)) v[k] = t.value; else v[k] = +t.value;
+    if (k === "proc" && v.proc === "swell" && !["strings", "pad", "organ", "flute", "vibes", "epiano"].includes(v.inst)) v.inst = "strings";
+    if (["proc", "arp", "every", "delay", "drift", "aug", "prog", "restart"].includes(k)) { drawVoices(); if (playing) restart(); } else if (["ch", "swShape", "swTex", "swLen", "swGap", "swProg"].includes(k)) { box.querySelector(".note").textContent = explain(v); } else if (k === "inst" || k === "xp" || k === "oct") { /* takes effect on the next notes */ } });
   $("voices").addEventListener("input", e => { const t = e.target.closest('[data-vk="vol"],[data-vk="pan"]'), box = e.target.closest("[data-v]"); if (!t || !box) return; V[+box.dataset.v][t.dataset.vk] = +t.value; applyMix(); });
   $("voices").addEventListener("click", e => { const t = e.target.closest("button[data-vk]"), box = e.target.closest("[data-v]"); if (!t || !box) return; const i = +box.dataset.v;
-    if (t.dataset.vk === "on") { V[i].on = !V[i].on; applyMix(); } if (t.dataset.vk === "del") { V.splice(i, 1); if (playing) restart(); } drawVoices(); });
+    if (t.dataset.vk === "on") { V[i].on = !V[i].on; applyMix(); } if (t.dataset.vk === "del") { V.splice(i, 1); FXO.clear(); rechainAll(); if (playing) restart(); } drawVoices(); });
   $("addV").onclick = () => { if (V.length >= 6) return; V.push(def({ proc: "canon", delay: 2 * V.length, inst: ["flute", "vibes", "pluck", "strings"][V.length % 4], pan: [-50, 50, -20, 20][V.length % 4] })); drawVoices(); if (playing) restart(); };
 
   // ---------- presets ----------
@@ -210,7 +240,8 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     if (p === "subtractive") { V = [def({ inst: "piano", proc: "sub", every: 2, pan: -30 }), def({ inst: "piano", proc: "orig", oct: -1, pan: 30, vol: 60 })]; }
     if (p === "ambient") { V = [def({ inst: "vibes", proc: "aug", aug: 4, pan: -40 }), def({ inst: "bell", proc: "retro", oct: 1, aug: 3, vol: 45, pan: 40 }), def({ inst: "pad", proc: "chords", prog: "I–iii–vi–IV", vol: 50 }), def({ inst: "strings", proc: "drone", vol: 40 })]; $("space").value = 70; setSpace(); }
     if (p === "chords") { V = [def({ inst: "pluck", proc: "chords", prog: "vi–IV–I–V", arp: true, pan: -30 }), def({ inst: "pad", proc: "chords", prog: "vi–IV–I–V", vol: 50, pan: 30 }), def({ inst: "flute", proc: "canon", delay: 0, oct: 1, vol: 60 }), def({ inst: "bass", proc: "drone", oct: 0, vol: 50 })]; }
-    drawVoices(); if (playing) restart(); else start(); };
+    if (p === "swells") { V = [def({ inst: "marimba", proc: "orig", pan: -40, vol: 70 }), def({ inst: "marimba", proc: "phase", every: 6, pan: 40, vol: 60 }), def({ inst: "strings", proc: "swell", ch: "seventh", swProg: "I–iii–vi–IV", swTex: "pulsed", swLen: 8, swGap: 4, vol: 60, pan: -15 }), def({ inst: "pad", proc: "swell", ch: "wide", swProg: "I–iii–vi–IV", swTex: "held", swShape: "breath", swLen: 12, swGap: 8, oct: -1, vol: 55, pan: 15 }), def({ inst: "vibes", proc: "swell", ch: "add9", swProg: "Drift through the scale", swTex: "pulse2", swShape: "out", swLen: 6, swGap: 6, oct: 1, vol: 45 })]; $("space").value = 55; setSpace(); }
+    FXO.clear(); drawVoices(); if (playing) restart(); else start(); };
 
   // ---------- audio ----------
   let ECHO = null, AC = null, OUT = null, REV = null, DRY = null, NZ = null;
@@ -225,6 +256,98 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   function setVol() { const v = +$("vol").value; $("volO").textContent = v + "%"; if (AC) AC.__master.gain.value = v / 100; }
   function setEcho() { const v = +$("echo").value; $("echoO").textContent = v + "%"; if (AC && ECHO) { ECHO.w.gain.value = v / 100 * .6; ECHO.d.delayTime.value = Math.min(1.9, 60 / F.bpm * +$("echoN").value); } }   // an echo on a note value, in time with the tempo
   $("echo").oninput = setEcho; $("echoN").onchange = setEcho;
+
+  // ---------- effects: each voice (and the drums) has its own chain, in order ----------
+  const FXD = {
+    comp: ["Compressor", [["thr", "Threshold", -60, 0, 1, -24, " dB"], ["ratio", "Ratio", 1, 20, .5, 4, ":1"], ["att", "Attack", 1, 100, 1, 10, " ms"], ["rel", "Release", 20, 1000, 10, 250, " ms"], ["mk", "Makeup", 0, 24, 1, 6, " dB"]]],
+    eq: ["EQ", [["lo", "Low", -15, 15, 1, 0, " dB"], ["mid", "Mid", -15, 15, 1, 0, " dB"], ["hi", "High", -15, 15, 1, 0, " dB"]]],
+    dist: ["Distortion", [["drive", "Drive", 0, 100, 1, 40, "%"], ["tone", "Tone", 500, 12000, 100, 4000, " Hz"], ["mix", "Mix", 0, 100, 1, 100, "%"]]],
+    chorus: ["Chorus", [["rate", "Rate", .1, 5, .1, 1.2, " Hz"], ["depth", "Depth", 0, 100, 1, 50, "%"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    flanger: ["Flanger", [["rate", "Rate", .05, 3, .05, .25, " Hz"], ["depth", "Depth", 0, 100, 1, 70, "%"], ["fb", "Feedback", 0, 90, 1, 60, "%"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    phaser: ["Phaser", [["rate", "Rate", .05, 4, .05, .5, " Hz"], ["depth", "Depth", 0, 100, 1, 70, "%"], ["fb", "Feedback", 0, 80, 1, 30, "%"], ["mix", "Mix", 0, 100, 1, 50, "%"]]],
+    vibrato: ["Vibrato", [["rate", "Rate", 1, 10, .1, 5.5, " Hz"], ["depth", "Depth", 0, 100, 1, 40, "%"]]],
+    tremolo: ["Tremolo", [["rate", "Rate", .5, 15, .1, 6, " Hz"], ["depth", "Depth", 0, 100, 1, 60, "%"]]],
+    delay: ["Delay", [["time", "Time", 20, 1500, 10, 375, " ms"], ["fb", "Feedback", 0, 90, 1, 35, "%"], ["mix", "Mix", 0, 100, 1, 30, "%"]]],
+    reverb: ["Reverb", [["size", "Length", .3, 6, .1, 2, " s"], ["tone", "Brightness", 0, 100, 1, 60, "%"], ["mix", "Mix", 0, 100, 1, 30, "%"]]],
+  };
+  // delay times as note values (in quarter notes), for tempo sync
+  const SYNC = [["off", "Free (ms)", 0], ["1/2", "half note", 2], ["1/4.", "dotted quarter", 1.5], ["1/4", "quarter", 1], ["1/4t", "quarter triplet", 2 / 3], ["1/8.", "dotted eighth", .75], ["1/8", "eighth", .5], ["1/8t", "eighth triplet", 1 / 3], ["1/16", "sixteenth", .25]];
+  const syncMs = p => { const x = SYNC.find(y => y[0] === p.sync); return x && x[2] ? Math.min(3900, 60 / F.bpm * x[2] * 1000) : p.time; };
+  const fxNew = k => { const f = { k, on: true, p: Object.fromEntries(FXD[k][1].map(x => [x[0], x[5]])) }; if (k === "delay") f.p.sync = "1/8."; return f; };
+  const IRC = {};
+  function impulse(C, size, tone) {   // decaying stereo noise, darker as brightness drops
+    const key = C.sampleRate + ":" + size + ":" + tone; if (IRC[key]) return IRC[key];
+    const sr = C.sampleRate, n = Math.ceil(size * sr), b = C.createBuffer(2, n, sr), a = .05 + .9 * (1 - tone / 100);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++) { const x = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); lp = lp * a + x * (1 - a); d[i] = lp * (1 + 2 * a); } }
+    return IRC[key] = b;
+  }
+  function fxNode(C, f, oscs) {
+    const inp = C.createGain(), out = C.createGain(), dry = C.createGain(), wet = C.createGain(); inp.connect(dry); dry.connect(out); wet.connect(out);
+    const lfo = r => { const o = C.createOscillator(); o.frequency.value = r; o.start(); oscs.push(o); return o; };
+    const mix = m => { dry.gain.value = 1 - m / 100; wet.gain.value = m / 100; }, full = () => { dry.gain.value = 0; wet.gain.value = 1; };
+    let set = () => {};
+    if (f.k === "comp") { const c = C.createDynamicsCompressor(), mk = C.createGain(); inp.connect(c); c.connect(mk); mk.connect(wet); full();
+      set = p => { c.threshold.value = p.thr; c.ratio.value = p.ratio; c.attack.value = p.att / 1000; c.release.value = p.rel / 1000; mk.gain.value = Math.pow(10, p.mk / 20); }; }
+    if (f.k === "eq") { const lo = C.createBiquadFilter(), md = C.createBiquadFilter(), hi = C.createBiquadFilter(); lo.type = "lowshelf"; lo.frequency.value = 220; md.type = "peaking"; md.frequency.value = 1000; md.Q.value = .8; hi.type = "highshelf"; hi.frequency.value = 4000;
+      inp.connect(lo); lo.connect(md); md.connect(hi); hi.connect(wet); full(); set = p => { lo.gain.value = p.lo; md.gain.value = p.mid; hi.gain.value = p.hi; }; }
+    if (f.k === "dist") { const ws = C.createWaveShaper(), tn = C.createBiquadFilter(), pg = C.createGain(); ws.oversample = "4x"; tn.type = "lowpass"; inp.connect(ws); ws.connect(tn); tn.connect(pg); pg.connect(wet);
+      set = p => { const k = p.drive / 100 * 60, cv = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cv[i] = (1 + k) * x / (1 + k * Math.abs(x)); } ws.curve = cv; tn.frequency.value = p.tone; pg.gain.value = 1 - .45 * p.drive / 100; mix(p.mix); }; }
+    if (f.k === "chorus") { const ds = [[.015, 1], [.022, 1.13]].map(([b, rm]) => { const d = C.createDelay(.1), l = lfo(1), lg = C.createGain(); d.delayTime.value = b; l.connect(lg); lg.connect(d.delayTime); inp.connect(d); d.connect(wet); return { l, lg, rm }; });
+      set = p => { ds.forEach(x => { x.l.frequency.value = p.rate * x.rm; x.lg.gain.value = p.depth / 100 * .005; }); mix(p.mix); }; }
+    if (f.k === "flanger") { const d = C.createDelay(.05), fb = C.createGain(), l = lfo(.25), lg = C.createGain(); d.delayTime.value = .003; l.connect(lg); lg.connect(d.delayTime); inp.connect(d); d.connect(fb); fb.connect(d); d.connect(wet);
+      set = p => { l.frequency.value = p.rate; lg.gain.value = p.depth / 100 * .0025; fb.gain.value = p.fb / 100; mix(p.mix); }; }
+    if (f.k === "phaser") { const aps = [0, 1, 2, 3].map(() => { const a = C.createBiquadFilter(); a.type = "allpass"; a.frequency.value = 1000; a.Q.value = .7; return a; }), l = lfo(.5), lg = C.createGain(), fb = C.createGain();
+      l.connect(lg); aps.forEach((a, i) => { lg.connect(a.frequency); if (i) aps[i - 1].connect(a); }); inp.connect(aps[0]); aps[3].connect(fb); fb.connect(aps[0]); aps[3].connect(wet);
+      set = p => { l.frequency.value = p.rate; lg.gain.value = p.depth / 100 * 900; fb.gain.value = p.fb / 100 * .8; mix(p.mix); }; }
+    if (f.k === "vibrato") { const d = C.createDelay(.05), l = lfo(5), lg = C.createGain(); d.delayTime.value = .005; l.connect(lg); lg.connect(d.delayTime); inp.connect(d); d.connect(wet); full();
+      set = p => { l.frequency.value = p.rate; lg.gain.value = p.depth / 100 * .0018; }; }
+    if (f.k === "tremolo") { const a = C.createGain(), l = lfo(6), lg = C.createGain(); l.connect(lg); lg.connect(a.gain); inp.connect(a); a.connect(wet); full();
+      set = p => { l.frequency.value = p.rate; a.gain.value = 1 - p.depth / 200; lg.gain.value = p.depth / 200; }; }
+    if (f.k === "delay") { const d = C.createDelay(4), fb = C.createGain(), tn = C.createBiquadFilter(); tn.type = "lowpass"; tn.frequency.value = 5000; inp.connect(d); d.connect(tn); tn.connect(fb); fb.connect(d); tn.connect(wet);
+      set = p => { d.delayTime.value = syncMs(p) / 1000; fb.gain.value = p.fb / 100; mix(p.mix); }; }
+    if (f.k === "reverb") { let cv = null, ir = "";
+      set = p => { const key = p.size + ":" + p.tone; if (key !== ir) { ir = key; const old = cv; cv = C.createConvolver(); cv.buffer = impulse(C, p.size, p.tone); inp.connect(cv); cv.connect(wet); if (old) { inp.disconnect(old); setTimeout(() => old.disconnect(), 50); } } mix(p.mix); }; }
+    return { inp, out, set };
+  }
+  const FXO = new Set();   // which voices have their effects panel open ("0", "1", … or "d")
+  const fxList = id => id === "d" ? D.fx : V[+id].fx;
+  const fmt = (x, u) => (Math.abs(x) < 10 && x % 1 ? x.toFixed(x < 1 ? 2 : 1) : x) + u;
+  function fxBox(id, list) {
+    const who = id === "d" ? "the drums" : "voice " + (+id + 1);
+    return `<div class="fxbox" data-fxt="${id}" role="group" aria-label="Effects for ${who}"><div class="vrow"><label class="fld">Add an effect<select data-fxa="add"><option value="">Choose…</option>${Object.entries(FXD).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("")}</select></label>${list.length ? "" : `<p class="note">No effects yet. They run in the order listed, top to bottom.</p>`}</div>` +
+      list.map((f, j) => { const [nm2, ps] = FXD[f.k]; return `<div class="fxu${f.on ? "" : " off"}" data-fj="${j}"><div class="fxh"><b>${nm2}</b><button class="tbtn" data-fxa="on" aria-pressed="${f.on}" aria-label="${nm2} ${f.on ? "on" : "off"}">${f.on ? "On" : "Off"}</button>${j ? `<button class="tbtn" data-fxa="up" aria-label="Move ${nm2} earlier in the chain">↑</button>` : ""}<button class="tbtn" data-fxa="del" aria-label="Remove ${nm2}">Remove</button></div><div class="vrow">` +
+        (f.k === "delay" ? `<label class="fld">Time<select data-fxs="sync">${SYNC.map(([k, l]) => `<option value="${k}" ${k === f.p.sync ? "selected" : ""}>${k === "off" ? l : l + " (synced)"}</option>`).join("")}</select></label>` : "") +
+        ps.map(([k, l, a, b, st, , u]) => `<label class="fld" ${f.k === "delay" && k === "time" && f.p.sync !== "off" ? "hidden" : ""}>${l}: <output>${fmt(f.p[k], u)}</output><input type="range" data-fxp="${k}" min="${a}" max="${b}" step="${st}" value="${f.p[k]}"></label>`).join("") + `</div></div>`; }).join("") + `</div>`;
+  }
+  function drawDrumFx() { $("dFx").innerHTML = FXO.has("d") ? fxBox("d", D.fx) : ""; const b = $("dFxB"); b.setAttribute("aria-expanded", FXO.has("d")); b.textContent = "Effects" + (D.fx.length ? " (" + D.fx.length + ")" : ""); }
+  // wire a bus: g → effects → dest. Rebuilt whenever the chain's shape changes; knob moves just update the nodes.
+  function rechain(b, list) {
+    if (!b) return; try { b.g.disconnect(); } catch (e) {} (b.oscs || []).forEach(o => { try { o.stop(); } catch (e) {} }); (b.nodes || []).forEach(([, n]) => { try { n.out.disconnect(); } catch (e) {} });
+    b.oscs = []; b.nodes = []; let cur = b.dest;
+    list.slice().reverse().forEach(f => { if (!f.on) return; const n = fxNode(AC, f, b.oscs); n.set(f.p); n.out.connect(cur); cur = n.inp; b.nodes.push([f, n]); });
+    b.g.connect(cur);
+  }
+  const busOf = id => id === "d" ? DBX : vbus[+id];
+  function rechainAll() { if (!AC) return; vbus.forEach((b, i) => b && rechain(b, V[i] ? V[i].fx : [])); if (DBX) rechain(DBX, D.fx); }
+  const fxRetime = () => [DBX, ...vbus].forEach(b => b && (b.nodes || []).forEach(([f, n]) => { if (f.k === "delay") n.set(f.p); }));
+  $("vsec").addEventListener("click", e => {
+    const t = e.target.closest("button[data-fxa]"); if (!t) return; const a = t.dataset.fxa;
+    if (a === "open") { const id = t.closest("[data-fxwrap]") ? "d" : t.closest("[data-v]").dataset.v; FXO.has(id) ? FXO.delete(id) : FXO.add(id); if (id === "d") drawDrumFx(); else drawVoices(); const back = id === "d" ? $("dFxB") : $("voices").querySelector(`[data-v="${id}"] [data-fxa="open"]`); if (back) back.focus(); return; }
+    const box = t.closest("[data-fxt]"), id = box.dataset.fxt, list = fxList(id), j = +t.closest("[data-fj]").dataset.fj;
+    if (a === "on") list[j].on = !list[j].on; if (a === "del") list.splice(j, 1); if (a === "up" && j) list.splice(j - 1, 0, list.splice(j, 1)[0]);
+    if (AC) rechain(busOf(id), list); if (id === "d") drawDrumFx(); else drawVoices();
+    const nb = document.querySelector(`[data-fxt="${id}"] [data-fj="${Math.max(0, a === "up" ? j - 1 : j)}"] [data-fxa="${a === "del" ? "del" : a}"]`) || document.querySelector(`[data-fxt="${id}"] [data-fxa="add"]`); if (nb) nb.focus();
+  });
+  $("vsec").addEventListener("change", e => {
+    const box = e.target.closest("[data-fxt]"); if (!box) return; const id = box.dataset.fxt, list = fxList(id);
+    if (e.target.dataset.fxa === "add") { const k = e.target.value; if (!k) return; list.push(fxNew(k)); if (AC) rechain(busOf(id), list); if (id === "d") drawDrumFx(); else drawVoices(); const ns = document.querySelector(`[data-fxt="${id}"] [data-fxa="add"]`); if (ns) ns.focus(); return; }
+    if (e.target.dataset.fxs === "sync") { const f = list[+e.target.closest("[data-fj]").dataset.fj]; f.p.sync = e.target.value; const tl = e.target.closest(".vrow").querySelector('[data-fxp="time"]').closest("label"); tl.hidden = f.p.sync !== "off"; const b = busOf(id); if (b) b.nodes.forEach(([ff, n]) => { if (ff === f) n.set(f.p); }); }
+  });
+  $("vsec").addEventListener("input", e => {
+    const r = e.target.closest("[data-fxp]"); if (!r) return; const id = r.closest("[data-fxt]").dataset.fxt, f = fxList(id)[+r.closest("[data-fj]").dataset.fj], k = r.dataset.fxp;
+    f.p[k] = +r.value; r.previousElementSibling.textContent = fmt(f.p[k], FXD[f.k][1].find(x => x[0] === k)[6]);
+    const b = busOf(id); if (b) b.nodes.forEach(([ff, n]) => { if (ff === f) n.set(f.p); });
+  });
   $("space").oninput = setSpace; $("vol").oninput = setVol;
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   // one note on a synthesized instrument
@@ -271,9 +394,16 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   }
 
   // ---------- drums ----------
-  const D = { style: "off", vol: 60, inBars: 0 };
+  const D = { style: "off", vol: 60, inBars: 0, kit: "synth", fx: [] };
+  $("dKit").onchange = e => { D.kit = e.target.value; if (D.kit === "beatbox") bxLoad(); };
+  // Adam's beatbox samples (assets/audio/beatbox), loudness-matched, round-robin through the takes. Roles: k kick, s/c snare, h/o hi-hat, z shaker
+  const BXK = { k: "kick:4", s: "snare:4", c: "snare:4", h: "hihat:5", o: "hihat:5", z: "shaker:0" };
+  const BXB = {}, BXR = {}; let BXP = null;
+  const bxUrls = () => [...new Set(Object.values(BXK))].flatMap(k => { const [f, n] = k.split(":"); return +n ? Array.from({ length: +n }, (_, i) => `assets/audio/beatbox/${f}-${i + 1}.wav`) : [`assets/audio/beatbox/${f}.wav`]; });
+  const bxLevel = b => { const d = b.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } } const r = n ? Math.sqrt(ss / n) : .1; return Math.min(.14 / Math.max(r, 1e-4), .95 / Math.max(pk, 1e-4)); };
+  function bxLoad() { if (BXP) return BXP; if (!ac()) return Promise.resolve(); const C = AC; BXP = Promise.all(bxUrls().map(u => fetch(u).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(a => new Promise((ok, no) => C.decodeAudioData(a, ok, no))).then(b => { b._lv = bxLevel(b); BXB[u] = b; }).catch(() => {}))); return BXP; }
   $("dStyle").onchange = e => { D.style = e.target.value; };
-  $("dVol").oninput = e => { D.vol = +e.target.value; if (DB) DB.gain.setTargetAtTime(D.vol / 100, AC.currentTime, .05); };
+  $("dVol").oninput = e => { D.vol = +e.target.value; if (DB) DB.g.gain.setTargetAtTime(D.vol / 100, AC.currentTime, .05); };
   $("dIn").onchange = e => { D.inBars = Math.max(0, +e.target.value || 0); };
   // patterns: 16 sixteenths per 4/4 bar (12 for the 6/8 groove); k kick, s snare, c clap, h closed hat, o open hat, z shaker, t tom
   const DP = {
@@ -284,9 +414,11 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     half: { n: 16, k: [0, 3, 10], s: [8], h: [0, 2, 4, 6, 8, 10, 12, 14] },
     break: { n: 16, k: [0, 6, 10], s: [4, 12, 15], h: [...Array(16).keys()] },
     six: { n: 12, k: [0, 10], s: [6], h: [0, 2, 4, 6, 8, 10], z: [...Array(12).keys()] } };
-  let DB = null;
+  let DB = null, DBX = null;
   function drum(kind, t, v) {
-    const g = AC.createGain(); g.connect(DB);
+    const g = AC.createGain(); g.connect(DB.g);
+    if (D.kit === "beatbox") { const [f, n] = BXK[kind].split(":"), i = BXR[f] = ((BXR[f] || 0) + 1) % (+n || 1), b = BXB[+n ? `assets/audio/beatbox/${f}-${i + 1}.wav` : `assets/audio/beatbox/${f}.wav`]; if (!b) return;
+      const src = AC.createBufferSource(); src.buffer = b; g.gain.value = b._lv * (.55 + .45 * v) * (kind === "o" ? 1.5 : kind === "c" ? 1.1 : 1.3); src.connect(g); src.start(t); return; }
     const nz = (type, f, len, a) => { const n = AC.createBufferSource(), fl = AC.createBiquadFilter(), ng = AC.createGain(); n.buffer = NZ; fl.type = type; fl.frequency.value = f; ng.gain.setValueAtTime(a * v, t); ng.gain.exponentialRampToValueAtTime(.001, t + len); n.connect(fl); fl.connect(ng); ng.connect(g); n.start(t, Math.random() * .5); n.stop(t + len + .02); };
     const osc = (f0, f1, len, a) => { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len * .5); og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(a * v, t + .002); og.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(og); og.connect(g); o.start(t); o.stop(t + len + .02); };
     if (kind === "k") osc(150, 45, .42, .9);
@@ -307,15 +439,16 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   // ---------- scheduler ----------
   let playing = false, timer = 0, raf = 0, VS = [], log = [], t0 = 0;
   const vbus = [];
-  function busFor(i) { if (!DB) { DB = AC.createGain(); DB.gain.value = D.vol / 100; DB.connect(OUT); } if (!vbus[i]) { const g = AC.createGain(), p = AC.createStereoPanner(); g.connect(p); p.connect(OUT); vbus[i] = { g, p }; } return vbus[i]; }
+  function busFor(i) { if (!DB) { const g = AC.createGain(); g.gain.value = D.vol / 100; DB = DBX = { g, dest: OUT }; rechain(DBX, D.fx); } if (!vbus[i]) { const g = AC.createGain(), p = AC.createStereoPanner(); p.connect(OUT); vbus[i] = { g, p, dest: p }; rechain(vbus[i], V[i] ? V[i].fx : []); } return vbus[i]; }
   function applyMix() { if (!AC) return; V.forEach((v, i) => { const b = busFor(i); b.g.gain.setTargetAtTime(v.on ? v.vol / 100 : 0, AC.currentTime, .05); b.p.pan.setTargetAtTime(v.pan / 100, AC.currentTime, .05); }); }
-  function start() { if (!ac()) return; DS = null; playing = true; $("play").textContent = "■ Stop"; t0 = AC.currentTime + .1; VS = V.map(v => ({ i: 0, t: t0 + (v.proc === "canon" ? v.delay * stepSec() : 0) })); log = []; applyMix(); timer = setInterval(tick, 30); raf = requestAnimationFrame(draw); status(); }
-  function stop() { playing = false; $("play").textContent = "▶ Play"; clearInterval(timer); cancelAnimationFrame(raf); vbus.forEach(b => b && b.g.gain.setTargetAtTime(0, AC.currentTime, .08)); if (DB) { DB.disconnect(); DB = null; } setTimeout(() => { if (!playing) vbus.forEach((b, i) => b && V[i] && b.g.gain.setValueAtTime(V[i].on ? V[i].vol / 100 : 0, AC.currentTime)); }, 700); }
+  function start() { if (!ac()) return; if (D.kit === "beatbox" && D.style !== "off" && !BXP) { status(); $("status").textContent = "Loading the beatbox sounds…"; bxLoad().then(() => { if (!playing) start(); }); return; } rechainAll(); DS = null; playing = true; $("play").textContent = "■ Stop"; t0 = AC.currentTime + .1; VS = V.map(v => ({ i: 0, t: t0 + (v.proc === "canon" ? v.delay * stepSec() : 0) })); log = []; applyMix(); timer = setInterval(tick, 30); raf = requestAnimationFrame(draw); status(); }
+  function stop() { playing = false; $("play").textContent = "▶ Play"; clearInterval(timer); cancelAnimationFrame(raf); vbus.forEach(b => b && b.g.gain.setTargetAtTime(0, AC.currentTime, .08)); if (DB) { const old = DB; old.g.gain.setTargetAtTime(0, AC.currentTime, .02); setTimeout(() => { try { old.g.disconnect(); } catch (e) {} (old.oscs || []).forEach(o => { try { o.stop(); } catch (e) {} }); }, 1500); DB = DBX = null; } setTimeout(() => { if (!playing) vbus.forEach((b, i) => b && V[i] && b.g.gain.setValueAtTime(V[i].on ? V[i].vol / 100 : 0, AC.currentTime)); }, 700); }
   function restart() { stop(); setTimeout(start, 120); }
   function tick(until) {
     const horizon = until != null ? until : AC.currentTime + .25; busFor(0); drumTick(horizon);
     V.forEach((v, vi) => {
       const st = VS[vi]; if (!st) { VS[vi] = { i: 0, t: AC.currentTime + .05 }; return; }
+      if (v.proc === "swell") { while (st.t < horizon) { swell(v, vi, st.t, st.i); st.t += v.swGap * 60 / F.bpm; st.i++; } return; }
       while (st.t < horizon) {
         const sp = stepSec() / (v.proc === "drift" ? 1 + v.drift / 100 : 1), c = cycle(v, st.i);
         c.ev.forEach(e => { const t = st.t + e.s * sp, d = e.n * sp; try { tone(v.inst, e.m, t, d * .95, .9, busFor(vi).g); } catch (x) {} if (v.on) log.push({ vi, t, d, m: e.m }); });
@@ -323,6 +456,20 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       }
     });
     if (log.length > 3000) log = log.filter(e => e.t + e.d > AC.currentTime - 3);
+  }
+  // one chord swell: the chord's notes run through a gain envelope shaped over the swell's length; swells overlap freely
+  const SWC = {};
+  function swCurve(shape) { if (SWC[shape]) return SWC[shape]; const n = 256, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1); c[i] = shape === "in" ? (x < .85 ? Math.pow(x / .85, 2.2) : (1 - x) / .15) : shape === "out" ? (x < .08 ? x / .08 : Math.pow((1 - x) / .92, 2)) : shape === "plateau" ? Math.min(1, x / .3, (1 - x) / .3) : Math.pow(Math.sin(Math.PI * x), 1.6); }
+    c[0] = 0; c[n - 1] = 0; return SWC[shape] = c; }
+  function swell(v, vi, t, i) {
+    const len = v.swLen * 60 / F.bpm, prog = SWPROG[v.swProg], st = CHT[v.ch][1], R = SC().length;
+    let r = prog ? prog[i % prog.length] : (i * 3) % R; if (!prog && r > R / 2 + 1) r -= R;   // "drift" walks the scale by 4ths, kept near the tonic
+    const ms = st.map(d => midiOf(r + d + v.xp) - 12 + 12 * v.oct), e = AC.createGain(), vel = .9 * Math.min(1, 3.2 / ms.length);
+    e.gain.value = 0; e.gain.setValueCurveAtTime(swCurve(v.swShape), t, len); e.connect(busFor(vi).g);
+    if (v.swTex === "held") ms.forEach(m => { try { tone(v.inst, m, t, len, vel, e); } catch (x) {} if (v.on) log.push({ vi, t, d: len, m }); });
+    else { const sp = stepSec() * (v.swTex === "pulse2" ? 2 : 1), n = Math.max(1, Math.round(len / sp)); for (let k = 0; k < n; k++) ms.forEach(m => { try { tone(v.inst, m, t + k * sp, sp * .8, vel, e); } catch (x) {} if (v.on) log.push({ vi, t: t + k * sp, d: sp * .8, m }); }); }
+    setTimeout(() => { try { e.disconnect(); } catch (x) {} }, (t - AC.currentTime + len + 3) * 1000);
   }
   function status() { $("status").textContent = playing ? V.map((v, i) => v.on ? `Voice ${i + 1}: ${PROCS[v.proc].toLowerCase()}` : null).filter(Boolean).join(" · ") : ""; }
 
@@ -333,7 +480,7 @@ input[type=range]{accent-color:var(--fi-red-dk)}
     const g = cv.getContext("2d"), now = AC.currentTime, span = 8, x = t => (t - now + span * .25) / span * W, y = m => Hh - 8 - (m - 30) / 70 * (Hh - 16);
     g.clearRect(0, 0, W, Hh);
     log.forEach(e => { const x0 = x(e.t), x1 = x(e.t + e.d); if (x1 < 0 || x0 > W) return; g.fillStyle = COLORS[e.vi]; g.globalAlpha = e.t <= now && now < e.t + e.d ? 1 : .55; g.fillRect(x0, y(e.m) - 4 * devicePixelRatio, Math.max(2, x1 - x0 - 1), 8 * devicePixelRatio); });
-    g.globalAlpha = 1; g.fillStyle = css("--fi-ink") || "#222"; g.fillRect(W * .25, 0, 2 * devicePixelRatio, Hh);
+    g.globalAlpha = 1; g.fillStyle = "#ff5a4e"; g.fillRect(W * .25, 0, 2 * devicePixelRatio, Hh);
     raf = requestAnimationFrame(draw);
   }
 
@@ -350,9 +497,10 @@ input[type=range]{accent-color:var(--fi-red-dk)}
   $("export").onclick = async () => {
     if (!ac()) return; const dur = +$("expLen").value, fmt = $("expFmt").value, btn = $("export"); btn.disabled = true; $("status").textContent = "Rendering… (this can take a little while for long pieces)";
     const was = playing; if (playing) stop();
-    const save = { AC, OUT, REV, DRY, DB, vb: vbus.splice(0), VS, DS, t0 };
+    if (D.kit === "beatbox" && D.style !== "off") await bxLoad();
+    const save = { AC, OUT, REV, DRY, DB, DBX, vb: vbus.splice(0), VS, DS, t0 };
     try {
-      AC = new OfflineAudioContext(2, Math.ceil(44100 * (dur + 4)), 44100); DB = null; build(); setSpace(); setVol();
+      AC = new OfflineAudioContext(2, Math.ceil(44100 * (dur + 4)), 44100); DB = DBX = null; build(); setSpace(); setVol();
       t0 = .05; DS = null; VS = V.map(v => ({ i: 0, t: t0 + (v.proc === "canon" ? v.delay * stepSec() : 0) })); log = []; applyMix();
       tick(dur);
       AC.__master.gain.setValueAtTime(+$("vol").value / 100, dur - 3); AC.__master.gain.linearRampToValueAtTime(0, dur + .5);
@@ -360,15 +508,15 @@ input[type=range]{accent-color:var(--fi-red-dk)}
       a.href = url; a.download = "process-piece." + fmt; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
       $("status").textContent = `Saved process-piece.${fmt} (${(blob.size / 1048576).toFixed(1)} MB).`; window.__lastExport = { size: blob.size, dur: buf.duration };
     } catch (e) { $("status").textContent = "Export failed: " + e.message; }
-    ({ AC, OUT, REV, DRY, DB, VS, DS, t0 } = save); vbus.length = 0; save.vb.forEach((b, i) => vbus[i] = b); log = []; btn.disabled = false; if (was) start();
+    ({ AC, OUT, REV, DRY, DB, DBX, VS, DS, t0 } = save); vbus.length = 0; save.vb.forEach((b, i) => vbus[i] = b); log = []; btn.disabled = false; if (was) start();
   };
   $("play").onclick = () => playing ? stop() : start();
   $("restart").onclick = () => restart();
   // share the whole setup as a link (?p=…)
-  try { const q = new URLSearchParams(location.search).get("p"); if (q) { const o = JSON.parse(decodeURIComponent(escape(atob(q)))); if (o.F) Object.assign(F, o.F); if (Array.isArray(o.V) && o.V.length) V = o.V.map(v => def(v)); ["tonic", "scale", "len", "stepv", "bpm"].forEach(k => { const el = $(k); if (el) el.value = F[k]; }); if ($("bpmO")) $("bpmO").textContent = F.bpm; } } catch (e) {}
-  $("share").onclick = () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify({ F, V })))), url = location.href.split(/[?#]/)[0] + "?p=" + encodeURIComponent(code); if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { $("status").textContent = "Link copied: it opens this setup."; }, () => { $("status").textContent = url; }); else $("status").textContent = url; };
-  drawGrid(); drawVoices();
-  window.__lab = { F, get V() { return V; }, cycle, get log() { return log; } };   // used by automated tests
+  try { const q = new URLSearchParams(location.search).get("p"); if (q) { const o = JSON.parse(decodeURIComponent(escape(atob(q)))); if (o.F) Object.assign(F, o.F); if (Array.isArray(o.V) && o.V.length) V = o.V.map(v => def(v)); if (o.D) { Object.assign(D, o.D); $("dStyle").value = D.style; $("dVol").value = D.vol; $("dIn").value = D.inBars; $("dKit").value = D.kit; } ["tonic", "scale", "len", "stepv", "bpm"].forEach(k => { const el = $(k); if (el) el.value = F[k]; }); if ($("bpmO")) $("bpmO").textContent = F.bpm; } } catch (e) {}
+  $("share").onclick = () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify({ F, V, D: { style: D.style, vol: D.vol, inBars: D.inBars, kit: D.kit, fx: D.fx } })))), url = location.href.split(/[?#]/)[0] + "?p=" + encodeURIComponent(code); if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { $("status").textContent = "Link copied: it opens this setup."; }, () => { $("status").textContent = url; }); else $("status").textContent = url; };
+  drawGrid(); drawVoices(); drawDrumFx();
+  window.__lab = { F, get V() { return V; }, cycle, D, get log() { return log; }, get bus() { return vbus; } };   // used by automated tests
 })();
 </script>
 

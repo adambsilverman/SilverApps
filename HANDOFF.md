@@ -574,3 +574,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - Embellishing chords: link to Randy Newman recording of Real Emotional Girl (YouTube S2I51Fa8uAs) before the video; the full sheet music PDF was not posted (complete copyrighted arrangement with lyrics); students use the class copy.
 - Embellishing chords: sheet music link to Sheet Music Plus (product 19324266) instead of the class copy.
 - Structural or embellishing?: removed the Goodbye Yellow Brick Road case study.
+
+## z169 (process lab)
+- build/pages/process-lab.html: dark DAW restyle like the Multitrack Studio; per-voice and drum effect chains (studio FXD set, delay tempo sync, reorder/bypass); drum kit select with beatbox samples; new process "Chord swells" (chord type, pattern, shape, held/pulsed, length and spacing in beats, overlapping); preset "Pulsing chord swells"; share link carries drums and effects.
