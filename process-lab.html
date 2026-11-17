@@ -9,7 +9,7 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span></header>
-<script src="assets/samplers.js?v=985dd97e"></script>
+<script src="assets/samplers.js?v=a1037b04"></script>
 <style>
 .tool{max-width:1100px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:12px}
 .tool h1{font:400 clamp(40px,7vw,64px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -89,7 +89,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
     <h2 id="h-voices">2. Voices and processes</h2>
     <div class="voices" id="voices"></div>
     <div class="voice" style="--vc:#555" data-fxwrap="d"><h3>Drums<button class="tbtn" data-fxa="open" id="dFxB" aria-expanded="false" aria-label="Effects for the drums">Effects</button></h3><div class="vrow">
-      <label class="fld" for="dKit">Kit<select id="dKit"><option value="synth">Synthesized drums</option><option value="beatbox">Beatbox (voice)</option></select></label>
+      <label class="fld" for="dKit">Kit<select id="dKit"><option value="acoustic">Acoustic kit</option><option value="synth">Synthesized drums</option><option value="beatbox">Beatbox (voice)</option></select></label>
       <label class="fld" for="dStyle">Beat<select id="dStyle"><option value="off">Off</option><option value="pulse">Steady pulse</option><option value="shaker">Shaker</option><option value="four">Four on the floor</option><option value="back">Backbeat</option><option value="half">Half-time</option><option value="break">Breakbeat</option><option value="six">6/8 groove</option></select></label>
       <label class="fld" for="dVol">Volume<input type="range" id="dVol" min="0" max="100" value="60"></label>
       <label class="fld" for="dIn">Comes in after (bars)<input type="number" id="dIn" min="0" max="32" value="0"></label></div>
@@ -246,7 +246,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
 
   // ---------- audio ----------
   let ECHO = null, AC = null, OUT = null, REV = null, DRY = null, NZ = null;
-  const sampPrep = () => Promise.all([...new Set(V.map(v => ({ piano: "piano", epiano: "rhodes", wurli: "wurli" })[v.inst]).filter(Boolean))].map(k => window.SAMP ? SAMP.load(AC, k) : 0));
+  const sampPrep = () => !window.SAMP ? Promise.resolve() : Promise.all([...[...new Set(V.map(v => ({ piano: "piano", epiano: "rhodes", wurli: "wurli" })[v.inst]).filter(Boolean))].map(k => SAMP.load(AC, k)), D.kit === "acoustic" ? SAMP.loadDrums(AC) : 0]);
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); sampPrep(); }
     if (AC.state === "suspended") AC.resume(); return AC; }
   function build() { { const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .8; comp.connect(master); master.connect(AC.destination); OUT = AC.createGain(); DRY = AC.createGain(); REV = AC.createGain(); OUT.connect(DRY); DRY.connect(comp);
@@ -399,8 +399,8 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
   }
 
   // ---------- drums ----------
-  const D = { style: "off", vol: 60, inBars: 0, kit: "synth", fx: [] };
-  $("dKit").onchange = e => { D.kit = e.target.value; if (D.kit === "beatbox") bxLoad(); };
+  const D = { style: "off", vol: 60, inBars: 0, kit: "acoustic", fx: [] };
+  $("dKit").onchange = e => { D.kit = e.target.value; if (D.kit === "beatbox") bxLoad(); if (D.kit === "acoustic" && AC && window.SAMP) SAMP.loadDrums(AC); };
   // Adam's beatbox samples (assets/audio/beatbox), loudness-matched, round-robin through the takes. Roles: k kick, s/c snare, h/o hi-hat, z shaker
   const BXK = { k: "kick:4", s: "snare:4", c: "snare:4", h: "hihat:5", o: "hihat:5", z: "shaker:0" };
   const BXB = {}, BXR = {}; let BXP = null;
@@ -421,6 +421,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
     six: { n: 12, k: [0, 10], s: [6], h: [0, 2, 4, 6, 8, 10], z: [...Array(12).keys()] } };
   let DB = null, DBX = null;
   function drum(kind, t, v) {
+    if (D.kit === "acoustic" && window.SAMP && SAMP.KIND[kind]) { if (SAMP.drumsReady(AC)) { if (SAMP.drum(AC, SAMP.KIND[kind], t, v, DB.g)) return; } else SAMP.loadDrums(AC); }
     const g = AC.createGain(); g.connect(DB.g);
     if (D.kit === "beatbox") { const [f, n] = BXK[kind].split(":"), i = BXR[f] = ((BXR[f] || 0) + 1) % (+n || 1), b = BXB[+n ? `assets/audio/beatbox/${f}-${i + 1}.wav` : `assets/audio/beatbox/${f}.wav`]; if (!b) return;
       const src = AC.createBufferSource(); src.buffer = b; g.gain.value = b._lv * (.55 + .45 * v) * (kind === "o" ? 1.5 : kind === "c" ? 1.1 : 1.3); src.connect(g); src.start(t); return; }

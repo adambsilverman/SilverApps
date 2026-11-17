@@ -623,3 +623,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - rhythm-performance.html: Count-in setting (two bars spoken "1 . 2 . 1 2 3 4" default, one bar spoken, clicks only) using assets/count-voice-Adam clips trimmed to their onsets.
 - metronome.html (z174b): mixer panel with vertical faders (accent, beat, d2-d5 division layers; compound beats map d2-d5 to 3/2/6/4) replaces the Subdivide menu; old saved subdiv becomes that layer at 60; scheduler now steps per beat and layers divisions.
 - metronome.html (z174c): compact two-column layout on wide screens, smaller parts, short fader names on phones; per-layer GainNodes and a 60-step-per-beat scheduler so faders and tempo take effect immediately.
+
+## z175 (2026-11-17) Sampled drums
+- assets/audio/drums: 19 one-shots from VCSL (CC0): kick, snare (+soft takes), hats (closed, soft, pedal, open), ride, ride bell, crash, toms, clap, cowbell, woodblock, claves, shaker, tambourine; peak-normalized mp3.
+- samplers.js: SAMP.loadDrums/drumsReady/drum (soft takes, small level and pitch variation, open-hat choke), SAMP.KIND maps the pages one-letter drum codes.
+- Used by: metronome drums and Woodblock/Cowbell sounds (page now samp: 1); groove-maker rock/pop/ride/rim kits (808, chiptune, samba stay synth); multitrack "Drum kit" (808 stays synth; drumHit takes the track kit); process-lab new default kit "Acoustic kit". Exports await the samples. About page credits VCSL.

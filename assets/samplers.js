@@ -40,5 +40,29 @@
     if (dur != null) stop(t + Math.max(dur, .05)); else src.stop(t + tail + 6);
     return { stop };
   }
-  window.SAMP = { load, ready, note };
+  // ---------- sampled drum kit (assets/audio/drums, from the CC0 Versilian Community Sample Library) ----------
+  // SAMP.loadDrums(ctx) / SAMP.drumsReady(ctx) / SAMP.drum(ctx, name, t, vel, dest): soft takes for quiet hits, a little random
+  // variation in level and pitch so repeated hits don't sound like a machine gun, and the open hi-hat is cut off by the next closed one
+  const DRUMS = ["kick", "kick-soft", "snare", "snare-soft", "hat", "hat-soft", "hat-pedal", "hat-open", "ride", "ride-bell", "crash", "tom-hi", "tom-lo", "clap", "cowbell", "woodblock", "claves", "shaker", "tambourine"];
+  const DLV = { kick: 1, snare: .8, hat: .42, "hat-pedal": .4, "hat-open": .42, ride: .38, "ride-bell": .34, crash: .5, "tom-hi": .7, "tom-lo": .75, clap: .6, cowbell: .4, woodblock: .55, claves: .5, shaker: .35, tambourine: .4 };
+  // the one-letter drum codes the studio pages use
+  const KIND = { k: "kick", s: "snare", c: "clap", h: "hat", oh: "hat-open", o: "hat-open", y: "ride", lt: "tom-lo", ht: "tom-hi", cb: "cowbell", z: "shaker", sh: "shaker" };
+  function loadDrums(C) { const S = store(C); if (!C) return Promise.resolve(); if (S.drums) return S.drums.p; const bufs = {}; S.drums = { bufs, done: false };
+    S.drums.p = Promise.all(DRUMS.map(n => fetch("assets/audio/drums/" + n + ".mp3").then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(b => new Promise((res, rej) => C.decodeAudioData(b, res, rej))).then(buf => { bufs[n] = buf; }).catch(() => {}))).then(() => { S.drums.done = true; });
+    return S.drums.p; }
+  const drumsReady = C => { const S = C && C.__samp && C.__samp.drums; return !!(S && S.done && S.bufs.kick); };
+  function drum(C, name, t, vel, dest) {
+    const S = C.__samp.drums, v = Math.max(.05, Math.min(1.2, vel == null ? .85 : vel));
+    let n = name; if (v < .6 && S.bufs[name + "-soft"]) n = name + "-soft";
+    const buf = S.bufs[n]; if (!buf) return false;
+    const src = C.createBufferSource(), g = C.createGain();
+    src.buffer = buf; src.playbackRate.value = 1 + (Math.random() - .5) * .025;
+    g.gain.value = (DLV[name] || .5) * (.3 + .7 * Math.min(v, 1)) * (1 + (Math.random() - .5) * .1) * (n !== name ? 1.6 : 1);
+    src.connect(g); g.connect(dest); src.start(t);
+    if (name === "hat" || name === "hat-pedal") { const oh = S.open; if (oh && oh.t < t) { oh.g.gain.setTargetAtTime(0, t, .02); } }
+    if (name === "hat-open") S.open = { g, t };
+    return true;
+  }
+  window.SAMP = { load, ready, note, loadDrums, drumsReady, drum, KIND };
 })();

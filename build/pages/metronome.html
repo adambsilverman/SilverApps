@@ -1,4 +1,4 @@
-<!-- title: Metronome | fs: 1 | desc: A practice metronome with tap tempo, traditional metronome markings, meters and groupings, accents, subdivisions, drum beats (plain and swing), silent-bar and speed trainers. -->
+<!-- title: Metronome | fs: 1 | desc: A practice metronome with tap tempo, traditional metronome markings, meters and groupings, accents, subdivisions, drum beats (plain and swing), silent-bar and speed trainers. | samp: 1 -->
 <style>
 /* laid out like a hardware practice metronome: dark case, LCD tempo readout, beat lights, rubber keys, control panels */
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
@@ -242,7 +242,7 @@ label.fld{font-size:12px}
   // ---------- sound ----------
   let AC = null, master = null; const LAY = {};   // one gain per mixer layer, so the faders change what's already scheduled
   function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; master.connect(comp); comp.connect(AC.destination);
-    Object.keys(S.mix).forEach(k => { LAY[k] = AC.createGain(); LAY[k].gain.value = S.mix[k] / 100; LAY[k].connect(master); }); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
+    Object.keys(S.mix).forEach(k => { LAY[k] = AC.createGain(); LAY[k].gain.value = S.mix[k] / 100; LAY[k].connect(master); }); if (window.SAMP) SAMP.loadDrums(AC); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
   let noiseBuf = null;
   function click(t, level, beatNo, isSub, dest) {
     if (level === 0) return;
@@ -252,6 +252,9 @@ label.fld{font-size:12px}
     if (S.sound === "click" || S.sound === "voice" && isSub) {
       if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * .03, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6); }
       const s = AC.createBufferSource(), bp = AC.createBiquadFilter(); s.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = hi ? 3800 : mid ? 2800 : isSub ? 1800 : 2200; bp.Q.value = 3; s.connect(bp); bp.connect(g); g.gain.value = amp * 2.2; s.start(t);
+    } else if ((S.sound === "wood" || S.sound === "cow") && window.SAMP && SAMP.drumsReady(AC)) {   // recorded woodblock and cowbell, pitched up for accents and down for divisions
+      const src = AC.createBufferSource(), sg = AC.createGain(), buf = AC.__samp.drums.bufs[S.sound === "wood" ? "woodblock" : "cowbell"];
+      if (buf) { src.buffer = buf; src.playbackRate.value = hi ? 1.19 : mid ? 1.09 : isSub ? .89 : 1; sg.gain.value = amp * (S.sound === "wood" ? .9 : .6); src.connect(sg); sg.connect(g); src.start(t); }
     } else if (S.sound === "wood") {
       const o = AC.createOscillator(); o.frequency.value = hi ? 1250 : mid ? 1050 : isSub ? 760 : 880; o.connect(g); g.gain.setValueAtTime(amp * .9, t); g.gain.exponentialRampToValueAtTime(.001, t + .06); o.start(t); o.stop(t + .08);
     } else if (S.sound === "beep") {
@@ -271,7 +274,10 @@ label.fld{font-size:12px}
   function noise() { if (!drumNoise) { drumNoise = AC.createBuffer(1, AC.sampleRate * 1.5, AC.sampleRate); const d = drumNoise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } const s = AC.createBufferSource(); s.buffer = drumNoise; return s; }
   function env(t, peak, decay) { const g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + .003); g.gain.exponentialRampToValueAtTime(.0008, t + decay); g.connect(master); return g; }
   function filt(type, f, q) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
-  const KIT = {
+  // sampled drums when they've loaded (the synthesized kit below covers the first moments and any missing file)
+  const SK = { kick: "kick", snare: "snare", hat: "hat", pedal: "hat-pedal", ride: "ride", crash: "crash" };
+  const kitHit = (k, t, v, open) => window.SAMP && AC && SAMP.drumsReady(AC) && SAMP.drum(AC, k === "hat" && open ? "hat-open" : SK[k], t, v, master);
+  const KIT0 = {
     kick(t, v = 1) { const o = AC.createOscillator(), g = env(t, 1.1 * v, .38); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .13); o.connect(g); o.start(t); o.stop(t + .4); },
     snare(t, v = 1) { const n = noise(), hp = filt("highpass", 1300), g = env(t, .55 * v, .17); n.connect(hp); hp.connect(g); n.start(t, Math.random()); n.stop(t + .2);
       const o = AC.createOscillator(), g2 = env(t, .3 * v, .09); o.type = "triangle"; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(160, t + .08); o.connect(g2); o.start(t); o.stop(t + .1); },
@@ -281,6 +287,7 @@ label.fld{font-size:12px}
       [3150, 4720].forEach(f => { const o = AC.createOscillator(), g2 = env(t, .025 * v, .5); o.type = "square"; o.frequency.value = f; const h = filt("highpass", 3000); o.connect(h); h.connect(g2); o.start(t); o.stop(t + .52); }); },
     crash(t, v = 1) { const n = noise(), hp = filt("highpass", 3500), g = env(t, .3 * v, 1.3); n.connect(hp); hp.connect(g); n.start(t, Math.random() * .2); n.stop(t + 1.35); },
   };
+  const KIT = Object.fromEntries(Object.keys(KIT0).map(k => [k, (t, v = 1, x) => kitHit(k, t, v, x) || KIT0[k](t, v, x)]));
   // one beat of drums starting at time t; i = beat index, b = the beat, n = beats in the bar
   function drumBeat(t, i, barN, b) {
     if (b.acc === 0) return;                                   // beats set to silent stay silent
