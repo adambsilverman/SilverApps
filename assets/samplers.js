@@ -14,6 +14,8 @@
     steel: { map: { s: GT.steel.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/steel/" + m + ".mp3", lv: .6 },
     nylon: { map: { s: GT.nylon.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/nylon/" + m + ".mp3", lv: .6 },
     egtr: { map: { s: GT.egtr.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/egtr/" + m + ".mp3", lv: .55 },
+    // accordion (FluidR3 General MIDI soundfont, CC BY 3.0): holds as long as the note does, looping its last stretch
+    accordion: { map: { s: Array.from({ length: 18 }, (_, i) => [41 + i * 3, 0]) }, url: (l, m) => "assets/audio/accordion/" + m + ".mp3", lv: .42, hold: true },
   };
   const store = C => C.__samp || (C.__samp = {});
   function load(C, kind) {
@@ -37,12 +39,12 @@
     src.connect(lp); lp.connect(g); g.connect(dest);
     // the recordings are a few seconds long: past their end, loop the last stretch and keep it fading, so long notes don't stop dead
     const len = buf.duration, tail = len / rate;
-    if ((kind === "rhodes" || kind === "wurli") && len > .8) { src.loop = true; src.loopStart = len - .4; src.loopEnd = len - .1; }
+    if ((kind === "rhodes" || kind === "wurli" || K.hold) && len > .8) { src.loop = true; src.loopStart = len - .4; src.loopEnd = len - .1; }
     const lv = K.lv * Math.pow(v, 1.2), at = t + .003;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lv, at); g.gain.setValueAtTime(lv, t + tail - .3); g.gain.setTargetAtTime(0, t + tail - .3, kind === "rhodes" || kind === "wurli" ? 1 : .5);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lv, at); if (!K.hold) { g.gain.setValueAtTime(lv, t + tail - .3); g.gain.setTargetAtTime(0, t + tail - .3, kind === "rhodes" || kind === "wurli" ? 1 : .5); }
     src.start(t);
     const stop = te => { const s = Math.max(te, at + .01); g.gain.cancelScheduledValues(s); g.gain.setTargetAtTime(0, s, kind === "piano" ? .12 : kind === "steel" || kind === "nylon" ? .1 : .08); try { src.stop(s + .6); } catch (e) {} };
-    if (dur != null) stop(t + Math.max(dur, .05)); else src.stop(t + tail + 6);
+    if (dur != null) stop(t + Math.max(dur, .05)); else src.stop(t + tail + (K.hold ? 60 : 6));
     return { stop };
   }
   // ---------- sampled drum kit (assets/audio/drums, from the CC0 Versilian Community Sample Library) ----------

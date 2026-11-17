@@ -16,6 +16,14 @@
 .about-jump a{font-weight:700}
 .about h3{scroll-margin-top:110px}
 .about code{font:15px ui-monospace,Menlo,monospace;background:var(--fi-card);padding:1px 5px;border-radius:4px}
+.plat{border:1.5px solid var(--fi-line);border-radius:var(--fi-r-sm,10px);background:var(--fi-card);margin:0 0 8px;max-width:66ch}
+.plat summary{cursor:pointer;font-weight:700;padding:10px 14px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;gap:8px;list-style:none}
+.plat summary::-webkit-details-marker{display:none}
+.plat summary::before{content:"▸";transition:transform .15s;display:inline-block}
+.plat[open] summary::before{transform:rotate(90deg)}
+.plat summary:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px;border-radius:8px}
+.plat-body{padding:0 14px 6px}
+@media (prefers-reduced-motion:reduce){.plat summary::before{transition:none}}
 </style>
 <main id="main" class="about">
 <h1>About <span>this site</span></h1>
@@ -71,7 +79,7 @@
 <p>Most of what you'll see is public-domain music: folk songs, hymns, carols and classical repertoire whose copyrights have expired. The exceptions are short excerpts of copyrighted songs, typeset here only so they can be analyzed. The pop song transcriptions are Silverman's.</p>
 
 <h2 id="recordings">The recordings</h2>
-<p>Some audio was created specifically for a particular lesson; other audio is generated adaptively. The rest are short excerpts of commercial recordings. Videos from YouTube are embedded from their published sources rather than copied here. The piano in generated examples and the sampled guitars in the studio tools come from Nicholas Brosowsky's <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a><span class="sr-only"> (opens in a new tab)</span> collection, used under <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a><span class="sr-only"> (opens in a new tab)</span>. The electric pianos in the studio tools are Greg Sullivan's Wurlitzer EP200 samples (CC BY 3.0, mapped by kinwie for the <a href="https://github.com/sfzinstruments/GregSullivan.E-Pianos" target="_blank" rel="noopener">sfzinstruments</a><span class="sr-only"> (opens in a new tab)</span> project) and Jeff Learman's <a href="https://github.com/sfzinstruments/jlearman.jRhodes3c" target="_blank" rel="noopener">jRhodes3c</a><span class="sr-only"> (opens in a new tab)</span> Rhodes samples (<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a><span class="sr-only"> (opens in a new tab)</span>). The sampled drums and hand percussion come from the <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a><span class="sr-only"> (opens in a new tab)</span>, which is public domain (CC0).</p>
+<p>Some audio was created specifically for a particular lesson; other audio is generated adaptively. The rest are short excerpts of commercial recordings. Videos from YouTube are embedded from their published sources rather than copied here. The piano in generated examples and the sampled guitars in the studio tools come from Nicholas Brosowsky's <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a><span class="sr-only"> (opens in a new tab)</span> collection, used under <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a><span class="sr-only"> (opens in a new tab)</span>. The electric pianos in the studio tools are Greg Sullivan's Wurlitzer EP200 samples (CC BY 3.0, mapped by kinwie for the <a href="https://github.com/sfzinstruments/GregSullivan.E-Pianos" target="_blank" rel="noopener">sfzinstruments</a><span class="sr-only"> (opens in a new tab)</span> project) and Jeff Learman's <a href="https://github.com/sfzinstruments/jlearman.jRhodes3c" target="_blank" rel="noopener">jRhodes3c</a><span class="sr-only"> (opens in a new tab)</span> Rhodes samples (<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a><span class="sr-only"> (opens in a new tab)</span>). The sampled drums and hand percussion come from the <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a><span class="sr-only"> (opens in a new tab)</span>, which is public domain (CC0). The accordion comes from Frank Wen's FluidR3 General MIDI soundfont, as packaged by the <a href="https://github.com/gleitz/midi-js-soundfonts" target="_blank" rel="noopener">midi-js-soundfonts</a><span class="sr-only"> (opens in a new tab)</span> project (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a><span class="sr-only"> (opens in a new tab)</span>).</p>
 
 <h2 id="fair-use">Fair use</h2>
 <p>Short excerpts of copyrighted music, whether a few bars of a score or a few seconds of a recording, are included under fair use, 17 U.S.C. § 107. You'll see a note under each one. All rights remain with the artists and copyright holders.</p>
@@ -86,33 +94,46 @@
 
 <h3>Automatic: a SCORM package</h3>
 <p>Go to <a href="gradebook-sync.html">Gradebook sync</a>, pick a quiz and download its package. It's a small .zip file. Upload it as it is (don't unzip it). The package doesn't copy the lesson into your course; it opens the live quiz from this site, so students need an internet connection, and corrections to a lesson reach them without a new upload. The score arrives as a percent. The "Look back" links open the lesson in a new tab, since the quiz is open-note.</p>
-<p><b>D2L Brightspace.</b></p>
+<details class="plat"><summary>D2L Brightspace</summary>
+<div class="plat-body">
 <ol>
 <li>In <b>Content</b>, open the module where the quiz belongs and choose <b>Add Existing</b> (or <b>Upload / Create</b> in older courses), then <b>SCORM/xAPI Object</b>.</li>
 <li>Choose <b>Bulk Upload</b>, upload the .zip, select it and choose <b>Next</b>.</li>
 <li>Answer <b>Yes</b> to creating a grade item. Under the calculation method, choose the highest attempt. Choose <b>Add</b>.</li>
 <li>Brightspace makes a new grade item outside any category. In <b>Grades</b> &gt; <b>Manage Grades</b>, edit it to move it into a category and set its points. Or, from the topic's menu in Content, choose <b>Edit or Link to Existing</b> to send the score to a grade item you already have.</li>
 </ol>
-<p><b>Canvas.</b> Canvas plays SCORM packages through its SCORM tool, which your school has to have turned on.</p>
+</div>
+</details>
+<details class="plat"><summary>Canvas</summary>
+<div class="plat-body">
+<p>Canvas plays SCORM packages through its SCORM tool, which your school has to have turned on.</p>
 <ol>
 <li>In the course, go to <b>Settings</b> &gt; <b>Navigation</b>, drag <b>SCORM</b> into the visible list and save.</li>
 <li>Open <b>SCORM</b>, choose <b>Upload</b> and pick the .zip.</li>
 <li>From <b>Choose import type</b>, choose <b>Import as graded assignment</b>, then <b>Go</b>. This can't be changed later.</li>
 <li>The new assignment is worth 100 points and is unpublished. In <b>Assignments</b>, edit it to set the points, group and due date, then publish it.</li>
 </ol>
-<p><b>Blackboard (Ultra).</b></p>
+</div>
+</details>
+<details class="plat"><summary>Blackboard</summary>
+<div class="plat-body">
 <ol>
 <li>On <b>Course Content</b>, select the plus sign, then <b>Create</b> &gt; <b>SCORM package</b>.</li>
 <li>Choose <b>Upload SCORM package</b> and pick the .zip.</li>
 <li>In the SCORM settings, turn on <b>Grade SCORM</b>, choose the grading schema and set the maximum score to 100. Set attempts to unlimited and grade on the highest attempt. The grade settings can't be changed after the package is added, so set them now.</li>
 </ol>
 <p>In Blackboard's Original Course View, open a content area and choose <b>Build Content</b> &gt; <b>Content Package (SCORM)</b>. Turn grading on in the package settings.</p>
-<p><b>Moodle.</b></p>
+</div>
+</details>
+<details class="plat"><summary>Moodle</summary>
+<div class="plat-body">
 <ol>
 <li>Turn editing on and choose <b>Add an activity or resource</b> &gt; <b>SCORM package</b>.</li>
 <li>Upload the .zip under <b>Package file</b>.</li>
 <li>Under <b>Grade</b>, set the grading method to <b>Highest grade</b> and the maximum grade to 100. Under <b>Attempts management</b>, allow unlimited attempts and grade on the highest attempt.</li>
 </ol>
+</div>
+</details>
 <p>Whatever the LMS, try the quiz once as a student (Student View in Canvas and Blackboard, View as Student in Brightspace) and check that the score shows up before you assign it. Some schools block SCORM uploads or limit them to certain roles; if the upload option is missing, ask your LMS support office.</p>
 
 <h3>By hand: reports and an import file</h3>

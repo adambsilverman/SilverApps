@@ -633,3 +633,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - assets/audio/guitar/{steel,nylon,egtr}/<midi>.mp3: tonejs-instruments guitar samples (CC BY 3.0), every ~3 semitones, mono, 4 s.
 - samplers.js kinds steel, nylon, egtr (no looping; guitars just decay).
 - groove-maker: new "Acoustic guitar" (steel); Nylon guitar = nylon samples; Clean electric = egtr; Distortion guitar = egtr through the existing tanh curve and a 3.4 kHz cabinet lowpass. process-lab and multitrack: new Acoustic, Nylon and Electric guitar instruments (their generic "Plucked" synth unchanged). About page credit updated.
+
+## z177 (2026-11-17) Overdrive, accordion, gradebook accordions
+- groove-maker: Distortion guitar gets an Overdrive slider (S.drive 0-100, hash dr, shown only for dist): asymmetric tanh curve, 90 Hz pre high-pass, DC block, cabinet low-pass 5.2-3 kHz, measured output table DRV_OUT keeps loudness level.
+- Accordion instrument (FluidR3 GM via midi-js-soundfonts, CC BY 3.0) in assets/audio/accordion/<midi>.mp3 (41-92 every 3); samplers.js kind accordion with hold (loops while the note lasts). Added to groove-maker, process-lab (also as a swell instrument) and multitrack; synth fallback organ.
+- about-this-site: Gradebook sync platform instructions are <details class="plat"> accordions; credits for the accordion.
