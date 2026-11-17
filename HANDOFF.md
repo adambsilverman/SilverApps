@@ -628,3 +628,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - assets/audio/drums: 19 one-shots from VCSL (CC0): kick, snare (+soft takes), hats (closed, soft, pedal, open), ride, ride bell, crash, toms, clap, cowbell, woodblock, claves, shaker, tambourine; peak-normalized mp3.
 - samplers.js: SAMP.loadDrums/drumsReady/drum (soft takes, small level and pitch variation, open-hat choke), SAMP.KIND maps the pages one-letter drum codes.
 - Used by: metronome drums and Woodblock/Cowbell sounds (page now samp: 1); groove-maker rock/pop/ride/rim kits (808, chiptune, samba stay synth); multitrack "Drum kit" (808 stays synth; drumHit takes the track kit); process-lab new default kit "Acoustic kit". Exports await the samples. About page credits VCSL.
+
+## z176 (2026-11-17) Sampled guitars
+- assets/audio/guitar/{steel,nylon,egtr}/<midi>.mp3: tonejs-instruments guitar samples (CC BY 3.0), every ~3 semitones, mono, 4 s.
+- samplers.js kinds steel, nylon, egtr (no looping; guitars just decay).
+- groove-maker: new "Acoustic guitar" (steel); Nylon guitar = nylon samples; Clean electric = egtr; Distortion guitar = egtr through the existing tanh curve and a 3.4 kHz cabinet lowpass. process-lab and multitrack: new Acoustic, Nylon and Electric guitar instruments (their generic "Plucked" synth unchanged). About page credit updated.

@@ -298,7 +298,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
 (() => {
   const $ = id => document.getElementById(id);
   const COLORS = ["#2e6db4", "#c0392b", "#2e8b57", "#b8860b", "#7b4ea3", "#d2691e", "#1f8a8a", "#a33b6b"];
-  const INST = { piano: "Piano", epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", lead: "Synth lead", flute: "Flute-like", strings: "Strings", organ: "Organ", pluck: "Plucked", bass: "Bass synth", mini: "Mini synth…" };
+  const INST = { piano: "Piano", epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", lead: "Synth lead", flute: "Flute-like", strings: "Strings", organ: "Organ", pluck: "Plucked", steel: "Acoustic guitar", nylon: "Nylon guitar", egtr: "Electric guitar", bass: "Bass synth", mini: "Mini synth…" };
   const P = { recMode: "add", ts: "4/4", bpm: 100, meter: 4, click: true, countIn: true, pps: 60, pos: 0, tracks: [], sel: -1, oct: 60, lat: 0 };
   let nextId = 1, undoSnap = null;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -314,7 +314,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   let AC = null, MASTER = null, NZ = null, MS = null;
   const MT = { id: "master", type: "master", name: "Master", vol: 90, fx: [], fxv: 0 };   // the master channel: its inserts process the whole mix
   function masterRebuild() { if (!AC || !MS) return; MASTER.disconnect(); endGrp(MS.grp, 4000); MS.grp = newGrp(); MS.inp = fxChain(AC, MT, MS.mv, MS.grp); MASTER.connect(MS.inp); }
-  const sampPrep = C => !window.SAMP ? Promise.resolve() : Promise.all([...[...new Set(P.tracks.map(t => ({ piano: "piano", epiano: "rhodes", wurli: "wurli" })[t.inst]).filter(Boolean))].map(k => SAMP.load(C, k)), P.tracks.some(t => t.type === "drum" && t.kit === "kit") ? SAMP.loadDrums(C) : 0]);
+  const sampPrep = C => !window.SAMP ? Promise.resolve() : Promise.all([...[...new Set(P.tracks.map(t => ({ piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr" })[t.inst]).filter(Boolean))].map(k => SAMP.load(C, k)), P.tracks.some(t => t.type === "drum" && t.kit === "kit") ? SAMP.loadDrums(C) : 0]);
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) { status("This browser can't play audio."); return null; } if (!AC) { AC = new C({ latencyHint: "interactive" }); setup(AC); sampPrep(AC); } if (AC.state === "suspended") AC.resume(); return AC; }
   function setup(C) { const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 3; MASTER = C.createGain(); const mv = C.createGain(); mv.gain.value = MT.vol / 100;
     const live = C === AC, grp = live ? newGrp() : { oscs: [], inst: [] }, inp = fxChain(C, MT, mv, grp); MASTER.connect(inp); mv.connect(comp); comp.connect(C.destination);
@@ -325,8 +325,8 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   const velLP = (C, v) => { const f = C.createBiquadFilter(); f.type = "lowpass"; f.Q.value = .5; f.frequency.value = 1200 + 16000 * Math.pow(Math.max(.03, Math.min(1, v)), 2); return f; };
   // a synth voice; returns { stop(t) }
   function voice(C, inst, m, t, vel, dest) {
-    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli" }[inst];   // sampled keyboards (synth until the samples arrive)
-    if (sk && window.SAMP) { if (SAMP.ready(C, sk)) { const n = SAMP.note(C, sk, m, t, vel, dest); if (n) return n; } else SAMP.load(C, sk); if (inst === "wurli") inst = "epiano"; }
+    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr" }[inst];   // sampled keyboards (synth until the samples arrive)
+    if (sk && window.SAMP) { if (SAMP.ready(C, sk)) { const n = SAMP.note(C, sk, m, t, vel, dest); if (n) return n; } else SAMP.load(C, sk); if (inst === "wurli") inst = "epiano"; if (["steel", "nylon", "egtr"].includes(inst)) inst = "pluck"; }
     const f = mf(m), g = C.createGain(), os = [], add = (type, fr, a, det) => { const o = C.createOscillator(), og = C.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = a; o.connect(og); og.connect(pre); os.push(o); return o; };
     const pre = C.createBiquadFilter(), vlp = velLP(C, vel); pre.type = "lowpass"; pre.frequency.value = 12000; pre.connect(vlp); vlp.connect(g); g.connect(dest);
     let A = .01, peak = .22 * velAmp(vel), sus = .7, D = .3, R = .15, perc = false;

@@ -227,7 +227,7 @@ html.gp-embed .gp{padding:0;max-width:none}
   const PB = M => (M.comp ? M.felt : M.beats);   // the pulse a listener taps
   const std = (Mid, n) => (Mid === "4/4" && n === 16) || (Mid === "3/4" && n === 12);
   const countOf = (M, p) => { const bi = M.beats.indexOf(p); if (bi >= 0) return String(bi + 1); return M.comp ? "+" : ["", "e", "+", "a"][p % 4]; };
-  const CI = { epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", piano: "Piano", pluck: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", organ: "Organ", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
+  const CI = { epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", piano: "Piano", steel: "Acoustic guitar", nylon: "Nylon guitar", pluck: "Clean electric guitar", dist: "Distortion guitar", organ: "Organ", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Rock kit", [["Kick", "k"], ["Snare", "s"], ["Hi-hat", "h"]]], pop: ["Pop kit (clap)", [["Kick", "k"], ["Clap", "c"], ["Hi-hat", "h"]]], ride: ["Ballad kit (ride)", [["Kick", "k"], ["Snare", "s"], ["Ride", "y"]]],
     rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]],
@@ -410,7 +410,7 @@ html.gp-embed .gp{padding:0;max-width:none}
   // ---------- audio ----------
   let AC = null, OUT = null, BUS = {}, NZ = null, CURVE = null;
   const ACOUSTIC = ["rock", "pop", "ride", "rim"];   // kits played with the sampled acoustic drums (808, chiptune and samba stay synthesized)
-  const sampPrep = inst => { const k = { piano: "piano", epiano: "rhodes", wurli: "wurli" }[inst]; return window.SAMP ? Promise.all([k ? SAMP.load(AC, k) : 0, ACOUSTIC.includes(S.kit) ? SAMP.loadDrums(AC) : 0]) : Promise.resolve(); };
+  const sampPrep = inst => { const k = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr" }[inst]; return window.SAMP ? Promise.all([k ? SAMP.load(AC, k) : 0, ACOUSTIC.includes(S.kit) ? SAMP.loadDrums(AC) : 0]) : Promise.resolve(); };
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); sampPrep(S.ci); } if (AC.state === "suspended") AC.resume(); return AC; }
   function build() {
     const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .85; comp.connect(master); master.connect(AC.destination);
@@ -428,8 +428,12 @@ html.gp-embed .gp{padding:0;max-width:none}
   function mix() { if (!AC) return; const t = AC.currentTime || 0, set = (p, v) => p.setTargetAtTime(v, t, .03); set(BUS.C.gain, S.vol.C / 100 * .9); set(BUS.B.gain, S.vol.B / 100 * 1.15); set(BUS.D.gain, S.vol.D / 100 * .9); set(BUS.dry.gain, 1 - S.vol.R / 250); set(BUS.wet.gain, S.vol.R / 100 * .8); set(BUS.dwet.gain, (S.vol.E || 0) / 100 * .6); BUS.dl.delayTime.setValueAtTime(Math.min(1.9, 60 / S.bpm * (+(document.getElementById("echoN") || {}).value || .75)), t); }
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   function tone(inst, m, t, dur, vel, dest) {
-    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli" }[inst];   // sampled keyboards (synth until the samples arrive)
-    if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { SAMP.note(AC, sk, m, t, vel, dest, dur); return; } SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; }
+    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr" }[inst];   // sampled keyboards and guitars (synth until the samples arrive)
+    if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { let to = dest;
+        if (inst === "dist") { const pre = AC.createGain(), ws = AC.createWaveShaper(), cab = AC.createBiquadFilter(), post = AC.createGain();   // the clean electric guitar driven into the distortion curve and a speaker-cabinet filter
+          pre.gain.value = 2.4; ws.curve = CURVE; cab.type = "lowpass"; cab.frequency.value = 3400; cab.Q.value = 1; post.gain.value = .32; pre.connect(ws); ws.connect(cab); cab.connect(post); post.connect(dest); to = pre; }
+        SAMP.note(AC, sk, m, t, vel, to, dur); return; }
+      SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; if (inst === "steel") inst = "pluck"; }
     const f = mf(m), g = AC.createGain(); g.connect(dest);
     const osc = (type, fr, gain, det, to) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = gain; o.connect(og); og.connect(to || g); return o; };
     const lpf = (fr, q = .7) => { const x = AC.createBiquadFilter(); x.type = "lowpass"; x.frequency.value = fr; x.Q.value = q; x.connect(g); return x; };
@@ -488,7 +492,7 @@ html.gp-embed .gp{padding:0;max-width:none}
     const sw = g => (g % 4 === 2 ? S.swing / 100 * .667 * st : g % 2 === 1 ? S.swing / 100 * .333 * st : 0);
     const at = g => g * st + sw(g);
     const acc = p => (m.felt.includes(p) ? 1 : m.beats.includes(p) ? .85 : .7);
-    const guitar = ["pluck", "dist", "nylon"].includes(S.ci);
+    const guitar = ["pluck", "dist", "nylon", "steel"].includes(S.ci);
     let g0 = 0;
     S.ch.forEach((c, i) => {
       const len = Math.max(1, Math.round(c.beats * 4)), v = V[i], up = v.up; marks.push({ t: at(g0), i });
