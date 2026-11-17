@@ -704,6 +704,7 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .blgap.good i { border-left: 3px solid #1b7a3a; } .blgap.bad i { border-left: 3px solid #b3261e; } .blgap.miss i { border-left: 3px dashed #1b7a3a; }
 .blend { width: 7px; margin: 9px 0 9px 6px; border-left: 2px solid var(--ink, #222); border-right: 4px solid var(--ink, #222); }
 .bllegend { font-size: .9rem; display: flex; gap: 6px 14px; flex-wrap: wrap; margin: 6px 0 0; } .bllegend .good { color: #1b7a3a; } .bllegend .bad { color: #b3261e; } .bllegend .miss { color: #1b7a3a; font-weight: 700; }
+.blinfo { margin: 4px 0 8px; }
 /* Harmonic Succession: Adam's MTC 501 examples */
 .hs-fig img { display: block; margin: 8px 0 0; }
 .hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }

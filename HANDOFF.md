@@ -602,3 +602,9 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z170 (2026-11-17) Sampled piano
 - engine.js: default timbre now plays piano samples (assets/audio/piano, 29 notes, tonejs-instruments CC BY 3.0) retuned from the nearest sample; synth fallback improved (detune, voice vibrato, velocity brightness); shared room reverb send per bus; master limiter; first piano example waits up to 4 s for samples; play(p, onStart) syncs follow highlighting.
 - about-this-site: piano sample credit.
+
+## z171 (2026-11-17) Electric pianos, rhythm stems, dot toy
+- build/shared/samplers.js (copied to assets/samplers.js by build_pages.py; pages with meta samp: 1 load it): sampled piano, Rhodes (jRhodes3c, CC BY-NC-SA 4.0) and Wurlitzer (Greg Sullivan EP200, CC BY 3.0) in assets/audio/epiano; used by groove-maker, process-lab, multitrack-studio (new instrument key wurli; epiano = Rhodes); exports await the samples.
+- engine.js: a lone percussion-clef rhythm line has stems up.
+- notevalues.js: dots toy notes on the staff are the buttons (role=button, Enter/Space); "Write dots as ties" toggle; TOYS.dots.hides() rejects dots that would hide a beat (4/4 middle, off-beat notes over a beat); bar-lines toy shows beats per bar and beat unit.
+- about-this-site: sample credits.

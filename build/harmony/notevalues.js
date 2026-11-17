@@ -531,8 +531,9 @@ window.FAM = (() => {
         const area = box.querySelector(".nvbl"), msg = box.querySelector(".nvmsg");
         let m = 1, on = new Set(), done = false; const N = 12;
         const draw = (fi) => { const [ts, t, per] = TOYS.bars.MS[m];
-          let h = `<div class="blrow" role="group" aria-label="${N} beats in ${ts}, one ${NM[t]} each. Each gap is a button: press it to add or remove a bar line."><span class="blts" aria-hidden="true"><span>${ts.split("/")[0]}</span><span>${ts.split("/")[1]}</span></span>`;
-          for (let i = 1; i <= N; i++) { h += `<span class="bln" style="--w:${t === "q" ? 24 : 34}px" role="img" aria-label="Beat ${i}: ${NM[t]}">${GL[t]}</span>`;
+          const beat = t === "qd" ? "a dotted quarter note gets the beat (three eighth notes)" : `a ${NM[t]} gets the beat`;
+          let h = `<p class="blinfo"><b>${ts}</b>: ${per} beats per bar; ${beat}.</p><div class="blrow" role="group" aria-label="${N} beats in ${ts}, one ${NM[t]} each. Each gap is a button: press it to add or remove a bar line."><span class="blts" aria-hidden="true"><span>${ts.split("/")[0]}</span><span>${ts.split("/")[1]}</span></span>`;
+          for (let i = 1; i <= N; i++) { h += `<span class="bln" style="--w:${t === "q" ? 24 : 28}px" role="img" aria-label="Beat ${i}: ${NM[t]}">${GL[t]}</span>`;
             if (i < N) { const sel = on.has(i), ok = i % per === 0, cls = !done ? "" : sel && ok ? " good" : sel ? " bad" : ok ? " miss" : "";
               h += `<button type="button" class="blgap${sel ? " on" : ""}${cls}" data-g="${i}" aria-pressed="${sel}" aria-label="Bar line after beat ${i}"><i></i></button>`; } }
           area.innerHTML = h + `<span class="blend" aria-hidden="true"></span></div>` + (done ? `<p class="bllegend"><span class="good">█</span> correct <span class="bad">█</span> not a bar line <span class="miss">┆</span> missed</p>` : "");
@@ -551,12 +552,15 @@ window.FAM = (() => {
       START: [["4/4", "q q q q"], ["4/4", "h h"], ["3/4", "q q q"], ["4/4", "q q h"], ["2/4", "8 8 8 8"]],
       html: () => `<div class="nvtoy" id="tyDots"><h3>Try it: add a dot</h3><p class="note">Press a note's button to dot it. The dot adds half the note's value, so the notes after it give up that much time and the bar still adds up.</p>
         <div class="staff nvstaff" aria-hidden="true"></div><div class="nvjoins" role="group" aria-label="Notes in the bar"></div>
-        <div class="nvbtns"><button type="button" class="btn" data-ty="play">▶ Play</button><button type="button" class="btn" data-ty="undo">Undo</button><button type="button" class="btn" data-ty="next">Another bar</button></div><p class="nvmsg" role="status" aria-live="polite"></p></div>`,
+        <div class="nvbtns"><button type="button" class="btn" data-ty="play">▶ Play</button><button type="button" class="btn" data-ty="ties" aria-pressed="false">Write dots as ties</button><button type="button" class="btn" data-ty="undo">Undo</button><button type="button" class="btn" data-ty="next">Another bar</button></div><p class="nvmsg" role="status" aria-live="polite"></p></div>`,
+      // a dotted value split into its tied pieces: the note itself, then half of it (then half again for a second dot)
+      TIE: { hd: ["h", "q"], hdd: ["h", "q", "8"], qd: ["q", "8"], qdd: ["q", "8", "16"], "8d": ["8", "16"] },
       wire(root, H, tools) {
         const box = root.querySelector("#tyDots"); if (!box) return;
         const st = box.querySelector(".nvstaff"), row = box.querySelector(".nvjoins"), msg = box.querySelector(".nvmsg");
-        let k = 0, ts, d, hist = [];
-        const spec = () => ({ type: "score", clefs: ["percussion"], time: ts, vf: "C", sig: {}, bpm: 84, minBar: 260, bars: [{ t: [d.map(x => ({ k: [P], d: TOK[x] }))] }] });
+        let k = 0, ts, d, hist = [], ties = false;
+        const notes = () => d.flatMap(x => { const parts = ties && TOYS.dots.TIE[TOK[x]] || [TOK[x]]; return parts.map((t, i) => ({ k: [P], d: t, tie: i < parts.length - 1 })); });
+        const spec = () => ({ type: "score", clefs: ["percussion"], time: ts, vf: "C", sig: {}, bpm: 84, minBar: 260, bars: [{ t: [notes()] }] });
         const draw = (fi) => { tools.drawStaff(st, spec());
           row.innerHTML = d.map((x, i) => `<button type="button" class="nvjoin wide" data-n="${i}" aria-label="Dot note ${i + 1}, the ${NM[TOK[x]]}"><b aria-hidden="true">${GL[TOK[x]]}</b><span>${i + 1}</span></button>`).join("");
           if (fi != null) { const b = row.querySelector(`[data-n="${Math.min(fi, d.length - 1)}"]`); if (b) b.focus(); } };
@@ -571,6 +575,11 @@ window.FAM = (() => {
           if (need > 1e-9) return say(msg, "No room: there's no time left after this note for the dot to take. A dot can't cross the bar line (a tie can).", "no");
           hist.push(d); d = nd; draw(i);
           say(msg, `The dot adds ${frac(add)} beat${add > 1 ? "s" : ""} (half of ${frac(v)}), so ${took.join(" and ")}. The bar still holds ${frac(d.reduce((a, b) => a + b, 0))} beats.`, "ok"); });
+        box.querySelector('[data-ty="ties"]').onclick = e => { const dotted = d.filter(x => TOYS.dots.TIE[TOK[x]]);
+          ties = !ties; e.currentTarget.setAttribute("aria-pressed", String(ties)); e.currentTarget.textContent = ties ? "Write ties as dots" : "Write dots as ties"; draw();
+          say(msg, !dotted.length ? (ties ? "No dotted notes yet. Dot a note and it will appear as tied notes." : "Back to dots.") : ties
+            ? `Each dotted note is now ${dotted.some(x => /dd/.test(TOK[x])) ? "two or three tied notes: the note, a note half as long, and for a second dot, half again" : "two tied notes: the note, then a note half as long"}. The tie holds them as one sound, so the rhythm doesn't change.`
+            : "Back to dots: the same rhythm, written with fewer notes.", "ok"); };
         box.querySelector('[data-ty="undo"]').onclick = () => { if (hist.length) { d = hist.pop(); draw(); say(msg, ""); } };
         box.querySelector('[data-ty="next"]').onclick = () => { k = (k + 1) % TOYS.dots.START.length; load(); };
         box.querySelector('[data-ty="play"]').onclick = () => tools.play(H.withClick(spec()));

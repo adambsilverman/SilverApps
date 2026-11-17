@@ -377,7 +377,7 @@
         clefs.forEach((c, si) => {
           const id = ids[si], vs = bar[id] || [], acc = {};
           vs.forEach((voice, vi) => {
-            const stem = vs.length > 1 ? (vi ? -1 : 1) : 0;
+            const stem = vs.length > 1 ? (vi ? -1 : 1) : c === "percussion" ? 1 : 0;   // a lone rhythm line: stems up
             const notes = voice.map(n => {
               if (n.ghost) { const gn = new VF.GhostNote({ duration: n.d }); last[si + ":" + vi] = null; return gn; }   // invisible placeholder
               const isRest = !n.k.length;

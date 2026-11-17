@@ -1,4 +1,4 @@
-<!-- title: Groove Maker | desc: Build chord progressions from Roman numerals (diatonic, borrowed, applied and other chromatic chords), drag them into order, pick a style, meter and instruments, edit the beat on a time-unit-box grid, transpose to any key, and export audio. -->
+<!-- title: Groove Maker | desc: Build chord progressions from Roman numerals (diatonic, borrowed, applied and other chromatic chords), drag them into order, pick a style, meter and instruments, edit the beat on a time-unit-box grid, transpose to any key, and export audio. | samp: 1 -->
 <style>
 .gp{--fi-pill:0;--fi-r:0;--fi-r-sm:0;--gs:"Schibsted Grotesk",system-ui,sans-serif;--gd:"League Gothic","Barlow Condensed",sans-serif;
   --d1:#ffd3d3;--d2:#ffe0bd;--d3:#fff0a8;--d4:#cdf1c6;--d5:#cbe0ff;--d6:#e3d3ff;--d7:#ffd3ec;--e1:#d43a3a;--e2:#d9771f;--e3:#c9a400;--e4:#3c9a35;--e5:#2f6fd1;--e6:#7d4bd1;--e7:#c93c93;
@@ -227,7 +227,7 @@ html.gp-embed .gp{padding:0;max-width:none}
   const PB = M => (M.comp ? M.felt : M.beats);   // the pulse a listener taps
   const std = (Mid, n) => (Mid === "4/4" && n === 16) || (Mid === "3/4" && n === 12);
   const countOf = (M, p) => { const bi = M.beats.indexOf(p); if (bi >= 0) return String(bi + 1); return M.comp ? "+" : ["", "e", "+", "a"][p % 4]; };
-  const CI = { epiano: "Electric piano", piano: "Piano", pluck: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", organ: "Organ", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
+  const CI = { epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", piano: "Piano", pluck: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", organ: "Organ", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Rock kit", [["Kick", "k"], ["Snare", "s"], ["Hi-hat", "h"]]], pop: ["Pop kit (clap)", [["Kick", "k"], ["Clap", "c"], ["Hi-hat", "h"]]], ride: ["Ballad kit (ride)", [["Kick", "k"], ["Snare", "s"], ["Ride", "y"]]],
     rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]],
@@ -409,7 +409,8 @@ html.gp-embed .gp{padding:0;max-width:none}
   function voiceAll() { let prev = null; return S.ch.map(c => { const v = voice(c, prev); prev = v.up; return v; }); }
   // ---------- audio ----------
   let AC = null, OUT = null, BUS = {}, NZ = null, CURVE = null;
-  function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); } if (AC.state === "suspended") AC.resume(); return AC; }
+  const sampPrep = inst => { const k = { piano: "piano", epiano: "rhodes", wurli: "wurli" }[inst]; return k && window.SAMP ? SAMP.load(AC, k) : Promise.resolve(); };
+  function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); sampPrep(S.ci); } if (AC.state === "suspended") AC.resume(); return AC; }
   function build() {
     const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .85; comp.connect(master); master.connect(AC.destination);
     OUT = AC.createGain(); const dry = AC.createGain(), wet = AC.createGain(); OUT.connect(dry); dry.connect(comp);
@@ -426,6 +427,8 @@ html.gp-embed .gp{padding:0;max-width:none}
   function mix() { if (!AC) return; const t = AC.currentTime || 0, set = (p, v) => p.setTargetAtTime(v, t, .03); set(BUS.C.gain, S.vol.C / 100 * .9); set(BUS.B.gain, S.vol.B / 100 * 1.15); set(BUS.D.gain, S.vol.D / 100 * .9); set(BUS.dry.gain, 1 - S.vol.R / 250); set(BUS.wet.gain, S.vol.R / 100 * .8); set(BUS.dwet.gain, (S.vol.E || 0) / 100 * .6); BUS.dl.delayTime.setValueAtTime(Math.min(1.9, 60 / S.bpm * (+(document.getElementById("echoN") || {}).value || .75)), t); }
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
   function tone(inst, m, t, dur, vel, dest) {
+    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli" }[inst];   // sampled keyboards (synth until the samples arrive)
+    if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { SAMP.note(AC, sk, m, t, vel, dest, dur); return; } SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; }
     const f = mf(m), g = AC.createGain(); g.connect(dest);
     const osc = (type, fr, gain, det, to) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = gain; o.connect(og); og.connect(to || g); return o; };
     const lpf = (fr, q = .7) => { const x = AC.createBiquadFilter(); x.type = "lowpass"; x.frequency.value = fr; x.Q.value = q; x.connect(g); return x; };
@@ -740,7 +743,7 @@ html.gp-embed .gp{padding:0;max-width:none}
     try {
       if (isBx()) await bxLoad();
       const one = events(), dur = one.len * nPass + 2.5;
-      AC = new OfflineAudioContext(2, Math.ceil(44100 * dur), 44100); build();
+      AC = new OfflineAudioContext(2, Math.ceil(44100 * dur), 44100); build(); await sampPrep(S.ci);
       for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, .05 + p * one.len + e.t); } catch (x) {} });
       const buf = await AC.startRendering(), blob = fmt === "mp3" ? await mp3(buf) : wav(buf), url = URL.createObjectURL(blob), a = document.createElement("a");
       const name = `groove-${S.tonic.replace("♯", "sharp").replace("♭", "flat")}-${S.mode}.${fmt}`;
@@ -757,7 +760,7 @@ html.gp-embed .gp{padding:0;max-width:none}
     const was = playing; if (playing) stop(); const save = { AC, OUT, BUS, NZ };
     try {
       if (isBx()) await bxLoad();
-      const one = events(); AC = new OfflineAudioContext(2, Math.ceil(44100 * (one.len * nPass + 2)), 44100); build();
+      const one = events(); AC = new OfflineAudioContext(2, Math.ceil(44100 * (one.len * nPass + 2)), 44100); build(); await sampPrep(S.ci);
       for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, p * one.len + e.t); } catch (x) {} });
       const buf = await AC.startRendering();
       await idbPut("incoming", { ch: [buf.getChannelData(0), buf.getChannelData(1)], sr: buf.sampleRate, bpm: M().comp ? S.bpm * 2 : S.bpm, meter: M().comp ? M().beats.length : M().n / 4, name: `Backing: ${S.ch.map(c => rn(c).text).join(" ")} in ${S.tonic} ${S.mode}`, swing: S.swing, len: one.len * nPass });
