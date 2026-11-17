@@ -458,13 +458,13 @@ window.FAM = (() => {
       wire(root) {
         const box = root.querySelector("#tyOrder"); if (!box) return;
         const list = box.querySelector(".nvcards"), msg = box.querySelector(".nvmsg");
-        const ALL = ["16", "8", "8d", "q", "qd", "h", "hd", "w"];
+        const ALL = ["16", "8", "q", "h", "w"];   // no dotted values: dots come later in the lesson
         let order = [], sel = -1;
         const draw = (focusI) => {
           list.innerHTML = order.map((t, i) => `<button type="button" class="nvcard${i === sel ? " sel" : ""}" role="option" aria-selected="${i === sel}" data-i="${i}" aria-label="${NM[t]}, position ${i + 1} of ${order.length}"><span class="g" aria-hidden="true">${GL[t]}</span><span class="n">${NM[t]}</span></button>`).join("");
           if (focusI != null && list.children[focusI]) list.children[focusI].focus();
         };
-        const fresh = () => { do { order = shuffle(ALL.filter(() => Math.random() < .85)); } while (order.length < 5); sel = -1; say(msg, ""); draw(); };
+        const fresh = () => { do { order = shuffle(ALL); } while (order.every((t, i) => t === ALL[i])); sel = -1; say(msg, ""); draw(); };
         const move = (i, j) => { if (j < 0 || j >= order.length) return; const [x] = order.splice(i, 1); order.splice(j, 0, x); sel = j; say(msg, ""); draw(j); };
         list.addEventListener("click", e => { const c = e.target.closest(".nvcard"); if (!c || list._dragged) return; const i = +c.dataset.i; sel = sel === i ? -1 : i; draw(i); });
         list.addEventListener("keydown", e => { const c = e.target.closest(".nvcard"); if (!c) return; const i = +c.dataset.i;
