@@ -62,12 +62,17 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
 .unit input[type=range]{accent-color:#ffb03a;width:min(100%,420px)}
 .row.fine input[type=range]{flex:1;min-width:140px}
 .vol input[type=range]{width:100%}
+.mix{display:flex;justify-content:space-around;gap:6px;background:#1b1c1f;border-radius:12px;padding:12px 6px 10px;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+.fader{display:flex;flex-direction:column;align-items:center;gap:6px;font:700 12px var(--fi-ui);color:#e6e6e6;text-transform:uppercase;letter-spacing:.03em;min-width:50px;text-align:center}
+.fader output{font:700 15px "SFMono-Regular",Menlo,monospace;color:#ffcf6a;min-width:3ch;text-align:center}
+.fader .unit input[type=range],.unit .fader input[type=range]{writing-mode:vertical-lr;direction:rtl;width:30px;height:140px;margin:0;accent-color:#ffb03a}
+.fader small{font:600 11px var(--fi-ui);color:#bdbdbd;text-transform:none;letter-spacing:0}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
 .flash{height:8px;border-radius:6px;background:#141517;box-shadow:inset 0 1px 3px rgba(0,0,0,.6);transition:background .05s}
 .flash.on{background:#ff4a2a;box-shadow:0 0 10px #ff5a3a}
 .flash.on.soft{background:#59d22a;box-shadow:0 0 10px #6fe33a}
 .status{font:700 16px "SFMono-Regular",Menlo,monospace;color:#ffcf6a;margin:0}
-@media (max-width:560px){.unit{padding:12px;border-radius:20px}.panel2{padding:12px}.beat{width:46px;height:46px;font-size:18px}.tbtn.go{min-width:0;flex:1}.big .round{width:56px;height:56px}}
+@media (max-width:560px){.fader{min-width:40px;font-size:11px}.unit .fader input[type=range]{height:110px}.unit{padding:12px;border-radius:20px}.panel2{padding:12px}.beat{width:46px;height:46px;font-size:18px}.tbtn.go{min-width:0;flex:1}.big .round{width:56px;height:56px}}
 </style>
 
 <main class="tool" id="main">
@@ -96,6 +101,12 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
     <div class="marks" id="marks" role="group" aria-label="Traditional metronome markings"></div>
   </section>
 
+  <section class="panel2" aria-labelledby="mixH">
+    <h2 id="mixH">Mixer</h2>
+    <div class="mix" id="mix" role="group" aria-labelledby="mixH"></div>
+    <p class="legend2">Each fader sets the level of one layer of the click: the <b>accent</b> on accented beats, the unaccented <b>beats</b>, and the divisions of each beat. Raise several at once to practice one against another (3 against 2, 5 against 4), or pull the Beat fader down and keep only the accent to test your inner pulse. Drum sounds play their own pattern and ignore the division faders.</p>
+  </section>
+
   <section class="panel2" aria-labelledby="meterH">
     <h2 id="meterH">Meter and accents</h2>
     <div class="grid2">
@@ -103,8 +114,6 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
         <select id="meter"></select></label>
       <label class="fld" for="groups" id="groupsWrap">Grouping (e.g. 2+2+3)
         <input type="text" id="groups" inputmode="numeric" value="2+2+3"></label>
-      <label class="fld" for="subdiv">Subdivide each beat
-        <select id="subdiv"><option value="1">No subdivision</option><option value="2">Eighths (2)</option><option value="3">Triplets (3)</option><option value="4">Sixteenths (4)</option><option value="5">Quintuplets (5)</option></select></label>
       <label class="fld" for="sound">Sound
         <select id="sound"><option value="click">Click</option><option value="wood">Woodblock</option><option value="beep">Beep</option><option value="cow">Cowbell</option><option value="drums">Drums (plain)</option><option value="swing">Drums (swing)</option><option value="voice">Count aloud (synth)</option></select></label>
     </div>
@@ -142,9 +151,30 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
     ["1 (every beat the same)", [1], "q"],
   ];
   const UNIT = { q: "♩ quarter-note beats per minute", h: "𝅗𝅥 half-note beats per minute", dq: "♩. dotted-quarter beats per minute", e: "♪ eighth notes per minute" };
-  let S = { bpm: 96, meter: 2, subdiv: 1, sound: "click", vol: .75, accents: null, groups: "2+2+3" };
+  let S = { bpm: 96, meter: 2, subdiv: 1, sound: "click", vol: .75, accents: null, groups: "2+2+3", mix: null };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-metronome") || "{}")); } catch (e) {}
+  // mixer levels (0–100): accent, beat, and four division layers; an old saved "subdivide" choice becomes that layer turned up
+  if (!S.mix) { S.mix = { acc: 100, beat: 80, d2: 0, d3: 0, d4: 0, d5: 0 }; if (S.subdiv > 1) S.mix["d" + S.subdiv] = 60; }
   const save = () => { try { localStorage.setItem("silverapps-metronome", JSON.stringify(S)); } catch (e) {} };
+
+  // ---------- mixer: d2…d5 are the division layers; in a compound beat (dotted quarter) they mean 3, 2, 6 and 4 pulses per beat ----------
+  const compoundMeter = () => METERS[S.meter][1] && METERS[S.meter][1].some(x => x > 1);
+  const DIVS = c => c ? { d2: 3, d3: 2, d4: 6, d5: 4 } : { d2: 2, d3: 3, d4: 4, d5: 5 };
+  const layerName = (k, c) => {
+    const u = METERS[S.meter][2];
+    if (c) return { d2: ["Division", "3 eighths"], d3: ["Duplets", "2 per beat"], d4: ["Subdivision", "6 sixteenths"], d5: ["Quadruplets", "4 per beat"] }[k];
+    if (u === "e") return { d2: ["Division", "2 sixteenths"], d3: ["Triplets", "3 per beat"], d4: ["Subdivision", "4 per beat"], d5: ["Quintuplets", "5 per beat"] }[k];
+    if (u === "h") return { d2: ["Division", "2 quarters"], d3: ["Triplets", "3 per beat"], d4: ["Subdivision", "4 eighths"], d5: ["Quintuplets", "5 per beat"] }[k];
+    return { d2: ["Division", "2 eighths"], d3: ["Triplets", "3 per beat"], d4: ["Subdivision", "4 sixteenths"], d5: ["Quintuplets", "5 per beat"] }[k]; };
+  // the dots under each beat light follow the finest layer that's turned up (a compound beat always shows its three eighths)
+  const dotsFor = c => { const D = DIVS(c); let n = c ? 3 : 1; ["d2", "d3", "d4", "d5"].forEach(k => { if (S.mix[k] > 0) n = Math.max(n, D[k]); }); return n; };
+  function drawMix() {
+    const c = compoundMeter();
+    $("mix").innerHTML = [["acc", "Accent", "accented beats"], ["beat", "Beat", "unaccented beats"], ...["d2", "d3", "d4", "d5"].map(k => [k, ...layerName(k, c)])]
+      .map(([k, l, sub]) => `<label class="fader"><output id="mo-${k}">${S.mix[k]}</output><input type="range" min="0" max="100" step="1" value="${S.mix[k]}" data-mix="${k}" aria-label="${l} (${sub}) level" aria-valuetext="${S.mix[k]} percent">${l}<small>${sub}</small></label>`).join("");
+  }
+  $("mix").addEventListener("input", e => { const k = e.target.dataset.mix; if (!k) return; S.mix[k] = +e.target.value; $("mo-" + k).textContent = S.mix[k]; e.target.setAttribute("aria-valuetext", S.mix[k] + " percent"); save();
+    if (k[0] === "d") { const before = bar.map(b => b.sub); bar.forEach(b => b.sub = dotsFor(b.compound)); if (bar.some((b, i) => b.sub !== before[i])) drawBeats(); } });
 
   // ---------- bar model: beats [{ sub, acc, grpStart }] ----------
   let bar = [];
@@ -153,9 +183,9 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
     $("groupsWrap").hidden = M[3] !== "custom";
     if (M[3] === "custom") { groups = (S.groups.match(/\d+/g) || ["2", "2", "3"]).map(Number).filter(n => n > 0 && n < 10).slice(0, 8); if (!groups.length) groups = [2, 2, 3]; beats = Array(groups.reduce((a, b) => a + b, 0)).fill(1); }
     const starts = new Set(); if (groups) { let k = 0; groups.forEach(g => { starts.add(k); k += g; }); }
-    bar = beats.map((sub, i) => ({ sub: sub > 1 ? sub : (M[2] === "e" ? 1 : +S.subdiv), compound: sub > 1, acc: i === 0 ? 3 : (groups && starts.has(i)) ? 2 : 1, grpStart: groups ? starts.has(i) : false }));
+    bar = beats.map((sub, i) => ({ sub: dotsFor(sub > 1), compound: sub > 1, acc: i === 0 ? 3 : (groups && starts.has(i)) ? 2 : 1, grpStart: groups ? starts.has(i) : false }));
     if (keepAcc && S.accents && S.accents.length === bar.length) bar.forEach((b, i) => b.acc = S.accents[i]); else S.accents = bar.map(b => b.acc);
-    $("subdiv").disabled = M[2] === "e" || M[1].some(x => x > 1);
+    drawMix();
     $("unitTxt").textContent = UNIT[M[2]];
     drawBeats();
   }
@@ -189,9 +219,10 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
   let AC = null, master = null;
   function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; master.connect(comp); comp.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
   let noiseBuf = null;
-  function click(t, level, beatNo, isSub) {
-    if (level === 0) return;
-    const g = AC.createGain(); g.connect(master);
+  function click(t, level, beatNo, isSub, mult = 1) {
+    if (level === 0 || !(mult > 0)) return;
+    const vg = AC.createGain(); vg.gain.value = mult; vg.connect(master);
+    const g = AC.createGain(); g.connect(vg);
     const amp = isSub ? .28 : level === 3 ? 1 : level === 2 ? .7 : .5;
     const hi = level === 3 && !isSub, mid = level === 2 && !isSub;
     if (S.sound === "click" || S.sound === "voice" && isSub) {
@@ -275,14 +306,22 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
   const visQ = [];
   function beatDur() { return 60 / S.bpm; }
   function silentBar(n) { const g = $("gapOn").value; if (g === "0") return false; const [p, s] = g.split("-").map(Number); return n % (p + s) >= p; }
+  // one step per beat: the beat click at its fader level, then every division layer that's turned up, spread evenly through the beat
   function schedule() {
     while (nextT < AC.currentTime + .12) {
-      const b = bar[beatI], silent = silentBar(barNo);
-      if (!silent) { if (isDrums()) { if (subI === 0) drumBeat(nextT, beatI, barNo, b); } else click(nextT, subI === 0 ? b.acc : (b.acc === 0 ? 0 : 1), beatI, subI > 0); }
-      visQ.push({ t: nextT, beatI, subI, silent });
-      const subDur = beatDur() * (b.compound ? 1 / b.sub : 1 / b.sub);
-      nextT += subDur; subI++;
-      if (subI >= b.sub) { subI = 0; beatI++; if (beatI >= bar.length) { beatI = 0; barNo++; if (barNo % 8 === 0) groove++; ramp(); } }
+      const b = bar[beatI], silent = silentBar(barNo), L = beatDur();
+      if (!silent && b.acc) {
+        if (isDrums()) drumBeat(nextT, beatI, barNo, b);
+        else {
+          click(nextT, b.acc, beatI, false, (b.acc === 3 ? S.mix.acc : S.mix.beat) / 100);
+          const D = DIVS(b.compound), done = new Set();
+          ["d2", "d3", "d4", "d5"].sort((x, y) => D[x] - D[y]).forEach(k => { if (!(S.mix[k] > 0)) return;
+            for (let j = 1; j < D[k]; j++) { const f = Math.round(j / D[k] * 3600); if (done.has(f)) continue; done.add(f); click(nextT + L * j / D[k], 1, beatI, true, S.mix[k] / 100); } });
+        }
+      }
+      for (let j = 0; j < b.sub; j++) visQ.push({ t: nextT + L * j / b.sub, beatI, subI: j, silent });
+      nextT += L; beatI++;
+      if (beatI >= bar.length) { beatI = 0; barNo++; if (barNo % 8 === 0) groove++; ramp(); }
     }
   }
   function ramp() {
@@ -308,10 +347,9 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
 
   // ---------- settings ----------
   $("meter").innerHTML = METERS.map((m, i) => `<option value="${i}">${m[0]}</option>`).join("");
-  $("meter").value = S.meter; $("subdiv").value = S.subdiv; $("sound").value = S.sound; $("vol").value = Math.round(S.vol * 100); $("groups").value = S.groups;
+  $("meter").value = S.meter; $("sound").value = S.sound; $("vol").value = Math.round(S.vol * 100); $("groups").value = S.groups;
   $("meter").onchange = e => { S.meter = +e.target.value; buildBar(false); save(); };
   $("groups").onchange = e => { S.groups = e.target.value; buildBar(false); save(); };
-  $("subdiv").onchange = e => { S.subdiv = +e.target.value; buildBar(true); save(); };
   $("sound").onchange = e => { S.sound = e.target.value; save(); };
   $("vol").oninput = e => { S.vol = e.target.value / 100; if (master) master.gain.value = S.vol; save(); };
   document.addEventListener("keydown", e => {
