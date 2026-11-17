@@ -608,3 +608,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - engine.js: a lone percussion-clef rhythm line has stems up.
 - notevalues.js: dots toy notes on the staff are the buttons (role=button, Enter/Space); "Write dots as ties" toggle; TOYS.dots.hides() rejects dots that would hide a beat (4/4 middle, off-beat notes over a beat); bar-lines toy shows beats per bar and beat unit.
 - about-this-site: sample credits.
+
+## z172 (2026-11-17) Dot toy ties, stereo counting voice
+- notevalues.js: TOYS.dots.pieces() writes each note so every beat shows (off-beat notes tied across beats; in 4/4 notes not starting on beat 1 tied across beat 3); replaces the refusal rule. Beams no longer block note clicks (extra.css pointer-events).
+- assets/count-voice-Adam/*.wav: were left-channel only; now the same voice in both channels.

@@ -972,6 +972,13 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .nvstaff { min-height: 110px; }
 .nvmsg { min-height: 1.4em; margin: 4px 0 0; font-weight: 600; }
 .nvmsg.ok { color: #1b7a3a; } .nvmsg.no { color: #b3261e; }
+/* "add a dot" toy: the notes on the staff are the buttons */
+.nvclick .nvhit { cursor: pointer; outline: none; }
+.nvclick .nvhitbox { fill: transparent; stroke: none; }
+.nvclick .nvhit:hover .nvhitbox { fill: rgba(10, 88, 202, .1); }
+.nvclick .nvhit:focus-visible .nvhitbox { fill: rgba(10, 88, 202, .1); stroke: #0a58ca; stroke-width: 2; }
+.nvclick svg g:not(.nvhit) { pointer-events: none; }
+.nvclick svg .nvhit { pointer-events: auto; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

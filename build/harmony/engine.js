@@ -373,6 +373,9 @@
           conn(staves[gs], staves[gs + 1], j === row.length - 1 && bi === o.bars.length - 1 && o.final !== false ? "boldDoubleRight" : "singleRight");
         }
         const startX = Math.max(...staves.map(s => s.getNoteStartX())); staves.forEach(s => s.setNoteStartX(startX));
+        if (bar.multi) {   // bar.multi: a multi-bar rest (thick bar, number of bars above), timed as that many bars of the meter in force
+          staves.forEach(s => { const mm = new VF.MultiMeasureRest(bar.multi, { show_number: true }); mm.setStave(s); st(mm); mm.setContext(ctx).draw(); });
+          const [mn, md] = curT.split("/").map(Number); barQ += bar.multi * mn * 4 / md; rowStaves.push(staves); x += bw; return; }
         const vlist = [], beams = [], tuplets = [];
         clefs.forEach((c, si) => {
           const id = ids[si], vs = bar[id] || [], acc = {};
@@ -384,7 +387,7 @@
               const shown = n.barRest ? "w" : n.d;   // n.barRest: a whole-bar rest in any meter: drawn as a whole rest, timed as the bar (n.d = the bar's length, e.g. "hd" in 3/4 or 6/8)
               const keys = isRest ? [/^w/.test(shown) ? restW[c] : rest[c]] : n.k.map(s => { const p = parse(s); return { s: LET[p.l].toLowerCase() + "/" + p.o, p }; }).sort((a, b) => midi(a.p) - midi(b.p));
               const sn = new VF.StaveNote({ clef: c === "percussion" ? "percussion" : c, keys: isRest ? keys : keys.map(y => y.s), duration: shown + (isRest ? "r" : ""), stem_direction: stem || 1, auto_stem: !stem && !isRest, align_center: !!n.center || (isRest && /^w/.test(shown) && voice.length === 1) });   // n.center: a whole-bar rest centered in the bar
-              if (n.center && !isRest) sn._saCenter = true;
+              if (n.center || n.barRest) sn._saCenter = true;   // (VexFlow's own centering drifts in short bars, so centered notes and bar rests are re-centered after drawing)
               if (!isRest && c !== "percussion") keys.forEach((y, ki) => {
                 const kk = y.p.l + "/" + y.p.o, cur = kk in acc ? acc[kk] : ((o.sig && o.sig[y.p.l]) || 0);
                 const tiedIn = last[si + ":" + vi] && last[si + ":" + vi].tie && last[si + ":" + vi].sn && last[si + ":" + vi].n.k.includes(n.k[0]);
@@ -513,7 +516,7 @@
     const sp = s => { const x = parse(s); return nmSpoken(x) + " " + x.o; };
     const nd = n => { if (n.barRest) return "whole-bar rest"; const m = /^(w|h|q|8|16)(d*)$/.exec(n.d); const d = (m[2] ? "dotted " : "") + DURNAME[m[1]]; return (n.k.length ? (clefs[0] === "percussion" ? "" : n.k.map(sp).join(" ") + " ") + d : d.replace("note", "rest")) + (n.tie ? " tied" : "") + (n.tag ? ` (${n.tag})` : "") + (n.hl ? " (circled)" : "") + (n.ly ? ` “${n.ly}”` : "") + (n.lab ? `, ${rnSpoken(n.lab)}` : ""); };
     const kd = o.vf && o.vf !== "C" && clefs[0] !== "percussion" ? `key signature of ${speak(nm(parse(o.vf.replace(/m$/, "").replace("b", "♭").replace("#", "♯"))))}${o.vf.endsWith("m") ? " minor" : " major"}, ` : "";
-    return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (o.names ? o.names[si] + " " : si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
+    return `Music, ${kd}${o.time !== null ? (o.time || "4/4") + " time" : ""}. ` + o.bars.map((b, i) => b.multi ? `Bar ${i + 1}: rest for ${b.multi} bars` : `Bar ${i + 1}: ` + ids.map((id, si) => (b[id] || []).map(v => v.map(nd).join(", ")).join("; ") ? `${clefs.length > 1 ? (o.names ? o.names[si] + " " : si ? "bass staff " : "treble staff ") : ""}${(b[id] || []).map(v => v.map(nd).join(", ")).join("; ")}` : "").filter(x => x).join(". ")).join(". ") + ".";
   }
   // a metronome click on every beat of a score spec (pick-up bars start mid-bar), merged with the music
   // beat positions (in quarter notes) within a bar: simple meters by their beat note, compound meters by the dotted quarter,
@@ -591,8 +594,10 @@
   function scorePlay(o) {
     const spb = 60 / (o.bpm || 100), ev = [], ids = staffIds(o), perc = (o.clefs || [])[0] === "percussion";
     ids.forEach((id, si) => { for (let vi = 0; vi < 2; vi++) {
-      let t = 0, held = null, barStart = 0;
+      let t = 0, held = null, barStart = 0, meter = o.time || "4/4";
       o.bars.forEach(b => {
+        if (b.time) meter = b.time;
+        if (b.multi) { const [mn, md] = meter.split("/").map(Number); barStart += b.multi * mn * 4 / md * spb; held = null; return; }   // a multi-bar rest: silence
         const voice = (b[id] || [])[vi]; t = barStart;
         if (voice) voice.forEach(n => {
           const d = durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1) * spb;

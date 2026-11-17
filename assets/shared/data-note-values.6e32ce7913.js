@@ -551,22 +551,39 @@ window.FAM = (() => {
     // 4. press a note to dot it: it grows by half, and the notes after it shrink so the bar still adds up
     dots: {
       START: [["4/4", "q q q q"], ["4/4", "h h"], ["3/4", "q q q"], ["4/4", "q q h"], ["2/4", "8 8 8 8"]],
-      html: () => `<div class="nvtoy" id="tyDots"><h3>Try it: add a dot</h3><p class="note">Press a note's button to dot it. The dot adds half the note's value, so the notes after it give up that much time and the bar still adds up.</p>
-        <div class="staff nvstaff" aria-hidden="true"></div><div class="nvjoins" role="group" aria-label="Notes in the bar"></div>
+      html: () => `<div class="nvtoy" id="tyDots"><h3>Try it: add a dot</h3><p class="note">Click a note to dot it. The dot adds half the note's value, so the notes after it give up that much time and the bar still adds up. When a note would hide a beat, it's written as tied notes so every beat stays visible.</p>
+        <div class="staff nvstaff nvclick"></div>
         <div class="nvbtns"><button type="button" class="btn" data-ty="play">▶ Play</button><button type="button" class="btn" data-ty="ties" aria-pressed="false">Write dots as ties</button><button type="button" class="btn" data-ty="undo">Undo</button><button type="button" class="btn" data-ty="next">Another bar</button></div><p class="nvmsg" role="status" aria-live="polite"></p></div>`,
+      // good notation shows every beat: a note that starts between beats is tied across each beat it reaches, and in 4/4 a note that
+      // doesn't start on beat 1 is tied across beat 3 (the middle of the bar). Returns the written pieces: { i: which note, t: value, tie }
+      pieces(d, ts) { const n = +ts.split("/")[0], VALS = Object.keys(TOK).map(Number).sort((x, y) => y - x), out = []; let t = 0;
+        d.forEach((v, i) => { const a = t, b = t + v; t = b; const cut = new Set(), off = Math.abs(a - Math.round(a)) > 1e-9;
+          if (off) for (let k = Math.ceil(a); k < b - 1e-9; k++) if (k > a + 1e-9) cut.add(k);
+          if (n === 4 && a > 1e-9 && a < 2 - 1e-9 && b > 2 + 1e-9) cut.add(2);
+          const pts = [a, ...[...cut].sort((x, y) => x - y), b], segs = [];
+          for (let j = 0; j < pts.length - 1; j++) { let L = pts[j + 1] - pts[j]; while (L > 1e-9) { const w = VALS.find(x => x <= L + 1e-9); segs.push(w); L -= w; } }
+          segs.forEach((w, j) => out.push({ i, t: TOK[w], tie: j < segs.length - 1, split: segs.length > 1 })); });
+        return out; },
       // a dotted value split into its tied pieces: the note itself, then half of it (then half again for a second dot)
       TIE: { hd: ["h", "q"], hdd: ["h", "q", "8"], qd: ["q", "8"], qdd: ["q", "8", "16"], "8d": ["8", "16"] },
       wire(root, H, tools) {
         const box = root.querySelector("#tyDots"); if (!box) return;
-        const st = box.querySelector(".nvstaff"), row = box.querySelector(".nvjoins"), msg = box.querySelector(".nvmsg");
+        const st = box.querySelector(".nvstaff"), msg = box.querySelector(".nvmsg"), SVGN = "http://www.w3.org/2000/svg";
         let k = 0, ts, d, hist = [], ties = false;
-        const notes = () => d.flatMap(x => { const parts = ties && TOYS.dots.TIE[TOK[x]] || [TOK[x]]; return parts.map((t, i) => ({ k: [P], d: t, tie: i < parts.length - 1 })); });
+        const written = () => TOYS.dots.pieces(d, ts).flatMap(p => { const parts = ties && TOYS.dots.TIE[p.t] || [p.t]; return parts.map((t, j) => ({ i: p.i, k: [P], d: t, tie: p.tie || j < parts.length - 1 })); });
+        const notes = () => written().map(({ k, d, tie }) => ({ k, d, tie }));
         const spec = () => ({ type: "score", clefs: ["percussion"], time: ts, vf: "C", sig: {}, bpm: 84, minBar: 260, bars: [{ t: [notes()] }] });
+        // every note on the staff is the button: (with ties showing, each tied piece dots the note it belongs to)
         const draw = (fi) => { tools.drawStaff(st, spec());
-          row.innerHTML = d.map((x, i) => `<button type="button" class="nvjoin wide" data-n="${i}" aria-label="Dot note ${i + 1}, the ${NM[TOK[x]]}"><b aria-hidden="true">${GL[TOK[x]]}</b><span>${i + 1}</span></button>`).join("");
-          if (fi != null) { const b = row.querySelector(`[data-n="${Math.min(fi, d.length - 1)}"]`); if (b) b.focus(); } };
+          const svg = st.querySelector("svg"); if (!svg) return; svg.setAttribute("role", "group"); svg.setAttribute("aria-label", "The bar: click a note to dot it");
+          const owner = written().map(p => p.i), H0 = svg.viewBox.baseVal.height || 80;
+          svg.querySelectorAll(".vf-stavenote").forEach((g, j) => { const i = owner[j]; if (i == null) return; const bb = g.getBBox(), r = document.createElementNS(SVGN, "rect");
+            r.setAttribute("class", "nvhitbox"); r.setAttribute("x", bb.x - 6); r.setAttribute("y", 2); r.setAttribute("width", bb.width + 12); r.setAttribute("height", H0 - 4); r.setAttribute("rx", 5); g.insertBefore(r, g.firstChild);
+            g.classList.add("nvhit"); g.dataset.n = i; g.setAttribute("role", "button"); g.setAttribute("tabindex", "0"); g.setAttribute("aria-label", `Dot note ${i + 1}, the ${NM[TOK[d[i]]]}`); });
+          if (fi != null) { const g = svg.querySelector(`.nvhit[data-n="${Math.min(fi, d.length - 1)}"]`); if (g) g.focus(); } };
         const load = () => { [ts] = TOYS.dots.START[k]; d = TOYS.dots.START[k][1].split(" ").map(t => DUR[t]); hist = []; say(msg, ""); draw(); };
-        row.addEventListener("click", e => { const b = e.target.closest("[data-n]"); if (!b) return; const i = +b.dataset.n, v = d[i], name = NM[TOK[v]];
+        st.addEventListener("keydown", e => { const g = e.target.closest && e.target.closest(".nvhit"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); g.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+        st.addEventListener("click", e => { const b = e.target.closest(".nvhit"); if (!b) return; const i = +b.dataset.n, v = d[i], name = NM[TOK[v]];
           if (/dotted/.test(name) && /double/.test(name)) return say(msg, "That note already has two dots.", "no");
           const nv = /dotted/.test(name) ? v + v / 6 : v * 1.5, add = nv - v;   // a second dot adds half of the first dot
           if (!TOK[nv]) return say(msg, `A dotted ${name} can't be written as one note here.`, "no");
@@ -575,7 +592,9 @@ window.FAM = (() => {
             else { need -= nd[j]; took.push(`the ${NM[TOK[nd[j]]]} disappears`); nd.splice(j, 1); } }
           if (need > 1e-9) return say(msg, "No room: there's no time left after this note for the dot to take. A dot can't cross the bar line (a tie can).", "no");
           hist.push(d); d = nd; draw(i);
-          say(msg, `The dot adds ${frac(add)} beat${add > 1 ? "s" : ""} (half of ${frac(v)}), so ${took.join(" and ")}. The bar still holds ${frac(d.reduce((a, b) => a + b, 0))} beats.`, "ok"); });
+          const tied = [...new Set(TOYS.dots.pieces(d, ts).filter(p => p.split).map(p => p.i))].map(j => `the ${NM[TOK[d[j]]]}`);
+          say(msg, `The dot adds ${frac(add)} beat${add > 1 ? "s" : ""} (half of ${frac(v)}), so ${took.join(" and ")}. The bar still holds ${frac(d.reduce((a, b) => a + b, 0))} beats.`
+            + (tied.length ? ` To keep every beat visible, ${tied.join(" and ")} ${tied.length > 1 ? "are" : "is"} written as tied notes instead of one note.` : ""), "ok"); });
         box.querySelector('[data-ty="ties"]').onclick = e => { const dotted = d.filter(x => TOYS.dots.TIE[TOK[x]]);
           ties = !ties; e.currentTarget.setAttribute("aria-pressed", String(ties)); e.currentTarget.textContent = ties ? "Write ties as dots" : "Write dots as ties"; draw();
           say(msg, !dotted.length ? (ties ? "No dotted notes yet. Dot a note and it will appear as tied notes." : "Back to dots.") : ties
