@@ -63,6 +63,39 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
 .flash.on.soft{background:#59d22a;box-shadow:0 0 10px #6fe33a}
 .status{font:700 16px "SFMono-Regular",Menlo,monospace;color:#ffcf6a;margin:0}
 @media (max-width:560px){.fader{min-width:40px;font-size:11px}.unit .fader input[type=range]{height:110px}.unit{padding:12px;border-radius:20px}.panel2{padding:12px}.beat{width:46px;height:46px;font-size:18px}.tbtn.go{min-width:0;flex:1}.big .round{width:56px;height:56px}}
+
+/* compact layout: the face on the left, mixer and settings stacked on the right (wide screens); smaller parts everywhere */
+.tool{max-width:1080px;gap:12px}
+.tool h1{font-size:clamp(36px,6vw,56px)}
+.unit{padding:14px;gap:10px;border-radius:22px}
+@media (min-width:860px){.unit{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}.panel2.face{grid-row:span 3}}
+.panel2{padding:12px 14px;gap:8px}
+.lcd{padding:4px 12px 6px}
+.lcd-top,.lcd .term{font-size:13px}
+.bpm output{font-size:clamp(56px,9vw,84px)}
+.lcd .unit-txt{font-size:12px}
+.beats{gap:9px;padding:4px 0 12px}
+.beat{width:42px;height:42px;font-size:16px}
+.flash{height:6px}
+.big{gap:8px}
+.round{width:50px;height:50px;font-size:28px}
+.tbtn.go{font-size:17px;min-width:120px;min-height:48px;padding:8px 16px}
+.tbtn{min-height:40px;padding:6px 12px;font-size:14px}
+.marks{gap:4px;padding:6px}
+.mark{min-width:36px;min-height:30px;font-size:12px;border-radius:6px}
+.legend2{font-size:.84rem}
+.mix{padding:8px 4px 6px}
+.unit .fader input[type=range]{height:96px}
+.fader{min-width:40px;gap:4px;font-size:11px}
+.fader output{font-size:13px}
+.fader small{font-size:10px}
+.unit select,.unit input[type=number],.unit input[type=text]{min-height:40px;padding:6px 8px;font-size:15px}
+.grid2{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
+.fader .sh{display:none}
+label.fld{font-size:12px}
+.status{font-size:14px}
+@media (max-width:560px){.beat{width:40px;height:40px}.unit .fader input[type=range]{height:90px}.fader{min-width:0;flex:1}.fader .lg{display:none}.fader .sh{display:inline}
+  .big{display:grid;grid-template-columns:48px 1fr 1fr 48px}.big .round{width:48px;height:48px}.tbtn.go{min-width:0;font-size:15px;padding:6px 8px}}
 </style>
 
 <main class="tool" id="main">
@@ -87,14 +120,14 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
       <input type="range" id="bpm" min="20" max="300" step="1" value="96" aria-label="Tempo in beats per minute">
       <button class="tbtn" id="p1" type="button" aria-label="1 beat per minute faster">+1</button>
     </div>
-    <p class="legend2">Tap a beat light to change it: <b>accent</b> (red) → <b>medium</b> (amber) → <b>normal</b> (green) → <b>silent</b> (dark). The − and + keys step through the traditional markings below; −1, +1 and the slider set any tempo.</p>
+    <p class="legend2">Tap a beat light to cycle it: <b>accent</b> (red), <b>medium</b> (amber), <b>normal</b> (green), <b>silent</b> (dark). − and + step through the traditional markings below.</p>
     <div class="marks" id="marks" role="group" aria-label="Traditional metronome markings"></div>
   </section>
 
   <section class="panel2" aria-labelledby="mixH">
     <h2 id="mixH">Mixer</h2>
     <div class="mix" id="mix" role="group" aria-labelledby="mixH"></div>
-    <p class="legend2">Each fader sets the level of one layer of the click: the <b>accent</b> on accented beats, the unaccented <b>beats</b>, and the divisions of each beat. Raise several at once to practice one against another (3 against 2, 5 against 4), or pull the Beat fader down and keep only the accent to test your inner pulse. Drum sounds play their own pattern and ignore the division faders.</p>
+    <p class="legend2">Raise several layers to practice one against another (3 against 2, 5 against 4), or pull Beat down and keep only the accent. Drum sounds ignore the division faders.</p>
   </section>
 
   <section class="panel2" aria-labelledby="meterH">
@@ -158,12 +191,13 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
     return { d2: ["Division", "2 eighths"], d3: ["Triplets", "3 per beat"], d4: ["Subdivision", "4 sixteenths"], d5: ["Quintuplets", "5 per beat"] }[k]; };
   // the dots under each beat light follow the finest layer that's turned up (a compound beat always shows its three eighths)
   const dotsFor = c => { const D = DIVS(c); let n = c ? 3 : 1; ["d2", "d3", "d4", "d5"].forEach(k => { if (S.mix[k] > 0) n = Math.max(n, D[k]); }); return n; };
+  const SHORT = { Subdivision: "Subdiv.", Quintuplets: "Quint.", Quadruplets: "Quad.", Division: "Div." };
   function drawMix() {
     const c = compoundMeter();
     $("mix").innerHTML = [["acc", "Accent", "accented beats"], ["beat", "Beat", "unaccented beats"], ...["d2", "d3", "d4", "d5"].map(k => [k, ...layerName(k, c)])]
-      .map(([k, l, sub]) => `<label class="fader"><output id="mo-${k}">${S.mix[k]}</output><input type="range" min="0" max="100" step="1" value="${S.mix[k]}" data-mix="${k}" aria-label="${l} (${sub}) level" aria-valuetext="${S.mix[k]} percent">${l}<small>${sub}</small></label>`).join("");
+      .map(([k, l, sub]) => `<label class="fader"><output id="mo-${k}">${S.mix[k]}</output><input type="range" min="0" max="100" step="1" value="${S.mix[k]}" data-mix="${k}" aria-label="${l} (${sub}) level" aria-valuetext="${S.mix[k]} percent"><span class="lg">${l}</span><span class="sh" aria-hidden="true">${SHORT[l] || l}</span><small>${sub}</small></label>`).join("");
   }
-  $("mix").addEventListener("input", e => { const k = e.target.dataset.mix; if (!k) return; S.mix[k] = +e.target.value; $("mo-" + k).textContent = S.mix[k]; e.target.setAttribute("aria-valuetext", S.mix[k] + " percent"); save();
+  $("mix").addEventListener("input", e => { const k = e.target.dataset.mix; if (!k) return; S.mix[k] = +e.target.value; $("mo-" + k).textContent = S.mix[k]; if (LAY[k]) LAY[k].gain.setTargetAtTime(S.mix[k] / 100, AC.currentTime, .012); e.target.setAttribute("aria-valuetext", S.mix[k] + " percent"); save();
     if (k[0] === "d") { const before = bar.map(b => b.sub); bar.forEach(b => b.sub = dotsFor(b.compound)); if (bar.some((b, i) => b.sub !== before[i])) drawBeats(); } });
 
   // ---------- bar model: beats [{ sub, acc, grpStart }] ----------
@@ -206,13 +240,13 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
   $("tap").onclick = tap;
 
   // ---------- sound ----------
-  let AC = null, master = null;
-  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; master.connect(comp); comp.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
+  let AC = null, master = null; const LAY = {};   // one gain per mixer layer, so the faders change what's already scheduled
+  function ac() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; master.connect(comp); comp.connect(AC.destination);
+    Object.keys(S.mix).forEach(k => { LAY[k] = AC.createGain(); LAY[k].gain.value = S.mix[k] / 100; LAY[k].connect(master); }); } if (AC.state === "suspended") AC.resume(); master.gain.value = S.vol; return AC; }
   let noiseBuf = null;
-  function click(t, level, beatNo, isSub, mult = 1) {
-    if (level === 0 || !(mult > 0)) return;
-    const vg = AC.createGain(); vg.gain.value = mult; vg.connect(master);
-    const g = AC.createGain(); g.connect(vg);
+  function click(t, level, beatNo, isSub, dest) {
+    if (level === 0) return;
+    const g = AC.createGain(); g.connect(dest || master);
     const amp = isSub ? .28 : level === 3 ? 1 : level === 2 ? .7 : .5;
     const hi = level === 3 && !isSub, mid = level === 2 && !isSub;
     if (S.sound === "click" || S.sound === "voice" && isSub) {
@@ -296,22 +330,17 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
   const visQ = [];
   function beatDur() { return 60 / S.bpm; }
   function silentBar(n) { const g = $("gapOn").value; if (g === "0") return false; const [p, s] = g.split("-").map(Number); return n % (p + s) >= p; }
-  // one step per beat: the beat click at its fader level, then every division layer that's turned up, spread evenly through the beat
+  // a 60-step grid per beat (every division 2–6 lands on it): each step reads the tempo afresh, and every layer is always scheduled
+  // through its own gain, so tempo and fader changes are heard at once, even in the middle of a beat
+  const GRID = 60; let gi = 0;
   function schedule() {
     while (nextT < AC.currentTime + .12) {
-      const b = bar[beatI], silent = silentBar(barNo), L = beatDur();
-      if (!silent && b.acc) {
-        if (isDrums()) drumBeat(nextT, beatI, barNo, b);
-        else {
-          click(nextT, b.acc, beatI, false, (b.acc === 3 ? S.mix.acc : S.mix.beat) / 100);
-          const D = DIVS(b.compound), done = new Set();
-          ["d2", "d3", "d4", "d5"].sort((x, y) => D[x] - D[y]).forEach(k => { if (!(S.mix[k] > 0)) return;
-            for (let j = 1; j < D[k]; j++) { const f = Math.round(j / D[k] * 3600); if (done.has(f)) continue; done.add(f); click(nextT + L * j / D[k], 1, beatI, true, S.mix[k] / 100); } });
-        }
-      }
-      for (let j = 0; j < b.sub; j++) visQ.push({ t: nextT + L * j / b.sub, beatI, subI: j, silent });
-      nextT += L; beatI++;
-      if (beatI >= bar.length) { beatI = 0; barNo++; if (barNo % 8 === 0) groove++; ramp(); }
+      const b = bar[beatI], silent = silentBar(barNo), sounding = !silent && b.acc;
+      if (gi === 0 && sounding) { if (isDrums()) drumBeat(nextT, beatI, barNo, b); else click(nextT, b.acc, beatI, false, LAY[b.acc === 3 ? "acc" : "beat"]); }
+      if (gi > 0 && sounding && !isDrums()) { const D = DIVS(b.compound); ["d2", "d3", "d4", "d5"].forEach(k => { if (gi % (GRID / D[k]) === 0) click(nextT, 1, beatI, true, LAY[k]); }); }
+      if (gi % (GRID / b.sub) === 0) visQ.push({ t: nextT, beatI, subI: gi / (GRID / b.sub), silent });
+      nextT += beatDur() / GRID; gi++;
+      if (gi >= GRID) { gi = 0; beatI++; if (beatI >= bar.length) { beatI = 0; barNo++; if (barNo % 8 === 0) groove++; ramp(); } }
     }
   }
   function ramp() {
@@ -331,7 +360,7 @@ label.fld{display:grid;gap:4px;font:700 13px var(--fi-ui);text-transform:upperca
     }
     requestAnimationFrame(draw);
   }
-  function start() { ac(); running = true; groove = Math.floor(Math.random() * 3); beatI = 0; subI = 0; barNo = 0; rampCount = 0; visQ.length = 0; nextT = AC.currentTime + .08; timer = setInterval(schedule, 25); schedule(); requestAnimationFrame(draw); $("go").textContent = "■ Stop"; $("go").setAttribute("aria-pressed", "true"); $("status").textContent = `Playing ${METERS[S.meter][0]} at ${S.bpm} BPM.`; }
+  function start() { ac(); running = true; groove = Math.floor(Math.random() * 3); beatI = 0; subI = 0; gi = 0; barNo = 0; rampCount = 0; visQ.length = 0; nextT = AC.currentTime + .08; timer = setInterval(schedule, 25); schedule(); requestAnimationFrame(draw); $("go").textContent = "■ Stop"; $("go").setAttribute("aria-pressed", "true"); $("status").textContent = `Playing ${METERS[S.meter][0]} at ${S.bpm} BPM.`; }
   function stop() { running = false; clearInterval(timer); $("beats").querySelectorAll(".now").forEach(x => x.classList.remove("now")); $("go").textContent = "▶ Start"; $("go").setAttribute("aria-pressed", "false"); $("status").textContent = "Stopped."; }
   $("go").onclick = () => running ? stop() : start();
 
