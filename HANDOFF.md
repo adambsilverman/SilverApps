@@ -612,3 +612,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z172 (2026-11-17) Dot toy ties, stereo counting voice
 - notevalues.js: TOYS.dots.pieces() writes each note so every beat shows (off-beat notes tied across beats; in 4/4 notes not starting on beat 1 tied across beat 3); replaces the refusal rule. Beams no longer block note clicks (extra.css pointer-events).
 - assets/count-voice-Adam/*.wav: were left-channel only; now the same voice in both channels.
+
+## z173 (2026-11-17) Multi-bar rest, centered bar rests, hardware-style metronome
+- engine.js: bar.multi = N draws a VexFlow MultiMeasureRest (timed as N bars, silent in playback, described as "rest for N bars"); bar rests are re-centered after drawing like centered notes.
+- notevalues.js: Bar lines step adds a multi-bar rest figure; practice metronome restyled as a hardware unit (LCD tempo, LED beat lights, keys, vertical faders; ids unchanged).

@@ -200,24 +200,29 @@ window.FAM = (() => {
   // Dr. Beat-style metronome: tempo, meter, and a mixer of levels for accent (DING on beat 1), beat (click), division, triplet division and subdivision
   const MB = { bpm: 96, beats: 4, comp: false, acc: 80, beat: 80, div: 0, trip: 0, sub: 0, on: false, next: 0, n: 0, timer: 0, raf: 0, queue: [], taps: [] };
   const MB_METERS = [["2/4", 2, false], ["3/4", 3, false], ["4/4", 4, false], ["5/4", 5, false], ["6/4", 6, false], ["7/4", 7, false], ["1/4 (no accent pattern)", 1, false], ["6/8", 2, true], ["9/8", 3, true], ["12/8", 4, true]];
-  const mbSliders = () => [["acc", "Accent (DING on beat 1)"], ["beat", "Beat"], ["div", MB.comp ? "Division (three eighths)" : "Division (eighths)"], ["trip", "Triplet division"], ["sub", MB.comp ? "Subdivision (six sixteenths)" : "Subdivision (sixteenths)"]]
-    .map(([k, l]) => { const off = k === "trip" && MB.comp; return `<label class="syk mbs">${l}<input type="range" min="0" max="100" step="1" value="${off ? 0 : MB[k]}" data-mb="${k}" ${off ? "disabled" : ""} aria-valuetext="${off ? "not used in compound meter" : MB[k] + " percent"}"><output data-mbo="${k}">${off ? "—" : MB[k] + "%"}</output></label>`; }).join("");
+  // the mixer: one vertical fader per layer, short name on the fader, the full name for screen readers
+  const mbSliders = () => [["acc", "Accent", "Accent (DING on beat 1)"], ["beat", "Beat", "Beat"], ["div", "Division", MB.comp ? "Division (three eighths)" : "Division (eighths)"], ["trip", "Triplet", "Triplet division"], ["sub", "Subdiv.", MB.comp ? "Subdivision (six sixteenths)" : "Subdivision (sixteenths)"]]
+    .map(([k, l, full]) => { const off = k === "trip" && MB.comp; return `<label class="mbfader${off ? " off" : ""}"><output data-mbo="${k}">${off ? "—" : MB[k]}</output><input type="range" min="0" max="100" step="1" value="${off ? 0 : MB[k]}" data-mb="${k}" ${off ? "disabled" : ""} aria-label="${full}" aria-valuetext="${off ? "not used in compound meter" : MB[k] + " percent"}"><span>${l}</span></label>`; }).join("");
   const mbLights = () => Array.from({ length: MB.beats }, (_, i) => `<span class="mblight${i ? "" : " acc"}" data-mbl="${i}">${i + 1}</span>`).join("");
+  // laid out like a hardware practice metronome: an LCD with the tempo, beat lights, the tempo controls, and a fader for each layer of the click
   function metroToy() {
-    return `<div class="toy mbtoy" id="mbToy">
-      <div class="toy-row"><button class="play" id="mbGo" aria-pressed="${MB.on}">${MB.on ? "■ Stop" : "▶ Start"}</button>
-        <label for="mbMeter">Meter <select id="mbMeter">${MB_METERS.map(([n, b, c], i) => `<option value="${i}" ${b === MB.beats && c === MB.comp ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-        <button class="play" id="mbTap">Tap tempo</button></div>
-      <div class="toy-row mbtempo"><button class="play" data-mbstep="-1" aria-label="Slower by 1 BPM">−</button>
-        <label for="mbBpm" class="mbbig"><span id="mbUnit">${MB.comp ? "♩." : "♩"}</span> =&nbsp;<input type="number" id="mbBpmN" min="30" max="250" value="${MB.bpm}" aria-label="Beats per minute"></label>
-        <button class="play" data-mbstep="1" aria-label="Faster by 1 BPM">+</button>
-        <input type="range" id="mbBpm" min="30" max="250" step="1" value="${MB.bpm}" aria-label="Tempo in beats per minute" style="flex:1;min-width:160px"><span class="small" id="mbTerm"></span></div>
-      <div class="mblights" id="mbLights" aria-hidden="true">${mbLights()}</div>
-      <div class="sygrid" id="mbMix">${mbSliders()}</div>
-      <p class="small" style="margin:0">Like a practice metronome with a mixer: raise <b>Division</b> to hear the “&amp;”s, <b>Subdivision</b> for “e &amp; a”, or <b>Triplet division</b> to practice triplets against the beat. Turn the <b>Beat</b> down to zero and keep only the accent to test your inner pulse.</p></div>`;
+    return `<div class="toy mbtoy mbhw" id="mbToy">
+      <div class="mbface">
+        <div class="mblcd"><span class="mblcd-top"><span id="mbMeterShow">${MB_METERS.find(([, b, c]) => b === MB.beats && c === MB.comp)[0].split(" ")[0]}</span><span id="mbTerm">${TERMS.find(([b]) => MB.bpm < b)[1]}</span></span>
+          <label for="mbBpmN" class="mbbig"><span id="mbUnit">${MB.comp ? "♩." : "♩"}</span><span aria-hidden="true">=</span><input type="number" id="mbBpmN" min="30" max="250" value="${MB.bpm}" aria-label="Beats per minute"></label></div>
+        <div class="mblights" id="mbLights" aria-hidden="true">${mbLights()}</div>
+        <div class="mbkeys"><button type="button" class="mbkey" data-mbstep="-1" aria-label="Slower by 1 BPM">−</button>
+          <input type="range" id="mbBpm" min="30" max="250" step="1" value="${MB.bpm}" aria-label="Tempo in beats per minute">
+          <button type="button" class="mbkey" data-mbstep="1" aria-label="Faster by 1 BPM">+</button></div>
+        <div class="mbkeys"><label class="mbsel" for="mbMeter">Meter<select id="mbMeter">${MB_METERS.map(([n, b, c], i) => `<option value="${i}" ${b === MB.beats && c === MB.comp ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+          <button type="button" class="mbkey" id="mbTap">Tap</button>
+          <button type="button" class="mbkey mbstart" id="mbGo" aria-pressed="${MB.on}">${MB.on ? "■ Stop" : "▶ Start"}</button></div>
+        <div class="mbmix" id="mbMix" role="group" aria-label="Mixer">${mbSliders()}</div>
+      </div>
+      <p class="small" style="margin:0">Like a practice metronome with a mixer: raise <b>Division</b> to hear the “&amp;”s, <b>Subdivision</b> for “e &amp; a”, or <b>Triplet</b> to practice triplets against the beat. Pull the <b>Beat</b> fader to zero and keep only the accent to test your inner pulse.</p></div>`;
   }
   const TERMS = [[60, "Largo"], [66, "Larghetto"], [76, "Adagio"], [108, "Andante"], [120, "Moderato"], [156, "Allegro"], [176, "Vivace"], [200, "Presto"], [999, "Prestissimo"]];
-  const mbTerm = () => { const e = document.getElementById("mbTerm"); if (e) e.textContent = "about " + TERMS.find(([b]) => MB.bpm < b)[1]; };
+  const mbTerm = () => { const e = document.getElementById("mbTerm"); if (e) e.textContent = TERMS.find(([b]) => MB.bpm < b)[1]; };
   function mbSchedule() {
     const look = AC.currentTime + .12;
     while (MB.next < look) {
@@ -302,14 +307,14 @@ window.FAM = (() => {
       const pp = e.target.closest("[data-tpp]"); if (pp) { [TP.n, TP.m] = pp.dataset.tpp.split(",").map(Number); tpRefresh(); }
     });
     document.addEventListener("input", e => {
-      const k = e.target.dataset && e.target.dataset.mb; if (k) { MB[k] = +e.target.value; const o = document.querySelector(`[data-mbo="${k}"]`); if (o) o.textContent = MB[k] + "%"; e.target.setAttribute("aria-valuetext", MB[k] + " percent"); return; }
+      const k = e.target.dataset && e.target.dataset.mb; if (k) { MB[k] = +e.target.value; const o = document.querySelector(`[data-mbo="${k}"]`); if (o) o.textContent = MB[k]; e.target.setAttribute("aria-valuetext", MB[k] + " percent"); return; }
       if (e.target.id === "mbBpm") { mbSetBpm(+e.target.value, e.target); return; }
       if (e.target.id === "tpRate") { const old = 60 / TP.rate * TP.m, ph = TP.on ? ((AC.currentTime - TP.t0) % old) / old : 0; TP.rate = +e.target.value; document.getElementById("tpRateO").textContent = TP.rate;
         if (TP.on) { TP.t0 = AC.currentTime - ph * 60 / TP.rate * TP.m; TP.next = TP.t0 + 60 / TP.rate * TP.m; } }
     });
     document.addEventListener("change", e => {
       if (e.target.id === "mbBpmN") { mbSetBpm(+e.target.value, e.target); return; }
-      if (e.target.id === "mbMeter") { const [, b, c] = MB_METERS[+e.target.value]; MB.beats = b; MB.comp = c; document.getElementById("mbLights").innerHTML = mbLights(); document.getElementById("mbMix").innerHTML = mbSliders(); document.getElementById("mbUnit").textContent = c ? "♩." : "♩"; return; }
+      if (e.target.id === "mbMeter") { const [, b, c] = MB_METERS[+e.target.value]; MB.beats = b; MB.comp = c; document.getElementById("mbLights").innerHTML = mbLights(); document.getElementById("mbMix").innerHTML = mbSliders(); document.getElementById("mbUnit").textContent = c ? "♩." : "♩"; document.getElementById("mbMeterShow").textContent = MB_METERS[+e.target.value][0].split(" ")[0]; return; }
       if (e.target.id === "tpN" || e.target.id === "tpM") { TP[e.target.id === "tpN" ? "n" : "m"] = +e.target.value; tpRefresh(); return; }
       if (e.target.id === "tpHM") TP.hearM = e.target.checked; if (e.target.id === "tpHN") TP.hearN = e.target.checked;
     });
