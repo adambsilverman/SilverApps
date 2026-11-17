@@ -613,14 +613,48 @@
 
   function redrawStaves() { document.querySelectorAll(".staff").forEach(el => el._args && drawStaff(el, el._args)); }
 
-  // ---------- Sound (Web Audio): soft keyboard tone; chords, progressions, or free events [midi, start, length] ----------
+  // ---------- Sound (Web Audio): sampled piano (synth fallback), voice and reed tones; chords, progressions, or free events [midi, start, length] ----------
   let AC = null, bus = null;
   function audio() {
     if (AC) { if (AC.state === "suspended") AC.resume(); return AC; }
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
-    AC = new C(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4; comp.connect(AC.destination); AC._out = comp; return AC;
+    AC = new C();
+    // master: gentle compression, then a limiter so thick chords never clip
+    const comp = AC.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .25;
+    const lim = AC.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .1;
+    comp.connect(lim); lim.connect(AC.destination); AC._out = comp;
+    // a small room shared by every pitched sound
+    const rev = AC.createConvolver(); rev.buffer = roomIR(); rev.connect(comp); AC._rev = rev;
+    loadPiano();
+    return AC;
   }
-  function newBus() { if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => old.disconnect(), 400); } bus = AC.createGain(); bus.gain.value = 1; bus.connect(AC._out); return bus; }
+  function roomIR() {
+    const sr = AC.sampleRate, len = Math.floor(sr * 1.8), b = AC.createBuffer(2, len, sr), pre = Math.floor(sr * .012);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0;
+      for (let i = pre; i < len; i++) { const t = (i - pre) / sr; lp += (Math.random() * 2 - 1 - lp) * (.65 * Math.exp(-t * 1.8) + .08); d[i] = lp * Math.exp(-t / .38); } }
+    return b;
+  }
+  // each bus: tones go into bus._in, which feeds the dry bus and a reverb send; stopping fades both
+  function newBus() {
+    if (bus) { const old = bus; old.gain.setTargetAtTime(0, AC.currentTime, 0.04); old._send.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => { old.disconnect(); old._in.disconnect(); }, 400); }
+    bus = AC.createGain(); bus.gain.value = 1; bus.connect(AC._out);
+    bus._in = AC.createGain(); bus._in.connect(bus); bus._send = AC.createGain(); bus._send.gain.value = .16; bus._in.connect(bus._send); bus._send.connect(AC._rev);
+    return bus;
+  }
+  // piano samples (C, D#, F#, A in every octave, decoded once); the nearest one is retuned for each note
+  const PIANO_DIR = "assets/audio/piano/", PIANO = {}, PIANO_M = [];
+  for (let o = 1; o <= 7; o++) ["C", "Ds", "Fs", "A"].forEach((n, i) => PIANO_M.push([12 + o * 12 + i * 3, n + o])); PIANO_M.push([108, "C8"]);
+  let pianoLoad = null, pianoWaited = false;
+  function loadPiano() {
+    if (!pianoLoad) pianoLoad = Promise.all(PIANO_M.map(([m, n]) => fetch(PIANO_DIR + n + ".mp3").then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { PIANO[m] = buf; }).catch(() => {})));
+    return pianoLoad;
+  }
+  const isPiano = t => !t || t === "piano";
+  const usesPiano = p => p.ev ? p.ev.some(e => !e[4] && isPiano(e[5] || p.timbre)) : isPiano(p.timbre);
+  function nearestPiano(m) { let best = null, bd = 99; for (const [sm] of PIANO_M) if (PIANO[sm] && Math.abs(sm - m) < bd) { bd = Math.abs(sm - m); best = sm; } return best; }
+  // start fetching the samples on the first touch or key press, so they're ready before the first Play
+  ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, function warm() { ["pointerdown", "keydown"].forEach(e => document.removeEventListener(e, warm, true)); audio(); }, true));
   // unpitched sounds: "click" / "clickHi" (metronome), "perc" (a clear, mid-low drum hit for rhythms)
   let NZ = null;
   function hit(out, kind, t0, vel) {
@@ -640,16 +674,29 @@
     o.connect(og); og.connect(g); n.connect(lp); lp.connect(ng); ng.connect(g); o.start(t0); o.stop(t0 + .3); n.start(t0); n.stop(t0 + .04);
   }
   function tone(out, m, t0, dur, vel = 1, timbre, pan) {
-    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(), lp = AC.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (timbre === "reed" ? 10 : 7), 7000);
-    if (pan && AC.createStereoPanner) { const pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
-    lp.connect(g);
-    const parts = timbre === "voice" ? [[1, 1], [2, .35], [3, .15]] : timbre === "reed" ? [[1, 1], [3, .7], [5, .45], [7, .3], [9, .18]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
-    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = timbre === "voice" || timbre === "reed" ? "sine" : "triangle"; o.frequency.value = f * h; const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
-    const pk = .22 * vel;
-    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + .02);
-    if (timbre === "voice" || timbre === "reed") g.gain.setTargetAtTime(pk * .8, t0 + .05, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
-    g.gain.setTargetAtTime(0, t0 + dur, .08);
+    const dest = out._in || out, g = AC.createGain();
+    if (pan && AC.createStereoPanner) { const pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(dest); } else g.connect(dest);
+    const sm = isPiano(timbre) ? nearestPiano(m) : null;
+    if (sm != null) {   // sampled piano: brighter when louder, dampers come down at the end of the note
+      const src = AC.createBufferSource(), lp = AC.createBiquadFilter(), buf = PIANO[sm], t = t0 + Math.random() * .008;
+      src.buffer = buf; src.playbackRate.value = Math.pow(2, (m - sm) / 12);
+      lp.type = "lowpass"; lp.frequency.value = 1800 + 9000 * Math.min(vel, 1.2) * Math.min(vel, 1.2); lp.Q.value = .4;
+      src.connect(lp); lp.connect(g);
+      const lv = .36 * vel, end = t + Math.max(dur, .12);
+      g.gain.setValueAtTime(lv, t); g.gain.setValueAtTime(lv, end); g.gain.setTargetAtTime(0, end, m < 48 ? .16 : .1);
+      src.start(t); src.stop(Math.min(end + 1, t + buf.duration / src.playbackRate.value)); return;
+    }
+    const f = 440 * Math.pow(2, (m - 69) / 12), lp = AC.createBiquadFilter(), voice = timbre === "voice", reed = timbre === "reed", sus = voice || reed || timbre === "organ" || timbre === "strings";
+    lp.type = "lowpass"; lp.frequency.value = Math.min(f * (reed ? 10 : 7) * (.6 + .4 * Math.min(vel, 1)), 8000); lp.connect(g);
+    const parts = voice ? [[1, 1], [2, .35], [3, .15]] : reed ? [[1, 1], [3, .7], [5, .45], [7, .3], [9, .18]] : [[1, 1], [2, .45], [3, .22], [4, .12]];
+    // slow vibrato on voices; every partial slightly detuned so held notes don't sound frozen
+    let lfo = null; if (voice) { lfo = AC.createOscillator(); const lg = AC.createGain(); lfo.frequency.value = 4.8 + Math.random() * .8; lg.gain.setValueAtTime(0, t0); lg.gain.linearRampToValueAtTime(14, t0 + Math.min(.6, dur)); lfo.connect(lg); lfo._g = lg; lfo.start(t0); lfo.stop(t0 + dur + .6); }
+    parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = voice || reed ? "sine" : "triangle"; o.frequency.value = f * h; o.detune.value = (Math.random() - .5) * 8; if (lfo) lfo._g.connect(o.detune);
+      const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
+    const pk = .22 * vel, att = voice ? .07 : reed ? .03 : .012;
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + att);
+    if (sus) g.gain.setTargetAtTime(pk * .8, t0 + att + .03, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
+    g.gain.setTargetAtTime(0, t0 + dur, voice ? .12 : .08);
   }
   // recorded counting syllables (see withCount), fetched and decoded on first use
   const VOICE = {}, VOICE_DIR = "assets/count-voice-Adam/";
@@ -660,10 +707,13 @@
   // even out the recordings' loudness: gain that brings each clip's sounding RMS to the same level (peaks kept below full scale)
   function voiceLevel(buf) { const d = buf.getChannelData(0); let ss = 0, n = 0, pk = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a > .01) { ss += a * a; n++; } }
     const rms = n ? Math.sqrt(ss / n) : .1; return Math.min(.12 / Math.max(rms, 1e-4), .95 / Math.max(pk, 1e-4)); }
-  function play(p) {
+  function play(p, onStart) {
     if (!p || !audio()) return;
-    if (p.ev) { const keys = sayKeys(p.ev); if (keys.some(k => !(k in VOICE))) { newBus(); const ticket = bus; loadVoice(keys).then(() => { if (bus === ticket) play(p); }); return; } }
+    if (p.ev) { const keys = sayKeys(p.ev); if (keys.some(k => !(k in VOICE))) { newBus(); const ticket = bus; loadVoice(keys).then(() => { if (bus === ticket) play(p, onStart); }); return; } }
+    // the first piano example waits (up to 4 s) for the samples; after that, anything still missing falls back to the synth
+    if (!pianoWaited && usesPiano(p)) { newBus(); const ticket = bus; Promise.race([loadPiano(), new Promise(r => setTimeout(r, 4000))]).then(() => { pianoWaited = true; if (bus === ticket) play(p, onStart); }); return; }
     const out = newBus(), t = AC.currentTime + .06;
+    if (onStart) onStart();
     if (p.ev) {
       p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind === "say" || kind === "sing" ? 0 : kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan));
       // each syllable is cut off (with a short fade) where the next one starts, so fast subdivisions stay in time
@@ -682,7 +732,7 @@
     const gap = p.gap || 1.05;
     (p.chords || [[p.m]]).forEach((ch, i) => ch.forEach((m, j) => tone(out, m, t + i * gap, (p.dur || .95) * gap, (p.vels && p.vels[i] ? p.vels[i][j] : 1) / Math.sqrt(ch.length) * 1.3, p.timbre)));
   }
-  const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } followClear(); };
+  const stopSound = () => { if (bus && AC) { bus.gain.setTargetAtTime(0, AC.currentTime, .03); bus._send.gain.setTargetAtTime(0, AC.currentTime, .03); bus = null; } followClear(); };
   const PLAY_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 1l9 5-9 5z"/></svg>';
   const PLAY_BTN = (label, which) => `<div class="play-row"><button class="play" data-play="${which}">${PLAY_SVG}${esc(label)}</button></div>`;
 
@@ -1138,7 +1188,7 @@
   if (lessonEl) lessonEl.addEventListener("click", e => {
     const s = e.target.closest("[data-lstep]"), g = e.target.closest("[data-lgo]"), p = e.target.closest("[data-lplay]"), kb = e.target.closest("[data-lkey]"), mb = e.target.closest("[data-lmode]");
     if (s || g) { stopSound(); LS.step = s ? +s.dataset.lstep : Math.max(0, Math.min(L.steps.length - 1, LS.step + +g.dataset.lgo)); if (!LS.seen.includes(LS.step)) LS.seen.push(LS.step); saveL(); renderLesson(true); window.scrollTo({ top: Math.max(0, lessonEl.getBoundingClientRect().top + scrollY - 90), behavior: "smooth" }); return; }
-    if (p && figs[p.dataset.lplay]) { const F = figs[p.dataset.lplay]; play(F.play); if (F.follow) followPlay(lessonEl.querySelector(`[data-lfig="${p.dataset.lplay}"]`), F); return; }
+    if (p && figs[p.dataset.lplay]) { const F = figs[p.dataset.lplay]; play(F.play, F.follow ? () => followPlay(lessonEl.querySelector(`[data-lfig="${p.dataset.lplay}"]`), F) : null); return; }
     if (kb) { LS.key = kb.dataset.lkey; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lkey="${CSS.escape(LS.key)}"]`); if (again) again.focus(); return; }
     if (mb) { LS.mode = mb.dataset.lmode; LS.key = null; saveL(); renderLesson(false); const again = lessonEl.querySelector(`[data-lmode="${LS.mode}"]`); if (again) again.focus(); }
   });

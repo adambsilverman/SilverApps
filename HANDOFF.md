@@ -598,3 +598,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z169t: Note Values drills: "meter" and "terms" modes merged into "Meter & terms" (half meter questions, half FACTS). Test Yourself quizzes: 60 items in 19 files reworded so the correct answer no longer repeats a key word from the question (e.g. timbre "register"); remaining overlaps are comparisons that must name both terms or words shared by all choices. Audit script idea: tokens in q and a but not in every w.
 - z169u: notevalues.js lesson toys (TOYS): order cards shortest->longest (drag, click, arrow keys) in "Note values"; flags-into-beams join buttons with beat check in "Parts of a note"; bar-line gaps for 2/4 3/4 4/4 6/8 9/8 beat streams in "Meter and the beat"; click-to-dot with time taken from following notes in "Dots and ties". CSS .nvtoy etc. in extra.css.
 - z169v: Note values ordering toy uses only undotted values (16th, 8th, quarter, half, whole).
+
+## z170 (2026-11-17) Sampled piano
+- engine.js: default timbre now plays piano samples (assets/audio/piano, 29 notes, tonejs-instruments CC BY 3.0) retuned from the nearest sample; synth fallback improved (detune, voice vibrato, velocity brightness); shared room reverb send per bus; master limiter; first piano example waits up to 4 s for samples; play(p, onStart) syncs follow highlighting.
+- about-this-site: piano sample credit.
