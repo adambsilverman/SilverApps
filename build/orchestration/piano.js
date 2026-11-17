@@ -100,15 +100,14 @@ window.FAM = (() => {
   }
   return {
     key: "orch-keyboards",
-    modes: [{ id: "inst", kicker: "The piano" }, { id: "ped", kicker: "Pedals" }, { id: "nota", kicker: "Writing for the hands" }, { id: "acc", kicker: "Accompaniments" }, { id: "organ", kicker: "Organ" }, { id: "prep", kicker: "Prepared piano" }, { id: "ens", kicker: "In the ensemble" }],
+    // three categories: the piano itself (range, pedals, prepared piano), writing for it (hands, markings, accompaniments), and the other keyboards
+    modes: [{ id: "inst", kicker: "The piano" }, { id: "nota", kicker: "Writing for keyboard" }, { id: "organ", kicker: "Organ and ensemble" }],
     make(mode, H) {
-      if (mode === "inst") return Math.random() < .25 ? rangeQ(H) : fromList(H, INST, "The instrument", "inst");
-      if (mode === "ped") return fromList(H, PEDALS, "Pedals", "ped");
-      if (mode === "nota") return Math.random() < .35 ? markQ(H) : fromList(H, NOTA, "Writing for the hands", "nota");
-      if (mode === "acc") return fromList(H, ACCOMP, "Accompaniments", "acc");
-      if (mode === "organ") return Math.random() < .3 ? footQ(H) : fromList(H, ORGAN, "Organ", "organ");
-      if (mode === "prep") return fromList(H, PREP, "Prepared piano", "prep");
-      return Math.random() < .25 ? celestaQ(H) : fromList(H, ENS, "In the ensemble", "ens");
+      // a question from one of several lists, chosen in proportion to their sizes (so every question is equally likely)
+      const mix = sets => { let r = Math.random() * sets.reduce((t, x) => t + x[0].length, 0); for (const [list, kicker, topic] of sets) { if ((r -= list.length) < 0) return fromList(H, list, kicker, topic); } const [l, k, t] = sets[0]; return fromList(H, l, k, t); };
+      if (mode === "inst") return Math.random() < .15 ? rangeQ(H) : mix([[INST, "The instrument", "inst"], [PEDALS, "Pedals", "ped"], [PREP, "Prepared piano", "prep"]]);
+      if (mode === "nota") return Math.random() < .25 ? markQ(H) : mix([[NOTA, "Writing for the hands", "nota"], [ACCOMP, "Accompaniments", "acc"]]);
+      const r = Math.random(); return r < .15 ? footQ(H) : r < .3 ? celestaQ(H) : mix([[ORGAN, "Organ", "organ"], [ENS, "In the ensemble", "ens"]]);
     },
     reference(H, esc) {
       const rows = MARKS.map(([m, d]) => `<tr><th scope="row">${esc(m)}</th><td data-label="Meaning">${esc(d)}</td></tr>`).join("");

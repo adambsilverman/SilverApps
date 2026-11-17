@@ -100,6 +100,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       <label class="f2" for="sBars">Bars<select id="sBars"><option>1</option><option>2</option><option>4</option></select></label>
       <label class="f2" for="sTp">Tempo (beats per minute)<input id="sTp" type="number" min="40" max="160" step="2"></label>
       <label class="f2" for="sTol">Timing<select id="sTol"><option value="relaxed">Relaxed</option><option value="normal">Normal</option><option value="strict">Strict</option></select></label>
+      <label class="f2" for="sCi">Count-in<select id="sCi"><option value="2">Two bars, spoken (“1 … 2 … 1 2 3 4”)</option><option value="1">One bar, spoken</option><option value="0">One bar, clicks only</option></select></label>
       <label class="f2" for="sClk">Metronome<select id="sClk"><option value="on">Click throughout</option><option value="in">Count-in only</option></select></label>
       <label class="f2" for="sIn">Perform by<select id="sIn"><option value="tap">Tapping (pad or space bar)</option><option value="clap">Clapping (microphone)</option></select></label>
     </div>
@@ -144,12 +145,12 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
 
   // ---------- settings ----------
   const LEVELS = [[1, "Quarters and halves"], [2, "+ Eighth notes"], [3, "+ Dotted rhythms, eighth rests"], [4, "+ Sixteenth notes"], [5, "+ Syncopation"], [6, "+ Triplets"]];
-  let S = { tab: "dict", lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", snd: "clap", reps: 4, from: 0, nsec: 13, cm: "" };
+  let S = { tab: "dict", lv: 2, meter: "4/4", bars: 2, tempo: 80, tol: "normal", ci: "2", click: "on", input: "tap", lat: 0, mode: "gen", pat: { world: 0, classic: 0, rud: 0 }, part: "steady", snd: "clap", reps: 4, from: 0, nsec: 13, cm: "" };
   try { Object.assign(S, JSON.parse(localStorage.getItem("silverapps-rhythmperf") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("silverapps-rhythmperf", JSON.stringify(S)); } catch (e) {} };
   $("sLv").innerHTML = LEVELS.map(([v, t]) => `<option value="${v}">${v}. ${t}</option>`).join("");
   $("sFrom").innerHTML = Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i + 1}${i ? ` (shifted ${i})` : " (unison)"}</option>`).join("");
-  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sSnd").value = S.snd; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sIn").value = S.input; };
+  const syncForm = () => { $("sMode").value = S.mode; $("sPart").value = S.part; $("sSnd").value = S.snd; $("sReps").value = S.reps; $("sFrom").value = S.from; $("sNsec").value = S.nsec; $("sCm").value = S.cm; $("sLv").value = S.lv; $("sMt").value = S.meter; $("sBars").value = S.bars; $("sTp").value = S.tempo; $("sTol").value = S.tol; $("sClk").value = S.click; $("sCi").value = S.ci; $("sIn").value = S.input; };
   syncForm();
   $("settings").onchange = e => {
     const v = e.target.value, id = e.target.id;
@@ -157,7 +158,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       ({ sMode: () => S.mode = v, sPat: () => S.pat[S.mode] = +v, sPart: () => S.part = v, sSnd: () => S.snd = v, sReps: () => S.reps = +v, sFrom: () => S.from = +v, sNsec: () => S.nsec = +v, sCm: () => S.cm = v.trim() })[id]();
       save(); stopRun(); modeUI(); newRhythm(); return;
     }
-    ({ sLv: () => S.lv = +v, sMt: () => S.meter = v, sBars: () => S.bars = +v, sTp: () => S.tempo = Math.max(40, Math.min(160, +v || 80)), sTol: () => S.tol = v, sClk: () => S.click = v, sIn: () => S.input = v })[e.target.id]();
+    ({ sLv: () => S.lv = +v, sMt: () => S.meter = v, sBars: () => S.bars = +v, sTp: () => S.tempo = Math.max(40, Math.min(160, +v || 80)), sTol: () => S.tol = v, sClk: () => S.click = v, sCi: () => S.ci = v, sIn: () => S.input = v })[e.target.id]();
     save(); if (["sLv", "sMt", "sBars"].includes(e.target.id)) newRhythm(); else if (e.target.id === "sIn") updateInputUI();
   };
   if (window.SAprogress) SAprogress.init({ id: "rhythmperformance", name: "Ear Training – Rhythm", before: ".fi-credit" });
@@ -440,6 +441,12 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
   // ---------- audio ----------
   let AC = null, out = null;
   function ac() { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); out = AC.createGain(); out.gain.value = .9; out.connect(AC.destination); } if (AC.state === "suspended") AC.resume(); return AC; }
+  // the counting voice (the site's recorded count, 1–9): decoded once, each clip started at its first sound so the syllable lands on the beat
+  const NUM = {}; let numLoad = null, numDone = false;
+  function loadNums() { if (!numLoad) numLoad = Promise.all(Array.from({ length: 9 }, (_, i) => fetch(`assets/count-voice-Adam/${i + 1}.wav`).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej))).then(buf => { const d = buf.getChannelData(0); let k = 0, pk = 0; for (let j = 0; j < d.length; j++) pk = Math.max(pk, Math.abs(d[j])); while (k < d.length && Math.abs(d[k]) < pk * .08) k++;
+      NUM[i + 1] = { buf, on: Math.max(0, k / buf.sampleRate - .012), lv: .75 / (pk || 1) }; }).catch(() => {}))); return numLoad; }
+  function say(t, n) { const c = NUM[n]; if (!c) return; const src = AC.createBufferSource(), g = AC.createGain(); src.buffer = c.buf; g.gain.value = c.lv; src.connect(g); g.connect(out); src.start(t, c.on); }
   function click(t, accent) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = accent ? 1760 : 1175; o.type = "square"; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(accent ? .22 : .13, t + .002); g.gain.exponentialRampToValueAtTime(.001, t + .05); o.connect(g); g.connect(out); o.start(t); o.stop(t + .06); }
   function block(t) { if (clapping()) return clap(t, true); [[620, .5], [1240, .18]].forEach(([f, a]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .003); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }); }
   // Hand clap: a few quick bursts of band-passed noise and a short tail. hi = brighter clap (your part), else a lower one.
@@ -467,9 +474,13 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
   function stopRun() { if (run) { run.stop = true; cancelAnimationFrame(run.raf); run.timers.forEach(clearTimeout); stopClap(); } run = null; }
   function start(perform) {
     if (!ac()) return; stopRun();
-    const ts = tickSec(), beatS = ts * R.m.beat, t0 = AC.currentTime + .25, rs = t0 + R.m.beats * beatS, end = rs + R.total * ts;
-    run = { perform, t0, rs, end, taps: [], timers: [], raf: 0 };
-    for (let b = 0; b < R.m.beats; b++) click(t0 + b * beatS, b === 0);   // count-in bar
+    if (S.ci !== "0" && !numDone) { loadNums().then(() => { numDone = true; start(perform); }); return; }   // first time: wait for the counting voice
+    // count-in: two bars counts “1 … 2 …” (beat 1 and the middle of the bar), then every beat, like a band leader; one bar counts every beat
+    const ts = tickSec(), beatS = ts * R.m.beat, nIn = S.ci === "2" ? 2 : 1, n = R.m.beats, t0 = AC.currentTime + .25, rs = t0 + nIn * n * beatS, end = rs + R.total * ts;
+    run = { perform, t0, rs, end, nIn, taps: [], timers: [], raf: 0 };
+    for (let b = 0; b < nIn * n; b++) { const t = t0 + b * beatS, k = b % n, first = nIn === 2 && b < n;
+      click(t, k === 0);
+      if (S.ci !== "0") { if (!first) say(t, k + 1); else if (k === 0) say(t, 1); else if (n % 2 === 0 && k === n / 2) say(t, 2); else if (n % 2) say(t, k + 1); } }   // (odd meters count every beat in both bars)
     if (S.click === "on" || !perform) for (let b = 0; b < R.m.beats * R.nb; b++) click(rs + b * beatS, b % R.m.beats === 0);
     if (!perform) R.onsets.forEach(o => block(rs + o.tick * ts));
     if (R.other) R.other.forEach(tk => block2(rs + tk * ts));
@@ -481,7 +492,7 @@ input[type=text]{font:18px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;p
       if (!run || run.stop) return;
       const now = AC.currentTime - outLat();
       const beatNo = Math.floor((now - t0) / beatS);
-      if (now >= t0 && now < end) drawCount(((beatNo % R.m.beats) + R.m.beats) % R.m.beats, beatNo < R.m.beats);
+      if (now >= t0 && now < end) drawCount(((beatNo % R.m.beats) + R.m.beats) % R.m.beats, beatNo < run.nIn * R.m.beats);
       if (R.grid && now >= rs && now <= end) gridAt((now - rs) / ts);
       if (geo && geo.head && now >= rs && now <= end) { const xx = xAt((now - rs) / ts); geo.head.setAttribute("x1", xx); geo.head.setAttribute("x2", xx); }
       if (now >= rs && now < rs + .05 && perform) $("fb").textContent = "Go!";

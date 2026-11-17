@@ -616,3 +616,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ## z173 (2026-11-17) Multi-bar rest, centered bar rests, hardware-style metronome
 - engine.js: bar.multi = N draws a VexFlow MultiMeasureRest (timed as N bars, silent in playback, described as "rest for N bars"); bar rests are re-centered after drawing like centered notes.
 - notevalues.js: Bar lines step adds a multi-bar rest figure; practice metronome restyled as a hardware unit (LCD tempo, LED beat lights, keys, vertical faders; ids unchanged).
+
+## z174 (2026-11-17) Metronome page restyle, keyboard drill modes, spoken count-in
+- metronome.html: hardware-style unit (LCD readout with meter #lcdMeter, LED beat buttons, rubber keys, dark panels); all ids and features unchanged. Pending request: Dr. Beat-style level faders on this page.
+- Keyboard Instruments drills: 7 modes condensed to 3 (inst = piano/pedals/prepared, nota = writing/accompaniments, organ = organ/celesta/ensemble); questions drawn in proportion to list sizes.
+- rhythm-performance.html: Count-in setting (two bars spoken "1 . 2 . 1 2 3 4" default, one bar spoken, clicks only) using assets/count-voice-Adam clips trimmed to their onsets.
