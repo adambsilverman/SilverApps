@@ -583,7 +583,8 @@ window.FAM = (() => {
           const svg = st.querySelector("svg"); if (!svg) return; svg.setAttribute("role", "group"); svg.setAttribute("aria-label", "The bar: click a note to dot it");
           const owner = written().map(p => p.i), H0 = svg.viewBox.baseVal.height || 80;
           svg.querySelectorAll(".vf-stavenote").forEach((g, j) => { const i = owner[j]; if (i == null) return; const bb = g.getBBox(), r = document.createElementNS(SVGN, "rect");
-            r.setAttribute("class", "nvhitbox"); r.setAttribute("x", bb.x - 6); r.setAttribute("y", 2); r.setAttribute("width", bb.width + 12); r.setAttribute("height", H0 - 4); r.setAttribute("rx", 5); g.insertBefore(r, g.firstChild);
+            const vb = svg.viewBox.baseVal, y0 = Math.min(vb && vb.height ? vb.y : 0, bb.y - 4), y1 = Math.max(vb && vb.height ? vb.y + vb.height : H0, bb.y + bb.height + 4);   // cover the whole note, notehead included
+            r.setAttribute("class", "nvhitbox"); r.setAttribute("x", bb.x - 6); r.setAttribute("y", y0); r.setAttribute("width", bb.width + 12); r.setAttribute("height", y1 - y0); r.setAttribute("rx", 5); g.insertBefore(r, g.firstChild);
             g.classList.add("nvhit"); g.dataset.n = i; g.setAttribute("role", "button"); g.setAttribute("tabindex", "0"); g.setAttribute("aria-label", `Dot note ${i + 1}, the ${NM[TOK[d[i]]]}`); });
           if (fi != null) { const g = svg.querySelector(`.nvhit[data-n="${Math.min(fi, d.length - 1)}"]`); if (g) g.focus(); } };
         const load = () => { [ts] = TOYS.dots.START[k]; d = TOYS.dots.START[k][1].split(" ").map(t => DUR[t]); hist = []; say(msg, ""); draw(); };
