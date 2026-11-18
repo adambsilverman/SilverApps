@@ -47,7 +47,10 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 .bank{display:flex;flex-wrap:wrap;gap:8px;min-height:48px}
 .chip{min-width:52px;min-height:44px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);font:600 18px var(--fi-serif);padding:6px 12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .chip[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
-.chip.ghost{position:fixed;z-index:9999;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.25);transform:translate(-50%,-50%) rotate(-3deg);cursor:grabbing}
+.chip.ghost{position:fixed;left:0;top:0;margin:0;z-index:9999;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.25);will-change:transform;cursor:grabbing}
+.bank.rows{display:grid;gap:6px}
+.bankrow{display:flex;flex-wrap:wrap;gap:6px}
+.bank.rows .chip{min-width:48px;padding:6px 8px}
 .guide{margin:0;font:500 15px/1.45 var(--fi-serif);color:var(--fi-muted)}
 .ladder{margin:0 auto}
 .lad{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -97,6 +100,8 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   const TRI = { M: ["major", [4, 7]], m: ["minor", [3, 7]], d: ["diminished", [3, 6]], A: ["augmented", [4, 8]] };
   const SEV = { M7: ["major seventh", [4, 7, 11], "M"], "7": ["dominant seventh (major-minor)", [4, 7, 10], "M"], m7: ["minor seventh", [3, 7, 10], "m"], h7: ["half-diminished seventh", [3, 6, 10], "d"], o7: ["fully diminished seventh", [3, 6, 9], "d"] };
   const SYM = { M: "", m: "m", d: "°", A: "+", M7: "△7", "7": "7", m7: "m7", h7: "ø7", o7: "°7" };
+  // every note name in everyday use (no E♯, F♭, B♯ or C♭), in three rows: naturals, sharps, flats
+  const USUAL = ["C", "D", "E", "F", "G", "A", "B", "C♯", "D♯", "F♯", "G♯", "A♯", "D♭", "E♭", "G♭", "A♭", "B♭"];
   const MEM = ["root", "3rd", "5th", "7th"], INV = ["root position", "first inversion", "second inversion", "third inversion"];
   const FIG3 = ["(no figure)", "6", "6/4"], FIG7 = ["7", "6/5", "4/3", "4/2"];
   if (window.SAprogress) SAprogress.init({ id: "chordfirststeps", name: "Triads and Seventh Chords: First Steps", before: ".fi-credit" });
@@ -215,11 +220,10 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   function build() {
     const S = [], N = C.notes, T = C.tones, n = N.length;
     C.read = -1; C.showStack = false;
-    // step 1: name every note by dragging names onto the boxes beside the staff (two extra names in the bank are decoys)
+    // step 1: name every note by dragging names (all the usual ones) onto the boxes beside the staff
     const real = N.map(nm), legal = t => Math.abs(t.a) <= 1 && !((t.a === -1 && (t.l === 3 || t.l === 0)) || (t.a === 1 && (t.l === 2 || t.l === 6)));
-    const decoys = shuffle(N.flatMap(x => [{ l: x.l, a: x.a ? 0 : rnd([-1, 1]) }, { l: (x.l + 1) % 7, a: 0 }, { l: (x.l + 6) % 7, a: 0 }]).filter(legal).map(nm).filter(v => !real.includes(v))).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2);
     const mn = C.clef === "treble" ? "Treble clef: lines E G B D F, spaces F A C E." : "Bass clef: lines G B D F A, spaces A C E G.";
-    S.push({ title: "Step 1: name the notes", kind: "drag", mode: "names", ans: real, bank: shuffle(real.concat(decoys)), reuse: false,
+    S.push({ title: "Step 1: name the notes", kind: "drag", mode: "names", ans: real, bank: USUAL, rowsOf: 3, reuse: true,
       q: `Name all ${n} notes. Drag a name onto the box beside each note, or choose a name and then a box. Read each note from its line or space, and check for a sharp or flat in front of it.`,
       hint: `${mn} Ledger lines continue the pattern: count up or down by step from the nearest line you know.`,
       judge: (i, v) => { const want = N[i], got = real.indexOf(v) >= 0 ? N[real.indexOf(v)] : null, gl = "CDEFGAB".indexOf(v[0]);
@@ -241,15 +245,17 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       kind: "opts", opts: N.map(nm), ans: nm(N[C.rootIdx]), hl: [], why: `${nm(N[C.rootIdx])} is the root: stacked in 3rds the chord is ${C.tones.map(nm).join(" – ")}.`, after: () => { C.showStack = true; } });
     const R = { ...T[0], o: 4 }, up = (t, st) => { let x = { ...t, o: 4 }; while (pos(x) <= pos(R)) x.o++; return x; };
     const third = up(T[1]), fifth = up(T[2]), h3 = midi(third) - midi(R), h5 = midi(fifth) - midi(R);
-    S.push({ title: "Root to 3rd: count half steps", q: `Count the <b>half steps</b> from the root (${nm(T[0])}) up to the 3rd (${nm(T[1])}).`, kind: "opts", opts: ["2", "3", "4", "5"], ans: String(h3), stackHl: [0, 1], kb: [R, third], why: `${h3} half steps.` });
-    S.push({ title: "What kind of 3rd?", q: `${h3} half steps from ${nm(T[0])} to ${nm(T[1])}. What kind of 3rd is it?`, kind: "opts", opts: ["major 3rd", "minor 3rd"], ans: h3 === 4 ? "major 3rd" : "minor 3rd", stackHl: [0, 1], why: "A <b>major 3rd</b> is 4 half steps; a <b>minor 3rd</b> is 3." });
-    S.push({ title: "Root to 5th: count half steps", q: `Count the half steps from the root (${nm(T[0])}) up to the 5th (${nm(T[2])}).`, kind: "opts", opts: ["5", "6", "7", "8"], ans: String(h5), stackHl: [0, 2], kb: [R, fifth], why: `${h5} half steps.` });
-    S.push({ title: "What kind of 5th?", q: `${h5} half steps from ${nm(T[0])} to ${nm(T[2])}. What kind of 5th is it?`, kind: "opts", opts: ["perfect 5th", "diminished 5th", "augmented 5th"], ans: h5 === 7 ? "perfect 5th" : h5 === 6 ? "diminished 5th" : "augmented 5th", stackHl: [0, 2], why: "A <b>perfect 5th</b> is 7 half steps; <b>diminished</b> is one smaller (6); <b>augmented</b> is one larger (8)." });
+    // half steps and the interval's name in one answer ("4 half steps – major 3rd")
+    const HS = ([h, n]) => `${h} half steps – ${n}`;
+    S.push({ title: "Root to 3rd", q: `Count the <b>half steps</b> from the root (${nm(T[0])}) up to the 3rd (${nm(T[1])}), and name the interval.`, kind: "opts", opts: [[3, "minor 3rd"], [4, "major 3rd"]].map(HS), ans: HS([h3, h3 === 4 ? "major 3rd" : "minor 3rd"]), stackHl: [0, 1], kb: [R, third],
+      why: `${h3} half steps: a ${h3 === 4 ? "major" : "minor"} 3rd. A major 3rd is 4 half steps; a minor 3rd is 3.` });
+    S.push({ title: "Root to 5th", q: `Count the half steps from the root (${nm(T[0])}) up to the 5th (${nm(T[2])}), and name the interval.`, kind: "opts", opts: [[6, "diminished 5th"], [7, "perfect 5th"], [8, "augmented 5th"]].map(HS), ans: HS([h5, h5 === 7 ? "perfect 5th" : h5 === 6 ? "diminished 5th" : "augmented 5th"]), stackHl: [0, 2], kb: [R, fifth],
+      why: `${h5} half steps: ${h5 === 7 ? "a perfect" : h5 === 6 ? "a diminished" : "an augmented"} 5th. Perfect 5th: 7 half steps; diminished: 6; augmented: 8.` });
     let qn;
     if (C.sev) {
       const sev = up(T[3]), h7 = midi(sev) - midi(R);
-      S.push({ title: "Root to 7th: count half steps", q: `Count the half steps from the root (${nm(T[0])}) up to the 7th (${nm(T[3])}). (Tip: an octave is 12, so count down from the root's octave instead.)`, kind: "opts", opts: ["9", "10", "11", "12"], ans: String(h7), stackHl: [0, 3], kb: [R, sev], why: `${h7} half steps (${12 - h7} below the octave).` });
-      S.push({ title: "What kind of 7th?", q: `${h7} half steps from ${nm(T[0])} to ${nm(T[3])}. What kind of 7th is it?`, kind: "opts", opts: ["major 7th", "minor 7th", "diminished 7th"], ans: h7 === 11 ? "major 7th" : h7 === 10 ? "minor 7th" : "diminished 7th", stackHl: [0, 3], why: "<b>Major 7th</b>: 11 half steps (a half step below the octave). <b>Minor 7th</b>: 10. <b>Diminished 7th</b>: 9." });
+      S.push({ title: "Root to 7th", q: `Count the half steps from the root (${nm(T[0])}) up to the 7th (${nm(T[3])}), and name the interval. (Tip: an octave is 12, so you can count down from the root's octave instead.)`, kind: "opts", opts: [[9, "diminished 7th"], [10, "minor 7th"], [11, "major 7th"]].map(HS), ans: HS([h7, h7 === 11 ? "major 7th" : h7 === 10 ? "minor 7th" : "diminished 7th"]), stackHl: [0, 3], kb: [R, sev],
+        why: `${h7} half steps (${12 - h7} below the octave): a ${h7 === 11 ? "major" : h7 === 10 ? "minor" : "diminished"} 7th. Major 7th: 11; minor 7th: 10; diminished 7th: 9.` });
       qn = SEV[C.q][0];
       S.push({ title: "The chord's quality", q: `The triad on the bottom is <b>${TRI[SEV[C.q][2]][0]}</b> (${h3 === 4 ? "major" : "minor"} 3rd, ${h5 === 7 ? "perfect" : "diminished"} 5th), and the 7th is <b>${h7 === 11 ? "major" : h7 === 10 ? "minor" : "diminished"}</b>. What kind of seventh chord is it?`, kind: "opts", opts: Object.values(SEV).map(v => v[0]), ans: qn, stackHl: [0, 1, 2, 3], table: true,
         why: `Major triad + major 7th = major seventh (△7). Major triad + minor 7th = dominant seventh (7). Minor triad + minor 7th = minor seventh (m7). Diminished triad + minor 7th = half-diminished (ø7). Diminished triad + diminished 7th = fully diminished (°7).` });
@@ -275,7 +281,10 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       <div class="row"><button type="button" class="tbtn primary" id="chk">Check</button><button type="button" class="tbtn" id="show">Show me</button></div>`;
     else if (st.kind === "drag") {
       const used = C.fill.filter(Boolean), left = st.reuse ? st.bank : st.bank.filter(v => { const k = st.bank.filter(x => x === v).length - used.filter(x => x === v).length; return k > 0; });
-      input = `<div class="bank" role="group" aria-label="${st.mode === "names" ? "Note names" : "Intervals"} to drag">${left.map(v => `<button type="button" class="chip" data-chip="${v}" aria-pressed="${C.sel === v}">${v}</button>`).join("")}</div>
+      const chip = v => `<button type="button" class="chip" data-chip="${v}" aria-pressed="${C.sel === v}">${v}</button>`;
+      input = st.rowsOf ? `<div class="bank rows" role="group" aria-label="Note names to drag">${[left.filter(v => v.length === 1), left.filter(v => v.includes("♯")), left.filter(v => v.includes("♭"))].map(r => `<div class="bankrow">${r.map(chip).join("")}</div>`).join("")}</div>`
+        : `<div class="bank" role="group" aria-label="${st.mode === "names" ? "Note names" : "Intervals"} to drag">${left.map(chip).join("")}</div>`;
+      input += `
       ${C.showHint ? `<p class="guide">${st.hint}</p>` : ""}<div class="row"><button type="button" class="tbtn primary" id="chkD">Check</button>${C.showHint ? "" : `<button type="button" class="tbtn" id="hintD">Hint</button>`}<button type="button" class="tbtn" id="show">Show me</button></div>`;
     }
     else input = `<div class="opts" role="group" aria-label="Answers">${st.opts.map(o => `<button type="button" class="ans" data-o="${o}">${o}</button>`).join("")}</div><div class="row"><button type="button" class="tbtn" id="show">Show me</button></div>`;
@@ -319,15 +328,22 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   $("staves").addEventListener("click", e => { const sl = e.target.closest("[data-slot]"), st = C.steps[C.k]; if (!sl || !st || st.kind !== "drag") return; const i = +sl.dataset.slot; if (C.lock[i]) return;
     if (C.sel) place(i, C.sel); else if (C.fill[i]) { C.fill[i] = null; render(); const f = $("staves").querySelector(`[data-slot="${i}"]`); if (f) f.focus(); }
     else { $("fb").className = "fb"; $("fb").textContent = "Choose a " + (st.mode === "names" ? "name" : "number") + " first, then this box (or drag one here)."; } });
-  let drag = null;
-  $("step").addEventListener("pointerdown", e => { const ch = e.target.closest("[data-chip]"); if (!ch || e.button > 0) return; drag = { ch, v: ch.dataset.chip, x: e.clientX, y: e.clientY, ghost: null, over: null }; ch.setPointerCapture(e.pointerId); });
-  $("step").addEventListener("pointermove", e => { if (!drag) return; if (!drag.ghost && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
-    if (!drag.ghost) { drag.ghost = drag.ch.cloneNode(true); drag.ghost.classList.add("ghost"); drag.ghost.removeAttribute("aria-pressed"); drag.ghost.setAttribute("aria-hidden", "true"); document.body.appendChild(drag.ghost); }
-    drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px";
-    const el = document.elementFromPoint(e.clientX, e.clientY), sl = el && el.closest("[data-slot]"); if (drag.over && drag.over !== sl) drag.over.classList.remove("over"); if (sl && !sl.classList.contains("ok")) { sl.classList.add("over"); drag.over = sl; } else drag.over = null; });
-  const endDrag = e => { if (!drag) return; const d = drag; drag = null; if (!d.ghost) return; d.ghost.remove(); d.ch.dataset.dragged = "1"; setTimeout(() => delete d.ch.dataset.dragged, 50);
+  // dragging: the ghost moves with a GPU transform once per frame, and the boxes' positions are measured once when the drag starts
+  let drag = null, raf = 0;
+  $("step").addEventListener("pointerdown", e => { const ch = e.target.closest("[data-chip]"); if (!ch || e.button > 0) return;
+    drag = { ch, v: ch.dataset.chip, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, ghost: null, over: null, boxes: null }; ch.setPointerCapture(e.pointerId); });
+  const frame = () => { raf = 0; if (!drag || !drag.ghost) return;
+    drag.ghost.style.transform = `translate3d(${drag.cx}px,${drag.cy}px,0) translate(-50%,-50%) rotate(-3deg)`;
+    const hit = drag.boxes.find(b => drag.cx >= b.r.left - 6 && drag.cx <= b.r.right + 6 && drag.cy >= b.r.top - 6 && drag.cy <= b.r.bottom + 6), sl = hit ? hit.el : null;
+    if (drag.over !== sl) { if (drag.over) drag.over.classList.remove("over"); if (sl) sl.classList.add("over"); drag.over = sl; } };
+  $("step").addEventListener("pointermove", e => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY;
+    if (!drag.ghost) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 3) return;
+      drag.ghost = drag.ch.cloneNode(true); drag.ghost.classList.add("ghost"); drag.ghost.removeAttribute("aria-pressed"); drag.ghost.setAttribute("aria-hidden", "true"); document.body.appendChild(drag.ghost);
+      drag.boxes = [...$("staves").querySelectorAll("[data-slot]:not(.ok)")].map(el => ({ el, r: el.getBoundingClientRect() })); }
+    if (!raf) raf = requestAnimationFrame(frame); });
+  const endDrag = e => { if (!drag) return; const d = drag; drag = null; if (raf) { cancelAnimationFrame(raf); raf = 0; } if (!d.ghost) return; d.ghost.remove(); d.ch.dataset.dragged = "1"; setTimeout(() => delete d.ch.dataset.dragged, 50);
     if (d.over) { d.over.classList.remove("over"); place(+d.over.dataset.slot, d.v); } };
-  $("step").addEventListener("pointerup", endDrag); $("step").addEventListener("pointercancel", e => { if (drag && drag.ghost) drag.ghost.remove(); drag = null; });
+  $("step").addEventListener("pointerup", endDrag); $("step").addEventListener("pointercancel", () => { if (drag && drag.ghost) drag.ghost.remove(); if (drag && drag.over) drag.over.classList.remove("over"); drag = null; });
   function checkDrag(st) {
     if (C.fill.some(v => !v)) { $("fb").className = "fb bad"; $("fb").textContent = "Fill every box first."; return; }
     const bad = st.ans.map((a, i) => C.fill[i] === a ? -1 : i).filter(i => i >= 0);
@@ -338,7 +354,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   }
   function hintFor(st, v) {
     if (st.title === "How far apart?") return "Count the letter names from the lower note up to the higher one, counting both notes.";
-    if (/half steps/.test(st.title)) return "Count every key, white or black, from the lower note to the higher one. Use the keyboard picture if it helps.";
+    if (/^Root to/.test(st.title)) return "Count every key, white or black, from the root up to the other note, then find that number. Use the keyboard picture if it helps.";
     if (st.title === "Find the root") return C.sev ? "Find the two notes a 2nd apart: the upper one of that pair is the root." : "Find the two notes a 4th apart: the upper one is the root.";
     return "Not quite. Look at the step above for the information you need.";
   }
@@ -393,8 +409,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       why: `From the root: ${[LET[R.l]].concat(mems.map(m => LET[m.t.l])).join(", ")}.` });
     // step 3: the accidentals, from the half steps each member needs above the root
     const legal = t => Math.abs(t.a) <= 1, info = mems.map((m, j) => { const plain = up({ l: m.t.l, a: 0 }); return { ...m, h: need[j][1], ivn: need[j][2], hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
-    const pool = [...new Set(info.flatMap(m => [-1, 0, 1].map(a => ({ l: m.t.l, a })).filter(legal).map(nm)).concat(info.map(m => nm(m.t))))];
-    S.push({ title: "Step 3: sharp, flat or natural?", kind: "drag", reuse: false, bank: shuffle(pool), ans: info.map(m => nm(m.t)),
+    S.push({ title: "Step 3: sharp, flat or natural?", kind: "drag", reuse: true, bank: USUAL, rowsOf: 3, ans: info.map(m => nm(m.t)),
       rows: info.map(m => ({ label: `${m.mem}: ${m.ivn} (${m.h} half steps)`, aria: `The ${m.mem}, a ${m.ivn}, ${m.h} half steps above ${nm(R)}` })),
       q: `Now choose the right version of each letter. Each box says how many half steps above ${nm(R)} the note must be. Count the half steps from ${nm(R)} up to the plain letter, then raise or lower it to match.`,
       hint: `${info.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
