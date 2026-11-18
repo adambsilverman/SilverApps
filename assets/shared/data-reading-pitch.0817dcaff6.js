@@ -363,9 +363,13 @@ window.FAM = (() => {
   const widgets = { clefDrag: {
     html(c, q, H) {
       const left = cdStaff(H, c.from, cdNote(c.s, "cdfix"), `${CNAME[c.from]} staff with a note on the ${where(c.s)}`);
-      return `<div class="cdpair"><figure><figcaption>${CNAME[c.from]} clef</figcaption>${left}</figure><span class="cdarrow" aria-hidden="true">→</span><figure><figcaption>${CNAME[c.to]} clef${q.done ? "" : ": drag the note"}</figcaption><div class="cdbox">${cdRight(c, q, H)}</div></figure></div>`;
+      // which clefs this drill uses (the same switches as Practice settings): at least two, since the note moves from one clef to another
+      const on = ["treble", "bass", "alto", "tenor"].filter(k => H.topicOn(k));
+      const pick = `<fieldset class="cdclefs"><legend>Clefs to include</legend>${["treble", "bass", "alto", "tenor"].map(k => `<label><input type="checkbox" value="${k}"${on.includes(k) ? " checked" : ""}${on.includes(k) && on.length <= 2 ? " disabled" : ""}> ${CNAME[k][0].toUpperCase() + CNAME[k].slice(1)}</label>`).join("")}</fieldset>`;
+      return pick + `<div class="cdpair"><figure><figcaption>${CNAME[c.from]} clef</figcaption>${left}</figure><span class="cdarrow" aria-hidden="true">→</span><figure><figcaption>${CNAME[c.to]} clef${q.done ? "" : ": drag the note"}</figcaption><div class="cdbox">${cdRight(c, q, H)}</div></figure></div>`;
     },
     wire(root, c, q, H) {
+      const cl = root.querySelector(".cdclefs"); if (cl) cl.onchange = e => { const b = document.querySelector(`[data-topic="${e.target.value}"]`); if (b) b.click(); };
       const box = root.querySelector(".cdbox"), btn = root.querySelector("[data-wcheck]");
       const set = (st, focus) => { q.cdS = Math.max(CD.lo, Math.min(CD.hi, st)); box.innerHTML = cdRight(c, q, H); btn.disabled = false; if (focus) box.querySelector("#cdN").focus(); };
       let drag = false;
@@ -382,7 +386,7 @@ window.FAM = (() => {
   return {
     key: "silverapps-clefs-v1", lesson, make, reference, widgets, allowDouble: true,   // its notation facts ask what a double sharp/flat does
     modes: [{ id: "name", kicker: "Name the note" }, { id: "octave", kicker: "Note and octave" }, { id: "same", kicker: "Same pitch, new clef" }, { id: "devices", kicker: "Devices and principles" }],
-    topics: [{ id: "treble", name: "Treble clef", group: "c" }, { id: "bass", name: "Bass clef", group: "c" }, { id: "alto", name: "Alto clef", group: "c" }, { id: "tenor", name: "Tenor clef", group: "c", on: false },
+    topics: [{ id: "treble", name: "Treble clef", group: "c" }, { id: "bass", name: "Bass clef", group: "c" }, { id: "alto", name: "Alto clef", group: "c", on: false }, { id: "tenor", name: "Tenor clef", group: "c", on: false },
       { id: "staff", name: "On the staff", group: "r" }, { id: "ledger", name: "Ledger lines", group: "r", on: false }],
   };
 })();

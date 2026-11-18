@@ -477,9 +477,37 @@ details.ikbd > summary { cursor: pointer; font-weight: 700; min-height: 40px; di
 .sykb .sykey.blk { position: absolute; top: 0; width: calc(100% / 15 * .6); height: 60%; background: #222; border: 1.5px solid #000; border-radius: 0 0 4px 4px !important; z-index: 2; }
 .sykb .sykey.on.wht { background: #F7C3B5; } .sykb .sykey.on.blk { background: #E8573F; }
 .sykb .sykey:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -3px; }
-.sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
-.sygrid .sl { display: grid; gap: 2px; font-weight: 600; font-size: 15px; }
-.sygrid output { font: 13px var(--mono); }
+/* the synth as a compact, dark instrument panel (matches the Multitrack Studio) */
+#syToy.sydaw { --tx: #e9eaec; --mu: #b4b8bf; --hl: #ffb02e; background: #1d1e21; color: var(--tx); border: 1px solid #000; border-radius: 10px; padding: 0; gap: 0; overflow: hidden; font: 13px/1.3 var(--ui, system-ui, sans-serif); }
+#syToy .sybar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 10px; background: linear-gradient(#34363b, #2a2c30); border-bottom: 1px solid #000; }
+#syToy .sylbl { font: 700 10px var(--ui, sans-serif); text-transform: uppercase; letter-spacing: .07em; color: var(--mu); }
+#syToy .sysep { width: 1px; align-self: stretch; background: #000; margin: 0 4px; }
+#syToy .synote { font-size: 11px; color: var(--mu); margin: 0; flex: 1; min-width: 180px; }
+#syToy > .synote { padding: 4px 10px 8px; }
+#syToy .synote a { color: #ffc766; }
+#syToy .syb { font: 700 12px/1.1 var(--ui, sans-serif) !important; text-transform: none !important; letter-spacing: .02em !important; border-radius: 5px !important; border: 1px solid #0b0b0c !important; background: linear-gradient(#45484e, #36383d) !important; color: var(--tx) !important; padding: 4px 8px !important; min-height: 28px !important; min-width: 0 !important; box-shadow: none !important; cursor: pointer; gap: 0 !important; }
+#syToy .syb:hover { background: linear-gradient(#50535a, #3e4046) !important; }
+#syToy .syb[aria-pressed="true"] { background: #e8e8ea !important; color: #111 !important; }
+#syToy .syb:focus-visible, #syToy input:focus-visible, #syToy select:focus-visible { outline: 2px solid var(--hl); outline-offset: 1px; }
+#syToy .sytop { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; background: #26282c; border-bottom: 1px solid #000; }
+#syToy #syScope { width: 100%; height: auto; display: block; background: #0c120c; border: 1px solid #000; border-radius: 5px; box-shadow: inset 0 0 8px rgba(0,0,0,.8); }
+#syToy .sylcd { margin: 0; font: 700 12px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #9df59d; background: #0c120c; border: 1px solid #000; border-radius: 5px; padding: 6px 9px; width: 15ch; text-align: center; }
+#syToy .sylcd b { font-size: 18px; display: block; }
+@media (max-width: 560px) { #syToy .sytop { grid-template-columns: 1fr; } #syToy .sylcd { width: auto; } #syToy .sylcd b { display: inline; font-size: 15px; margin-right: 6px; } #syToy .sylcd br { display: none; } }
+#syToy .sygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; padding: 8px 10px; background: #1a1b1e; }
+#syToy .sysec { background: #26282c; border: 1px solid #000; border-radius: 6px; padding: 5px 7px 7px; display: grid; gap: 3px; align-content: start; }
+#syToy .sysec h4 { font: 800 11px var(--ui, sans-serif); text-transform: uppercase; letter-spacing: .07em; margin: 0 0 2px; color: var(--hl); }
+#syToy label.syrow { display: grid !important; grid-template-columns: 70px 1fr 54px; align-items: center; gap: 4px; font: 600 11px var(--ui, sans-serif); color: var(--mu); }
+#syToy label.syck { display: flex !important; gap: 6px; align-items: center; font: 600 11px var(--ui, sans-serif); color: var(--mu); }
+#syToy .syrow input[type=range] { width: 100%; min-width: 0; margin: 0; accent-color: var(--hl); }
+#syToy .syrow output { font: 600 10px ui-monospace, Menlo, monospace; color: var(--tx); text-align: right; white-space: nowrap; }
+#syToy .syrow select { font: 12px var(--ui, sans-serif) !important; min-height: 22px !important; height: 22px; padding: 0 4px !important; border-radius: 4px !important; background: #15161a !important; color: var(--tx) !important; border: 1px solid #0b0b0c !important; }
+#syToy #syKb { padding: 8px 10px 4px; background: #26282c; border-top: 1px solid #000; }
+#syToy .sykb { height: 120px; max-width: none; }
+#syToy .sykb .sykey.wht { border-color: #222; border-radius: 0 0 4px 4px !important; background: linear-gradient(#f4f4f4, #fff); color: #555; }
+#syToy .sykb .sykey.blk { background: linear-gradient(#333, #111); }
+#syToy .sykb .sykey.on.wht { background: #ffd27a; } #syToy .sykb .sykey.on.blk { background: #c98a00; }
+#syToy .sykb .sykey:focus-visible { outline: 2px solid var(--hl); }
 /* answer pickers (intervals: any interval / any pitch) */
 .pick { display: grid; gap: 10px; justify-items: center; }
 .pick-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
@@ -823,6 +851,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ps-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 0 auto; background: #fff; border-radius: 8px; }
 .ps-fig audio { width: 100%; max-width: 520px; display: block; margin: 0 auto 10px; }
 .ps-chart th { white-space: nowrap; width: 7em; }
+.ps-sheet { margin: 14px 0; font-family: "Times New Roman", Times, Literata, serif; }
+.ps-sheet .ps-st { font-size: 1.25rem; margin: 0 0 10px; }
+.ps-sheet .ps-cl { margin: 0 0 1.35em; font-size: 1rem; line-height: 1.2; }
+.ps-sheet .ps-cl b { display: inline-block; margin-right: 1.4em; }
 .ps-ch { display: inline-block; min-width: 3.2em; padding: 2px 8px; margin: 2px 6px 2px 0; border: 1.5px solid var(--line, #bbb); border-radius: 8px; font: 600 18px/1.4 Literata, 'Noto Music', serif; text-align: center; }
 .ps-q h3 { margin: 14px 0 4px; }
 .ps-ans { margin: 14px 0 4px; padding: 10px 14px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
@@ -865,6 +897,61 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .dtmf .dt-key:focus-visible { outline: 3px solid var(--accent, #b3261e); outline-offset: 9px; }
 .dtmf .dt-read { text-align: center; min-height: 3.2em; margin: 4px auto; max-width: 560px; }
 @media (max-width: 420px) { .dtmf .dt-grid { gap: 18px; grid-template-columns: auto repeat(3, 56px); grid-template-rows: auto repeat(4, 56px); } .dtmf .dt-key { width: 56px; height: 56px; } }
+/* Cadences: Auld Lang Syne example (cadences.js step 1) */
+.cad-fig img { width: 100%; height: auto; max-width: 900px; display: block; margin: 8px auto 0; background: #fff; border-radius: 8px; }
+.cad-fig audio { width: 100%; max-width: 520px; display: block; margin: 0 auto; }
+/* Cadences: America the Beautiful hotspots (cadences.js step 2) */
+.cad-map { position: relative; max-width: 900px; margin: 26px auto 0; }   /* room above for the labels of the top-row boxes */
+.cad-map img { margin: 0; max-width: 100%; }
+.cad-hs { position: absolute; display: block; }
+.cad-hot { width: 100%; height: 100%; min-height: 0; padding: 0; border: 2px solid #C98A00 !important; border-radius: 8px !important; background: rgba(255, 196, 0, .16); cursor: help; display: flex; align-items: flex-start; justify-content: flex-end; }
+.cad-hot:hover, .cad-hot:focus-visible, .cad-hs.open .cad-hot { background: rgba(255, 196, 0, .32); outline: none; box-shadow: 0 0 0 3px rgba(201, 138, 0, .45); }
+.cad-badge { font: 800 11px/1 var(--fi-ui, sans-serif); letter-spacing: .04em; background: #8A5A00; color: #fff; padding: 3px 5px; border-radius: 0 6px 0 6px; white-space: nowrap; }
+.cad-tip { visibility: hidden; opacity: 0; position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; width: min(320px, 78vw); background: #FFF8E1; color: #222; border: 1.5px solid #8A5A00; border-radius: 8px; padding: 9px 12px; font-size: .95rem; line-height: 1.4; box-shadow: 0 6px 18px rgba(0,0,0,.18); text-align: left; transition: opacity .12s; pointer-events: none; }
+.cad-hs.up .cad-tip { top: auto; bottom: calc(100% + 6px); }
+.cad-hs:hover .cad-tip, .cad-hs:focus-within .cad-tip, .cad-hs.open .cad-tip { visibility: visible; opacity: 1; }
+.cad-more { margin-top: 10px; } .cad-more summary { cursor: pointer; font-weight: 700; }
+.wrap .cad-map .cad-hot { border-radius: 8px !important; border: 2px solid #C98A00 !important; min-height: 0 !important; padding: 0 !important; }
+.cad-hot { position: relative; } .cad-badge { position: absolute; top: -17px; right: -2px; border-radius: 6px 6px 0 0; }
+.cad-more p.cad-cur { background: #FFF4D6; color: #222; border-left: 4px solid #C98A00; padding: 6px 10px; border-radius: 4px; }
+.cad-fig .lvideo + img { margin-top: 10px; }
+@media (max-width: 560px) { .cad-badge { font-size: 8px; padding: 2px 3px; } .cad-hot .cad-badge { top: -12px; } .cad-map { margin-top: 18px; } .wrap .cad-map .cad-hot { border-width: 1.5px !important; } }
+
+/* theremin toy (Introduction to Pitch) */
+.tmsvg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; color: var(--ink, #222); }
+.tmread { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 14px; font-size: .92rem; }
+.tmread b { font-family: var(--mono, ui-monospace, monospace); display: block; }
+.tmpad { position: relative; height: clamp(190px, 30vh, 250px); border: 1px solid #000; border-radius: 8px; background: linear-gradient(to top, #15161a, #232733); touch-action: none; cursor: crosshair; overflow: hidden; }
+.tmpad canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tmpad:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }
+/* Meter: add the bar lines */
+.blrow { display: flex; flex-wrap: wrap; align-items: stretch; row-gap: 18px; padding: 10px 6px; }
+.blrow .bln, .blrow .blgap { background: linear-gradient(to bottom, transparent calc(50% - 1px), var(--ink, #222) calc(50% - 1px), var(--ink, #222) calc(50% + 1px), transparent calc(50% + 1px)) !important; }
+.blts { display: grid; align-content: center; font: 700 22px/0.95 Literata, serif; margin-right: 10px; text-align: center; background: var(--surface, #fffdf8); padding: 0 2px; }
+.bln { display: inline-flex; align-items: center; justify-content: center; min-width: var(--w); height: 64px; font: 34px/1 "Noto Music", "Bravura Text", "Segoe UI Symbol", serif; color: var(--ink, #222); }
+.blgap { width: 22px; min-width: 22px !important; height: 64px; min-height: 64px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; cursor: pointer; display: flex; justify-content: center; border-radius: 4px !important; }
+.blgap i { display: block; width: 2px; height: 46px; margin-top: 9px; border-left: 2px dashed rgba(0,0,0,.18); }
+.blgap:hover i, .blgap:focus-visible i { border-left-color: rgba(0,0,0,.5); }
+.blgap:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -2px; }
+.blgap.on i { border-left: 3px solid var(--ink, #222); }
+.blgap.good i { border-left: 3px solid #1b7a3a; } .blgap.bad i { border-left: 3px solid #b3261e; } .blgap.miss i { border-left: 3px dashed #1b7a3a; }
+.blend { width: 7px; margin: 9px 0 9px 6px; border-left: 2px solid var(--ink, #222); border-right: 4px solid var(--ink, #222); }
+.bllegend { font-size: .9rem; display: flex; gap: 6px 14px; flex-wrap: wrap; margin: 6px 0 0; } .bllegend .good { color: #1b7a3a; } .bllegend .bad { color: #b3261e; } .bllegend .miss { color: #1b7a3a; font-weight: 700; }
+/* Harmonic Succession: Adam's MTC 501 examples */
+.hs-fig img { display: block; margin: 8px 0 0; }
+.hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }
+/* polychord symbol: upper chord over a horizontal line over the lower chord */
+.polysym{display:inline-grid;vertical-align:middle;text-align:center;font-weight:700;line-height:1.05;margin:0 .15em}
+.polysym>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}
+/* Secondary Function Chords step 1: switches that swap diatonic 7ths for secondary dominants */
+.sw-tog { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.sw-tog .lk { font-size: 16px; }
+/* Contemporary Rhythm: metric modulation calculator */
+.mmcalc { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; margin: 14px 0; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); }
+.mmcalc label { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: .95rem; }
+.mmcalc input, .mmcalc select { min-height: 40px; font: inherit; font-weight: 400; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+.mmcalc input { width: 7em; }
+.mmcalc .mmout { flex-basis: 100%; margin: 4px 0 0; font-weight: 700; font-size: 1.1rem; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

@@ -917,29 +917,5 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cad-fig .lvideo + img { margin-top: 10px; }
 @media (max-width: 560px) { .cad-badge { font-size: 8px; padding: 2px 3px; } .cad-hot .cad-badge { top: -12px; } .cad-map { margin-top: 18px; } .wrap .cad-map .cad-hot { border-width: 1.5px !important; } }
 
-/* theremin toy (Introduction to Pitch) */
-.tmsvg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; color: var(--ink, #222); }
-.tmread { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 14px; font-size: .92rem; }
-.tmread b { font-family: var(--mono, ui-monospace, monospace); display: block; }
-.tmpad { position: relative; height: clamp(190px, 30vh, 250px); border: 1px solid #000; border-radius: 8px; background: linear-gradient(to top, #15161a, #232733); touch-action: none; cursor: crosshair; overflow: hidden; }
-.tmpad canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.tmpad:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }
-/* Meter: add the bar lines */
-.blrow { display: flex; flex-wrap: wrap; align-items: stretch; row-gap: 18px; padding: 10px 6px; }
-.blrow .bln, .blrow .blgap { background: linear-gradient(to bottom, transparent calc(50% - 1px), var(--ink, #222) calc(50% - 1px), var(--ink, #222) calc(50% + 1px), transparent calc(50% + 1px)) !important; }
-.blts { display: grid; align-content: center; font: 700 22px/0.95 Literata, serif; margin-right: 10px; text-align: center; background: var(--surface, #fffdf8); padding: 0 2px; }
-.bln { display: inline-flex; align-items: center; justify-content: center; min-width: var(--w); height: 64px; font: 34px/1 "Noto Music", "Bravura Text", "Segoe UI Symbol", serif; color: var(--ink, #222); }
-.blgap { width: 22px; min-width: 22px !important; height: 64px; min-height: 64px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; cursor: pointer; display: flex; justify-content: center; border-radius: 4px !important; }
-.blgap i { display: block; width: 2px; height: 46px; margin-top: 9px; border-left: 2px dashed rgba(0,0,0,.18); }
-.blgap:hover i, .blgap:focus-visible i { border-left-color: rgba(0,0,0,.5); }
-.blgap:focus-visible { outline: 3px solid #1a5fb4; outline-offset: -2px; }
-.blgap.on i { border-left: 3px solid var(--ink, #222); }
-.blgap.good i { border-left: 3px solid #1b7a3a; } .blgap.bad i { border-left: 3px solid #b3261e; } .blgap.miss i { border-left: 3px dashed #1b7a3a; }
-.blend { width: 7px; margin: 9px 0 9px 6px; border-left: 2px solid var(--ink, #222); border-right: 4px solid var(--ink, #222); }
-.bllegend { font-size: .9rem; display: flex; gap: 6px 14px; flex-wrap: wrap; margin: 6px 0 0; } .bllegend .good { color: #1b7a3a; } .bllegend .bad { color: #b3261e; } .bllegend .miss { color: #1b7a3a; font-weight: 700; }
-/* Harmonic Succession: Adam's MTC 501 examples */
-.hs-fig img { display: block; margin: 8px 0 0; }
-.hs-fig.hs-small { max-width: 420px; margin-left: auto; margin-right: auto; }
-
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

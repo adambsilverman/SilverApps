@@ -641,3 +641,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ## z178 (2026-11-17) Compact drills
 - assets/trainer-skin.css (edited directly; no build source): compact block scoped to .wrap:not(:has(#drillView[hidden])) so lesson/quiz pages are untouched. Smaller h1, tighter class-game bar (explanation .lc-sub hidden, buttons only), mode buttons one row with names only (subtitle visually hidden, still read by screen readers), less card/answer/progress padding, .pr full width in grid.
+- clefs.js (z178b): "Same pitch, new clef" shows Clefs to include checkboxes (they flip the Practice settings topic toggles; at least two stay on); alto now off by default like tenor.
+- multitrack-studio (z178c): "Drum kit" gains a Ride row (y, the sampled ride); pads lay out in two rows of ceil(n/2) with keys QWERT / ASDFG (padKeys()).

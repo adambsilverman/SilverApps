@@ -79,7 +79,7 @@ main.tool .daw .bar label input[type=range]{width:110px}
 .stp.b{background:#4a4d54}
 .stp[aria-pressed="true"]{background:var(--rc,#ffb02e);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
 .stp.now{outline:2px solid #fff;outline-offset:-2px}
-.pads{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:8px;max-width:520px;touch-action:none;user-select:none;-webkit-user-select:none}
+.pads{display:grid;grid-template-columns:repeat(var(--pc,4),minmax(56px,1fr));gap:8px;max-width:520px;touch-action:none;user-select:none;-webkit-user-select:none}
 .pad{height:64px;border-radius:8px;border:1px solid #000;background:linear-gradient(#3b3e44,#2c2e33);color:var(--tx);font:700 12px var(--fi-ui);display:grid;place-items:center;align-content:center;gap:2px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.4)}
 .pad kbd{font:700 10px ui-monospace,monospace;color:#111;background:#cfd2d8;border-radius:3px;padding:1px 4px}
 .pad.hit{background:var(--rc,#ffb02e);color:#111;box-shadow:none}
@@ -683,7 +683,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   $("kbd").addEventListener("keyup", e => { const b = e.target.closest("[data-m]"); if (b && (e.key === "Enter" || e.key === " ")) noteOff(+b.dataset.m); });
   const typing = e => /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) && e.target.type !== "range";
   window.addEventListener("keydown", e => { if (typing(e) || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return; const k = e.key.toLowerCase(), i = KEYMAP.indexOf(k);
-    const st = P.tracks[P.sel]; if (st && st.type === "drum") { const pi = PADKEYS.indexOf(k); if (pi >= 0) { e.preventDefault(); padHit(pi); } return; }
+    const st = P.tracks[P.sel]; if (st && st.type === "drum") { const pi = padKeys(DK[st.kit][1].length).indexOf(k); if (pi >= 0) { e.preventDefault(); padHit(pi); } return; }
     if (i >= 0) { e.preventDefault(); noteOn(P.oct + i); } else if (k === "z") { P.oct = Math.max(24, P.oct - 12); drawKbd(); } else if (k === "x") { P.oct = Math.min(84, P.oct + 12); drawKbd(); } });
   window.addEventListener("keyup", e => { const st = P.tracks[P.sel]; if (st && st.type === "drum") return; const i = KEYMAP.indexOf(e.key.toLowerCase()); if (i >= 0) noteOff(P.oct + i); });
   $("octDn").onclick = () => { P.oct = Math.max(24, P.oct - 12); drawKbd(); }; $("octUp").onclick = () => { P.oct = Math.min(84, P.oct + 12); drawKbd(); };
@@ -696,10 +696,12 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
 
   // ---------- drum machine (step grid + pads) ----------
   const DK = {
-    kit: ["Drum kit", [["Kick", "k"], ["Snare", "s"], ["Clap", "c"], ["Rim", "r"], ["Closed hat", "h"], ["Open hat", "oh"], ["Low tom", "lt"], ["High tom", "ht"]]],
+    kit: ["Drum kit", [["Kick", "k"], ["Snare", "s"], ["Clap", "c"], ["Rim", "r"], ["Closed hat", "h"], ["Open hat", "oh"], ["Low tom", "lt"], ["High tom", "ht"], ["Ride", "y"]]],
     e808: ["808", [["808 kick", "k8"], ["Snare", "s"], ["Clap", "c"], ["Rim", "r"], ["Hat", "h"], ["Open hat", "oh"], ["Ride", "y"], ["Cowbell", "cb"]]],
     beatbox: ["Beatbox", [["Kick", "bx:kick:4"], ["Snare", "bx:snare:4"], ["KKhh 1", "bx:kkhh-1:0"], ["KKhh 2", "bx:kkhh-2:0"], ["Hi-hat", "bx:hihat:5"], ["Shaker", "bx:shaker:0"], ["Ooh", "bx:ooh:3"], ["Sweep", "bx:sweep:0"]]] };   // rows line up by role with the other kits, so switching kits keeps the beat
-  const RC = ["#ff6b5e", "#ffb02e", "#ffd84d", "#9be564", "#4fd1c5", "#63b3ff", "#b794f4", "#f687b3"], PADKEYS = "qwerasdf";
+  const RC = ["#ff6b5e", "#ffb02e", "#ffd84d", "#9be564", "#4fd1c5", "#63b3ff", "#b794f4", "#f687b3", "#e2c08d"];
+  // pads sit in two rows: the top row plays from Q W E R T, the bottom from A S D F G (8 pads → 4 + 4, 9 → 5 + 4)
+  const padKeys = n => { const pc = Math.ceil(n / 2); return Array.from({ length: n }, (_, r) => r < pc ? "qwert"[r] : "asdfg"[r - pc]).join(""); };
   // Adam's beatbox samples (assets/audio/beatbox), loudness-matched, round-robin through the takes
   const BXB = {}, BXR = {}; let BXP = null;
   const bxUrls = () => DK.beatbox[1].flatMap(([, k]) => { const [, f, n] = k.split(":"); return +n ? Array.from({ length: +n }, (_, i) => `assets/audio/beatbox/${f}-${i + 1}.wav`) : [`assets/audio/beatbox/${f}.wav`]; });
@@ -732,7 +734,8 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     const tr = DM.tr; if (!tr) return; const n = steps(tr), rows = DK[tr.kit][1];
     $("dmH").textContent = "Drum machine: " + tr.name; $("dmKit").value = tr.kit; $("dmBars").value = String(tr.bars); $("dmRep").value = tr.rep;
     $("dmGrid").innerHTML = rows.map(([l, id], r) => `<div class="dmrow" style="--n:${n};--rc:${RC[r]}"><button type="button" class="lab" data-pad="${r}" title="Play ${l}">${esc(l)}</button>${Array.from({ length: n }, (_, k) => `<button type="button" class="stp${Math.floor(k / spBeat()) % 2 ? " b" : ""}" data-r="${r}" data-k="${k}" aria-pressed="${!!tr.grid[r][k]}" aria-label="${esc(l)}, beat ${Math.floor(k / spBeat()) + 1}${k % spBeat() ? ", step " + (k % spBeat() + 1) : ""}"></button>`).join("")}</div>`).join("");
-    $("pads").innerHTML = rows.map(([l], r) => `<button type="button" class="pad" data-pad="${r}" style="--rc:${RC[r]}">${esc(l)}<kbd>${PADKEYS[r].toUpperCase()}</kbd></button>`).join("");
+    const PK = padKeys(rows.length); $("pads").style.setProperty("--pc", Math.ceil(rows.length / 2));
+    $("pads").innerHTML = rows.map(([l], r) => `<button type="button" class="pad" data-pad="${r}" style="--rc:${RC[r]}">${esc(l)}<kbd>${PK[r].toUpperCase()}</kbd></button>`).join("");
   }
   function dmOpen(tr) { DM.tr = tr; $("dm").hidden = false; if (tr.kit === "beatbox") bxLoad(); dmDraw(); drawTracks(); }
   function dmClose() { audStop(); $("dm").hidden = true; DM.tr = null; }

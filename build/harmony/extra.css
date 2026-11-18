@@ -767,3 +767,9 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .nvclick .nvhit:focus-visible .nvhitbox { fill: rgba(10, 88, 202, .1); stroke: #0a58ca; stroke-width: 2; }
 .nvclick svg g:not(.nvhit) { pointer-events: none; }
 .nvclick svg .nvhit { pointer-events: auto; }
+/* Reading Pitch, "Same pitch, new clef": clef checkboxes above the two staves */
+.cdclefs { border: 0; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; align-items: center; }
+.cdclefs legend { float: left; margin-right: 6px; font: 700 13px var(--fi-ui, system-ui); text-transform: uppercase; letter-spacing: .05em; padding: 0; }
+.cdclefs label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
+.cdclefs input { width: 20px; height: 20px; accent-color: var(--fi-red-dk, #b33a26); }
+.cdclefs input:disabled + * , .cdclefs label:has(input:disabled) { cursor: default; }
