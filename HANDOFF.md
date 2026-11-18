@@ -654,3 +654,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - chord-first-steps: chords play on sampled trumpets (treble clef) or trombones (bass clef) via SAMP kinds `trumpet`/`trombone` (assets/audio/brass/<kind>/<midi>.mp3, tonejs-instruments, CC BY 3.0); synth fallback until loaded. Bass clef glyph repositioned. Spell mode is now 3 steps (recipe; spell by dragging names; position). About credits updated.
 
 ### z178j — First Steps Identify: bass member and position merged into one step ("Bass note and position", options like "3rd in the bass – first inversion").
+
+### z178k — Brass in the players; First Steps clefs
+- samplers.js: trumpet/trombone are hold kinds looping 1.3–2.2 s (zero-crossing aligned). Added Trumpet/Trombone to groove-maker, process-lab, multitrack-studio (synth strings fallback) and the Roman numerals progression player (romans.js loads assets/samplers.js on demand; pad fallback).
+- chord-first-steps clefs now use engine.js metrics (treble y top+41 size 41.3; bass y top+40.8 size 46.2).
