@@ -239,9 +239,9 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       judge: (i, v, tries) => tries >= 2 ? `From ${nm(N[i])} up to ${nm(N[i + 1])}: ${spell(i)}, ${ivA[i]} letters.` : `Recount from ${nm(N[i])} up to ${nm(N[i + 1])}, counting both notes. Ignore sharps and flats: only the letters count.`,
       why: N.slice(1).map((x, i) => `${nm(N[i])} to ${nm(x)}: a ${ORD[ivA[i]]}`).join("; ") + "." });
     const ivs = N.slice(1).map((x, i) => pos(x) - pos(N[i]) + 1), all3 = ivs.every(v => v === 3);
-    S.push({ title: "Are they all 3rds?", q: `The notes from bottom to top are <b>${N.map(nm).join(" – ")}</b>, with ${ivs.map(v => "a " + ORD[v]).join(", then ")} between neighbors. Are all of them 3rds?`, kind: "opts", opts: ["Yes, all 3rds", "No"], ans: all3 ? "Yes, all 3rds" : "No", hl: [],
-      why: all3 ? "Every neighbor is a 3rd: the chord is already stacked in 3rds, like a snowman." : `There's a ${ORD[ivs.find(v => v !== 3)]}, so the chord isn't stacked in 3rds: it's inverted.` });
-    S.push({ title: "Find the root", q: all3 ? "When a chord is stacked in 3rds, the root is the bottom note. Which note is the root?" : `Rearrange the notes so they stack in 3rds. A shortcut: in close position, the root is the <b>upper note of the ${C.sev ? "2nd" : "4th"}</b>. Which note is the root?`,
+    // the interval step already showed whether every neighbor is a 3rd, so this step starts from that
+    const odd = ivs.find(v => v !== 3);
+    S.push({ title: "Find the root", q: all3 ? "Every neighbor is a 3rd, so the chord is already stacked in 3rds and the root is the bottom note. Which note is the root?" : `There's a ${ORD[odd]} between neighbors, so the chord isn't stacked in 3rds: it's inverted. In close position, the root is the <b>upper note of the ${C.sev ? "2nd" : "4th"}</b>. Which note is the root?`,
       kind: "opts", opts: N.map(nm), ans: nm(N[C.rootIdx]), hl: [], why: `${nm(N[C.rootIdx])} is the root: stacked in 3rds the chord is ${C.tones.map(nm).join(" – ")}.`, after: () => { C.showStack = true; } });
     const R = { ...T[0], o: 4 }, up = (t, st) => { let x = { ...t, o: 4 }; while (pos(x) <= pos(R)) x.o++; return x; };
     const third = up(T[1]), fifth = up(T[2]), h3 = midi(third) - midi(R), h5 = midi(fifth) - midi(R);

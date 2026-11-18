@@ -648,3 +648,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - notevalues.js (z178e): dots toy hit boxes now cover the notehead (they used to stop at the staff height).
 - chord-first-steps (z178f): note-name banks are all 17 everyday names (naturals, sharps, flats rows; reusable). Drag ghost moves by transform once per animation frame and hit-tests box rects measured at drag start (was elementFromPoint on every move).
 - chord-first-steps (z178g): half steps and interval name combined into one answer per member ("4 half steps – major 3rd"); drag listens for move/up on window (works when pointer capture fails, e.g. Safari) and ignores the stray click a drop sends to the box.
+- chord-first-steps (z178h): dropped the "Are they all 3rds?" step (the interval step already shows it); Find the root now opens with that conclusion.
