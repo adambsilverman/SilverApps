@@ -1,13 +1,13 @@
 # SilverApps for Music Training — Handoff
 
-*Maintained in the `SilverApps` git repository (inside the OneDrive folder `SilverApps for Music Training`, which since 2026-11-03 holds only this repository: the outer duplicate copy was removed). Update the "Change log" at the bottom whenever anything changes.*
+*Maintained in the `SilverApps` git repository at `~/Documents/AdamApps/SilverApps` on Adam's Mac (moved out of OneDrive on 2026-11-18; see `../CLAUDE.md`). Changes are committed and pushed to GitHub automatically every 2 minutes by `../sync.sh`. Update the "Change log" at the bottom whenever anything changes.*
 
 ## For future Claude sessions
 
 - **Use the token saver skill** at the start of any session working on these files (long batch work).
 - **Always rebuild with the full `sh build/build_all.sh`.** Never run `externalize.py` on its own after a single builder (e.g. build_pages.py): it empties assets/shared/ and rebuilds it only from the pages that are still inline, which deletes the shared engine/styles/data the other pages link to (all lesson and drill pages lose their layout). This happened on 2026-11-14 and was fixed by a full rebuild.
 - **Never hand-edit the built `.html` pages.** Edit the sources in `build/`, then run `sh build/build_all.sh`. The pages are regenerated from `build/src/` (original sources) + the assemblers' output in `build/gen/` (generated, git-ignored) + the scripts + `assets/`. Never edit `assets/shared/` either: `build/externalize.py` rewrites it on every build.
-- Many OneDrive files are "online-only". Reading them through the device bridge fails with *Resource deadlock avoided*; staging them (device_stage_files) downloads them first.
+- (Before 2026-11-18, when this lived in OneDrive:) Many OneDrive files were "online-only". Reading them through the device bridge fails with *Resource deadlock avoided*; staging them (device_stage_files) downloads them first.
 - After any change: rerun the build, test, then update this file.
 
 ## What this is
@@ -658,3 +658,8 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ### z178k — Brass in the players; First Steps clefs
 - samplers.js: trumpet/trombone are hold kinds looping 1.3–2.2 s (zero-crossing aligned). Added Trumpet/Trombone to groove-maker, process-lab, multitrack-studio (synth strings fallback) and the Roman numerals progression player (romans.js loads assets/samplers.js on demand; pad fallback).
 - chord-first-steps clefs now use engine.js metrics (treble y top+41 size 41.3; bass y top+40.8 size 46.2).
+
+### 2026-11-18 — Moved out of OneDrive
+- Repository moved from OneDrive › WCU › COURSES › SilverApps for Music Training to `~/Documents/AdamApps/SilverApps`, alongside MarkaApps and the AdamApps hub (github.com/adambsilverman/AdamApps). OneDrive kept recreating conflict copies and rolling files back.
+- Removed the 126 "-Adam's WCU MacBook Pro 2024" conflict copies and 3 "*.html 2.html" duplicates again (95 had been re-committed and were live on the site). Kept in `~/Documents/AdamApps/_archive/SilverApps-old/onedrive-conflict-copies/`, with the old `archive/` and `_onedrive-conflicts-git/` folders.
+- Auto-sync: `../sync.sh` (launchd, every 2 min) commits, pulls and pushes once files have been unchanged for a minute; it skips while `build/.build.lock` exists.
