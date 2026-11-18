@@ -275,8 +275,9 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       S.push({ title: "The chord's quality", q: `A <b>${h3 === 4 ? "major" : "minor"} 3rd</b> and a <b>${h5 === 7 ? "perfect" : h5 === 6 ? "diminished" : "augmented"} 5th</b> above the root. What kind of triad is it?`, kind: "opts", opts: ["major", "minor", "diminished", "augmented"], ans: qn, stackHl: [0, 1, 2], table: true,
         why: "Major: major 3rd + perfect 5th. Minor: minor 3rd + perfect 5th. Diminished: minor 3rd + diminished 5th. Augmented: major 3rd + augmented 5th." });
     }
-    S.push({ title: "What's in the bass?", q: `The bass (bottom) note is <b>${nm(N[0])}</b>. Which member of the chord is it?`, kind: "opts", opts: MEM.slice(0, T.length), ans: MEM[C.inv], hl: [0], why: `Stacked in 3rds the chord is ${T.map((t, i) => MEM[i] + " " + nm(t)).join(", ")}: ${nm(N[0])} is the ${MEM[C.inv]}.` });
-    S.push({ title: "Position", q: `With the ${MEM[C.inv]} in the bass, what position is the chord in?`, kind: "opts", opts: INV.slice(0, T.length), ans: INV[C.inv], hl: [0], why: "Root in the bass: root position. 3rd in the bass: first inversion. 5th: second inversion. 7th: third inversion." });
+    const BP = i => `${MEM[i]} in the bass – ${INV[i]}`;
+    S.push({ title: "Bass note and position", q: `The bass (bottom) note is <b>${nm(N[0])}</b>. Which member of the chord is it, and what position does that put the chord in?`, kind: "opts", opts: MEM.slice(0, T.length).map((m, i) => BP(i)), ans: BP(C.inv), hl: [0],
+      why: `Stacked in 3rds the chord is ${T.map((t, i) => MEM[i] + " " + nm(t)).join(", ")}, so ${nm(N[0])} is the ${MEM[C.inv]}. Root in the bass: root position. 3rd: first inversion. 5th: second inversion. 7th: third inversion.` });
     return S;
   }
 

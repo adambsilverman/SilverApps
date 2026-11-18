@@ -652,3 +652,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ### z178i — First Steps: brass chords, bass clef, shorter Spell
 - chord-first-steps: chords play on sampled trumpets (treble clef) or trombones (bass clef) via SAMP kinds `trumpet`/`trombone` (assets/audio/brass/<kind>/<midi>.mp3, tonejs-instruments, CC BY 3.0); synth fallback until loaded. Bass clef glyph repositioned. Spell mode is now 3 steps (recipe; spell by dragging names; position). About credits updated.
+
+### z178j — First Steps Identify: bass member and position merged into one step ("Bass note and position", options like "3rd in the bass – first inversion").
