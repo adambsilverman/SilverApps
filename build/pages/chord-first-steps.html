@@ -35,6 +35,26 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 .tblw{overflow-x:auto}
 .tbl{border-collapse:collapse;font-size:.95rem}
 .tbl th,.tbl td{border-bottom:1px solid var(--fi-soft);padding:4px 10px;text-align:left}
+/* drag-and-drop steps: boxes beside the staff, and a bank of names or numbers to drag into them */
+.slotwrap{position:relative;width:min(100%,460px);margin:0 auto}
+.slotwrap svg.cs{width:100%}
+.slot{position:absolute;box-sizing:border-box;display:grid;place-items:center;border:1.5px dashed var(--fi-ink);border-radius:8px;background:var(--fi-card);color:var(--fi-ink);font:700 15px var(--fi-serif);padding:0;cursor:pointer;min-height:24px}
+.slot.full{border-style:solid}
+.slot.ok{background:var(--fi-green);border-style:solid;cursor:default}
+.slot.bad{background:var(--fi-red-pale);border-color:var(--fi-red-dk);border-style:solid}
+.slot.over{outline:3px solid var(--fi-red-dk);outline-offset:1px}
+.slot:focus-visible,.chip:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.bank{display:flex;flex-wrap:wrap;gap:8px;min-height:48px}
+.chip{min-width:52px;min-height:44px;border-radius:12px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);font:600 18px var(--fi-serif);padding:6px 12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.chip[aria-pressed="true"]{background:var(--fi-ink);color:#fff}
+.chip.ghost{position:fixed;z-index:9999;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.25);transform:translate(-50%,-50%) rotate(-3deg);cursor:grabbing}
+.guide{margin:0;font:500 15px/1.45 var(--fi-serif);color:var(--fi-muted)}
+.ladder{margin:0 auto}
+.lad{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lad li{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:10px;align-items:center}
+.lad-l{font:600 15px var(--fi-serif);text-align:right}
+.slot.lad{position:static;min-height:44px;font-size:18px}
+.slot.given{cursor:default}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 <script src="assets/progress.js"></script>
@@ -139,11 +159,39 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     // labels to the right of the staff, bottom to top in the same order as the notes, spread so they never overlap
     labs.sort((p, q) => q.y - p.y); let last = 1e9; labs.forEach(L => { L.ly = Math.min(L.y + 4, last - 13); last = L.ly; });
     const lx = W + 2; labs.forEach(L => { s += `<text x="${lx}" y="${L.ly}" font-size="11.5" font-family="sans-serif" font-weight="600" fill="${L.col}">${L.t}</text>`; });
-    return `<svg class="cs" viewBox="0 -10 ${W + 66} 120" role="img" aria-label="${o.aria || ""}">${s}</svg>`;
+    let vbw = W + 66;
+    if (o.slots) {
+      // drop boxes beside the staff: one per note ("names"), each joined to its note by a thin line; for "ivs" the names are written
+      // there instead and a box sits between each neighboring pair, joined by a bracket
+      const GAP = 26, ys = notes.map((n, i) => yOf(n)); let ly = []; ys.forEach((y, i) => ly.push(i ? Math.min(y, ly[i - 1] - GAP) : y));
+      const shift = ys.reduce((a, b) => a + b, 0) / ys.length - ly.reduce((a, b) => a + b, 0) / ly.length; ly = ly.map(v => v + shift);
+      const lo = Math.max(...ly), hi = Math.min(...ly); if (lo > 98) ly = ly.map(v => v - (lo - 98)); if (hi < 2) ly = ly.map(v => v + (2 - hi));
+      const bx = W + 6, bw = 50, pts = [];
+      notes.forEach((n, i) => s += `<line x1="${xs[i] + 9}" y1="${ys[i]}" x2="${bx - 2}" y2="${ly[i]}" stroke="currentColor" stroke-width=".8" stroke-dasharray="2 2" opacity=".7"/>`);
+      if (o.slots === "names") { ly.forEach(y => pts.push({ x: bx, y, w: bw, h: 22 })); vbw = bx + bw + 4; }
+      else {
+        ly.forEach((y, i) => s += `<text x="${bx + bw / 2}" y="${y + 5}" text-anchor="middle" font-size="14" font-family="serif" font-weight="700" fill="currentColor">${nm(notes[i])}</text>`);
+        const ix = bx + bw + 14, iw = 50;
+        for (let i = 1; i < ly.length; i++) { const a = ly[i - 1] - 4, b = ly[i] + 4, m = (ly[i - 1] + ly[i]) / 2;
+          s += `<path d="M${bx + bw + 2} ${a} h5 V${b} h-5 M${bx + bw + 7} ${m} h5" fill="none" stroke="currentColor" stroke-width="1.2"/>`; pts.push({ x: ix, y: m, w: iw, h: 22 }); }
+        vbw = ix + iw + 4;
+      }
+      C.slotGeom = { vbw, vy0: -10, vbh: 120, pts };
+    }
+    return `<svg class="cs" viewBox="0 -10 ${vbw} 120" role="img" aria-label="${o.aria || ""}">${s}</svg>`;
   }
   function drawStaves() {
     if (MODE === "spell") return drawSpell();
     const st = C.steps[C.k] || {}, labels = C.notes.map((n, i) => i <= C.read ? nm(n) : "");
+    if (st.kind === "drag") {
+      if (!C.fill) { C.fill = st.ans.map(() => null); C.lock = st.ans.map(() => false); C.bad = []; C.sel = null; }
+      const svg = staffSVG(C.notes, C.clef, { slots: st.mode, aria: `A ${C.notes.length}-note chord in ${C.clef} clef${st.mode === "ivs" ? ", from the bottom: " + C.notes.map(nm).join(", ") : ""}` }), G = C.slotGeom;
+      const boxes = G.pts.map((p, i) => { const v = C.fill[i], ok = C.lock[i];
+        const where = st.mode === "names" ? `Note ${i + 1} from the bottom` : `Between ${nm(C.notes[i])} and ${nm(C.notes[i + 1])}`;
+        return `<button type="button" class="slot${v ? " full" : ""}${ok ? " ok" : ""}${C.bad && C.bad.includes(i) ? " bad" : ""}" data-slot="${i}" style="left:${(p.x / G.vbw * 100).toFixed(2)}%;top:${((p.y - p.h / 2 - G.vy0) / G.vbh * 100).toFixed(2)}%;width:${(p.w / G.vbw * 100).toFixed(2)}%;height:${(p.h / G.vbh * 100).toFixed(2)}%" aria-label="${where}: ${v || "empty"}${ok ? ", correct" : ""}"${ok ? " aria-disabled=\"true\"" : ""}>${v || ""}</button>`; }).join("");
+      $("staves").innerHTML = `<figure><div class="slotwrap">${svg}${boxes}</div><figcaption>As written</figcaption></figure>`;
+      return;
+    }
     let h = `<figure>${staffSVG(C.notes, C.clef, { hl: st.hl || [], labels, aria: `A ${C.notes.length}-note chord in ${C.clef} clef${C.read >= 0 ? ": notes read so far, from the bottom: " + C.notes.slice(0, C.read + 1).map(nm).join(", ") : ""}` })}<figcaption>As written</figcaption></figure>`;
     if (C.showStack) {
       const r = C.notes[C.rootIdx], stack = [{ ...C.tones[0], o: r.o }]; for (let i = 1; i < C.tones.length; i++) { let n = { ...C.tones[i], o: stack[i - 1].o }; while (pos(n) <= pos(stack[i - 1])) n.o++; stack.push(n); }
@@ -167,13 +215,25 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   function build() {
     const S = [], N = C.notes, T = C.tones, n = N.length;
     C.read = -1; C.showStack = false;
-    S.push({ title: "Step 1: the bottom note", q: "Read the <b>bottom</b> note (the lowest one, in red). What is it?", kind: "note", ans: N[0], hl: [0], why: `It's ${nm(N[0])}.`, after: () => { C.read = 0; } });
-    for (let i = 1; i < n; i++) {
-      S.push({ title: `Read the next note up`, q: `Now read the <b>next note up</b> (in red). What is it?`, kind: "note", ans: N[i], hl: [i], why: `It's ${nm(N[i])}.`, after: () => { C.read = i; } });
-      const num = pos(N[i]) - pos(N[i - 1]) + 1;
-      S.push({ title: "How far apart?", q: `How far is <b>${nm(N[i])}</b> above <b>${nm(N[i - 1])}</b>? Count the letter names, including both notes.`, kind: "opts", opts: ["2nd", "3rd", "4th", "5th"], ans: ORD[num], hl: [i - 1, i],
-        why: `${LET.repeat(3).slice(N[i - 1].l, N[i - 1].l + num).split("").join(" – ")}: ${num} letters, so a ${ORD[num]}. ${num === 3 ? (N[i].l % 2 === N[i - 1].l % 2 ? "" : "") + "Line to line or space to space is a 3rd." : num === 2 ? "Line to space (or space to line) next door is a 2nd." : num === 4 ? "Line to space, two apart, is a 4th." : ""}` });
-    }
+    // step 1: name every note by dragging names onto the boxes beside the staff (two extra names in the bank are decoys)
+    const real = N.map(nm), legal = t => Math.abs(t.a) <= 1 && !((t.a === -1 && (t.l === 3 || t.l === 0)) || (t.a === 1 && (t.l === 2 || t.l === 6)));
+    const decoys = shuffle(N.flatMap(x => [{ l: x.l, a: x.a ? 0 : rnd([-1, 1]) }, { l: (x.l + 1) % 7, a: 0 }, { l: (x.l + 6) % 7, a: 0 }]).filter(legal).map(nm).filter(v => !real.includes(v))).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2);
+    const mn = C.clef === "treble" ? "Treble clef: lines E G B D F, spaces F A C E." : "Bass clef: lines G B D F A, spaces A C E G.";
+    S.push({ title: "Step 1: name the notes", kind: "drag", mode: "names", ans: real, bank: shuffle(real.concat(decoys)), reuse: false,
+      q: `Name all ${n} notes. Drag a name onto the box beside each note, or choose a name and then a box. Read each note from its line or space, and check for a sharp or flat in front of it.`,
+      hint: `${mn} Ledger lines continue the pattern: count up or down by step from the nearest line you know.`,
+      judge: (i, v) => { const want = N[i], got = real.indexOf(v) >= 0 ? N[real.indexOf(v)] : null, gl = "CDEFGAB".indexOf(v[0]);
+        if (gl === want.l) return `Note ${i + 1} from the bottom: the letter is right; look again at the accidental in front of it.`;
+        const d = want.l - gl, d7 = ((d % 7) + 7) % 7, steps = d7 > 3 ? d7 - 7 : d7;
+        return `Note ${i + 1} from the bottom is ${Math.abs(steps)} step${Math.abs(steps) > 1 ? "s" : ""} ${steps > 0 ? "higher" : "lower"} than ${v[0]}. ${mn}`; void got; },
+      why: `From the bottom: ${real.join(", ")}.`, after: () => { C.read = n - 1; } });
+    // step 2: the interval between each pair of neighbors, dragged into the boxes between the names
+    const ivA = N.slice(1).map((x, i) => pos(x) - pos(N[i]) + 1), spell = i => LET.repeat(3).slice(N[i].l, N[i].l + ivA[i]).split("").join(" – ");
+    S.push({ title: "Step 2: how far apart?", kind: "drag", mode: "ivs", ans: ivA.map(v => ORD[v]), bank: ["2nd", "3rd", "4th", "5th"], reuse: true,
+      q: `Now measure the distance between each pair of neighbors. Drag a number into each box between the names: count the letter names from the lower note up to the upper one, counting both notes.`,
+      hint: "Line to line or space to space is a 3rd. Line to the next space (or space to the next line) is a 2nd. Line to space two apart is a 4th.",
+      judge: (i, v, tries) => tries >= 2 ? `From ${nm(N[i])} up to ${nm(N[i + 1])}: ${spell(i)}, ${ivA[i]} letters.` : `Recount from ${nm(N[i])} up to ${nm(N[i + 1])}, counting both notes. Ignore sharps and flats: only the letters count.`,
+      why: N.slice(1).map((x, i) => `${nm(N[i])} to ${nm(x)}: a ${ORD[ivA[i]]}`).join("; ") + "." });
     const ivs = N.slice(1).map((x, i) => pos(x) - pos(N[i]) + 1), all3 = ivs.every(v => v === 3);
     S.push({ title: "Are they all 3rds?", q: `The notes from bottom to top are <b>${N.map(nm).join(" – ")}</b>, with ${ivs.map(v => "a " + ORD[v]).join(", then ")} between neighbors. Are all of them 3rds?`, kind: "opts", opts: ["Yes, all 3rds", "No"], ans: all3 ? "Yes, all 3rds" : "No", hl: [],
       why: all3 ? "Every neighbor is a 3rd: the chord is already stacked in 3rds, like a snowman." : `There's a ${ORD[ivs.find(v => v !== 3)]}, so the chord isn't stacked in 3rds: it's inverted.` });
@@ -213,6 +273,11 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     if (st.kind === "note") input = `<div class="opts" role="group" aria-label="Letter">${"CDEFGAB".split("").map((L, i) => `<button type="button" class="ans" data-l="${i}" aria-pressed="${picked.l === i}">${L}</button>`).join("")}</div>
       <div class="opts" role="group" aria-label="Accidental">${[[-1, "♭ flat"], [0, "no accidental"], [1, "♯ sharp"]].map(([a, l]) => `<button type="button" class="ans" data-a="${a}" aria-pressed="${picked.a === a}">${l}</button>`).join("")}</div>
       <div class="row"><button type="button" class="tbtn primary" id="chk">Check</button><button type="button" class="tbtn" id="show">Show me</button></div>`;
+    else if (st.kind === "drag") {
+      const used = C.fill.filter(Boolean), left = st.reuse ? st.bank : st.bank.filter(v => { const k = st.bank.filter(x => x === v).length - used.filter(x => x === v).length; return k > 0; });
+      input = `<div class="bank" role="group" aria-label="${st.mode === "names" ? "Note names" : "Intervals"} to drag">${left.map(v => `<button type="button" class="chip" data-chip="${v}" aria-pressed="${C.sel === v}">${v}</button>`).join("")}</div>
+      ${C.showHint ? `<p class="guide">${st.hint}</p>` : ""}<div class="row"><button type="button" class="tbtn primary" id="chkD">Check</button>${C.showHint ? "" : `<button type="button" class="tbtn" id="hintD">Hint</button>`}<button type="button" class="tbtn" id="show">Show me</button></div>`;
+    }
     else input = `<div class="opts" role="group" aria-label="Answers">${st.opts.map(o => `<button type="button" class="ans" data-o="${o}">${o}</button>`).join("")}</div><div class="row"><button type="button" class="tbtn" id="show">Show me</button></div>`;
     const tbl = st.table ? (C.sev ? `<div class="tblw"><table class="tbl"><caption class="sr">Seventh chord qualities</caption><thead><tr><th scope="col">Triad</th><th scope="col">7th</th><th scope="col">Chord</th></tr></thead><tbody><tr><td>major</td><td>major</td><td>major seventh (△7)</td></tr><tr><td>major</td><td>minor</td><td>dominant seventh (7)</td></tr><tr><td>minor</td><td>minor</td><td>minor seventh (m7)</td></tr><tr><td>diminished</td><td>minor</td><td>half-diminished seventh (ø7)</td></tr><tr><td>diminished</td><td>diminished</td><td>fully diminished seventh (°7)</td></tr></tbody></table></div>`
       : `<div class="tblw"><table class="tbl"><caption class="sr">Triad qualities</caption><thead><tr><th scope="col">3rd</th><th scope="col">5th</th><th scope="col">Triad</th></tr></thead><tbody><tr><td>major</td><td>perfect</td><td>major</td></tr><tr><td>minor</td><td>perfect</td><td>minor</td></tr><tr><td>minor</td><td>diminished</td><td>diminished</td></tr><tr><td>major</td><td>augmented</td><td>augmented</td></tr></tbody></table></div>`) : "";
@@ -224,7 +289,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     C.busy = false;
     $("done").insertAdjacentHTML("beforeend", `<li><b>${st.title}${/[?.]$/.test(st.title) ? "" : "."}</b> ${st.why}</li>`);
     if (st.after) st.after();
-    C.k++; picked = { l: null, a: 0 }; tries = 0; render();
+    C.k++; picked = { l: null, a: 0 }; tries = 0; C.fill = null; C.showHint = false; render();
     const f = $("step").querySelector(".ans"); if (f) f.focus();
   }
   function wrong(st, msg) { C.ok = false; tries++; const fb = $("fb"); fb.className = "fb bad"; fb.innerHTML = msg + (tries >= 2 ? " Use <b>Show me</b> if you're stuck." : ""); }
@@ -233,7 +298,13 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const L = e.target.closest("[data-l]"), A = e.target.closest("[data-a]"), O = e.target.closest("[data-o]");
     if (L) { picked.l = +L.dataset.l; document.querySelectorAll("[data-l]").forEach(b => b.setAttribute("aria-pressed", String(b === L))); return; }
     if (A) { picked.a = +A.dataset.a; document.querySelectorAll("[data-a]").forEach(b => b.setAttribute("aria-pressed", String(b === A))); return; }
-    if (e.target.id === "show") { if (C.busy) return; C.busy = true; $("fb").className = "fb"; $("fb").innerHTML = `The answer: <b>${st.kind === "note" ? nm(st.ans) : st.ans}</b>. ${st.why}`; C.ok = false; setTimeout(() => correct(st), 1600); return; }
+    if (e.target.id === "show") { if (C.busy) return; C.busy = true; if (st.kind === "drag") { C.fill = st.ans.slice(); C.lock = st.ans.map(() => true); C.bad = []; drawStaves(); }
+      $("fb").className = "fb"; $("fb").innerHTML = st.kind === "drag" ? st.why : `The answer: <b>${st.kind === "note" ? nm(st.ans) : st.ans}</b>. ${st.why}`; C.ok = false; setTimeout(() => correct(st), st.kind === "drag" ? 2200 : 1600); return; }
+    if (st.kind === "drag") {
+      if (e.target.id === "hintD") { C.showHint = true; render(); const h = $("step").querySelector(".guide"); if (h) { h.tabIndex = -1; h.focus(); } return; }
+      if (e.target.id === "chkD") return checkDrag(st);
+      const ch = e.target.closest("[data-chip]"); if (ch) { if (ch.dataset.dragged) { delete ch.dataset.dragged; return; } C.sel = C.sel === ch.dataset.chip ? null : ch.dataset.chip; renderBank(st); return; }
+    }
     if (e.target.id === "chk" && st.kind === "note") {
       if (picked.l == null) { $("fb").className = "fb bad"; $("fb").textContent = "Choose a letter first."; return; }
       if (picked.l === st.ans.l && picked.a === st.ans.a) return correct(st);
@@ -242,6 +313,29 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     }
     if (O) { if (C.busy) return; if (O.dataset.o === st.ans) { C.busy = true; O.classList.add("right"); setTimeout(() => correct(st), 350); } else { O.classList.add("wrong"); wrong(st, hintFor(st, O.dataset.o)); } }
   });
+  // ---------- drag and drop (pointer: mouse, pen or touch; or choose a chip, then a box) ----------
+  function renderBank(st) { const keep = C.sel; render(); C.sel = keep; const b = $("step").querySelector(`[data-chip="${CSS.escape(keep || "")}"]`); if (b) b.focus(); }
+  function place(i, v) { const st = C.steps[C.k]; if (!st || st.kind !== "drag" || C.lock[i]) return; C.fill[i] = v; C.bad = C.bad.filter(x => x !== i); C.sel = null; $("fb").className = "fb"; render(); const sl = $("staves").querySelector(`[data-slot="${i}"]`); if (sl) sl.focus(); }
+  $("staves").addEventListener("click", e => { const sl = e.target.closest("[data-slot]"), st = C.steps[C.k]; if (!sl || !st || st.kind !== "drag") return; const i = +sl.dataset.slot; if (C.lock[i]) return;
+    if (C.sel) place(i, C.sel); else if (C.fill[i]) { C.fill[i] = null; render(); const f = $("staves").querySelector(`[data-slot="${i}"]`); if (f) f.focus(); }
+    else { $("fb").className = "fb"; $("fb").textContent = "Choose a " + (st.mode === "names" ? "name" : "number") + " first, then this box (or drag one here)."; } });
+  let drag = null;
+  $("step").addEventListener("pointerdown", e => { const ch = e.target.closest("[data-chip]"); if (!ch || e.button > 0) return; drag = { ch, v: ch.dataset.chip, x: e.clientX, y: e.clientY, ghost: null, over: null }; ch.setPointerCapture(e.pointerId); });
+  $("step").addEventListener("pointermove", e => { if (!drag) return; if (!drag.ghost && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    if (!drag.ghost) { drag.ghost = drag.ch.cloneNode(true); drag.ghost.classList.add("ghost"); drag.ghost.removeAttribute("aria-pressed"); drag.ghost.setAttribute("aria-hidden", "true"); document.body.appendChild(drag.ghost); }
+    drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px";
+    const el = document.elementFromPoint(e.clientX, e.clientY), sl = el && el.closest("[data-slot]"); if (drag.over && drag.over !== sl) drag.over.classList.remove("over"); if (sl && !sl.classList.contains("ok")) { sl.classList.add("over"); drag.over = sl; } else drag.over = null; });
+  const endDrag = e => { if (!drag) return; const d = drag; drag = null; if (!d.ghost) return; d.ghost.remove(); d.ch.dataset.dragged = "1"; setTimeout(() => delete d.ch.dataset.dragged, 50);
+    if (d.over) { d.over.classList.remove("over"); place(+d.over.dataset.slot, d.v); } };
+  $("step").addEventListener("pointerup", endDrag); $("step").addEventListener("pointercancel", e => { if (drag && drag.ghost) drag.ghost.remove(); drag = null; });
+  function checkDrag(st) {
+    if (C.fill.some(v => !v)) { $("fb").className = "fb bad"; $("fb").textContent = "Fill every box first."; return; }
+    const bad = st.ans.map((a, i) => C.fill[i] === a ? -1 : i).filter(i => i >= 0);
+    if (!bad.length) { C.lock = st.ans.map(() => true); drawStaves(); return correct(st); }
+    tries++; C.ok = false; st.ans.forEach((a, i) => { if (C.fill[i] === a) C.lock[i] = true; });
+    const msg = st.judge(bad[0], C.fill[bad[0]], tries); C.bad = bad; bad.forEach(i => C.fill[i] = null); render();
+    $("fb").className = "fb bad"; $("fb").innerHTML = `${bad.length === 1 ? "One box isn't right" : bad.length + " boxes aren't right"} (the right ones are now locked in green). ${msg}${tries >= 2 ? " Use <b>Show me</b> if you're stuck." : ""}`;
+  }
   function hintFor(st, v) {
     if (st.title === "How far apart?") return "Count the letter names from the lower note up to the higher one, counting both notes.";
     if (/half steps/.test(st.title)) return "Count every key, white or black, from the lower note to the higher one. Use the keyboard picture if it helps.";
@@ -251,7 +345,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   function finish() {
     if (MODE === "spell") C.known = C.tones.length, C.placed = true, drawSpell();
     const T = C.tones, sym = nm(T[0]) + SYM[C.q] + (C.inv ? "/" + nm(C.notes[0]) : ""), q = C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad", fig = C.sev ? FIG7[C.inv] : FIG3[C.inv];
-    $("step").innerHTML = `<h2>Done</h2><p class="summary">${nm(T[0])} ${q}, ${INV[C.inv]}.</p><p>Spelled from the root: <b>${T.map(nm).join(" – ")}</b>. Chord symbol: <b>${sym}</b>. Figure: <b>${fig}</b>.</p><p>${C.ok ? "All steps right on the first try. 🎉" : "Finished. Try another chord, and see if you can do every step on the first try."}</p><div class="row"><button type="button" class="tbtn primary" id="again">Next chord</button></div>`;
+    $("step").innerHTML = `<h2>Done</h2><p class="summary">${nm(T[0])} ${q}, ${INV[C.inv]}.</p><p>Spelled from the root: <b>${T.map(nm).join(" – ")}</b>. Chord symbol: <b>${sym}</b>. Figure: <b>${fig}</b>.</p><p>${C.ok ? "All steps right on the first try." : "Finished. Try another chord, and see if you can do every step on the first try."}</p><div class="row"><button type="button" class="tbtn primary" id="again">Next chord</button></div>`;
     $("again").onclick = start; $("again").focus();
     if (window.SAprogress) SAprogress.record((MODE === "spell" ? "Spelling " : "") + (C.sev ? "seventh chords, step by step" : "triads, step by step").replace(/^./, c => MODE === "spell" ? c : c.toUpperCase()), C.ok);
     if (window.SFX) SFX.play(C.ok);
@@ -264,6 +358,15 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   const qName = () => C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad";
   function stackOf(n) { const o0 = C.clef === "treble" ? 4 : (C.tones[0].l >= 4 ? 2 : 3), out = [{ ...C.tones[0], o: o0 }]; for (let i = 1; i < n; i++) { let x = { ...C.tones[i], o: out[i - 1].o }; while (pos(x) <= pos(out[i - 1])) x.o++; out.push(x); } return out; }
   function drawSpell() {
+    const st0 = C.steps[C.k] || {};
+    if (st0.kind === "drag") {
+      // a ladder from the root up: the root is given, a box for each other member (with the interval it needs, once letters are known)
+      if (!C.fill) { C.fill = st0.ans.map(() => null); C.lock = st0.ans.map(() => false); C.bad = []; C.sel = null; }
+      const rows = st0.rows.map((r, i) => { const v = C.fill[i], ok = C.lock[i];
+        return `<li><span class="lad-l">${r.label}</span><button type="button" class="slot lad${v ? " full" : ""}${ok ? " ok" : ""}${C.bad.includes(i) ? " bad" : ""}" data-slot="${i}" aria-label="${r.aria}: ${v || "empty"}${ok ? ", correct" : ""}"${ok ? ' aria-disabled="true"' : ""}>${v || ""}</button></li>`; }).reverse().join("");
+      $("staves").innerHTML = `<figure class="ladder"><ol class="lad" reversed>${rows}<li><span class="lad-l">root</span><span class="slot lad ok given">${nm(C.tones[0])}</span></li></ol><figcaption>Built from the root, in 3rds</figcaption></figure>`;
+      return;
+    }
     const st = C.steps[C.k] || {}, n = Math.max(1, C.known || 1), stack = stackOf(n).map((x, i) => i < (C.known || 1) ? x : null).filter(Boolean);
     const shown = stack.map((x, i) => i < (C.known || 0) ? x : { ...x, l: x.l, a: C.letterOnly && i === C.known - 1 ? 0 : x.a });
     let h = `<figure>${staffSVG(C.known ? stack : [stack[0]], C.clef, { hl: st.stackHl || [], labels: (C.known ? stack : [stack[0]]).map((x, i) => `${MEM[i]}: ${nm(x)}`), aria: `Built so far, from the root: ${stack.map((x, i) => MEM[i] + " " + nm(x)).join(", ")}` })}<figcaption>Built from the root, in 3rds</figcaption></figure>`;
@@ -279,14 +382,24 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const recipe = C.sev ? `A ${SEV[C.q][0]} chord is a ${TRI[SEV[C.q][2]][0]} triad plus a ${need[2][2]}: a ${need[0][2]}, a ${need[1][2]} and a ${need[2][2]} above the root.` : `A ${TRI[C.q][0]} triad has a ${need[0][2]} and a ${need[1][2]} above the root.`;
     const ivWords = hs => hs.map((h, i) => [{ 3: "minor 3rd", 4: "major 3rd" }, { 6: "diminished 5th", 7: "perfect 5th", 8: "augmented 5th" }, { 9: "diminished 7th", 10: "minor 7th", 11: "major 7th" }][i][h]).join(" + ");
     const mine = ivWords(IVQ), others = (C.sev ? Object.keys(SEV).map(k => SEV[k][1]) : Object.keys(TRI).map(k => TRI[k][1])).map(ivWords).filter(x => x !== mine);
-    S.push({ title: "The recipe", q: `${task}<br>First: which intervals above the root make a ${qName()}?`, kind: "opts", opts: shuffle([mine, ...shuffle(others).slice(0, 3)]), ans: mine, why: recipe });
-    need.forEach(([mem, h, ivn], j) => {
-      const t = T[j + 1], letter = { l: t.l, a: R.a === 0 ? 0 : 0 }, plain = up({ l: t.l, a: 0 }), hPlain = midi(plain) - midi({ ...R, o: 4 }), num = j === 0 ? 3 : j === 1 ? 5 : 7;
-      S.push({ title: `The ${mem}: which letter?`, q: `A ${mem} above ${nm(R)} is ${num} letters up, counting ${R.l === t.l ? "" : ""}${LET[R.l]} as 1. Which letter is it?`, kind: "opts", opts: "CDEFGAB".split(""), ans: LET[t.l], stackHl: [], why: `${LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ")}: the ${mem} is ${/[AEF]/.test(LET[t.l]) ? "an" : "a"} ${LET[t.l]} of some kind.` });
-      S.push({ title: `The ${mem}: count half steps`, q: `The chord needs a <b>${ivn}</b> (${h} half steps) above ${nm(R)}. How many half steps is it from ${nm(R)} up to plain ${LET[t.l]} (no sharp or flat)?`, kind: "opts", opts: [hPlain - 2, hPlain - 1, hPlain, hPlain + 1, hPlain + 2].filter(x => x > 0).map(String).slice(0, 5), ans: String(hPlain), kb: [{ ...R, o: 4 }, plain], why: `${hPlain} half steps from ${nm(R)} to ${LET[t.l]}.` });
-      const opts = [-1, 0, 1].map(a => nm({ l: t.l, a })).concat(Math.abs(t.a) > 1 ? [nm(t)] : []);
-      S.push({ title: `The ${mem}: sharp, flat or natural?`, q: `We need ${h}; plain ${LET[t.l]} gives ${hPlain}. So which ${LET[t.l]} is the ${mem}?`, kind: "opts", opts: [...new Set(opts)], ans: nm(t), why: h === hPlain ? `${LET[t.l]} already gives ${h} half steps: no accidental needed.` : `${h > hPlain ? "Raise" : "Lower"} ${LET[t.l]} by ${Math.abs(h - hPlain)} half step${Math.abs(h - hPlain) > 1 ? "s" : ""}: ${nm(t)}.`, after: () => { C.known = j + 2; } });
-    });
+    S.push({ title: "Step 1: the recipe", q: `${task}<br>First: which intervals above the root make a ${qName()}?`, kind: "opts", opts: shuffle([mine, ...shuffle(others).slice(0, 3)]), ans: mine, why: recipe });
+    // step 2: the letters, by counting up in 3rds from the root (letters may be used more than once)
+    const mems = need.map(([mem], j) => ({ mem, t: T[j + 1], num: [3, 5, 7][j] })), seq = num => LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ");
+    S.push({ title: "Step 2: the letters", kind: "drag", reuse: true, bank: "CDEFGAB".split(""), ans: mems.map(m => LET[m.t.l]),
+      rows: mems.map(m => ({ label: m.mem, aria: `The ${m.mem}` })),
+      q: `Find the letter for each member. Drag a letter onto each box: the 3rd is 3 letters up from ${LET[R.l]}, the 5th is 5${C.sev ? ", the 7th is 7" : ""}, counting ${LET[R.l]} as 1. Ignore sharps and flats for now.`,
+      hint: `Chords stack in 3rds, so the letters skip every other one: ${LET[R.l]}, then skip one, and so on (${seq(C.sev ? 7 : 5)}).`,
+      judge: (i, v, tr) => tr >= 2 ? `The ${mems[i].mem}: ${seq(mems[i].num)}, ${mems[i].num} letters, so ${LET[mems[i].t.l]}.` : `Recount the ${mems[i].mem}: ${mems[i].num} letters up from ${LET[R.l]}, counting ${LET[R.l]} as 1.`,
+      why: `From the root: ${[LET[R.l]].concat(mems.map(m => LET[m.t.l])).join(", ")}.` });
+    // step 3: the accidentals, from the half steps each member needs above the root
+    const legal = t => Math.abs(t.a) <= 1, info = mems.map((m, j) => { const plain = up({ l: m.t.l, a: 0 }); return { ...m, h: need[j][1], ivn: need[j][2], hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
+    const pool = [...new Set(info.flatMap(m => [-1, 0, 1].map(a => ({ l: m.t.l, a })).filter(legal).map(nm)).concat(info.map(m => nm(m.t))))];
+    S.push({ title: "Step 3: sharp, flat or natural?", kind: "drag", reuse: false, bank: shuffle(pool), ans: info.map(m => nm(m.t)),
+      rows: info.map(m => ({ label: `${m.mem}: ${m.ivn} (${m.h} half steps)`, aria: `The ${m.mem}, a ${m.ivn}, ${m.h} half steps above ${nm(R)}` })),
+      q: `Now choose the right version of each letter. Each box says how many half steps above ${nm(R)} the note must be. Count the half steps from ${nm(R)} up to the plain letter, then raise or lower it to match.`,
+      hint: `${info.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
+      judge: (i, v, tr) => { const m = info[i]; return tr >= 2 ? `The ${m.mem}: plain ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)} and we need ${m.h}, so ${m.h === m.hPlain ? `plain ${LET[m.t.l]}` : `${m.h > m.hPlain ? "raise" : "lower"} it: ${nm(m.t)}`}.` : `Check the ${m.mem}: count the half steps from ${nm(R)} up to ${v} and compare with the ${m.h} it needs.`; },
+      why: `Spelled from the root: ${T.map(nm).join(" – ")}.`, after: () => { C.known = T.length; } });
     S.push({ title: "Which note goes in the bass?", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${MEM[C.inv]}</b> in the bass. Which note goes on the bottom?`, kind: "opts", opts: T.map(nm), ans: nm(T[C.inv]), why: `The ${MEM[C.inv]} is ${nm(T[C.inv])}.` });
     const order = C.notes.map(nm).join(" – "), rots = T.map((_, k) => T.slice(k).concat(T.slice(0, k)).map(nm).join(" – "));
     S.push({ title: "Close position, from the bottom up", q: `With ${nm(T[C.inv])} on the bottom, stack the other notes as close as possible above it, each the next chord member up. What's the order from the bottom up?`, kind: "opts", opts: shuffle([...new Set([order, ...rots, T.slice().reverse().map(nm).join(" – ")])]).slice(0, 4).concat([order]).filter((x, i, a) => a.indexOf(x) === i), ans: order, why: `${order}: keep going around the chord (root, 3rd, 5th${C.sev ? ", 7th" : ""}, root…) starting from the bass.`, after: () => { C.placed = true; } });
@@ -304,7 +417,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   $("playC").onclick = () => play(C.notes.map(midi), 1.6);
   $("playA").onclick = () => play(C.notes.map(midi), .8, .7);
 
-  function start() { make(); C.steps = MODE === "spell" ? buildSpell() : build(); C.k = 0; picked = { l: null, a: 0 }; tries = 0; $("done").innerHTML = ""; render(); }
+  function start() { make(); C.steps = MODE === "spell" ? buildSpell() : build(); C.k = 0; C.fill = null; C.showHint = false; picked = { l: null, a: 0 }; tries = 0; $("done").innerHTML = ""; render(); }
   document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { MODE = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
     $("modeNote").textContent = MODE === "spell" ? "Spell: you're given a root, a quality and a position, and you build the chord note by note." : "Identify: you see a chord on the staff and work out what it is."; $("playC").parentNode.style.display = MODE === "spell" ? "none" : ""; $("task").hidden = MODE !== "spell"; start(); });
   $("new").onclick = start; ["kind", "acc", "inv", "clef"].forEach(id => $(id).onchange = start);
