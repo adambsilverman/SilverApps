@@ -1,6 +1,6 @@
 # SilverApps for Music Training — Handoff
 
-*Maintained in the `SilverApps` git repository at `~/Documents/AdamApps/SilverApps` on Adam's Mac (moved out of OneDrive on 2026-11-18; see `../CLAUDE.md`). Changes are committed and pushed to GitHub automatically every 2 minutes by `../sync.sh`. Update the "Change log" at the bottom whenever anything changes.*
+*Maintained in the `SilverApps` git repository at `~/Documents/AdamApps/SilverApps` on Adam's Mac (moved out of OneDrive on 2026-11-18; see `../CLAUDE.md`). When you finish editing, run `../sync.sh` once to commit and push (see `../CLAUDE.md`). Update the "Change log" at the bottom whenever anything changes.*
 
 ## For future Claude sessions
 
@@ -662,4 +662,4 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ### 2026-11-18 — Moved out of OneDrive
 - Repository moved from OneDrive › WCU › COURSES › SilverApps for Music Training to `~/Documents/AdamApps/SilverApps`, alongside MarkaApps and the AdamApps hub (github.com/adambsilverman/AdamApps). OneDrive kept recreating conflict copies and rolling files back.
 - Removed the 126 "-Adam's WCU MacBook Pro 2024" conflict copies and 3 "*.html 2.html" duplicates again (95 had been re-committed and were live on the site). Kept in `~/Documents/AdamApps/_archive/SilverApps-old/onedrive-conflict-copies/`, with the old `archive/` and `_onedrive-conflicts-git/` folders.
-- Auto-sync: `../sync.sh` (launchd, every 2 min) commits, pulls and pushes once files have been unchanged for a minute; it skips while `build/.build.lock` exists.
+- Syncing: run `../sync.sh` once after editing (Claude Code does it via the Stop hook in `.claude/settings.json`). It commits and pushes changed repos and skips while `build/.build.lock` exists. No background job.
