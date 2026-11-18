@@ -15,9 +15,9 @@
     steel: { map: { s: GT.steel.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/steel/" + m + ".mp3", lv: .6 },
     nylon: { map: { s: GT.nylon.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/nylon/" + m + ".mp3", lv: .6 },
     egtr: { map: { s: GT.egtr.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/egtr/" + m + ".mp3", lv: .55 },
-    // brass (tonejs-instruments samples, CC BY 3.0): trumpet and trombone, used for the chord examples
-    trumpet: { map: { s: BR.trumpet.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trumpet/" + m + ".mp3", lv: .5 },
-    trombone: { map: { s: BR.trombone.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trombone/" + m + ".mp3", lv: .5 },
+    // brass (tonejs-instruments samples, CC BY 3.0): trumpet and trombone; held notes loop a stretch of the steady tone (loop, in seconds)
+    trumpet: { map: { s: BR.trumpet.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trumpet/" + m + ".mp3", lv: .5, hold: true, loop: [1.3, 2.2] },
+    trombone: { map: { s: BR.trombone.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trombone/" + m + ".mp3", lv: .5, hold: true, loop: [1.3, 2.2] },
     // accordion (FluidR3 General MIDI soundfont, CC BY 3.0): holds as long as the note does, looping its last stretch
     accordion: { map: { s: Array.from({ length: 18 }, (_, i) => [41 + i * 3, 0]) }, url: (l, m) => "assets/audio/accordion/" + m + ".mp3", lv: .42, hold: true },
   };
@@ -32,6 +32,11 @@
     return S[kind].p;
   }
   const ready = (C, kind) => { const S = C && C.__samp && C.__samp[kind]; return !!(S && S.done && Object.keys(S.bufs).length); };
+  // loop points moved to upward zero crossings, so the seam doesn't click
+  function loopPts(buf, [a, b]) {
+    const d = buf.getChannelData(0), sr = buf.sampleRate, up = s => { let i = Math.round(s * sr); while (i < d.length - 1 && !(d[i] <= 0 && d[i + 1] > 0)) i++; return (i + 1) / sr; };
+    return [up(a), up(b)];
+  }
   function note(C, kind, m, t, vel, dest, dur) {
     const K = KINDS[kind], bufs = C.__samp[kind].bufs, v = Math.max(.03, Math.min(1, vel || .8));
     const layers = Object.keys(K.map), layer = layers.length > 1 && v >= .72 ? "h" : "s";
@@ -43,7 +48,8 @@
     src.connect(lp); lp.connect(g); g.connect(dest);
     // the recordings are a few seconds long: past their end, loop the last stretch and keep it fading, so long notes don't stop dead
     const len = buf.duration, tail = len / rate;
-    if ((kind === "rhodes" || kind === "wurli" || K.hold) && len > .8) { src.loop = true; src.loopStart = len - .4; src.loopEnd = len - .1; }
+    if (K.loop && len > K.loop[1]) { const [a, b] = buf.__lp || (buf.__lp = loopPts(buf, K.loop)); src.loop = true; src.loopStart = a; src.loopEnd = b; }
+    else if ((kind === "rhodes" || kind === "wurli" || K.hold) && len > .8) { src.loop = true; src.loopStart = len - .4; src.loopEnd = len - .1; }
     const lv = K.lv * Math.pow(v, 1.2), at = t + .003;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lv, at); if (!K.hold) { g.gain.setValueAtTime(lv, t + tail - .3); g.gain.setTargetAtTime(0, t + tail - .3, kind === "rhodes" || kind === "wurli" ? 1 : .5); }
     src.start(t);

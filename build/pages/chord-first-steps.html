@@ -143,7 +143,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const sp = 10, top = 30, W = 200, bline = top + 40, x = 120, yOf = n => bline - (pos(n) - BOT[clef]) * sp / 2;
     let s = "";
     for (let i = 0; i < 5; i++) s += `<line x1="6" x2="${W - 6}" y1="${top + i * sp}" y2="${top + i * sp}" stroke="currentColor"/>`;
-    s += `<text x="12" y="${clef === "treble" ? top + 30 : top + 36.5}" font-family="'Noto Music', serif" font-size="${clef === "treble" ? 42 : 45}" fill="currentColor">${clef === "treble" ? "&#x1D11E;" : "&#x1D122;"}</text>`;
+    s += `<text x="12" y="${clef === "treble" ? top + 41 : top + 40.8}" font-family="'Noto Music', serif" font-size="${clef === "treble" ? 41.3 : 46.2}" fill="currentColor">${clef === "treble" ? "&#x1D11E;" : "&#x1D122;"}</text>`;
     // noteheads: a note a 2nd above the previous one goes to the right side
     const xs = []; notes.forEach((n, i) => { const prev = notes[i - 1]; xs.push(prev && pos(n) - pos(prev) === 1 && xs[i - 1] === x ? x + 13 : x); });
     // accidentals in columns, in the usual order: highest closest to the chord, then the lowest, then the next highest, and so on;

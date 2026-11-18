@@ -140,7 +140,7 @@ window.FAM = (() => {
     "5/4": { n: 20, beats: [0, 4, 8, 12, 16], felt: [0, 4, 8, 12, 16], groups: [0, 12] }, "6/8": { n: 12, beats: [0, 2, 4, 6, 8, 10], felt: [0, 6], comp: 1 }, "7/8": { n: 14, beats: [0, 2, 4, 6, 8, 10, 12], felt: [0, 4, 8], comp: 1 } };
   const countOf = (M, p) => { const bi = M.beats.indexOf(p); if (bi >= 0) return String(bi + 1); return M.comp ? "+" : ["", "e", "+", "a"][p % 4]; };
   const rng = (n, st) => [...Array(Math.ceil(n / st))].map((_, i) => i * st);
-  const CI = { piano: "Piano", organ: "Organ", eguitar: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", chip: "Chiptune square", pad: "Synth pad", marimba: "Marimba" };
+  const CI = { piano: "Piano", organ: "Organ", eguitar: "Clean guitar", dist: "Distortion guitar", nylon: "Nylon guitar", chip: "Chiptune square", pad: "Synth pad", marimba: "Marimba", trumpet: "Trumpet", trombone: "Trombone" };
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Kick", "Snare", "Hi-hat"], chip: ["Kick", "Noise snare", "Noise hat"], samba: ["Surdo", "Tamborim", "Shaker"], k808: ["808 kick", "Clap", "Hat"] };
   // styles: instruments, kit, tempo, preferred meter, bass-note cycle, arpeggio flag, and a pattern generator for any meter
@@ -191,7 +191,12 @@ window.FAM = (() => {
   function osc(type, f, t, end, to, det = 0) { const o = AC.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = det; o.connect(to); o.start(t); o.stop(end + .6); return o; }
   function lpf(f, q = .7, to) { const x = AC.createBiquadFilter(); x.type = "lowpass"; x.frequency.value = f; x.Q.value = q; x.connect(to); return x; }
   let CURVE = null; const curve = () => { if (!CURVE) { CURVE = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; CURVE[i] = Math.tanh(x * 6); } } return CURVE; };
+  // trumpet and trombone are recordings (assets/samplers.js, fetched the first time they're picked); a synth pad stands in until they arrive
+  const sampJS = () => window.SAMP ? Promise.resolve() : sampJS.p || (sampJS.p = new Promise(r => { const s = document.createElement("script"); s.src = "assets/samplers.js"; s.onload = s.onerror = r; document.head.appendChild(s); }));
+  const brassLoad = k => ctx() && sampJS().then(() => window.SAMP && SAMP.load(AC, k));
+  const brass = k => (m, t, d, v, o) => { if (window.SAMP && SAMP.ready(AC, k)) { const g = AC.createGain(); g.gain.value = .55; g.connect(o); SAMP.note(AC, k, m, t, .8 * v, g, d); return; } brassLoad(k); VOICES.pad(m, t, d, v, o); };
   const VOICES = {
+    trumpet: brass("trumpet"), trombone: brass("trombone"),
     piano: (m, t, d, v, o) => { const g = AC.createGain(); g.connect(o); env(g, t, .2 * v, .005, .35, .25, t + d); osc("triangle", hz(m), t, t + d, g); const g2 = AC.createGain(); g2.gain.value = .3; g2.connect(g); osc("sine", hz(m) * 2, t, t + d, g2); },
     organ: (m, t, d, v, o) => { const g = AC.createGain(); g.connect(o); env(g, t, .09 * v, .01, 1, 1, t + d, .03); [1, 2, 3, 4].forEach((h, i) => { const gg = AC.createGain(); gg.gain.value = [1, .6, .35, .25][i]; gg.connect(g); osc("sine", hz(m) * h, t, t + d, gg); }); },
     eguitar: (m, t, d, v, o) => { const g = AC.createGain(); g.connect(o); env(g, t, .14 * v, .003, .5, .15, t + d); osc("sawtooth", hz(m), t, t + d, lpf(2200, 2, g)); },
@@ -329,7 +334,7 @@ window.FAM = (() => {
     }
     box.addEventListener("change", ev => { const t = ev.target;
       if (t.matches("[data-pbmeter]")) { C.meter = t.value; const g = st().gen(M()); C.rows = [g.chord, g.bass, ...g.d]; grid(); live(`Meter ${C.meter}; the ${st().name} pattern now fits it. Tap boxes to change it.`); }
-      if (t.matches("[data-pbci]")) C.ci = t.value; if (t.matches("[data-pbbi]")) C.bi = t.value; if (t.matches("[data-pbkit]")) { C.kit = t.value; grid(); }
+      if (t.matches("[data-pbci]")) { C.ci = t.value; if (C.ci === "trumpet" || C.ci === "trombone") brassLoad(C.ci); } if (t.matches("[data-pbbi]")) C.bi = t.value; if (t.matches("[data-pbkit]")) { C.kit = t.value; grid(); }
       changed(); });
     box.addEventListener("input", ev => { const t = ev.target; if (t.matches("[data-pbbpm]")) { C.bpm = +t.value; $("[data-pbbpmv]").textContent = C.bpm; } if (t.matches("[data-pblvl]")) C.bassLvl = +t.value; changed(); });
     // hand the groove to the full Groove Maker page (same link format as its "Copy link")

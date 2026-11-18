@@ -228,7 +228,7 @@ html.gp-embed .gp{padding:0;max-width:none}
   const PB = M => (M.comp ? M.felt : M.beats);   // the pulse a listener taps
   const std = (Mid, n) => (Mid === "4/4" && n === 16) || (Mid === "3/4" && n === 12);
   const countOf = (M, p) => { const bi = M.beats.indexOf(p); if (bi >= 0) return String(bi + 1); return M.comp ? "+" : ["", "e", "+", "a"][p % 4]; };
-  const CI = { epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", piano: "Piano", steel: "Acoustic guitar", nylon: "Nylon guitar", pluck: "Clean electric guitar", dist: "Distortion guitar", organ: "Organ", accordion: "Accordion", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
+  const CI = { epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", piano: "Piano", steel: "Acoustic guitar", nylon: "Nylon guitar", pluck: "Clean electric guitar", dist: "Distortion guitar", organ: "Organ", accordion: "Accordion", trumpet: "Trumpet", trombone: "Trombone", strings: "Strings", pad: "Synth pad", chip: "Chiptune square", marimba: "Marimba" };
   const BI = { ebass: "Electric bass", upright: "Upright bass", synth: "Synth bass", chip: "Chiptune triangle", b808: "808 bass", tuba: "Tuba" };
   const KITS = { rock: ["Rock kit", [["Kick", "k"], ["Snare", "s"], ["Hi-hat", "h"]]], pop: ["Pop kit (clap)", [["Kick", "k"], ["Clap", "c"], ["Hi-hat", "h"]]], ride: ["Ballad kit (ride)", [["Kick", "k"], ["Snare", "s"], ["Ride", "y"]]],
     rim: ["Rim and hat", [["Kick", "k"], ["Rim", "r"], ["Hi-hat", "h"]]], k808: ["808", [["808 kick", "k8"], ["Clap", "c"], ["Hat", "h"]]], chip: ["Chiptune", [["Kick", "ck"], ["Noise snare", "cs"], ["Noise hat", "ch"]]], samba: ["Samba", [["Surdo", "su"], ["Tamborim", "ta"], ["Shaker", "sh"]]],
@@ -411,7 +411,7 @@ html.gp-embed .gp{padding:0;max-width:none}
   // ---------- audio ----------
   let AC = null, OUT = null, BUS = {}, NZ = null, CURVE = null;
   const ACOUSTIC = ["rock", "pop", "ride", "rim"];   // kits played with the sampled acoustic drums (808, chiptune and samba stay synthesized)
-  const sampPrep = inst => { const k = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr", accordion: "accordion" }[inst]; return window.SAMP ? Promise.all([k ? SAMP.load(AC, k) : 0, ACOUSTIC.includes(S.kit) ? SAMP.loadDrums(AC) : 0]) : Promise.resolve(); };
+  const sampPrep = inst => { const k = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr", accordion: "accordion", trumpet: "trumpet", trombone: "trombone" }[inst]; return window.SAMP ? Promise.all([k ? SAMP.load(AC, k) : 0, ACOUSTIC.includes(S.kit) ? SAMP.loadDrums(AC) : 0]) : Promise.resolve(); };
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); sampPrep(S.ci); } if (AC.state === "suspended") AC.resume(); return AC; }
   function build() {
     const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .85; comp.connect(master); master.connect(AC.destination);
@@ -440,11 +440,11 @@ html.gp-embed .gp{padding:0;max-width:none}
     cab.type = "lowpass"; cab.frequency.value = 5200 - d * 2200; cab.Q.value = .9; post.gain.value = DRV_OUT[i] + (DRV_OUT[i + 1] - DRV_OUT[i]) * f;
     hp.connect(pre); pre.connect(ws); ws.connect(dc); dc.connect(cab); cab.connect(post); post.connect(dest); return hp; }
   function tone(inst, m, t, dur, vel, dest) {
-    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr", accordion: "accordion" }[inst];   // sampled keyboards and guitars (synth until the samples arrive)
+    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", pluck: "egtr", dist: "egtr", accordion: "accordion", trumpet: "trumpet", trombone: "trombone" }[inst];   // sampled keyboards and guitars (synth until the samples arrive)
     if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { let to = dest;
         if (inst === "dist") to = driveChain(dest, 1);   // the clean electric guitar through the overdrive
         SAMP.note(AC, sk, m, t, vel, to, dur); return; }
-      SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; if (inst === "steel") inst = "pluck"; if (inst === "accordion") inst = "organ"; }
+      SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; if (inst === "steel") inst = "pluck"; if (inst === "accordion") inst = "organ"; if (inst === "trumpet" || inst === "trombone") inst = "strings"; }
     const f = mf(m), g = AC.createGain(); g.connect(dest);
     const osc = (type, fr, gain, det, to) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = gain; o.connect(og); og.connect(to || g); return o; };
     const lpf = (fr, q = .7) => { const x = AC.createBiquadFilter(); x.type = "lowpass"; x.frequency.value = fr; x.Q.value = q; x.connect(g); return x; };

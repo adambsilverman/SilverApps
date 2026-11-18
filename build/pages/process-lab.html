@@ -109,7 +109,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const SCALES = { "Major": [0, 2, 4, 5, 7, 9, 11], "Natural minor": [0, 2, 3, 5, 7, 8, 10], "Dorian": [0, 2, 3, 5, 7, 9, 10], "Mixolydian": [0, 2, 4, 5, 7, 9, 10], "Lydian": [0, 2, 4, 6, 7, 9, 11], "Major pentatonic": [0, 2, 4, 7, 9], "Minor pentatonic": [0, 3, 5, 7, 10], "Whole tone": [0, 2, 4, 6, 8, 10] };
-  const INST = { marimba: "Marimba", vibes: "Vibraphone", piano: "Piano", epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", pluck: "Plucked string", steel: "Acoustic guitar", nylon: "Nylon guitar", egtr: "Electric guitar", flute: "Flute", strings: "Strings", pad: "Synth pad", organ: "Organ", accordion: "Accordion", bass: "Synth bass", bell: "Bells" };
+  const INST = { marimba: "Marimba", vibes: "Vibraphone", piano: "Piano", epiano: "Electric piano (Rhodes)", wurli: "Electric piano (Wurlitzer)", pluck: "Plucked string", steel: "Acoustic guitar", nylon: "Nylon guitar", egtr: "Electric guitar", flute: "Flute", strings: "Strings", pad: "Synth pad", organ: "Organ", accordion: "Accordion", trumpet: "Trumpet", trombone: "Trombone", bass: "Synth bass", bell: "Bells" };
   const PROCS = { orig: "Repeat the fragment", canon: "Canon (delayed copy)", phase: "Phasing, step by step", drift: "Phasing, gradual drift", add: "Additive process", sub: "Subtractive process", aug: "Augmentation", retro: "Retrograde (backwards)", inv: "Inversion (upside down)", chords: "Chord loop", swell: "Chord swells", drone: "Drone" };
   const XP = [[-7, "an octave below"], [-5, "a 6th below"], [-4, "a 5th below"], [-3, "a 4th below"], [-2, "a 3rd below"], [-1, "a 2nd below"], [0, "at pitch"], [1, "a 2nd above"], [2, "a 3rd above"], [3, "a 4th above"], [4, "a 5th above"], [5, "a 6th above"], [7, "an octave above"]];
   const PROGS = { "I": [0], "I–IV": [0, 3], "I–V–vi–IV": [0, 4, 5, 3], "vi–IV–I–V": [5, 3, 0, 4], "i–VI–III–VII": [0, 5, 2, 6], "i–iv–v–i": [0, 3, 4, 0], "I–iii–vi–IV": [0, 2, 5, 3] };
@@ -214,7 +214,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
   }
   $("voices").addEventListener("change", e => { const t = e.target.closest("[data-vk]"), box = e.target.closest("[data-v]"); if (!t || !box) return; const v = V[+box.dataset.v], k = t.dataset.vk;
     if (t.type === "checkbox") v[k] = t.checked; else if (["inst", "proc", "prog", "ch", "swShape", "swTex", "swProg"].includes(k)) v[k] = t.value; else v[k] = +t.value;
-    if (k === "proc" && v.proc === "swell" && !["strings", "pad", "organ", "flute", "vibes", "epiano", "wurli", "accordion"].includes(v.inst)) v.inst = "strings";
+    if (k === "proc" && v.proc === "swell" && !["strings", "pad", "organ", "flute", "vibes", "epiano", "wurli", "accordion", "trumpet", "trombone"].includes(v.inst)) v.inst = "strings";
     if (["proc", "arp", "every", "delay", "drift", "aug", "prog", "restart"].includes(k)) { drawVoices(); if (playing) restart(); } else if (["ch", "swShape", "swTex", "swLen", "swGap", "swProg"].includes(k)) { box.querySelector(".note").textContent = explain(v); } else if (k === "inst" || k === "xp" || k === "oct") { /* takes effect on the next notes */ } });
   $("voices").addEventListener("input", e => { const t = e.target.closest('[data-vk="vol"],[data-vk="pan"]'), box = e.target.closest("[data-v]"); if (!t || !box) return; V[+box.dataset.v][t.dataset.vk] = +t.value; applyMix(); });
   $("voices").addEventListener("click", e => { const t = e.target.closest("button[data-vk]"), box = e.target.closest("[data-v]"); if (!t || !box) return; const i = +box.dataset.v;
@@ -235,7 +235,7 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
 
   // ---------- audio ----------
   let ECHO = null, AC = null, OUT = null, REV = null, DRY = null, NZ = null;
-  const sampPrep = () => !window.SAMP ? Promise.resolve() : Promise.all([...[...new Set(V.map(v => ({ piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", accordion: "accordion" })[v.inst]).filter(Boolean))].map(k => SAMP.load(AC, k)), D.kit === "acoustic" ? SAMP.loadDrums(AC) : 0]);
+  const sampPrep = () => !window.SAMP ? Promise.resolve() : Promise.all([...[...new Set(V.map(v => ({ piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", accordion: "accordion", trumpet: "trumpet", trombone: "trombone" })[v.inst]).filter(Boolean))].map(k => SAMP.load(AC, k)), D.kit === "acoustic" ? SAMP.loadDrums(AC) : 0]);
   function ac() { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; if (!AC) { AC = new C(); build(); sampPrep(); }
     if (AC.state === "suspended") AC.resume(); return AC; }
   function build() { { const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; const master = AC.createGain(); master.gain.value = .8; comp.connect(master); master.connect(AC.destination); OUT = AC.createGain(); DRY = AC.createGain(); REV = AC.createGain(); OUT.connect(DRY); DRY.connect(comp);
@@ -344,8 +344,8 @@ main.tool .daw .fxh .tbtn{min-height:24px!important;padding:2px 8px!important;fo
   // one note on a synthesized instrument
   function tone(inst, m, t, dur, vel, dest) {
     if (!AC || t == null) return;
-    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", accordion: "accordion" }[inst];   // sampled keyboards (synth until the samples arrive)
-    if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { SAMP.note(AC, sk, m, t, vel, dest, dur); return; } SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; if (["steel", "nylon", "egtr"].includes(inst)) inst = "pluck"; if (inst === "accordion") inst = "organ"; }
+    const sk = { piano: "piano", epiano: "rhodes", wurli: "wurli", steel: "steel", nylon: "nylon", egtr: "egtr", accordion: "accordion", trumpet: "trumpet", trombone: "trombone" }[inst];   // sampled keyboards (synth until the samples arrive)
+    if (sk && window.SAMP) { if (SAMP.ready(AC, sk)) { SAMP.note(AC, sk, m, t, vel, dest, dur); return; } SAMP.load(AC, sk); if (inst === "wurli") inst = "epiano"; if (["steel", "nylon", "egtr"].includes(inst)) inst = "pluck"; if (inst === "accordion") inst = "organ"; if (inst === "trumpet" || inst === "trombone") inst = "strings"; }
     const f = mf(m), g = AC.createGain(); g.connect(dest);
     const osc = (type, fr, gain, det) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = type; o.frequency.value = fr; if (det) o.detune.value = det; og.gain.value = gain; o.connect(og); og.connect(g); return o; };
     const env = (a, peak, decay, sus, rel, len) => { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak * vel, t + a); if (decay) g.gain.setTargetAtTime(peak * vel * sus, t + a, decay); g.gain.setTargetAtTime(0, t + Math.max(a, len), rel); return t + Math.max(a, len) + rel * 5; };
