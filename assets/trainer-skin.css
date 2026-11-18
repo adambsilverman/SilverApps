@@ -127,3 +127,40 @@ body.lc-fs .big{font-size:clamp(4rem,9vw,7rem)}
 .q-text.q-long{font-size:1.05rem;font-weight:400;line-height:1.55;max-width:62ch;text-wrap:pretty}
 .yt-report { margin: 2px 0 10px; text-align: right; font-size: 13px; }
 .yt-report a { color: inherit; opacity: .8; }
+/* ---- compact drills: less padding and smaller headings, so the question and its answers fit on one screen
+   (lesson and quiz pages share this template with #drillView hidden; they keep their own spacing) ---- */
+.wrap:not(:has(#drillView[hidden])){gap:10px!important}
+.wrap:not(:has(#drillView[hidden])) .top{padding-top:8px!important;padding-bottom:4px!important}
+.wrap:not(:has(#drillView[hidden])) .brand h1{font-size:clamp(32px,4.6vw,50px)!important;line-height:.95}
+.wrap:not(:has(#drillView[hidden])) .brand p{font-size:.92rem;margin-top:2px!important}
+.wrap:not(:has(#drillView[hidden])) .lc-bar{padding:8px 12px!important;gap:6px 10px!important}
+.wrap:not(:has(#drillView[hidden])) .lc-sub{font-size:.86rem;margin:0}
+.wrap:not(:has(#drillView[hidden])) .modes{gap:6px!important;grid-template-columns:repeat(auto-fit,minmax(132px,1fr))!important}
+.wrap:not(:has(#drillView[hidden])) .modes button{padding:5px 8px!important;min-height:44px}
+.wrap:not(:has(#drillView[hidden])) .modes button b{font-size:1.25rem!important;line-height:1.05}
+.wrap:not(:has(#drillView[hidden])) .modes button small{font-size:.68rem!important;line-height:1.2}
+.wrap:not(:has(#drillView[hidden])) main.card,.wrap:not(:has(#drillView[hidden])) .card#practice{padding:14px 16px!important;gap:10px!important}
+.wrap:not(:has(#drillView[hidden])) .prompt{gap:6px!important}
+.wrap:not(:has(#drillView[hidden])) .q-text{font-size:1.15rem}
+.wrap:not(:has(#drillView[hidden])) .choice{min-height:40px;padding-top:6px!important;padding-bottom:6px!important}
+.wrap:not(:has(#drillView[hidden])) .actions .btn{min-height:40px;padding:6px 14px!important}
+.wrap:not(:has(#drillView[hidden])) .pr{margin-top:10px!important;padding:10px 14px!important}
+.wrap:not(:has(#drillView[hidden])) .pr-actions{margin-top:8px!important}
+.wrap:not(:has(#drillView[hidden])) .pr-btn{min-height:40px;padding:6px 12px!important}
+.wrap:not(:has(#drillView[hidden])) .wrap-aside{gap:8px!important}
+.wrap:not(:has(#drillView[hidden])) .panel>summary{padding:8px 14px!important;min-height:44px;font-size:1.3rem}
+@media (max-width:560px){.wrap:not(:has(#drillView[hidden])) .modes{grid-template-columns:repeat(2,minmax(0,1fr))!important}.wrap:not(:has(#drillView[hidden])) .brand h1{font-size:32px!important}}
+.wrap:not(:has(#drillView[hidden])) #drillView{display:grid;gap:10px}
+.wrap:not(:has(#drillView[hidden])) #drillView>*{margin-top:0!important}
+.wrap:not(:has(#drillView[hidden])) .lc-bar h2,.wrap:not(:has(#drillView[hidden])) .lc-bar .lc-title,.wrap:not(:has(#drillView[hidden])) .lc-bar>b,.wrap:not(:has(#drillView[hidden])) .lc-bar>strong{font-size:1.35rem!important}
+.wrap:not(:has(#drillView[hidden])) .lc-bar button,.wrap:not(:has(#drillView[hidden])) .lc-bar .btn{min-height:40px;padding:6px 14px!important}
+.wrap:not(:has(#drillView[hidden])) .modes button small{white-space:normal}
+.wrap:not(:has(#drillView[hidden])) .prompt{min-height:110px!important}
+.wrap:not(:has(#drillView[hidden])) .pr{max-width:none!important;width:auto!important;box-sizing:border-box;margin-left:0!important;margin-right:0!important}
+/* drills: the class-game bar shows only its buttons, and the mode buttons only their names (the subtitle stays for screen readers) */
+.wrap:not(:has(#drillView[hidden])) .lc-bar .lc-sub{display:none}
+.wrap:not(:has(#drillView[hidden])) .lc-bar{padding:6px 10px!important}
+.wrap:not(:has(#drillView[hidden])) .lc-bar .lc-title{font-size:1.2rem!important}
+.wrap:not(:has(#drillView[hidden])) .modes button small{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.wrap:not(:has(#drillView[hidden])) .modes button{min-height:40px;padding:4px 8px!important;position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center}
+.wrap:not(:has(#drillView[hidden])) .modes button b{font-size:1.15rem!important}

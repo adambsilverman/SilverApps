@@ -638,3 +638,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - groove-maker: Distortion guitar gets an Overdrive slider (S.drive 0-100, hash dr, shown only for dist): asymmetric tanh curve, 90 Hz pre high-pass, DC block, cabinet low-pass 5.2-3 kHz, measured output table DRV_OUT keeps loudness level.
 - Accordion instrument (FluidR3 GM via midi-js-soundfonts, CC BY 3.0) in assets/audio/accordion/<midi>.mp3 (41-92 every 3); samplers.js kind accordion with hold (loops while the note lasts). Added to groove-maker, process-lab (also as a swell instrument) and multitrack; synth fallback organ.
 - about-this-site: Gradebook sync platform instructions are <details class="plat"> accordions; credits for the accordion.
+
+## z178 (2026-11-17) Compact drills
+- assets/trainer-skin.css (edited directly; no build source): compact block scoped to .wrap:not(:has(#drillView[hidden])) so lesson/quiz pages are untouched. Smaller h1, tighter class-game bar (explanation .lc-sub hidden, buttons only), mode buttons one row with names only (subtitle visually hidden, still read by screen readers), less card/answer/progress padding, .pr full width in grid.
