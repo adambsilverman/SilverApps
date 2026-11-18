@@ -325,25 +325,27 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   // ---------- drag and drop (pointer: mouse, pen or touch; or choose a chip, then a box) ----------
   function renderBank(st) { const keep = C.sel; render(); C.sel = keep; const b = $("step").querySelector(`[data-chip="${CSS.escape(keep || "")}"]`); if (b) b.focus(); }
   function place(i, v) { const st = C.steps[C.k]; if (!st || st.kind !== "drag" || C.lock[i]) return; C.fill[i] = v; C.bad = C.bad.filter(x => x !== i); C.sel = null; $("fb").className = "fb"; render(); const sl = $("staves").querySelector(`[data-slot="${i}"]`); if (sl) sl.focus(); }
-  $("staves").addEventListener("click", e => { const sl = e.target.closest("[data-slot]"), st = C.steps[C.k]; if (!sl || !st || st.kind !== "drag") return; const i = +sl.dataset.slot; if (C.lock[i]) return;
+  $("staves").addEventListener("click", e => { const sl = e.target.closest("[data-slot]"), st = C.steps[C.k]; if (!sl || !st || st.kind !== "drag" || Date.now() - (C.dropT || 0) < 400) return; const i = +sl.dataset.slot; if (C.lock[i]) return;
     if (C.sel) place(i, C.sel); else if (C.fill[i]) { C.fill[i] = null; render(); const f = $("staves").querySelector(`[data-slot="${i}"]`); if (f) f.focus(); }
     else { $("fb").className = "fb"; $("fb").textContent = "Choose a " + (st.mode === "names" ? "name" : "number") + " first, then this box (or drag one here)."; } });
   // dragging: the ghost moves with a GPU transform once per frame, and the boxes' positions are measured once when the drag starts
   let drag = null, raf = 0;
   $("step").addEventListener("pointerdown", e => { const ch = e.target.closest("[data-chip]"); if (!ch || e.button > 0) return;
-    drag = { ch, v: ch.dataset.chip, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, ghost: null, over: null, boxes: null }; ch.setPointerCapture(e.pointerId); });
+    drag = { ch, v: ch.dataset.chip, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, ghost: null, over: null, boxes: null }; try { ch.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
   const frame = () => { raf = 0; if (!drag || !drag.ghost) return;
     drag.ghost.style.transform = `translate3d(${drag.cx}px,${drag.cy}px,0) translate(-50%,-50%) rotate(-3deg)`;
     const hit = drag.boxes.find(b => drag.cx >= b.r.left - 6 && drag.cx <= b.r.right + 6 && drag.cy >= b.r.top - 6 && drag.cy <= b.r.bottom + 6), sl = hit ? hit.el : null;
     if (drag.over !== sl) { if (drag.over) drag.over.classList.remove("over"); if (sl) sl.classList.add("over"); drag.over = sl; } };
-  $("step").addEventListener("pointermove", e => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY;
+  window.addEventListener("pointermove", e => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY;
     if (!drag.ghost) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 3) return;
       drag.ghost = drag.ch.cloneNode(true); drag.ghost.classList.add("ghost"); drag.ghost.removeAttribute("aria-pressed"); drag.ghost.setAttribute("aria-hidden", "true"); document.body.appendChild(drag.ghost);
       drag.boxes = [...$("staves").querySelectorAll("[data-slot]:not(.ok)")].map(el => ({ el, r: el.getBoundingClientRect() })); }
     if (!raf) raf = requestAnimationFrame(frame); });
   const endDrag = e => { if (!drag) return; const d = drag; drag = null; if (raf) { cancelAnimationFrame(raf); raf = 0; } if (!d.ghost) return; d.ghost.remove(); d.ch.dataset.dragged = "1"; setTimeout(() => delete d.ch.dataset.dragged, 50);
+    C.dropT = Date.now();   // the browser may also send a click to the box under the pointer: ignore it
     if (d.over) { d.over.classList.remove("over"); place(+d.over.dataset.slot, d.v); } };
-  $("step").addEventListener("pointerup", endDrag); $("step").addEventListener("pointercancel", () => { if (drag && drag.ghost) drag.ghost.remove(); if (drag && drag.over) drag.over.classList.remove("over"); drag = null; });
+  // listen on the whole window, so a drop always lands even if the browser doesn't keep the pointer on the name being dragged
+  window.addEventListener("pointerup", endDrag); window.addEventListener("pointercancel", () => { if (drag && drag.ghost) drag.ghost.remove(); if (drag && drag.over) drag.over.classList.remove("over"); drag = null; });
   function checkDrag(st) {
     if (C.fill.some(v => !v)) { $("fb").className = "fb bad"; $("fb").textContent = "Fill every box first."; return; }
     const bad = st.ans.map((a, i) => C.fill[i] === a ? -1 : i).filter(i => i >= 0);
