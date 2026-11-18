@@ -5,6 +5,7 @@
   const EP = {"wurli":{"s":[[33,-5],[40,-4],[45,-2],[51,-9],[56,-8],[61,4],[66,7],[71,-5],[73,3],[79,-8],[85,6],[92,2]],"h":[[33,-5],[36,-7],[41,-6],[47,-8],[52,-4],[56,-11],[61,-2],[68,0],[73,3],[79,-7],[85,0],[92,0]]},"rhodes":{"s":[[29,0],[35,0],[40,0],[45,0],[50,0],[55,0],[59,0],[62,0],[65,0],[71,0],[76,0],[81,0],[86,0],[91,0],[96,0]],"h":[[29,0],[35,0],[40,0],[45,0],[50,0],[55,0],[59,0],[62,0],[65,0],[71,0],[76,0],[81,0],[86,0],[91,0],[96,0]]}};
   const PIANO = { s: [] }; for (let o = 1; o <= 7; o++) [0, 3, 6, 9].forEach(i => PIANO.s.push([12 + o * 12 + i, 0])); PIANO.s.push([108, 0]);
   const PN = ["C", "Ds", "Fs", "A"];
+  const BR = {"trumpet":[53,57,60,63,65,67,70,74,77,81,84],"trombone":[34,37,39,41,44,46,48,50,51,53,56,58,60,61,62,63,65]};
   const GT = {"steel":[38,41,44,47,50,53,56,59,62,65,68,71,74],"nylon":[35,38,42,45,49,52,55,59,63,66,69,73,76,79,82],"egtr":[37,40,45,48,51,54,57,60,63,66,69,72,75,78,81,84]};
   const KINDS = {
     piano: { map: PIANO, url: (l, m) => "assets/audio/piano/" + (m === 108 ? "C8" : PN[(m % 12) / 3] + (Math.floor(m / 12) - 1)) + ".mp3", lv: .5 },
@@ -14,6 +15,9 @@
     steel: { map: { s: GT.steel.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/steel/" + m + ".mp3", lv: .6 },
     nylon: { map: { s: GT.nylon.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/nylon/" + m + ".mp3", lv: .6 },
     egtr: { map: { s: GT.egtr.map(m => [m, 0]) }, url: (l, m) => "assets/audio/guitar/egtr/" + m + ".mp3", lv: .55 },
+    // brass (tonejs-instruments samples, CC BY 3.0): trumpet and trombone, used for the chord examples
+    trumpet: { map: { s: BR.trumpet.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trumpet/" + m + ".mp3", lv: .5 },
+    trombone: { map: { s: BR.trombone.map(m => [m, 0]) }, url: (l, m) => "assets/audio/brass/trombone/" + m + ".mp3", lv: .5 },
     // accordion (FluidR3 General MIDI soundfont, CC BY 3.0): holds as long as the note does, looping its last stretch
     accordion: { map: { s: Array.from({ length: 18 }, (_, i) => [41 + i * 3, 0]) }, url: (l, m) => "assets/audio/accordion/" + m + ".mp3", lv: .42, hold: true },
   };

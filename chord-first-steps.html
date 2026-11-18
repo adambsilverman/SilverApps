@@ -9,6 +9,7 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
+<script src="assets/samplers.js?v=9a8f8b98"></script>
 <style>
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
 .tool h1{font:400 clamp(40px,7vw,70px)/.95 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -153,7 +154,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const sp = 10, top = 30, W = 200, bline = top + 40, x = 120, yOf = n => bline - (pos(n) - BOT[clef]) * sp / 2;
     let s = "";
     for (let i = 0; i < 5; i++) s += `<line x1="6" x2="${W - 6}" y1="${top + i * sp}" y2="${top + i * sp}" stroke="currentColor"/>`;
-    s += `<text x="12" y="${clef === "treble" ? top + 30 : top + 10}" font-family="'Noto Music', serif" font-size="${clef === "treble" ? 42 : 40}" fill="currentColor">${clef === "treble" ? "&#x1D11E;" : "&#x1D122;"}</text>`;
+    s += `<text x="12" y="${clef === "treble" ? top + 30 : top + 36.5}" font-family="'Noto Music', serif" font-size="${clef === "treble" ? 42 : 45}" fill="currentColor">${clef === "treble" ? "&#x1D11E;" : "&#x1D122;"}</text>`;
     // noteheads: a note a 2nd above the previous one goes to the right side
     const xs = []; notes.forEach((n, i) => { const prev = notes[i - 1]; xs.push(prev && pos(n) - pos(prev) === 1 && xs[i - 1] === x ? x + 13 : x); });
     // accidentals in columns, in the usual order: highest closest to the chord, then the lowest, then the next highest, and so on;
@@ -411,32 +412,36 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const ivWords = hs => hs.map((h, i) => [{ 3: "minor 3rd", 4: "major 3rd" }, { 6: "diminished 5th", 7: "perfect 5th", 8: "augmented 5th" }, { 9: "diminished 7th", 10: "minor 7th", 11: "major 7th" }][i][h]).join(" + ");
     const mine = ivWords(IVQ), others = (C.sev ? Object.keys(SEV).map(k => SEV[k][1]) : Object.keys(TRI).map(k => TRI[k][1])).map(ivWords).filter(x => x !== mine);
     S.push({ title: "Step 1: the recipe", q: `${task}<br>First: which intervals above the root make a ${qName()}?`, kind: "opts", opts: shuffle([mine, ...shuffle(others).slice(0, 3)]), ans: mine, why: recipe });
-    // step 2: the letters, by counting up in 3rds from the root (letters may be used more than once)
-    const mems = need.map(([mem], j) => ({ mem, t: T[j + 1], num: [3, 5, 7][j] })), seq = num => LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ");
-    S.push({ title: "Step 2: the letters", kind: "drag", reuse: true, bank: "CDEFGAB".split(""), ans: mems.map(m => LET[m.t.l]),
-      rows: mems.map(m => ({ label: m.mem, aria: `The ${m.mem}` })),
-      q: `Find the letter for each member. Drag a letter onto each box: the 3rd is 3 letters up from ${LET[R.l]}, the 5th is 5${C.sev ? ", the 7th is 7" : ""}, counting ${LET[R.l]} as 1. Ignore sharps and flats for now.`,
-      hint: `Chords stack in 3rds, so the letters skip every other one: ${LET[R.l]}, then skip one, and so on (${seq(C.sev ? 7 : 5)}).`,
-      judge: (i, v, tr) => tr >= 2 ? `The ${mems[i].mem}: ${seq(mems[i].num)}, ${mems[i].num} letters, so ${LET[mems[i].t.l]}.` : `Recount the ${mems[i].mem}: ${mems[i].num} letters up from ${LET[R.l]}, counting ${LET[R.l]} as 1.`,
-      why: `From the root: ${[LET[R.l]].concat(mems.map(m => LET[m.t.l])).join(", ")}.` });
-    // step 3: the accidentals, from the half steps each member needs above the root
-    const legal = t => Math.abs(t.a) <= 1, info = mems.map((m, j) => { const plain = up({ l: m.t.l, a: 0 }); return { ...m, h: need[j][1], ivn: need[j][2], hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
-    S.push({ title: "Step 3: sharp, flat or natural?", kind: "drag", reuse: true, bank: USUAL, rowsOf: 3, ans: info.map(m => nm(m.t)),
-      rows: info.map(m => ({ label: `${m.mem}: ${m.ivn} (${m.h} half steps)`, aria: `The ${m.mem}, a ${m.ivn}, ${m.h} half steps above ${nm(R)}` })),
-      q: `Now choose the right version of each letter. Each box says how many half steps above ${nm(R)} the note must be. Count the half steps from ${nm(R)} up to the plain letter, then raise or lower it to match.`,
-      hint: `${info.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
-      judge: (i, v, tr) => { const m = info[i]; return tr >= 2 ? `The ${m.mem}: plain ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)} and we need ${m.h}, so ${m.h === m.hPlain ? `plain ${LET[m.t.l]}` : `${m.h > m.hPlain ? "raise" : "lower"} it: ${nm(m.t)}`}.` : `Check the ${m.mem}: count the half steps from ${nm(R)} up to ${v} and compare with the ${m.h} it needs.`; },
+    // step 2: spell each member: the letter (count up in 3rds) and its sharp, flat or natural (count half steps), in one drag step
+    const mems = need.map(([mem, h, ivn], j) => { const t = T[j + 1], num = [3, 5, 7][j], plain = up({ l: t.l, a: 0 }); return { mem, t, num, h, ivn, hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
+    const seq = num => LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ");
+    S.push({ title: "Step 2: spell the chord", kind: "drag", reuse: true, bank: USUAL, rowsOf: 3, ans: mems.map(m => nm(m.t)),
+      rows: mems.map(m => ({ label: `${m.mem}: ${m.ivn} (${m.h} half steps)`, aria: `The ${m.mem}, a ${m.ivn}, ${m.h} half steps above ${nm(R)}` })),
+      q: `Spell each member above ${nm(R)}. First find its letter: the 3rd is 3 letters up from ${LET[R.l]}, the 5th is 5${C.sev ? ", the 7th is 7" : ""}, counting ${LET[R.l]} as 1. Then count half steps from ${nm(R)} up to that letter and add a sharp or flat if the box needs a different number.`,
+      hint: `Letters: ${seq(C.sev ? 7 : 5)}, skipping every other one. ${mems.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
+      judge: (i, v, tr) => { const m = mems[i], gl = "CDEFGAB".indexOf(v[0]);
+        if (gl !== m.t.l) return tr >= 2 ? `The ${m.mem}: ${seq(m.num)}, ${m.num} letters, so some kind of ${LET[m.t.l]}.` : `Check the letter of the ${m.mem}: ${m.num} letters up from ${LET[R.l]}, counting ${LET[R.l]} as 1.`;
+        return tr >= 2 ? `The ${m.mem}: plain ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)} and the box needs ${m.h}, so ${m.h === m.hPlain ? `plain ${LET[m.t.l]}` : `${m.h > m.hPlain ? "raise" : "lower"} it: ${nm(m.t)}`}.` : `The ${m.mem} has the right letter; count the half steps from ${nm(R)} up to ${v} and compare with the ${m.h} the box needs.`; },
       why: `Spelled from the root: ${T.map(nm).join(" – ")}.`, after: () => { C.known = T.length; } });
-    S.push({ title: "Which note goes in the bass?", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${MEM[C.inv]}</b> in the bass. Which note goes on the bottom?`, kind: "opts", opts: T.map(nm), ans: nm(T[C.inv]), why: `The ${MEM[C.inv]} is ${nm(T[C.inv])}.` });
+    // step 3: the inversion picks the bass note, and close position stacks the rest above it, in one question
     const order = C.notes.map(nm).join(" – "), rots = T.map((_, k) => T.slice(k).concat(T.slice(0, k)).map(nm).join(" – "));
-    S.push({ title: "Close position, from the bottom up", q: `With ${nm(T[C.inv])} on the bottom, stack the other notes as close as possible above it, each the next chord member up. What's the order from the bottom up?`, kind: "opts", opts: shuffle([...new Set([order, ...rots, T.slice().reverse().map(nm).join(" – ")])]).slice(0, 4).concat([order]).filter((x, i, a) => a.indexOf(x) === i), ans: order, why: `${order}: keep going around the chord (root, 3rd, 5th${C.sev ? ", 7th" : ""}, root…) starting from the bass.`, after: () => { C.placed = true; } });
+    S.push({ title: "Step 3: put it in position", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${MEM[C.inv]}</b> in the bass; stack the other notes as close as possible above it. What's the order from the bottom up?`,
+      kind: "opts", opts: shuffle([...new Set([order, ...rots, T.slice().reverse().map(nm).join(" – ")])]).slice(0, 4).concat([order]).filter((x, i, a) => a.indexOf(x) === i), ans: order,
+      why: `The ${MEM[C.inv]}, ${nm(T[C.inv])}, goes on the bottom; then keep going around the chord (root, 3rd, 5th${C.sev ? ", 7th" : ""}, root…): ${order}.`, after: () => { C.placed = true; } });
     return S;
   }
   // ---------- sound ----------
   let AC = null;
+  // chords sound on brass: trumpets for treble clef, trombones for bass clef (synthesized until the recordings have loaded)
+  const BRASS = () => C && C.clef === "bass" ? "trombone" : "trumpet";
+  const ctx = () => { const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return null; if (!AC) AC = new Ctx(); if (AC.state === "suspended") AC.resume(); return AC; };
+  ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, function warm() { ["pointerdown", "keydown"].forEach(x => document.removeEventListener(x, warm, true)); if (ctx() && window.SAMP) { SAMP.load(AC, "trumpet"); SAMP.load(AC, "trombone"); } }, true));
   function play(ms, dur = 1.4, gap = 0) {
-    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx || (window.SFX && SFX.muted && SFX.muted())) return; if (!AC) AC = new Ctx(); if (AC.state === "suspended") AC.resume();
-    const t0 = AC.currentTime + .05;
+    if (!ctx() || (window.SFX && SFX.muted && SFX.muted())) return;
+    const t0 = AC.currentTime + .05, k = BRASS();
+    if (window.SAMP && SAMP.ready(AC, k)) { const out = AC.createGain(); out.gain.value = gap ? .9 : 1.2 / Math.sqrt(ms.length); out.connect(AC.destination);
+      ms.forEach((m, i) => SAMP.note(AC, k, m, t0 + i * gap + (gap ? 0 : i * .012), .85, out, dur)); return; }
+    if (window.SAMP) SAMP.load(AC, k);
     ms.forEach((m, i) => { const t = t0 + i * gap, f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(); g.connect(AC.destination);
       [[1, 1], [2, .4], [3, .15]].forEach(([h, a]) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = "triangle"; o.frequency.value = f * h; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + .4); });
       const v = .18 / Math.sqrt(gap ? 1 : ms.length); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .01); g.gain.setTargetAtTime(v * .4, t + .02, .4); g.gain.setTargetAtTime(0, t + dur, .1); });
