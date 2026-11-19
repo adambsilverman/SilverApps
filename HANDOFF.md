@@ -680,3 +680,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ### z182 (2026-11-19) Note values captions; beat numbers in the beaming toy
 - engine.js: a bar may carry `cap` (text centered under the bar, Literata 15; single-staff rows get the lyric room). notevalues.js `capd(spec, caps)` sets them; the Note values figure labels its bars Whole note / Half notes / Quarter notes / Eighth notes / Sixteenth notes.
 - notevalues.js "Try it: flags into beams": "Show beat numbers" checkbox (.nvchk in extra.css) turns on the engine's beatNums (6/8 shows 2 beats).
+
+### z183 (2026-11-19) In Bloom chart with bar lines
+- progstudy.js: BARS(artist, title, lines) draws a chord chart with bar lines (each bar a string like "B A"; .ps-bars/.ps-bar in extra.css). "In Bloom" uses it: B♭ | G♭ | E♭ | B A | (last line ends B D).
+- Fast Car: Adam asked for his lyrics on the page; declined (copyrighted lyrics). Offered a follow-along chord highlight synced to the recording instead.

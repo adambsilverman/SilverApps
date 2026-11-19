@@ -643,6 +643,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ps-sheet .ps-st { font-size: 1.25rem; margin: 0 0 10px; }
 .ps-sheet .ps-cl { margin: 0 0 1.35em; font-size: 1rem; line-height: 1.2; }
 .ps-sheet .ps-cl b { display: inline-block; margin-right: 1.4em; }
+.ps-sheet .ps-bars { display: flex; max-width: 34em; }
+.ps-sheet .ps-bar { flex: 1 1 0; min-width: 0; padding: .1em .7em; border-right: 1.5px solid currentColor; }
+.ps-sheet .ps-bars b { margin-right: .9em; }
+.ps-sheet .ps-bars b:last-child { margin-right: 0; }
 .ps-ch { display: inline-block; min-width: 3.2em; padding: 2px 8px; margin: 2px 6px 2px 0; border: 1.5px solid var(--line, #bbb); border-radius: 8px; font: 600 18px/1.4 Literata, 'Noto Music', serif; text-align: center; }
 .ps-q h3 { margin: 14px 0 4px; }
 .ps-ans { margin: 14px 0 4px; padding: 10px 14px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }

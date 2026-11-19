@@ -13,6 +13,8 @@ window.FAM = (() => {
 
   // Adam's chord-sheet layout: artist and title, then one bold line of chords per line of the song (lyric lines left out here)
   const SHEET = (artist, title, lines) => `<div class="ps-sheet" role="group" aria-label="${artist}, ${title}: chords, one line per line of the song"><p class="ps-st">${artist}: <i>${title}</i></p>${lines.map((l, n) => `<p class="ps-cl"><span class="sr">Line ${n + 1}: </span>${l.map(c => `<b>${c}</b>`).join("")}</p>`).join("")}</div>`;
+  // a chord chart with bar lines: lines of bars, each bar a string of one or more chords ("B A")
+  const BARS = (artist, title, lines) => `<div class="ps-sheet" role="group" aria-label="${artist}, ${title}: chords, one line per line of the song, with bar lines"><p class="ps-st">${artist}: <i>${title}</i></p>${lines.map((l, n) => `<p class="ps-cl ps-bars"><span class="sr">Line ${n + 1}: </span>${l.map((bar, j) => `<span class="ps-bar"><span class="sr">bar ${j + 1}: </span>${bar.split(" ").map(c => `<b>${c}</b>`).join("")}</span>`).join("")}</p>`).join("")}</div>`;
   const lesson = { steps: [
     { title: "How this works", kick: "Before you start", render: () => `<p>Five songs, one per step. Play the recording, look at the chords, and talk through the questions before anyone opens the <b>Analysis</b>. Most of these progressions do something the chart in <a href="harmonic-succession-lesson.html">Harmonic Succession</a> predicts. A couple don't, and those are the interesting ones.</p>
       <p>For each song, look for two things. Which chords carry the progression, and which ones only fill in or decorate? And where does the harmony move toward the tonic, where does it stall, and where does it go backward?</p>` },
@@ -30,7 +32,7 @@ window.FAM = (() => {
         <p>D7 is a major {rn:IV} with an F♯, the raised 6th degree. It makes the opening a little brighter than plain natural minor would.</p>`) },
 
     { title: "Nirvana, “In Bloom”", kick: "Chromatic power chords", render: () => FIG(AUD("in-bloom", "Nirvana, In Bloom, excerpt"), "Nirvana, “In Bloom” (1991), Kurt Cobain.")
-      + SHEET("Nirvana", "In Bloom", [["B♭", "G♭", "E♭", "B", "A"], ["B♭", "G♭", "E♭", "B", "A"], ["B♭", "G♭", "E♭", "B", "A"], ["B♭", "G♭", "E♭", "B", "D"]])
+      + BARS("Nirvana", "In Bloom", [["B♭", "G♭", "E♭", "B A"], ["B♭", "G♭", "E♭", "B A"], ["B♭", "G♭", "E♭", "B A"], ["B♭", "G♭", "E♭", "B D"]])
       + QS(["Which of these chords belong to B♭ major? Which don't?", "How do the roots move? Look at the distance from each chord to the next.", "Nothing here works like a dominant. How does A lead back to B♭ anyway?"])
       + ANS(`<p>Only B♭ ({rn:I}) and E♭ ({rn:IV}) belong to B♭ major. G♭ is {rn:♭VI}, borrowed from B♭ minor. B is really C♭, a {rn:♭II}. A is a major chord on the leading tone.</p>
         <p>The roots fall by 3rds: B♭ down to G♭ (a major 3rd), G♭ down to E♭ (a minor 3rd), E♭ down to B (another major 3rd), then a step down to A. A goes back to B♭ by a half step in the bass, so it does the leading tone's job without being a dominant chord.</p>
