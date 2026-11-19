@@ -194,7 +194,7 @@ window.FAM = (() => {
     draw();
   }
   const lesson = { defMode: "major", steps: [
-    { title: "Chord functions", kick: "Tonic, pre-dominant, dominant", keyed: "both", render: (H, k, U) => `<p>Chord <b>progression</b> (the succession from one harmony to the next) follows patterns typical of a style. In common-practice music, diatonic chords group into three <b>functions</b>:</p>
+    { title: "Chord functions", kick: "Tonic, pre-dominant, dominant", keyed: "both", nokeys: true, render: (H, k, U) => `<p>Chord <b>progression</b> (the succession from one harmony to the next) follows patterns typical of a style. In common-practice music, diatonic chords group into three <b>functions</b>:</p>
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Function</th><th scope="col">In ${k.label}</th></tr></thead><tbody>
       <tr><td><b>Tonic (T)</b></td><td>{rn:${H.rnOf(k, 1)}} (home)</td></tr><tr><td><b>Pre-dominant (PD)</b></td><td>{rn:${H.rnOf(k, 4)}}, {rn:${H.rnOf(k, 2)}} (and {rn:${H.rnOf(k, 6)}} in {rn:${H.rnOf(k, 6)}}–{rn:V})</td></tr><tr><td><b>Dominant (D)</b></td><td>{rn:V}, {rn:vii°}</td></tr></tbody></table></div>
       <p>Chords that share two tones with the tonic ({rn:${H.rnOf(k, 6)}}, {rn:${H.rnOf(k, 3)}}) can extend the tonic area. In minor, chord qualities change to fit the mode, including the raised 6th and 7th degrees.</p>`
@@ -241,7 +241,7 @@ window.FAM = (() => {
       + EX("the-way-it-is", 2168, 531, "The Way It Is, four bars in G with chord symbols Am7, Em, D, C, G, D, C(add2). Brackets mark three retrogressions, ii to vi, V to IV, V to IV, and a longer bracket marks the common-practice line ii, V, I, IV.", "Bruce Hornsby and the Range, “The Way It Is” (1986).", "The Way It Is, excerpt")
       + `<p>Pachelbel's Canon works the same way. The bass alternates retrogressive falling 4ths with progressive rising steps, but the main chords on each downbeat make a progression, I – vi – IV – IV – V. The second chord in each of the first three bars embellishes.</p>`
       + EX("canon-in-d", 2160, 317, "Canon in D bass line in D major, half notes D, A, B, F sharp, G, D, G, A. Main progression chords below: I, vi, IV, IV, V; embellishing chords: V, iii, I.", "Johann Pachelbel, Canon in D, the ground bass with its main and embellishing chords.", "Canon in D, excerpt") },
-    { title: "Chord streams", kick: "Following the bass", keyed: "minor", render: (H, k, U) => {
+    { title: "Chord streams", kick: "Following the bass", keyed: "minor", nokeys: true, render: (H, k, U) => {
       const and = [[1, "m"], [7, "M"], [6, "M"], [5, "M"]].map(([d, q]) => { const r = d === 5 ? H.deg(k, 5) : H.deg(k, d); return H.chord(r, q).sym; }).map(s => `{sym:${s}}`).join(" – ");
       return `<p>In some music, root-position chords simply harmonize a stepwise bass line, following neither progression nor retrogression: a <b>chord stream</b>. Harmonizations can be diatonic or chromatic (often major chords over every bass note). A rock favorite puts major chords over the notes of the natural minor scale.</p>
       <p>The <b>Andalusian cadence</b> is a chord stream down a tetrachord, such as {rn:i}–{rn:♭VII}–{rn:♭VI}–{rn:V}: ${and}. It's common in flamenco, rhythm and blues, and jazz.</p>`

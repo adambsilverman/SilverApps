@@ -147,7 +147,7 @@ window.FAM = (() => {
   const SWAP = [[3, "iii7", "V7/vi"], [6, "vi7", "V7/ii"], [2, "ii7", "V7/V"]], DEG_AFTER = { 3: 6, 6: 2, 2: 5 }, SWON = [false, false, false];
   // ---------- lesson ----------
   const lesson = { steps: [
-    { part: "Reading secondary chords", title: "What makes a chord “secondary”?", kick: "Tonicization", keyed: "major", render: (H, k, U) => `<p>A <b>secondary</b> chord is a chromatic chord that briefly treats some chord other than the tonic as if it were a tonic. That is called <b>tonicization</b>. It doesn't change the key: only a cadence can confirm a new key.</p>
+    { part: "Reading secondary chords", title: "What makes a chord “secondary”?", kick: "Tonicization", keyed: "major", nokeys: true, render: (H, k, U) => `<p>A <b>secondary</b> chord is a chromatic chord that briefly treats some chord other than the tonic as if it were a tonic. That is called <b>tonicization</b>. It doesn't change the key: only a cadence can confirm a new key.</p>
       <p>The three common kinds are <b>secondary dominants</b> ({rn:V/x}, {rn:V7/x}), <b>secondary leading-tone chords</b> ({rn:vii°7/x}) and <b>secondary pre-dominants</b> ({rn:ii/x} or {rn:ii7/x} for a major target, {rn:iiø7/x} for a minor target). The “x” is the <b>target</b>: the chord being tonicized.</p>
       <p>Hear it in a circle progression with 5̂–5̂–5̂–4̂–4̂–3̂ on top. Each switch turns a diatonic minor 7th chord into the dom7 that leads to the next chord: its 3rd goes up a half step and becomes a secondary leading tone. When that note is in the melody, you'll hear 5̂ or 4̂ raised.</p>
       <div class="sw-tog" role="group" aria-label="Swap in secondary dominants">${SWAP.map((w, i) => `<button class="lk" data-swap="${i}" aria-pressed="${!!SWON[i]}">${U.rn(w[1])} → ${U.rn(w[2])}</button>`).join("")}</div>
@@ -178,7 +178,7 @@ window.FAM = (() => {
         root.querySelector("#swPlay").addEventListener("click", () => tools.play(H.playOf(spec)));
         draw();
       } },
-    { part: "Reading secondary chords", title: "Step 1: Name the chord", kick: "Stack it in thirds", keyed: "both", render: (H, k, U) => {
+    { part: "Reading secondary chords", title: "Step 1: Name the chord", kick: "Stack it in thirds", keyed: "both", nokeys: true, render: (H, k, U) => {
       const ex = [sec(H, k, "dom", k.mode === "major" ? 6 : 4, 2, "7"), sec(H, k, "lt", 5, 1, "o7"), sec(H, k, "pd", k.mode === "major" ? 2 : 4, 0, "h7")].filter(s => s.c.tones.every(n => Math.abs(n.a) < 2));
       const row = s => { const c = s.c, bass = c.tones[c.bass], rest = H.shuffle(c.tones.filter((_, i) => i !== c.bass)); return `<tr><td>${[bass, ...rest].map(H.nm).map(H.accHTML).join(", ")}</td><td>${H.accHTML(c.tones.map(H.nm).join("–"))}</td><td>${H.accHTML(H.nm(c.tones[0]))}</td><td>${H.QNAME[c.q]}</td><td>${U.sym(c.sym)}</td></tr>`; };
       return `<p>Before you can tell what a chord <i>does</i>, you need to know what it <i>is</i>. Gather every note sounding (in all staves), then:</p>
@@ -188,7 +188,7 @@ window.FAM = (() => {
       <div class="ltable-wrap"><table class="ltable"><caption class="sr">Naming three chords in ${H.esc(k.label)}</caption><thead><tr><th scope="col">Notes (bass first)</th><th scope="col">In thirds</th><th scope="col">Root</th><th scope="col">Quality</th><th scope="col">Name</th></tr></thead><tbody>${ex.map(row).join("")}</tbody></table></div>
       <p class="note">Tip: if you're not sure how to stack the notes, try each note as the root until the others fall into thirds above it.</p>`;
     } },
-    { part: "Reading secondary chords", title: "Step 2: Read the quality", kick: "Quality → function", keyed: "both", render: (H, k, U) => {
+    { part: "Reading secondary chords", title: "Step 2: Read the quality", kick: "Quality → function", keyed: "both", nokeys: true, render: (H, k, U) => {
       const v2 = sec(H, k, k.mode === "major" ? "dom" : "dom", k.mode === "major" ? 5 : 4, 0, k.mode === "major" ? "M" : "M");
       const d0 = diatOn(H, k, v2.c.tones[0]), dia = H.diat(k, d0);
       const g = H.grand({ key: k, chords: [dia, v2.c], labels: [H.rnOf(k, d0), v2.rn], syms: [dia.sym, v2.c.sym] });
@@ -201,7 +201,7 @@ window.FAM = (() => {
       + `<p><b>Why “any dominant 7th”?</b> A dom7 is so strongly tied to dominant function that it signals a secondary dominant even on a root that is already major: in a major key the I chord with a minor 7th added is ${U.rn("V7/IV")}. The only dom7 that is <i>not</i> secondary is the key's own ${U.rn("V7")}.</p>`
       + H.check(`In ${k.label}, a fully diminished seventh chord appears. What is it most likely to be?`, "a secondary leading-tone chord", ["a secondary dominant", "a secondary pre-dominant", "a borrowed tonic"], "°7 quality → vii°7/x.");
     } },
-    { part: "Reading secondary chords", title: "Step 3: Find the target", kick: "Write the label", keyed: "both", render: (H, k, U) => {
+    { part: "Reading secondary chords", title: "Step 3: Find the target", kick: "Write the label", keyed: "both", nokeys: true, render: (H, k, U) => {
       const t = k.mode === "major" ? 4 : 6, TR = TGT_RN[k.mode][t - 1], ss = [sec(H, k, "dom", t, 0, "7"), sec(H, k, "lt", t, 0, "o7"), sec(H, k, "pd", t, 0, "m7")];
       const v7 = domOf(H, k, t), V = diatChord(H, k, t);
       const figs = ss.map(s => { const I0 = H.diat(k, 1), T0 = TGT_RN[k.mode][0], V7c = H.diat(k, 5, true), ch = (s.fn === "dom" ? [I0, s.c, V] : [I0, s.c, v7.c, V]).concat([V7c, I0]), lb = (s.fn === "dom" ? [T0, s.rn, TR] : [T0, s.rn, v7.rn, TR]).concat(["V7", T0]); return U.fig(H.grand({ key: k, chords: ch, labels: lb, syms: ch.map(c => c.sym), hl: 1 }), `${s.c.sym} → ${H.nm(s.T)}: ${FNSHORT[s.fn]}${s.fn === "dom" ? "" : `, followed by the secondary dominant of the same target (${v7.c.sym})`}`, { small: true }); }).join("");
@@ -213,7 +213,7 @@ window.FAM = (() => {
       <p class="note">The target here is major, so the pre-dominant is minor (ii or ii⁷). When the target is a minor chord, it is half-diminished: iiø⁷/x.</p>
       <div class="lfigs">${figs}</div>`;
     } },
-    { part: "Reading secondary chords", title: "Inversions: the figures", kick: "Slash chords", keyed: "both", render: (H, k, U) => {
+    { part: "Reading secondary chords", title: "Inversions: the figures", kick: "Slash chords", keyed: "both", nokeys: true, render: (H, k, U) => {
       const d = k.mode === "major" ? 5 : 4, inv = [0, 1, 2, 3].map(i => sec(H, k, "dom", d, i, "7"));
       const g = H.grand({ key: k, chords: inv.map(s => s.c), labels: inv.map(s => s.rn), syms: inv.map(s => s.c.sym) });
       return `<p>If the chord is inverted (it has a slash bass), add the inversion figure to the Roman numeral, before the slash:</p>
@@ -222,7 +222,7 @@ window.FAM = (() => {
       + U.fig(g, `${inv[0].rn.split("/")[0]} of ${inv[0].target} in all four positions.`)
       + H.check(`In ${k.label}, which label fits {sym:${inv[2].c.sym}}?`, inv[2].rn, [inv[1].rn, inv[3].rn, inv[0].rn], `The 5th (${H.nm(inv[2].c.tones[2])}) is in the bass: 4/3.`, "rn");
     } },
-    { part: "Reading secondary chords", title: "Examples", kick: "Hear them resolve", keyed: "both", render: (H, k, U) => {
+    { part: "Reading secondary chords", title: "Examples", kick: "Hear them resolve", keyed: "both", nokeys: true, render: (H, k, U) => {
       // Each example starts on the tonic (so the key is heard and seen), tonicizes the target, then returns home with V–I.
       const I = H.diat(k, 1), V7 = H.diat(k, 5, true), T0 = TGT_RN[k.mode][0];
       const fam = (fn, list) => list.map(([d, inv, q]) => { const s = sec(H, k, fn, d, inv, q); if (!okSpell(s.c) || !H.isChromatic(k, s.c)) return ""; const tg = diatChord(H, k, d), v = domOf(H, k, d);
@@ -246,13 +246,13 @@ window.FAM = (() => {
       <div class="callout"><b>Why not respell?</b>Each note shows where it is going. The raised note leads <i>up</i> to the target's root and a lowered 7th leads <i>down</i>. An enharmonic respelling hides that.</div>`
       + H.check(`Which chord is ${"{rn:vii°7/V}"} in ${k.label}?`, sl.c.sym, [e && Math.abs(e.a) < 2 ? H.nm(e) + "°7" : sd.c.sym, sd.c.sym, H.chord(T, "o7").sym].filter((x, i, a) => x !== sl.c.sym && a.indexOf(x) === i), "Its root is the secondary leading tone, spelled as the lower neighbor.", "sym");
     } },
-    { part: "Reading secondary chords", title: "Quick check", kick: "Before the drills", keyed: "both", render: (H, k) => {
+    { part: "Reading secondary chords", title: "Quick check", kick: "Before the drills", keyed: "both", nokeys: true, render: (H, k) => {
       const qs = [];
       const s1 = randomSec(H, k, "dom"), s2 = randomSec(H, k, "lt"), s3 = randomSec(H, k, "pd");
       qs.push(H.check(`In ${k.label}, what is {sym:${s1.c.sym}}?`, s1.rn, wrongLabels(H, k, s1), why(H, k, s1), "rn"));
       qs.push(H.check(`In ${k.label}, what is {sym:${s2.c.sym}}?`, s2.rn, wrongLabels(H, k, s2), why(H, k, s2), "rn"));
       qs.push(H.check(`What kind of chord is {sym:${s3.c.sym}} in ${k.label}?`, FN.pd, [FN.dom, FN.lt, FN.dia], why(H, k, s3)));
-      return `<p>Three questions in ${H.esc(k.label)}. Pick another key above for a new set.</p>${qs.join("")}`;
+      return `<p>Three questions in ${H.esc(k.label)}.</p>${qs.join("")}`;
     } },
     // ---------- one part per kind of secondary chord, with examples from Dr. Silverman's course (assets/img|audio/secondary) ----------
     { part: "Secondary dominants", title: "The dominant of another chord", kick: "V/x and V⁷/x", render: () => `<p>A <b>secondary dominant</b> is the V or V⁷ of a diatonic chord other than the tonic. It's always major or dom7 in quality, and it usually comes from a diatonic minor or diminished chord whose 3rd has been raised: ii, iii or vi in a major key, ii° or iv in a minor key.</p>`

@@ -52,7 +52,7 @@
   }
 
   const lesson = { steps: [
-    { title: "Chromatic mediants", kick: "Thirds apart, same quality", keyed: "major", render: (H, k, U) => {
+    { title: "Chromatic mediants", kick: "Thirds apart, same quality", keyed: "major", nokeys: true, render: (H, k, U) => {
       const I = H.diat(k, 1), M = meds(H, k.tonic, "M");
       return `<p>A <b>chromatic mediant relationship</b> joins two chords (or keys) that are:</p>
       <ol><li>a <b>3rd apart</b>, major or minor;</li><li>the <b>same quality</b>, both major or both minor;</li><li><b>not diatonically related</b> (not found together in one key);</li><li>sharing a <b>common tone</b>.</li></ol>
@@ -62,7 +62,7 @@
     } },
     { title: "Finding them", kick: "Four for every chord", render: (H) => `<p>Any major or minor chord has four chromatic mediants: the chords of the same quality with roots a major 3rd and a minor 3rd above and below. Enharmonic spellings are often used to make the chords more common: for F minor, C♯m rather than D♭m, and G♯m rather than A♭m.</p>${reference(H)}`
       + H.check("Which is a chromatic mediant of C major?", "E", ["Em", "Am", "D"], "E major: a major 3rd up, same quality, common tone E. Em and Am are diatonic to C.", "sym") },
-    { title: "How they're used", kick: "In real music", keyed: "major", render: (H, k, U) => {
+    { title: "How they're used", kick: "In real music", keyed: "major", nokeys: true, render: (H, k, U) => {
       const I = H.diat(k, 1), c3 = H.chord(H.up(k.tonic, 2, 3), "M"), c6 = H.chord(H.up(k.tonic, -2, -4), "M");
       return `<p>Chromatic mediants create expressive harmonic shifts: color and contrast, while keeping a connection to the home key through the common tone (often, but not always, present in the melody).</p>
       <ul><li><b>Modulation:</b> because they share tones with the original key, chromatic mediants can be pivot or destination chords for smooth yet striking key changes.</li><li><b>Substitution:</b> a chromatic mediant can replace a diatonic chord for a surprising color.</li></ul>`

@@ -124,13 +124,13 @@
   }
 
   const lesson = { steps: [
-    { title: "Borrowing from the parallel key", kick: "Same tonic", keyed: "major", defKey: "G", render: (H, k, U) => {
+    { title: "Borrowing from the parallel key", kick: "Same tonic", keyed: "major", nokeys: true, defKey: "G", render: (H, k, U) => {
       const m = pm(H, k), maj = [1, 2, 3, 4, 5, 6, 7].map(d => H.diat(k, d)), min = [1, 2, 3, 4, 5, 6, 7].map(d => d === 7 ? H.chord(H.deg(m, 7), "M") : d === 5 ? H.chord(H.deg(m, 5), "m") : H.diat(m, d));
       return `<p><b>Mode mixture</b> (also called <i>modal borrowing</i>) means using chords from the <b>parallel</b> key, the key with the same tonic: a passage in ${H.esc(k.label)} using chords from ${H.esc(m.label)}. It is not a modulation: without a cadence in a new key, the chords are simply “borrowed.”</p>`
       + `<div class="lfigs">${U.fig(H.grand({ key: k, chords: maj, labels: MAJRN, syms: maj.map(c => c.sym) }), `${k.label}`)}${U.fig(H.grand({ key: m, chords: min, labels: ["i", "ii°", "III", "iv", "v", "VI", "VII"], syms: min.map(c => c.sym) }), `${m.label} (natural minor)`)}</div>`
       + `<p class="note">Using the raised leading tone (V, vii°) or melodic minor (sol–la–ti–do) in a minor key is <i>not</i> mode mixture: those notes are native to minor.</p>`;
     } },
-    { title: "How to label borrowed chords", kick: "Case and flats", keyed: "major", defKey: "G", render: (H, k, U) => {
+    { title: "How to label borrowed chords", kick: "Case and flats", keyed: "major", nokeys: true, defKey: "G", render: (H, k, U) => {
       const b3 = bor(H, k, BOR[3]), b6 = bor(H, k, BOR[7]);
       return `<ul><li><b>Same root, different quality:</b> just change the case. IV → <b>iv</b>, I → <b>i</b>, V → <b>v</b>, ii → <b>ii°</b> (or <b>iiø⁷</b>).</li>
       <li><b>Different root:</b> the mediant, submediant and subtonic are a half step lower in minor. Add ♭ to show the lowered root, and a capital for the major quality: <b>♭III</b>, <b>♭VI</b>, <b>♭VII</b>.</li>
@@ -138,7 +138,7 @@
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 6), b6.c, H.diat(k, 3), b3.c], labels: ["vi", "♭VI", "iii", "♭III"], syms: [H.diat(k, 6).sym, b6.c.sym, H.diat(k, 3).sym, b3.c.sym] }), "Diatonic chord, then its borrowed replacement.")
       + H.check(`In ${k.label}, how do you label {sym:${b6.c.sym}}?`, "♭VI", ["vi", "VI", "♭vi"], "Major (capital) on the lowered 6th degree (♭).", "rn");
     } },
-    { title: "The borrowed chords", kick: "From minor into major", keyed: "major", defKey: "C", render: (H, k, U) => {
+    { title: "The borrowed chords", kick: "From minor into major", keyed: "major", nokeys: true, defKey: "C", render: (H, k, U) => {
       const list = BOR.map(b => bor(H, k, b));
       return `<p>These chords become available in ${H.esc(k.label)} by borrowing from ${H.esc(pm(H, k).label)}:</p>`
       + U.fig(H.grand({ key: k, chords: list.slice(0, 5).map(s => s.c), labels: list.slice(0, 5).map(s => s.rn), syms: list.slice(0, 5).map(s => s.c.sym) }), "")
@@ -146,14 +146,14 @@
       + `<p>The same idea in G, both directions. Borrowing runs the other way too: a minor key can take I, ii, ♯iii and ♮vi from its parallel major.</p>`
       + CX("mixture-chords.png", 2224, 658, "Mode mixture chords in G major: Gm (i), A diminished or A half-diminished 7th (ii° or iiø7), B-flat (flat III), Cm (iv), Dm (v), E-flat (flat VI), F (flat VII). Mode mixture chords in G minor: G (I), Am (ii), Bm (sharp iii), Em (natural vi).", "Borrowed chords in G major (from G minor) and in G minor (from G major).");
     } },
-    { title: "Borrowed or secondary?", kick: "The rule of thumb", keyed: "major", defKey: "F", render: (H, k, U) => {
+    { title: "Borrowed or secondary?", kick: "The rule of thumb", keyed: "major", nokeys: true, defKey: "F", render: (H, k, U) => {
       const iv = bor(H, k, BOR[4]), II = H.chord(H.up(H.deg(k, 5), 4, 7), "M");
       return `<div class="callout"><b>Which way did it change?</b>A <b>major chord changed to minor</b> (IV → iv, V → v) usually reflects <b>mode mixture</b>. A <b>minor chord changed to major</b> (ii → II) usually makes a <b>secondary dominant</b>.</div>`
       + `<div class="lfigs">${U.fig(H.grand({ key: k, chords: [H.diat(k, 4), iv.c, H.diat(k, 1)], labels: ["IV", "iv", "I"], hl: 1 }), "IV → iv: borrowed", { small: true })}${U.fig(H.grand({ key: k, chords: [H.diat(k, 2), II, H.diat(k, 5)], labels: ["ii", "V/V", "V"], hl: 1 }), "ii → II: secondary dominant (V/V)", { small: true })}</div>`
       + H.check(`In ${k.label}, {sym:${II.sym}} replaces {sym:${H.diat(k, 2).sym}}. What is it most likely to be?`, "a secondary dominant", ["mode mixture", "a Picardy third", "a Neapolitan"], "A minor chord made major: V/V.")
       + H.check(`In ${k.label}, {sym:${iv.c.sym}} replaces {sym:${H.diat(k, 4).sym}}. What is it?`, "mode mixture (iv)", ["a secondary dominant", "a modulation", "a diatonic chord"], "A major chord made minor: borrowed iv.");
     } },
-    { title: "Hear the color", kick: "Progressions", keyed: "major", defKey: "D", render: (H, k, U) => {
+    { title: "Hear the color", kick: "Progressions", keyed: "major", nokeys: true, defKey: "D", render: (H, k, U) => {
       const s6 = bor(H, k, BOR[7]).c, s7 = bor(H, k, BOR[8]).c, s3 = bor(H, k, BOR[3]).c, iv = bor(H, k, BOR[4]).c, ii = bor(H, k, BOR[2]).c;
       const I = H.diat(k, 1), IV = H.diat(k, 4), V = H.diat(k, 5);
       return `<p>Borrowed chords darken a major key for a moment. Play each progression and listen for the borrowed chord.</p><div class="lfigs">`
@@ -167,7 +167,7 @@
       + CX("you-keep-me-hangin-on.png", 2928, 1834, "Lead sheet in A major with chord symbols A, Em over G, D, F, then A, Em over G, G, F, Am over E, then C7 sus 4, F, C, and finally G and E7.", "Holland, Dozier and Holland, “You Keep Me Hangin' On,” sung by the Supremes. Notation and recording are raised a half step, into A major, to make the analysis easier. Lyrics removed.", ["you-keep-me-hangin-on", "You Keep Me Hangin' On, excerpt"])
       + `<ul><li>Diatonic: {sym:A} ({rn:I}), {sym:D} ({rn:IV}), {sym:E7} ({rn:V7}).</li><li>Mixture in the first twelve bars: {sym:Em} ({rn:v}, in two inversions), {sym:F} ({rn:♭VI}), {sym:G} ({rn:♭VII}), {sym:Am/E} ({rn:i64}, almost a stand-in for the dominant) and {sym:C} ({rn:♭III}).</li><li>The next twelve bars can be heard two ways. Keep the same functions, and {sym:C7(sus4)} becomes a dominant of a dominant: {rn:V7/IV} in C, which is ♭III. Or hear a modulation to C major, and every chord from {sym:C7(sus4)} to {sym:G} is diatonic in the new key.</li></ul>`;
     } },
-    { title: "The Picardy third", kick: "And its opposite", keyed: "minor", defKey: "A", render: (H, k, U) => {
+    { title: "The Picardy third", kick: "And its opposite", keyed: "minor", nokeys: true, defKey: "A", render: (H, k, U) => {
       const I = H.chord(k.tonic, "M");
       return `<p>Mixture works the other way too. The <b>Picardy third</b> is a <b>major tonic</b> in a minor key, usually at the very end of a piece or phrase. (Where the name comes from has been lost to history.) Label it <b>I</b>.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 6), H.diat(k, 2, false, 1), H.diat(k, 5), I], labels: ["i", "VI", "ii°6", "V", "I"], syms: [], hl: 4 }), `${k.label}: i – VI – ii°⁶ – V – I`)
@@ -190,7 +190,7 @@
       + `<div class="callout"><b>Picardy third vs. Mercury third</b>Picardy third: minor key, ends on a <i>major</i> tonic (I). Mercury third: major key, ends on a <i>minor</i> tonic (i). Both are mode mixture applied to the tonic chord itself.</div>`
       + H.check("A phrase full of F-major chords ends on {sym:Fm}. What is it called?", "a Mercury third", ["a Picardy third", "a Neapolitan", "a secondary dominant"], "A minor tonic in a major key: Adam Silverman's “Mercury third.”");
     } },
-    { title: "Quick check", kick: "Before the drills", keyed: "major", defKey: "E♭", render: (H, k) => {
+    { title: "Quick check", kick: "Before the drills", keyed: "major", nokeys: true, defKey: "E♭", render: (H, k) => {
       const a = bor(H, k, BOR[7]), b = bor(H, k, BOR[4]), c = bor(H, k, BOR[8]);
       return H.check(`In ${k.label}, label {sym:${a.c.sym}}.`, a.rn, wrongRN(a).slice(0, 3), whyB(H, k, a), "rn")
         + H.check(`In ${k.label}, which chord is {rn:${c.rn}}?`, c.c.sym, [H.diat(k, 7).sym, H.chord(H.N(c.c.tones[0].l, c.c.tones[0].a + 1), "M").sym, H.chord(c.c.tones[0], "m").sym], whyB(H, k, c), "sym")

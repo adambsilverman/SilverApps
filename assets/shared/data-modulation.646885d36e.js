@@ -79,7 +79,7 @@ window.FAM = (() => {
         + H.check(`Which key is closely related to ${k.label}?`, r.relk.label, [H.key(H.nm(H.up(k.tonic, 1, 1)), "major").label, H.key(H.nm(H.up(k.tonic, 0, 1)), k.mode).label, H.key(H.nm(H.up(k.tonic, 2, 4)), "major").label], "Relative keys share the key signature.");
     },
       after: (root, H, k) => { const b = root.querySelector(".cofbox"); if (b) b.innerHTML = cofSVG(H, k); } },   // drawn after the text formatter, which would restyle the ♯/♭ inside SVG text
-    { title: "Finding and labeling", kick: "Start key vs. final cadence", keyed: "major", render: (H, k, U) => {
+    { title: "Finding and labeling", kick: "Start key vs. final cadence", keyed: "major", nokeys: true, render: (H, k, U) => {
       const x = pivotEx(H, k);
       const L1 = ["I", "IV", "vi", null, null], L2 = [null, null, "ii", "V7", "I"];
       const fig = x ? U.fig({ type: "voices", vf: k.vf, sig: k.sig, pivot: 2, key1: `${H.nm(k.tonic)}:`, key2: `${H.nm(x.d.tonic)}:`, label: `Four-voice progression in ${k.label} modulating to ${x.d.label}. Under the staff: ${k.label}: I, IV, vi; the vi is bracketed with ii of ${x.d.label}; then in ${x.d.label}: V7, I.`, cols: H.satbCols(x.vs, L1).map((c, i) => Object.assign(c, { lab2: L2[i] }, i === 2 ? { hl: true } : {})) }, `${k.label}: I – IV – <b>vi</b>, which is also <b>ii</b> in ${x.d.label} – then V⁷ – I in ${x.d.label}. The bracket marks the pivot: old key above, new key below, and the analysis continues on the lower line.`, { play: H.satbPlay(x.vs, .95) }) : "";

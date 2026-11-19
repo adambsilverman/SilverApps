@@ -417,7 +417,7 @@ window.FAM = (() => {
   const IMG = (f, alt) => `<img src="assets/img/nct-intro/${f}" alt="${alt}" loading="lazy" style="width:100%;height:auto;background:#fff;border-radius:8px">`;
   const AUD = (f, label) => `<audio controls preload="none" src="assets/audio/nct-intro/${f}.mp3" aria-label="${label}" style="width:100%"></audio>`;
   const FIG = (inner, cap) => `<figure class="lfig nci-fig">${inner}<figcaption>${cap}${/<audio\b|atgb-|beatles-/.test(inner) ? `<p class="note lcite fair-use" data-fair-use></p>` : ""}</figcaption></figure>`;
-  const ANYKEY = `<h3 class="nci-any">Compare them in any key</h3><p class="note">Generated examples: use the key buttons at the top of this step, and press Play.</p>`;
+  const ANYKEY = `<h3 class="nci-any">Generated examples</h3>`;
   // Dooley Wilson as Sam in Casablanca (1942): "Sing it, Sam" through "a sigh is just a sigh"
   const ATGB = `<div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/Do2olZ49M54?start=26&amp;end=44" title="As Time Goes By, from Casablanca (YouTube)" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
   const ATGB_CAP = `Herman Hupfeld, “As Time Goes By” (1931), sung by Dooley Wilson as Sam in <i>Casablanca</i> (1942). The clip plays from “You must remember this” to “a sigh is just a sigh.”`;
@@ -593,11 +593,11 @@ window.FAM = (() => {
       <ul><li><b>Progression types.</b> Is something an incomplete iii chord or a V chord? In most cases it will be V.</li>
       <li><b>Sevenths and extensions.</b> In classical and folk music, sevenths are usually dissonances, except on the dominant chord. In jazz they are usually treated as consonant chord tones.</li></ul>` },
 
-    { title: "Step, leap or hold", kick: "How it is approached and left", keyed: "major", render: (H, k, U) => `
+    { title: "Step, leap or hold", kick: "How it is approached and left", keyed: "major", nokeys: true, render: (H, k, U) => `
       <p>To label a non-chord tone, sort it by how it is <b>approached</b> and how it is <b>resolved</b> (left): by <b>step</b>, by <b>leap</b> or by <b>hold</b> (a held or repeated note). Notes approached and left by step sound more natural than ones that involve leaps.</p>
       ${finder()}${finderExamples(H, k, U)}`, after: root => wireFinder(root) },
 
-    { title: "Passing and neighbor tones", kick: "Step in, step out", keyed: "major", render: (H, k, U) => {
+    { title: "Passing and neighbor tones", kick: "Step in, step out", keyed: "major", nokeys: true, render: (H, k, U) => {
       const pt = ex(H, k, [[1], [1]], [[0, 1], [1, 1, "PT"], [2, 2]], { sym: true }), nt = ex(H, k, [[1], [1]], [[4, 1], [5, 1, "NT"], [4, 2]]), six = ex(H, k, [[1], [1]], [[[2, 7], 1], [[3, 8], 1, "PT"], [[4, 9], 2]]);
       return `<p>The most common non-chord tones use steps on both sides. If both steps go in the <b>same direction</b>, it is a <b>passing tone (PT)</b>. This example has a double passing tone: two in a row, filling in the fourth between the fifth and the root of the chord.</p>
       <p>If the melody <b>changes direction</b> around the non-chord tone, it is a <b>neighbor tone (NT)</b>.</p>
@@ -608,7 +608,7 @@ window.FAM = (() => {
       + H.check("A non-chord tone stepped into and stepped away from in the same direction is…", "a passing tone", ["a neighbor tone", "an appoggiatura", "an escape tone"], "Same direction on both sides: passing tone.");
     }, after: root => wireSW(root) },
 
-    { title: "Appoggiaturas, escape tones and double neighbors", kick: "One leap, one step", keyed: "major", render: (H, k, U) => {
+    { title: "Appoggiaturas, escape tones and double neighbors", kick: "One leap, one step", keyed: "major", nokeys: true, render: (H, k, U) => {
       const app = ex(H, k, [[1], [4]], [[2, 1], [4, 1], [6, 1, "APP"], [5, 1]]), et = ex(H, k, [[5], [1]], [[6, 1], [5, 1, "ET"], [7, 2]]);
       const dnx = ex(H, k, [[1, 4], [5, 2], [1, 2]], [[4, 1], [5, 1, "DN"], [3, 1, "DN"], [4, 1], [6, 1], [4, 1], [2, 2]]);
       return `<p>Two types involve a leap on one side. An <b>appoggiatura (APP)</b> is approached by leap and resolved by step. An <b>escape tone (ET)</b> is the opposite: approached by step and left by leap. They are mirror images, so ask <b>which side the leap is on</b>.</p>
@@ -618,7 +618,7 @@ window.FAM = (() => {
       + H.check("Approached by leap and resolved by step:", "appoggiatura", ["escape tone", "passing tone", "suspension"], "Leap in, step out: appoggiatura.");
     } },
 
-    { title: "Accented and unaccented", kick: "Where the dissonance falls", keyed: "major", render: (H, k, U) => {
+    { title: "Accented and unaccented", kick: "Where the dissonance falls", keyed: "major", nokeys: true, render: (H, k, U) => {
       const upt = ex(H, k, [[1], [5]], [[2, 1], [3, 1, "PT"], [4, 1], [6, 1]], { sym: true }), apt = ex(H, k, [[1], [2]], [[4, 1], [7, 1], [6, 1, "PT"], [5, 1]], { sym: true }), ant = ex(H, k, [[1], [4]], [[4, 1], [7, 1], [8, 1, "NT"], [7, 1]], { sym: true });
       return `<p>Non-chord tones also differ in <b>where they fall</b>. An <b>unaccented</b> non-chord tone comes between the beats or on a weak part of the beat, after the chord has already sounded. An <b>accented</b> one lands on a beat, so the dissonance is heard first and the chord tone arrives a moment later. Accented non-chord tones sound more expressive.</p>
       ${FIG(IMG("atgb-accent.png", "As Time Goes By with every non-chord tone circled and labeled UN for unaccented or ACC for accented: UN under the G and E-flat sixteenths in bar 1 and the G eighth before bar 2; ACC under the B-flat on the downbeat of bar 2 and the G on beat 2; UN under the D sixteenth in the last bar, ACC under the C on beat 2 and the final C on beat 3."), "“As Time Goes By”: UN = unaccented, ACC = accented.")}
@@ -634,7 +634,7 @@ window.FAM = (() => {
       ${FIG(IMG("tchaikovsky-pc1.png", "Tchaikovsky, Piano Concerto No. 1, bars 7 to 15, in D-flat major. Upper grand staff: the piano's big chords. Lower grand staff: the violins and cellos' melody, labeled PT, ET, APP, APP, ET, APP, ET, ET, APP and PT, with PED D-flat under two bars of held D-flat bass. A note explains that one appoggiatura is approached from above and resolved in the same direction.") + AUD("tchaikovsky-pc1", "Tchaikovsky, Piano Concerto No. 1, bars 7 to 15"),
         "Tchaikovsky, Piano Concerto No. 1, bars 7–15. Usually appoggiaturas are approached from below; the one marked with the arrow is approached from above and resolved in the same direction.")}` },
 
-    { title: "Pedal tones", kick: "Held under changing chords", keyed: "major", render: (H, k, U) => {
+    { title: "Pedal tones", kick: "Held under changing chords", keyed: "major", nokeys: true, render: (H, k, U) => {
       const t0 = dn(H, k, -14), ped = ex(H, k, [[1], [4], [5], [1]], [[7, 2], [5, 2], [6, 2], [7, 2]], { ped: H.nmO(H.N(t0.l, t0.a, H.midi(H.N(t0.l, t0.a, 2)) < 40 ? 3 : 2)) });
       const inv = ex(H, k, [[1], [2], [4], [1]], [[4, 2, null, true], [4, 2, "PED", true], [4, 2, "PED", true], [4, 2]]);
       return `<p>Bruckner's Mass in E minor has two more types. This passage from the Kyrie is for unaccompanied women's voices; chord symbols have been added to make the analysis easier.</p>
@@ -644,7 +644,7 @@ window.FAM = (() => {
       + H.check("A note held or repeated (usually in the bass) while harmonies change above it is…", "a pedal tone", ["a suspension", "an anticipation", "a passing tone"], "Same note in, same note out: pedal tone.");
     } },
 
-    { title: "Suspensions", kick: "Preparation, suspension, resolution", keyed: "major", render: (H, k, U) => {
+    { title: "Suspensions", kick: "Preparation, suspension, resolution", keyed: "major", nokeys: true, render: (H, k, U) => {
       const sus = ex(H, k, [[4], [1]], [[7, 1], [5, 1, null, true], [5, 1, "SUS"], [4, 1]]), ret = ex(H, k, [[5], [1]], [[8, 1], [6, 1, null, true], [6, 1, "RET"], [7, 1]]);
       return `<p>The other type in the Bruckner is the <b>suspension (SUS)</b>: a note held over from the previous harmony (sometimes repeated rather than tied, with the same effect; both happen here) that then resolves by step down. A suspension has three phases:</p>
       <ol><li><b>Preparation:</b> the note is a consonant member of the previous harmony.</li>
@@ -656,12 +656,12 @@ window.FAM = (() => {
         + H.check("Held over and resolved UP by step:", "a retardation", ["a suspension", "an anticipation", "a neighbor tone"], "A suspension resolves down; a retardation resolves up.");
     } },
 
-    { title: "Suspension figures", kick: "4-3, 9-8, 7-6, 2-3", keyed: "major", render: (H, k, U) => {
+    { title: "Suspension figures", kick: "4-3, 9-8, 7-6, 2-3", keyed: "major", nokeys: true, render: (H, k, U) => {
       const f43 = two(H, k, [[7, 4, true], [7, 2, false, "4"], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]), f98 = two(H, k, [[8, 4, true], [8, 2, false, "9"], [7, 2, false, "8"]], [[-10, 4], [-7, 4]]);
       const f76 = two(H, k, [[8, 4, true], [8, 2, false, "7"], [7, 2, false, "6"]], [[-10, 4], [-5, 4]]), f23 = two(H, k, [[4, 4], [8, 4]], [[0, 4, true], [0, 2, false, "2"], [-1, 2, false, "3"]].map(([i, q, t, g]) => [i - 7, q, t, g]));
       return `<p>Suspensions are often labeled with numbers showing their intervals above the bass: the interval of the suspension, then of its resolution. The four types are <b>9-8</b>, <b>4-3</b>, <b>7-6</b> and <b>2-3</b> (the 2-3 is the inversion of the 7-6: the suspension is in the bass).</p>
       ${FIG(IMG("sus-types.png", "Four pure suspensions in C major. 4-3: V six-five to I. 9-8: V7 to I. 7-6: V7 to I six-four. 2-3: V four-two to I, with the suspension in the bass."), "“Pure” versions of the four suspension types.")}
-      <div class="lfigs">${U.fig(f43, "<b>4-3</b>", { small: true })}${U.fig(f98, "<b>9-8</b>", { small: true })}${U.fig(f76, "<b>7-6</b>", { small: true })}${U.fig(f23, "<b>2-3</b>: the <i>bass</i> is suspended", { small: true })}</div>
+      <h3 class="nci-any">Generated examples</h3><div class="lfigs">${U.fig(f43, "<b>4-3</b>", { small: true })}${U.fig(f98, "<b>9-8</b>", { small: true })}${U.fig(f76, "<b>7-6</b>", { small: true })}${U.fig(f23, "<b>2-3</b>: the <i>bass</i> is suspended", { small: true })}</div>
       <p>Some things complicate the labels, such as the bass changing at the moment of resolution, or melodic embellishment. The first suspension in the Bruckner is tricky because it happens together with the pedal tone. Ignoring the pedal, it is a 4-3: the B is a fourth above the lowest chord tone (F♯) and moves down to A. The second is easier: a 9-8, because the suspended F♯ is a ninth above the lowest chord tone (E) and steps down to E.</p>
       ${FIG(IMG("bruckner-sus-figures.png", "The Bruckner Kyrie with suspension figures: 4-3 under the first suspension in bar 3 and 9-8 above the second in bar 5."), "The Bruckner suspensions labeled 4-3 and 9-8.")}
       <p>You can also label a suspension in a lead sheet, because a lead sheet implies a bass line: if the chord symbol shows no slash bass, the chord is in root position.</p>
@@ -673,17 +673,17 @@ window.FAM = (() => {
       <p>Now find and measure some suspensions on your own, in Mozart's Requiem. Measure each one from the bass note that the chord symbol indicates.</p>
       ${mozartFind()}${measure()}`, after: root => wireMozart(root) },
 
-    { title: "When suspensions get complicated", kick: "Moving bass, ornaments, chains", keyed: "major", render: (H, k, U) => {
+    { title: "When suspensions get complicated", kick: "Moving bass, ornaments, chains", keyed: "major", nokeys: true, render: (H, k, U) => {
       const orn = two(H, k, [[7, 4, true], [7, 1, false, "4"], [5, 1], [6, 2, false, "3"]], [[-7, 4], [-10, 4]]);
       const mov = two(H, k, [[7, 4, true], [7, 2, false, "4"], [6, 2, false, "6"]], [[-7, 4], [-10, 2], [-6, 2]]);
       const b = -2, chain = two(H, k, [[b + 5, 2], [b + 5, 2, true], [b + 5, 2, false, "7"], [b + 4, 2, true, "6"], [b + 4, 2, false, "7"], [b + 3, 2, true, "6"], [b + 3, 2, false, "7"], [b + 2, 2, false, "6"]], [[b - 7, 4], [b - 8, 4], [b - 9, 4], [b - 10, 4]], 80);
-      return `<p>Real suspensions are rarely as tidy as the textbook figures. Generated examples in any key:</p>
+      return `<p>Real suspensions are rarely as tidy as the textbook figures. Some generated examples:</p>
         <div class="lfigs">${U.fig(orn, "<b>Ornamented resolution</b>: the 4 dips to a lower note before it resolves to 3. Label the suspension by where it finally lands.", { small: true })}${U.fig(mov, "<b>The bass moves at the resolution</b>: the 4 resolves as the bass moves up a 5th, so the resolution is a 6th above the new bass: a 4-6.", { small: true })}</div>
         ${U.fig(chain, "<b>A chain of suspensions</b>: each resolution is held over into the next bar and becomes the next preparation, over a bass that steps down: 7-6, 7-6, 7-6.")}`
         + H.check("In a chain of 7-6 suspensions, each resolution…", "becomes the preparation of the next suspension", ["leaps to the bass", "is a pedal tone", "resolves up by step"], "Resolve, hold over, clash, resolve again.");
     } },
 
-    { title: "Anticipations", kick: "Arriving early", keyed: "major", render: (H, k, U) => {
+    { title: "Anticipations", kick: "Arriving early", keyed: "major", nokeys: true, render: (H, k, U) => {
       const ant = ex(H, k, [[5], [1]], [[6, 1], [7, 1, "ANT"], [7, 2]]), ha = ex(H, k, [[2], [5], [1, 4]], [[3, 1], [5, 1], [6, 1], [9, 1, "HA"], [7, 4]]);
       return `<p>The last type is the <b>anticipation (ANT)</b>: a melody note that arrives before the rest of its harmony. A <b>harmonic anticipation (HA)</b> anticipates a different tone of the following chord than the one the melody actually moves to.</p>
       ${FIG(IMG("brahms-op29.png", "Brahms, Motet Op. 29 No. 2, four bars in G major, 6/4, for choir. A 4-3 suspension and a neighbor tone in the tenor in bar 2; in bar 3 the soprano's G arrives on beat 3 before the G chord of bar 4, labeled ANT.") + AUD("brahms-op29", "Brahms, Motet Op. 29 No. 2"), "Johannes Brahms, Motet Op. 29 No. 2: a 4-3 suspension, a neighbor tone and an anticipation. Recording: St Bride's Church Choir, conducted by Matthew Morley.")}

@@ -111,7 +111,7 @@
   }
 
   const lesson = { defMode: "minor", steps: [
-    { title: "A major chord on ♭2̂", kick: "What it is", keyed: "both", defKey: "A", render: (H, k, U) => {
+    { title: "A major chord on ♭2̂", kick: "What it is", keyed: "both", nokeys: true, defKey: "A", render: (H, k, U) => {
       const n0 = N(H, k, 0), n6 = N(H, k, 1), d2 = H.deg(k, 2);
       return `<p>Build a major triad on the second scale degree <b>lowered by a half step</b> (♭2̂, “ra”) and you get the <b>Neapolitan</b> chord, labeled <b>♭II</b>. Its name points to a group of composers in Naples who used it often in the 18th century.</p>
       <p>In ${H.esc(k.label)}, 2̂ is ${H.esc(H.nm(d2))}; ♭2̂ is <b>${H.esc(H.nm(nRoot(H, k)))}</b>, so ♭II is {sym:${n0.sym}} (${H.esc(tonesTxt(H, n0))}). It is spelled on the letter above the tonic: it is <i>not</i> a chord on a raised 1̂.</p>`
@@ -125,13 +125,13 @@
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), n6, H.diat(k, 5, true), H.diat(k, 1)], labels: [T(k), "♭II6", "V7", T(k)], syms: [H.diat(k, 1).sym, n6.sym, H.diat(k, 5, true).sym, H.diat(k, 1).sym], hl: 1 }), `${k.label}: ♭II⁶ (${n6.sym}). The 3rd of the chord, ${H.nm(n6.tones[1])}, is 4̂ of the key and is in the bass.`)
       + H.check(`In ${k.label}, which chord is {rn:♭II6}?`, n6.sym, [H.chord(nRoot(H, k), "M", 0).sym, H.chord(nRoot(H, k), "m", 1).sym, okSp(H.chord(H.deg(k, 2), "M", 1)) ? H.chord(H.deg(k, 2), "M", 1).sym : H.chord(nRoot(H, k), "M", 2).sym], "Major triad on ♭2̂, with the 3rd (4̂) in the bass.", "sym");
     } },
-    { title: "First inversion: the 3rd in the bass", kick: "♭II⁶", keyed: "both", defKey: "D", render: (H, k, U) => {
+    { title: "First inversion: the 3rd in the bass", kick: "♭II⁶", keyed: "both", nokeys: true, defKey: "D", render: (H, k, U) => {
       const n6 = N(H, k, 1), ii6 = iiC(H, k, 1), iv = ivc(H, k);
       return `<p>The Neapolitan is most often in <b>first inversion</b>, ♭II⁶, with 4̂ in the bass, the same bass note as ${k.mode === "minor" ? "iv and ii°⁶" : "IV and ii⁶"}, the other pre-dominants. Put the <b>3rd in the bass</b>; above it, the right hand plays the <b>root and 5th</b>, doubling one of them, as in every example here.</p>`
       + U.fig(H.grand({ key: k, chords: [iv, ii6, n6], labels: [ivRN(k), iiRN(k) + "6", "♭II6"], syms: [iv.sym, ii6.sym, n6.sym], hl: 2 }), `Three pre-dominants over the same bass. Only ♭II⁶ lowers 2̂ (${H.nm(H.deg(k, 2))} → ${H.nm(nRoot(H, k))}).`)
       + H.check("In ♭II⁶, which chord tone is in the bass?", "the 3rd (4̂)", ["the root (♭2̂)", "the 5th (♭6̂)", "the leading tone"], "First inversion: the 3rd of the chord, 4̂ of the key, is in the bass.");
     } },
-    { title: "Where it goes", kick: "To the dominant", keyed: "both", defKey: "A", render: (H, k, U) => {
+    { title: "Where it goes", kick: "To the dominant", keyed: "both", nokeys: true, defKey: "A", render: (H, k, U) => {
       const n6 = N(H, k, 1), V = H.diat(k, 5), I = H.diat(k, 1), i64 = H.diat(k, 1, false, 2), lt = lt5(H, k), t = T(k);
       return `<p>♭II⁶ is a strong <b>pre-dominant</b>: it moves to <b>V</b>. Because ♭2̂ falls toward the leading tone, a melodic diminished 3rd (♭2̂ down to 7̂) can appear; composers often put a chord in between to fill it in:</p>
       <ul><li><b>${t}⁶₄</b> (cadential six-four): ♭2̂ → 1̂ → 7̂.</li><li><b>vii°⁷/V</b>: the bass moves up chromatically (4̂ → ♯4̂ → 5̂).</li></ul>
@@ -139,14 +139,14 @@
       + `<p>An example from class, in E minor. ♭II⁶ passes through i⁶₄ on its way to V, so the F♮ drops to E before D♯ shows up.</p>`
       + CX("neapolitan-sixth.png", 1032, 451, "Four-voice progression in E minor: iv, flat II 6, i 6 4, V, i. The F natural of the Neapolitan moves down to E in the six-four chord.", "E minor: iv – ♭II⁶ – i⁶₄ – V – i.", ["neapolitan-sixth", "Neapolitan sixth progression in E minor"], 560);
     } },
-    { title: "In major keys", kick: "Borrowed color", keyed: "major", defKey: "C", render: (H, k, U) => {
+    { title: "In major keys", kick: "Borrowed color", keyed: "major", nokeys: true, defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>In ${H.esc(k.label)} the Neapolitan would need a double flat. Choose another key above.</p>`;
       const n6 = N(H, k, 1), n0 = N(H, k, 0);
       return `<p>The Neapolitan appears in major keys too. There it needs <b>two</b> lowered notes: ♭2̂ and ♭6̂ (borrowed from the parallel minor). In ${H.esc(k.label)}: {sym:${n0.sym}} = ${H.esc(tonesTxt(H, n0))}.</p>`
       + U.fig(H.grand({ key: k, chords: [H.diat(k, 1), H.diat(k, 4), n6, H.diat(k, 1, false, 2), H.diat(k, 5), H.diat(k, 1)], labels: ["I", "IV", "♭II6", "I64", "V", "I"], hl: 2 }), `${k.label}: I – IV – ♭II⁶ – I⁶₄ – V – I`)
       + `<p>Chords on other lowered degrees (♭III, ♭VI, ♭VII) are covered in the Mode Mixture part of this lesson. In popular music you'll also hear ♭II in root position, and sometimes resolving straight to I.</p>`;
     } },
-    { title: "Look-alike chords", kick: "Is it really ♭II?", keyed: "both", defKey: "G", render: (H, k, U) => {
+    { title: "Look-alike chords", kick: "Is it really ♭II?", keyed: "both", nokeys: true, defKey: "G", render: (H, k, U) => {
       const xs = lookAlikes(H, k), n6 = N(H, k, 1);
       return `<p>Several chords share the Neapolitan's bass note or most of its letters. The test is simple: <b>is the root ♭2̂ and is the chord major?</b></p>
       <div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">Chord</th><th scope="col">Label</th><th scope="col">Why</th></tr></thead><tbody>
@@ -154,7 +154,7 @@
       ${xs.map(x => `<tr><td>{sym:${x.c.sym}}</td><td>{rn:${x.rn}}</td><td>${H.esc(x.why)}</td></tr>`).join("")}</tbody></table></div>`
       + U.fig(H.grand({ key: k, chords: [xs[0].c, n6], labels: [xs[0].rn, "♭II6"], syms: [xs[0].c.sym, n6.sym] }), "One note different, a different chord.");
     } },
-    { title: "Quick check", kick: "Before the drills", keyed: "both", defKey: "E", render: (H, k) => {
+    { title: "Quick check", kick: "Before the drills", keyed: "both", nokeys: true, defKey: "D", render: (H, k) => {
       if (!usable(H, k)) return `<p>Choose another key above (this one would need a double flat).</p>`;
       const n6 = N(H, k, 1), x = lookAlikes(H, k)[0];
       return H.check(`In ${k.label}, which chord is {rn:♭II6}?`, n6.sym, [x.c.sym, H.chord(nRoot(H, k), "M", 0).sym, H.chord(nRoot(H, k), "m", 1).sym], whyN(H, k, n6), "sym")

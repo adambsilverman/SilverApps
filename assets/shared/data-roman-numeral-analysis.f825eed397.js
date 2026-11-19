@@ -376,14 +376,14 @@ window.FAM = (() => {
       ${tbl("Three ways to write the same progression in C major", ["System", "Progression", "Used by"], [["Chord symbols", "{sym:C} – {sym:Am} – {sym:F} – {sym:G7}", "lead sheets, guitar charts"], ["Roman numerals", "{rn:I} – {rn:vi} – {rn:IV} – {rn:V7}", "analysis in every style"], ["Nashville numbers", "1 – 6- – 4 – 5⁷", "session players, especially in country music (see the next steps)"]])}
       <ul><li>Numerals make patterns visible: a cadence, a circle of fifths, or a loop looks the same in every key.</li><li>They help you hear: once you know the sound of {rn:IV}–{rn:V}–{rn:I}, you can recognize it anywhere.</li><li>They make transposing, improvising and arranging faster.</li></ul>
       <p>Roman numerals for chords became standard in the 19th century; Gottfried Weber's writing in the 1810s and 1820s spread the use of uppercase and lowercase numerals for chord quality.</p>` },
-    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", render: (H, k, U) => `<p>A Roman numeral names a chord's root and quality, not which note is in the bass. To show an inversion, <b>figures</b> are often attached to the numeral: {rn:V6} is a V chord in first inversion, {rn:ii65} a ii⁷ chord in first inversion. The figures themselves (what ⁶, ⁶₄, ⁶₅, ⁴₃ and ⁴₂ mean, and how to find them) are covered in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>.</p>
+    { title: "Inversions and seventh chords", kick: "Figures after the numeral", keyed: "major", nokeys: true, render: (H, k, U) => `<p>A Roman numeral names a chord's root and quality, not which note is in the bass. To show an inversion, <b>figures</b> are often attached to the numeral: {rn:V6} is a V chord in first inversion, {rn:ii65} a ii⁷ chord in first inversion. The figures themselves (what ⁶, ⁶₄, ⁶₅, ⁴₃ and ⁴₂ mean, and how to find them) are covered in <a href="chord-figures-and-symbols-lesson.html">Chord Figures and Symbols</a>.</p>
       <p>Seventh chords add a sign for the chord's quality: {rn:V7} (major triad, minor 7th: dominant 7th), {rn:ii7} (minor 7th), {rn:viiø7} (half-diminished) and {rn:vii°7} (fully diminished). A major 7th chord, such as the one on I or IV, is simply {rn:I7} or {rn:IV7}: the key tells you its 7th is major.</p>
       <h3>Build a progression</h3>
       <p>Choose a <b>bass tone</b> (and whether to <b>add the 7th</b>), then tap chords to add them, one per bar; each numeral updates to show its figure. Tap a bar to select it and change its chord, bass tone or 7th; drag bars (or press Shift with an arrow key) to reorder them. Pick a style, a meter and instruments for the chords, bass and drums, press Play, and tap the boxes in the pattern grid to change when each part plays. Turn up <b>Bass level</b> to make the bass line pop out. Your progression is saved for the <b>Transposition</b> step.</p>
       ${pbHTML("major", "pbMaj")}`
       + H.check("Figures attached to a Roman numeral show…", "which chord tone is in the bass (the inversion)", ["the chord's root", "the key", "how long the chord lasts"], "The numeral gives the root and quality; the figures give the inversion."),
       after: (root, H, k, tools) => pbMount(root, H, k, tools) },
-    { title: "Numerals in minor and chromatic numerals", kick: "III or ♭III? Accidentals before the numeral", keyed: "minor", render: (H, k, U) => {
+    { title: "Numerals in minor and chromatic numerals", kick: "III or ♭III? Accidentals before the numeral", keyed: "minor", nokeys: true, render: (H, k, U) => {
       const sys = (cl, mj) => cl === mj ? `{rn:${cl}}` : `<span data-rsys="cl">{rn:${cl}}</span><span data-rsys="mj" hidden>{rn:${mj}}</span>`;
       const rows = MINT.map(([d, q, cl, mj, note]) => { const c = minChord(H, k, d, q); return [d, `{sym:${c.sym}}`, sys(cl, mj), note]; });
       const kM = majOf(H, k), set = chromSet(H, kM), b = set.slice(0, 6);
@@ -407,7 +407,7 @@ window.FAM = (() => {
       after: (root, H, k, tools) => { const set = v => { window.__rsys = v; root.querySelectorAll("[data-rsysbtn]").forEach(b => b.setAttribute("aria-pressed", b.dataset.rsysbtn === v)); root.querySelectorAll("[data-rsys]").forEach(e => e.hidden = e.dataset.rsys !== v); const pb = root.querySelector(".pbld"); if (pb && pb._redraw) pb._redraw(); };
         pbMount(root, H, k, tools); if (window.__rsys && window.__rsys !== "cl") set(window.__rsys);
         root.querySelectorAll("[data-rsysbtn]").forEach(b => b.addEventListener("click", () => set(b.dataset.rsysbtn))); } },
-    { title: "Transposition", kick: "The numerals don't change", keyed: "both", render: (H, k, U) => {
+    { title: "Transposition", kick: "The numerals don't change", keyed: "both", nokeys: true, render: (H, k, U) => {
       return `<p>To <b>transpose</b> is to move every note by the same interval. Each chord's root keeps the same distance from the tonic, and each chord keeps its quality, so <b>the Roman numerals stay exactly the same</b>. Only the letter names change.</p>
       <h3>Your progression in any key</h3>
       <p class="pbtr-note"></p>
@@ -416,7 +416,7 @@ window.FAM = (() => {
       <p>This is why numerals are so useful: learn a progression once, and you can play it, recognize it, or write it in any key. A singer who needs a song lower can ask for it "down a whole step", and a band that thinks in numbers just plays the same numbers from a new tonic.</p>`
       + H.check(`I–IV–V–I in G major is G–C–D–G. What is it in E♭ major?`, "E♭–A♭–B♭–E♭", ["E♭–A–B♭–E♭", "E♭–A♭–B–E♭", "E♭–F–G–E♭"], "Same numerals from the new tonic: I = E♭, IV = A♭, V = B♭."); },
       after: (root, H, k) => pbTrans(root, H, k) },
-    { title: "Applied chords", kick: "V of V and friends", keyed: "major", render: (H, k, U) => {
+    { title: "Applied chords", kick: "V of V and friends", keyed: "major", nokeys: true, render: (H, k, U) => {
       const rows = [[2, "7", "V7/ii"], [3, "7", "V7/iii"], [4, "7", "V7/IV"], [5, "7", "V7/V"], [6, "7", "V7/vi"], [5, "lt", "vii°7/V"], [6, "lt", "vii°7/vi"]].map(([d, kind, rn]) => { const c = app(H, k, d, kind, rn); return [`{rn:${rn}}`, `{sym:${c.sym}}`, `${MAJRN[d - 1]} = {sym:${H.tok(k, String(d)).sym}}`]; });
       return `<p>An <b>applied</b> (or <b>secondary</b>) chord acts as the dominant or leading-tone chord of a chord other than the tonic. The slash reads "of": {rn:V7/V} is "five-seven of five", the dominant 7th of the dominant.</p>
       ${tbl(`Applied chords in ${k.label}`, ["Numeral", "Chord", "Resolves to"], rows)}

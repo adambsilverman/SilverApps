@@ -117,7 +117,7 @@
   }
 
   const lesson = { defMode: "minor", steps: [
-    { title: "An interval, not a stack of thirds", kick: "The frame", keyed: "both", defKey: "C", render: (H, k, U) => {
+    { title: "An interval, not a stack of thirds", kick: "The frame", keyed: "both", nokeys: true, defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>Choose another key above (this one would need double sharps).</p>`;
       const le = deg(H, k, "le"), fi = deg(H, k, "fi"), so = deg(H, k, "sol");
       const frame = { tones: [le, fi], q: "x", bass: 0, rh: [1, 1, 1], v: { bass: H.N(le.l, le.a, 2 + (H.midi(H.N(le.l, le.a, 2)) < 40 ? 1 : 0)), upper: [H.N(fi.l, fi.a, 4)] } };
@@ -126,7 +126,7 @@
       + U.fig({ type: "grand", vf: k.vf, sig: k.sig, cols: [{ t: [H.nmO(frame.v.upper[0])], b: [H.nmO(frame.v.bass)], lab: "+6" }, { t: [H.nmO(res.v.upper[0])], b: [H.nmO(res.v.bass)], lab: "8" }] }, `${k.label}: ${H.nm(le)} and ${H.nm(fi)} (augmented 6th) open out to ${H.nm(so)} and ${H.nm(so)} (octave).`)
       + `<p>Because they're built around an interval and not stacked in thirds, these chords are not really <i>tertian</i>. They come in three kinds, named (for no deep reason) after three nationalities.</p>`;
     } },
-    { title: "Italian, French, German", kick: "Three flavors", keyed: "both", defKey: "C", render: (H, k, U) => {
+    { title: "Italian, French, German", kick: "Three flavors", keyed: "both", nokeys: true, defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>Choose another key above (this one would need double sharps).</p>`;
       const cs = TYPES.map(t => A6(H, k, t));
       return `<p>Each adds notes to the le–fi frame. Think in scale degrees and every key works the same way:</p>
@@ -139,7 +139,7 @@
       + CX("aug6-in-keys.png", 2120, 308, "Three augmented sixth chords with key signatures: Italian sixth in B minor (G, B, E-sharp), French sixth in G minor (E-flat, G, A, C-sharp), German sixth in C minor (A-flat, C, E-flat, F-sharp).", "1) It+6 in B minor; 2) Fr+6 in G minor; 3) Ger+6 in C minor.")
       + H.check("Which chord contains le, do, re and fi?", "Fr+6", ["It+6", "Ger+6", "V7/V"], "French adds re (2̂).", "rn");
     } },
-    { title: "Resolving to the dominant", kick: "Pre-dominant", keyed: "both", defKey: "A", render: (H, k, U) => {
+    { title: "Resolving to the dominant", kick: "Pre-dominant", keyed: "both", nokeys: true, defKey: "A", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>Choose another key above.</p>`;
       const t0 = T(k), V = H.diat(k, 5), I = H.diat(k, 1), i64 = H.diat(k, 1, false, 2);
       const it = A6(H, k, "It"), fr = A6(H, k, "Fr"), ger = A6(H, k, "Ger");
@@ -148,14 +148,14 @@
       ${CX("aug6-resolution.png", 2152, 318, "The augmented sixth F to D-sharp opens out to the octave E. Then an Italian sixth resolves either straight to an E major chord (V) or to an A minor six-four chord (i 6 4).", "le and fi open out to an octave on sol, straight to V or through i⁶₄ (A minor).")}
       <div class="callout"><b>Why the German detours</b>Going straight from Ger+6 to V, le–me moves to sol–re: parallel perfect fifths. Passing through ${H.esc(t0)}⁶₄ (or using the French sixth) avoids them.</div>`;
     } },
-    { title: "The German sixth's double identity", kick: "Spelling = function", keyed: "minor", defKey: "C", render: (H, k, U) => {
+    { title: "The German sixth's double identity", kick: "Spelling = function", keyed: "minor", nokeys: true, defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>Choose another key above.</p>`;
       const ger = A6(H, k, "Ger"), tw = twin(H, k), nb = H.chord(H.up(k.tonic, 1, 1), "M");
       return `<p>Play a German sixth and a dominant 7th on the same root: they sound <b>identical</b>. Only one note is spelled differently: <b>fi</b> (${H.esc(H.nm(ger.tones[3]))}) in the German sixth, <b>sol♭</b> (${H.esc(H.nm(tw.tones[3]))}) in the dominant 7th.</p>`
       + `<div class="lfigs">${U.fig(H.grand({ key: k, chords: [ger, H.diat(k, 1, false, 2), H.diat(k, 5)], labels: ["Ger+6", "i64", "V"], hl: 0 }), `${spell(H, ger)}: fi rises to sol`, { small: true })}${U.fig(H.grand({ key: k, chords: [tw, nb], labels: ["V7/♭II", "♭II"], hl: 0 }), `${spell(H, tw)}: the 7th falls`, { small: true })}</div>`
       + `<p>The spelling tells you the direction: a raised note leads up, a lowered 7th leads down. Composers use this double identity to modulate (an <i>enharmonic modulation</i>). In lead sheets, augmented sixth chords are simply written as the dominant 7th they sound like: the German sixth in ${H.esc(k.label)} is {sym:${lead(H, k, "Ger")}}.</p>`;
     } },
-    { title: "In major keys, and beyond", kick: "Borrowed le", keyed: "major", defKey: "C", render: (H, k, U) => {
+    { title: "In major keys, and beyond", kick: "Borrowed le", keyed: "major", nokeys: true, defKey: "C", render: (H, k, U) => {
       if (!usable(H, k)) return `<p>Choose another key above.</p>`;
       const cs = TYPES.map(t => A6(H, k, t));
       return `<p>In a major key, le (♭6̂) is borrowed from the parallel minor, and the German sixth borrows me (♭3̂) as well. In ${H.esc(k.label)}: ${cs.map(c => H.esc(spell(H, c))).join(", ")}.</p>`
@@ -163,7 +163,7 @@
       + `<p>Augmented sixth chords don't <i>have</i> to resolve to V. The same sound can embellish any major or minor chord a half step below its bass. A common jazz version is the <b>tritone substitution</b>: a dom7 a half step above the target, whose tritone resolves just like the dominant's.</p>`
       + CX("tritone-sub.png", 2144, 439, "Piano progression in D minor: i, V7, i, then i, flat II plus 6, i. In both the tritone C-sharp and G resolves to D and F.", "D minor: V⁷ (A7) and its tritone substitute, ♭II⁺⁶ (E♭7), resolve the same tritone to the same tonic.");
     } },
-    { title: "Quick check", kick: "Before the drills", keyed: "both", defKey: "D", render: (H, k) => {
+    { title: "Quick check", kick: "Before the drills", keyed: "both", nokeys: true, defKey: "D", render: (H, k) => {
       if (!usable(H, k)) return `<p>Choose another key above.</p>`;
       const t = H.rnd(TYPES), c = A6(H, k, t);
       return H.check(`In ${k.label}, which chord is ${spell(H, c)}?`, RN[t], TYPES.filter(x => x !== t).map(x => RN[x]).concat(["V7/♭II"]), whyType(H, k, t), "rn")
