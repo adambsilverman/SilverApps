@@ -287,7 +287,7 @@ APPS = [
             "<b>Closure:</b> open = half cadences; weak = DC, IAC; closed = PAC, PC.",
             "<b>Only at phrase endings:</b> a V–I inside a phrase isn't a cadence. Besides V, an open cadence can end on IV, ♭VII, ♭VI, II, iv or Vsus4."]),
   dict(src="Non-Chord Tones.html", drills="non-chord-tones.html", lesson="non-chord-tones-lesson.html", lesson_title="Understanding Non-Chord Tones", lesson_desc="Non-chord tones are the notes that don't belong to the chord sounding at that moment: passing tones, neighbors, appoggiaturas, suspensions and more. Step through the lesson, compare the techniques, and find how they are applied in musical examples. Use the arrow keys or the buttons to move between steps.", data="nct.js", title="Non-Chord Tones",
-       desc="Name the circled non-chord tone, find the dissonance in a melody, label suspension figures, review how each type is approached and left, find and name every non-chord tone in real music (Mozart, Haydn, Tchaikovsky, “You Are My Sunshine,” “A Whole New World”), and complete the chart.",
+       desc="Name the circled non-chord tone, find the dissonance in a melody, label suspension figures, review how each type is approached and left, find and name every non-chord tone in real music (Mozart, Haydn, Tchaikovsky, “You Are My Sunshine,” “A Whole New World,” “I Wish I Knew How It Would Feel to Be Free,” “God Bless the Child”), and complete the chart.",
        modes=[("name", "Name it", "PT · NT · APP · SUS…", "name the circled non-chord tone"),
               ("find", "Find it", "which note?", "find the non-chord tone in a melody"),
               ("sus", "Suspensions", "4-3 · 7-6 · 9-8 · 2-3", "label suspension figures"),
