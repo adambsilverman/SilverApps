@@ -686,3 +686,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - Fast Car: Adam asked for his lyrics on the page; declined (copyrighted lyrics). Offered a follow-along chord highlight synced to the recording instead.
 
 - z183b: removed the "Compare" step (old step 7) from Chord Progressions in Real Songs.
+
+### z184 (2026-11-19) Follow-along chord charts (Fast Car, In Bloom)
+- progstudy.js: SHEET/BARS take an optional times array (chord start times in seconds, reading order). Then each chord is a button (.ps-chb) that lights (.on, aria-current) while it sounds and seeks the recording when clicked (loads first if preload="none"). follow(root, end) is wired in the step's after; end = when the charted passage stops.
+- Times measured from the recordings with librosa chroma + bass chroma. Fast Car gained a 6th line (D A F♯m E D, the riff that ends the excerpt). In Bloom: nothing lit before 1.85 s (excerpt starts on the previous line's B A) or after 26.2 s (next section).

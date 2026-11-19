@@ -880,6 +880,10 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .ps-sheet .ps-bar { flex: 1 1 0; min-width: 0; padding: .1em .7em; border-right: 1.5px solid currentColor; }
 .ps-sheet .ps-bars b { margin-right: .9em; }
 .ps-sheet .ps-bars b:last-child { margin-right: 0; }
+.ps-sheet .ps-chb { font: inherit; font-weight: 700; color: inherit; background: none; border: 0; border-radius: 6px; padding: .2em .35em; margin: 0 .7em -.2em 0; min-height: 32px; cursor: pointer; }
+.ps-sheet .ps-bars .ps-chb { margin-right: .5em; }
+.ps-sheet .ps-chb:hover { text-decoration: underline; }
+.ps-sheet .ps-chb.on { background: var(--hl, #F7E3A1); color: #1d1b19; box-shadow: 0 0 0 2px #b8860b; }
 .ps-ch { display: inline-block; min-width: 3.2em; padding: 2px 8px; margin: 2px 6px 2px 0; border: 1.5px solid var(--line, #bbb); border-radius: 8px; font: 600 18px/1.4 Literata, 'Noto Music', serif; text-align: center; }
 .ps-q h3 { margin: 14px 0 4px; }
 .ps-ans { margin: 14px 0 4px; padding: 10px 14px; border: 1.5px solid var(--line, #bbb); border-radius: 10px; }
