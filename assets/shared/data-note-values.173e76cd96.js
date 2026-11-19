@@ -7,6 +7,7 @@ window.FAM = (() => {
   const frac = x => { const w = Math.floor(x), f = x - w, F = { .25: "¼", .5: "½", .75: "¾" }[f] || ""; return (w || !F ? String(w) : "") + F; };
   // percussion-staff bars from tokens like "q", "8r", "8~", "8t1" (triplet group 1)
   const tokN = x => { const rest = /r/.test(x), tie = /~/.test(x), tu = (/t(\d)/.exec(x) || [])[1], d = x.replace(/[r~]|t\d/g, ""); return Object.assign({ k: rest ? [] : [P], d, tie }, tu ? { tu: "g" + tu } : {}); };
+  const capd = (sp, caps) => (sp.bars.forEach((b, i) => { b.cap = caps[i]; }), sp);   // a caption under each bar
   const rh = (time, bars, o = {}) => ({ type: "score", clefs: ["percussion"], time, vf: "C", sig: {}, bpm: o.bpm || 90, final: o.final, bars: bars.map(b => ({ t: [b.split(" ").map(tokN)] })) });
   // every rhythm figure plays with a click on the beat; o.play === false for silent figures
   const fig = (U, sp, cap, o) => U.fig(sp, cap, Object.assign({ small: true, play: window.__harm ? window.__harm.H.withClick(sp) : null }, o || {}));
@@ -498,7 +499,7 @@ window.FAM = (() => {
       SETS: [["4/4", "8 8 8 8 8 8 8 8", 1], ["3/4", "8 8 16 16 16 16 8 8", 1], ["6/8", "8 8 8 8 8 8", 1.5], ["2/4", "16 16 16 16 8 16 16", 1]],
       html: () => `<div class="nvtoy" id="tyBeam"><h3>Try it: flags into beams</h3><p class="note">Press the buttons under the staff to join neighboring notes with a beam. Beam the notes of each beat together, so the reader can see the beats.</p>
         <div class="staff nvstaff" aria-hidden="true"></div><div class="nvjoins" role="group" aria-label="Join notes with beams"></div>
-        <div class="nvbtns"><button type="button" class="btn" data-ty="play">▶ Play</button><button type="button" class="btn" data-ty="next">Another rhythm</button></div><p class="nvmsg" role="status" aria-live="polite"></p></div>`,
+        <div class="nvbtns"><button type="button" class="btn" data-ty="play">▶ Play</button><button type="button" class="btn" data-ty="next">Another rhythm</button><label class="nvchk"><input type="checkbox" data-ty="nums"> Show beat numbers</label></div><p class="nvmsg" role="status" aria-live="polite"></p></div>`,
       wire(root, H, tools) {
         const box = root.querySelector("#tyBeam"); if (!box) return;
         const st = box.querySelector(".nvstaff"), row = box.querySelector(".nvjoins"), msg = box.querySelector(".nvmsg");
@@ -506,7 +507,7 @@ window.FAM = (() => {
         const pos = () => { let p = 0; return toks.map(t => { const s = p; p += DUR[t]; return s; }); };
         const spec = () => { const groups = []; let g = 0; toks.forEach((t, i) => { if (i && join[i - 1]) groups[i] = groups[i - 1]; else groups[i] = "g" + (++g); });
           const cnt = {}; groups.forEach(x => cnt[x] = (cnt[x] || 0) + 1);
-          return { type: "score", clefs: ["percussion"], time: ts, vf: "C", sig: {}, bpm: 84, beam: join.some(Boolean) ? undefined : false, minBar: 300,
+          return { type: "score", clefs: ["percussion"], time: ts, vf: "C", sig: {}, bpm: 84, beam: join.some(Boolean) ? undefined : false, minBar: 300, beatNums: box.querySelector('[data-ty="nums"]').checked,
             bars: [{ t: [toks.map((t, i) => Object.assign({ k: [P], d: t }, cnt[groups[i]] > 1 ? { bm: groups[i] } : {}))] }] }; };
         const judge = () => { const p = pos(); let wrong = 0, missing = 0;
           for (let i = 0; i < toks.length - 1; i++) { const same = Math.floor(p[i] / beat + 1e-9) === Math.floor(p[i + 1] / beat + 1e-9);
@@ -522,6 +523,7 @@ window.FAM = (() => {
         const load = () => { [ts, , beat] = TOYS.beam.SETS[k]; toks = TOYS.beam.SETS[k][1].split(" "); join = toks.map(() => false); say(msg, ""); draw(); };
         row.addEventListener("click", e => { const b = e.target.closest("[data-j]"); if (!b) return; const i = +b.dataset.j; join[i] = !join[i]; draw(i); judge(); });
         box.querySelector('[data-ty="next"]').onclick = () => { k = (k + 1) % TOYS.beam.SETS.length; load(); };
+        box.querySelector('[data-ty="nums"]').onchange = () => draw();
         box.querySelector('[data-ty="play"]').onclick = () => tools.play(H.withClick(spec()));
         load();
       },
@@ -615,7 +617,7 @@ window.FAM = (() => {
   };
   const lesson = { steps: [
     { title: "Note values", kick: "Each one half the last", render: (H, k, U) => `<p>Each note value is half the one before it: one <b>whole note</b> = two <b>halves</b> = four <b>quarters</b> = eight <b>eighths</b> = sixteen <b>sixteenths</b>.</p>`
-      + U.fig(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
+      + U.fig(capd(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"]), ["Whole note", "Half notes", "Quarter notes", "Eighth notes", "Sixteenth notes"]), "Each bar of 4/4 holds the same amount of time, divided into smaller and smaller values.", { small: false, play: H.withClick(rh("4/4", ["w", "h h", "q q q q", "8 8 8 8 8 8 8 8", "16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16"])) })
       + `<div class="ltable-wrap"><table class="ltable"><thead><tr><th scope="col">American</th><th scope="col">British</th><th scope="col">In 4/4</th></tr></thead><tbody><tr><td>whole note</td><td>semibreve</td><td>4 beats</td></tr><tr><td>half note</td><td>minim</td><td>2 beats</td></tr><tr><td>quarter note</td><td>crotchet</td><td>1 beat</td></tr><tr><td>eighth note</td><td>quaver</td><td>½ beat</td></tr><tr><td>sixteenth note</td><td>semiquaver</td><td>¼ beat</td></tr></tbody></table></div>` + TOYS.order.html(), after: root => TOYS.order.wire(root) },
     { title: "Parts of a note", kick: "Heads, stems, flags, beams", after: (root, H, k, tools) => TOYS.beam.wire(root, H, tools), render: () => partsFig() + `<ul><li><b>Notehead</b>: open (whole and half notes) or filled (quarter and shorter).</li><li><b>Stem</b>: every value shorter than a whole note has one. Notes above the middle line take stems <b>down</b> (on the left of the head); below it, <b>up</b> (on the right); on the middle line, <b>either way</b>, usually chosen to match the notes around it.</li><li><b>Flags</b>: one for an eighth, two for a sixteenth, and so on.</li><li><b>Beams</b> replace flags to group notes by beat, so the meter is easy to see.</li></ul>` + TOYS.beam.html() },
     { title: "Rests", kick: "Measured silence", render: (H, k, U) => {

@@ -676,3 +676,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ### z181 (2026-11-19) Test Yourself: no questions about specific pieces
 - Rewrote 42 quiz questions that named or depended on a specific piece (cadences, contemprhythm, extlesson, intervals2, keys, leadsheets, minimal, modlesson, motive, phrases, pitchsets, secondary, texture; build/pages modes-quiz and intervals-quiz) as general questions on the same concept, same step numbers. Rule: Test Yourself questions never refer to a specific piece, recording or "this lesson's tune"; pieces can still appear in explanations.
+
+### z182 (2026-11-19) Note values captions; beat numbers in the beaming toy
+- engine.js: a bar may carry `cap` (text centered under the bar, Literata 15; single-staff rows get the lyric room). notevalues.js `capd(spec, caps)` sets them; the Note values figure labels its bars Whole note / Half notes / Quarter notes / Eighth notes / Sixteenth notes.
+- notevalues.js "Try it: flags into beams": "Show beat numbers" checkbox (.nvchk in extra.css) turns on the engine's beatNums (6/8 shows 2 beats).

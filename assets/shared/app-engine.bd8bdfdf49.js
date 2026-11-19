@@ -344,12 +344,12 @@
     const has = f => all.some(n => n[f]);
     const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") || o.beatNums ? 22 : 0) + (has("bs") ? 26 : 0);
     const gap = clefs.length > 1 ? (has("ly") ? 104 : 80) : 0;   // grand staff: 4 staff spaces between the staves (more room for lyrics)
-    const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && has("ly") ? 30 : 0);
+    const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && (has("ly") || o.bars.some(b => b.cap)) ? 30 : 0);
     const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     r.resize(totalW, rows.length * rowH + 10);
     const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
-    const meta = [], ties = [], last = {}, beatMarks = [];   // last note per staff+voice (for ties); beat numbers (o.beatNums)
+    const meta = [], ties = [], last = {}, beatMarks = [], caps = [];   // caps: bar.cap, a caption centered under the bar   // last note per staff+voice (for ties); beat numbers (o.beatNums)
     const st = s => (s.setStyle && s.setStyle({ fillStyle: ink, strokeStyle: ink }), s);
     let curT = time;   // the meter in force (bars can change it with bar.time)
     let barQ = 0;
@@ -435,6 +435,7 @@
         }
         beams.forEach(b => { st(b); b.setContext(ctx).draw(); });
         tuplets.forEach(t => { st(t); t.setContext(ctx).draw(); });
+        if (bar.cap) caps.push({ x: (staves[0].getNoteStartX() + staves[0].getNoteEndX()) / 2, y: staves[staves.length - 1].getYForLine(4) + 34, s: bar.cap });
         rowStaves.push(staves);
         x += bw;
       });
@@ -452,6 +453,7 @@
     const brOpen = {}, rowTop = {}, lyr = [];
     meta.forEach(({ sn, si, ri, staves }) => { if (si) return; const ys = sn.getYs ? sn.getYs() : []; rowTop[ri] = Math.min(rowTop[ri] ?? staves[0].getYForLine(0), staves[0].getYForLine(0), ...ys.map(y => y - (sn.getStemDirection && sn.getStemDirection() === 1 && sn.getDuration() !== "w" ? 34 : 6))); });
     const hasN = has("n") || !!o.beatNums, hasTag = !o.tagSide && all.some(n => n.tag), hasSym = has("sym");
+    caps.forEach(c => txt(c.x, c.y, c.s, { "font-size": 15, "font-family": "Literata, serif" }));
     beatMarks.forEach(b => txt(b.x, (rowTop[b.ri] ?? 40) - 12, b.label, { "font-size": 13, "font-weight": 700, "fill-opacity": .75 }));
     meta.forEach(({ sn, n, si, ri, staves }) => {
       const x = sn.getAbsoluteX() + 6 + (sn._saDx || 0), top = staves[0].getYForLine(0), bot = staves[staves.length - 1].getYForLine(4), ys = sn.getYs ? sn.getYs() : [top];
