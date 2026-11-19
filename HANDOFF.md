@@ -684,3 +684,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ### z183 (2026-11-19) In Bloom chart with bar lines
 - progstudy.js: BARS(artist, title, lines) draws a chord chart with bar lines (each bar a string like "B A"; .ps-bars/.ps-bar in extra.css). "In Bloom" uses it: B♭ | G♭ | E♭ | B A | (last line ends B D).
 - Fast Car: Adam asked for his lyrics on the page; declined (copyrighted lyrics). Offered a follow-along chord highlight synced to the recording instead.
+
+- z183b: removed the "Compare" step (old step 7) from Chord Progressions in Real Songs.
