@@ -693,3 +693,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ### z185 (2026-11-19) Cadences: weakly closed cadences
 - cadences.js: new step 6 "Weakly closed cadences" (deceptive cadence; authentic cadence on a non-tonic chord, e.g. AC on III) with "Castle on a Cloud" (Les Misérables film soundtrack, 2012): assets/audio/cadences/castle-on-a-cloud.mp3, assets/img/cadences/castle-on-a-cloud.jpg (Adam's lead sheet, lyrics rows cut out). Cadence-patterns table gains an "Authentic on another chord" row (weak). Quiz: steps 6+ renumbered (s+1), two general questions added for step 6.
+
+### z186 (2026-11-19) Cadences: elision example
+- cadences.js "Where cadences land": "I've Got a Dream" (Tangled, 2010) illustrates elision, with Adam's lead sheet (lyric rows cut out; assets/img/cadences/ive-got-a-dream.jpg) and the soundtrack clip (assets/audio/cadences/ive-got-a-dream.mp3). Solo PAC on E is the downbeat where the chorus's phrase starts; that phrase ends HC on B7.
