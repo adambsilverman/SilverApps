@@ -690,3 +690,6 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 ### z184 (2026-11-19) Follow-along chord charts (Fast Car, In Bloom)
 - progstudy.js: SHEET/BARS take an optional times array (chord start times in seconds, reading order). Then each chord is a button (.ps-chb) that lights (.on, aria-current) while it sounds and seeks the recording when clicked (loads first if preload="none"). follow(root, end) is wired in the step's after; end = when the charted passage stops.
 - Times measured from the recordings with librosa chroma + bass chroma. Fast Car gained a 6th line (D A F♯m E D, the riff that ends the excerpt). In Bloom: nothing lit before 1.85 s (excerpt starts on the previous line's B A) or after 26.2 s (next section).
+
+### z185 (2026-11-19) Cadences: weakly closed cadences
+- cadences.js: new step 6 "Weakly closed cadences" (deceptive cadence; authentic cadence on a non-tonic chord, e.g. AC on III) with "Castle on a Cloud" (Les Misérables film soundtrack, 2012): assets/audio/cadences/castle-on-a-cloud.mp3, assets/img/cadences/castle-on-a-cloud.jpg (Adam's lead sheet, lyrics rows cut out). Cadence-patterns table gains an "Authentic on another chord" row (weak). Quiz: steps 6+ renumbered (s+1), two general questions added for step 6.
