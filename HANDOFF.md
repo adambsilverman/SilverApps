@@ -696,3 +696,7 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 
 ### z186 (2026-11-19) Cadences: elision example
 - cadences.js "Where cadences land": "I've Got a Dream" (Tangled, 2010) illustrates elision, with Adam's lead sheet (lyric rows cut out; assets/img/cadences/ive-got-a-dream.jpg) and the soundtrack clip (assets/audio/cadences/ive-got-a-dream.mp3). Solo PAC on E is the downbeat where the chorus's phrase starts; that phrase ends HC on B7.
+
+### z187 (2026-11-19) Cadences: plagal example; step order
+- Step 3 is now "Authentic and plagal cadences": Rubber Duckie (authentic), then Tom Waits "Innocent When You Dream" (YouTube fOO64voDRNE 0:15–0:38, lead sheet assets/img/cadences/innocent-when-you-dream.jpg, lyric rows cut): IAC, then a soft PC (IV–I, melody on 5̂), then the repeated line revises it to a PAC (IV–V7–I, 7̂–1̂). Plagal stays "closed" in the table and drills.
+- "Weakly closed cadences" moved to step 4 (before Don't Think Twice). Quiz s renumbered (Dylan 5, America 6, weakly closed 4).
