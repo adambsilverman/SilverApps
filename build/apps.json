@@ -197,6 +197,14 @@
           "lesson": "modulation-lesson.html",
           "drills": "modulation-trainer.html",
           "class": true
+        },
+        {
+          "name": "Pitch Sets",
+          "topic": "Composing beyond the triad",
+          "blurb": "Pitch-class numbers, transposing and inverting sets, the twelve trichords, and building melodies and chords from a set, with Bartók as a model.",
+          "lesson": "pitch-sets-lesson.html",
+          "drills": "pitch-sets.html",
+          "class": true
         }
       ]
     },
@@ -242,6 +250,14 @@
           "blurb": "Sentences, periods, phrase groups and double periods.",
           "lesson": "phrases-lesson.html",
           "drills": "phrases.html",
+          "class": true
+        },
+        {
+          "name": "Articulation, Dynamics and Phrasing",
+          "topic": "Shaping the line",
+          "blurb": "Articulation marks, dynamics and hairpins, slurs, ties and phrase marks, shaping a phrase, and where songwriters put stressed syllables: strong beats, long notes and syncopations.",
+          "lesson": "articulation-and-phrasing-lesson.html",
+          "drills": "articulation-and-phrasing.html",
           "class": true
         },
         {
@@ -377,14 +393,6 @@
           "blurb": "Finding ideas, developing motives, form, texture, and drafting and revising pieces.",
           "lesson": "composition-lesson.html",
           "drills": "composition.html",
-          "class": true
-        },
-        {
-          "name": "Pitch Sets",
-          "topic": "Composing beyond the triad",
-          "blurb": "Pitch-class numbers, transposing and inverting sets, the twelve trichords, and building melodies and chords from a set, with Bartók as a model.",
-          "lesson": "pitch-sets-lesson.html",
-          "drills": "pitch-sets.html",
           "class": true
         },
         {

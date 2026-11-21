@@ -344,7 +344,7 @@
     const has = f => all.some(n => n[f]);
     const above = (has("sym") ? 24 : 0) + (has("tag") || has("n") || o.beatNums ? 22 : 0) + (has("bs") ? 26 : 0);
     const gap = clefs.length > 1 ? (has("ly") ? 104 : 80) : 0;   // grand staff: 4 staff spaces between the staves (more room for lyrics)
-    const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && (has("ly") || o.bars.some(b => b.cap)) ? 30 : 0);
+    const rowH = above + 20 + gap * Math.max(1, clefs.length - 1) + 90 + (has("lab") ? 40 : 0) + (clefs.length === 1 && (has("ly") || has("dyn") || has("hp") || o.bars.some(b => b.cap)) ? 30 : 0) + (clefs.length === 1 && has("ly") && (has("dyn") || has("hp")) ? 24 : 0);
     const totalW = Math.max(...rows.map(r => r.reduce((t, bi, j) => t + barW(o.bars[bi]) + (j ? 0 : headW(bi === 0)), 0))) + 14;
     const r = new VF.Renderer(el, VF.Renderer.Backends.SVG);
     r.resize(totalW, rows.length * rowH + 10);
@@ -396,6 +396,8 @@
                 acc[kk] = y.p.a;
               });
               for (let dd = (shown.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
+              // n.art: articulation codes ("a." staccato, "a-" tenuto, "a>" accent, "a^" marcato, "a@a" fermata): on the notehead side, the fermata always above
+              if (n.art && !isRest && VF.Articulation) n.art.forEach(code => { try { const up = (sn.getStemDirection ? sn.getStemDirection() : 1) === 1, a = new VF.Articulation(code); a.setPosition(code === "a@a" || !up ? 3 : 4); sn.addModifier(a, 0); } catch (e) {} });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
               const L = last[si + ":" + vi];
               if (L && L.tie && !isRest) ties.push({ a: L.sn, b: sn, ra: L.row, rb: ri, n: keys.length, dir: L.n.tieDir });   // n.tieDir 1/-1 forces the tie's side (for "wrong side" examples)
@@ -488,6 +490,19 @@
     lyr.forEach((L, i) => { if (!L.n.hs) return; const N = lyr.slice(i + 1).find(x => x.si === L.si); if (!N || N.ri !== L.ri) return;
       try { const y1 = Math.min(...L.sn.getYs()), y2 = Math.min(...N.sn.getYs()), top = Math.min(y1, y2) - 16;
         mk("path", { d: `M${L.x + 2} ${y1 - 8} L${(L.x + N.x) / 2} ${top} L${N.x + 4} ${y2 - 9}`, fill: "none", stroke: ink, "stroke-width": 1.6, "stroke-linejoin": "round" }, svg); } catch (e) {} });
+    // dynamics: n.dyn ("pp" … "ff", "sfz", "fp") under the note; n.hp "<" or ">" starts a hairpin that ends at the next note with n.hpe on that staff and row
+    const dynY = L => L.y + (lyr.some(x => x.si === L.si && x.ri === L.ri && x.el) ? 24 : 0);
+    lyr.forEach((L, i) => {
+      if (L.n.dyn) txt(L.x + 4, dynY(L) + 2, L.n.dyn, { "font-size": 20, "font-style": "italic", "font-weight": 700, "font-family": "'Times New Roman', Times, serif" });
+      if (!L.n.hp) return; const E = lyr.slice(i + 1).find(x => x.si === L.si && x.n.hpe); if (!E) return;
+      // a hairpin that crosses a line break is drawn in two parts, the opening continuing on the next line
+      const rowOf = r => lyr.filter(x => x.si === L.si && x.ri === r), segs = [];
+      if (E.ri === L.ri) segs.push([L.x + (L.n.dyn ? 24 : 0), E.x + (E.n.dyn ? -16 : 10), dynY(L) - 5]);
+      else { const r0 = rowOf(L.ri), r1 = rowOf(E.ri); segs.push([L.x + (L.n.dyn ? 24 : 0), r0[r0.length - 1].x + 24, dynY(L) - 5], [r1[0].x - 14, E.x + (E.n.dyn ? -16 : 10), dynY(E) - 5]); }
+      const tot = segs.reduce((a, g) => a + g[1] - g[0], 0); let done = 0;
+      segs.forEach(([x1, x2, y]) => { const h = v => 6 * (L.n.hp === "<" ? v : 1 - v), a = h(done / tot), b = h((done + x2 - x1) / tot); done += x2 - x1;
+        mk("path", { d: `M${x1} ${y - a} L${x2} ${y - b} M${x1} ${y + a} L${x2} ${y + b}`, fill: "none", stroke: ink, "stroke-width": 1.4 }, svg); });
+    });
     const slOpen = {};
     lyr.forEach(L => { if (L.n.sls) slOpen[L.si] = { sn: L.sn, n: L.n }; if (L.n.sle && slOpen[L.si]) { try { const S0 = slOpen[L.si];
         // a slur goes on the notehead side when all stems agree, above when they're mixed; n.slStem on the first note puts it on the stem side (a "wrong" example)
@@ -598,6 +613,17 @@
     const spb = 60 / (o.bpm || 100), ev = [], ids = staffIds(o), perc = (o.clefs || [])[0] === "percussion";
     ids.forEach((id, si) => { for (let vi = 0; vi < 2; vi++) {
       let t = 0, held = null, barStart = 0, meter = o.time || "4/4";
+      // dynamics → a loudness factor per note (1 when the voice has no dynamics): n.dyn sets the level, n.hp "<"/">" … n.hpe ramps to the next level
+      const DL = { ppp: .2, pp: .28, p: .4, mp: .55, mf: .72, f: .88, ff: 1, fff: 1 }, seq = o.bars.flatMap(b => (b[id] || [])[vi] || []).filter(n => n.k.length), DF = new Map();
+      if (seq.some(n => n.dyn || n.hp)) { let lev = .72;
+        seq.forEach((n, i) => {
+          if (DL[n.dyn] != null) lev = DL[n.dyn];
+          let f = /^(sfz|sf|fz|sffz)$/.test(n.dyn) ? 1 : n.dyn === "fp" ? .92 : lev; if (n.dyn === "fp") lev = DL.p;
+          if (n.hp) { const j = seq.findIndex((m, k) => k > i && m.hpe), end = j < 0 ? seq.length - 1 : j, to = DL[seq[end].dyn] != null ? DL[seq[end].dyn] : Math.max(.2, Math.min(1, lev + (n.hp === "<" ? .3 : -.3)));
+            for (let k = i; k <= end; k++) DF.set(seq[k], lev + (to - lev) * (k - i) / Math.max(1, end - i)); }
+          if (!DF.has(n)) DF.set(n, f); else if (n.dyn) DF.set(n, f);
+          if (n.hpe && DF.has(n) && !n.dyn) lev = DF.get(n);
+        }); }
       o.bars.forEach(b => {
         if (b.time) meter = b.time;
         if (b.multi) { const [mn, md] = meter.split("/").map(Number); barStart += b.multi * mn * 4 / md * spb; held = null; return; }   // a multi-bar rest: silence
@@ -606,7 +632,8 @@
           const d = durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1) * spb;
           if (n.k.length) {
             if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
-            else { const evs = n.k.map(s => perc ? [76, t, d * .95, .9, "perc"] : [midi(parse(s)), t, d * .95, (si === 0 && vi === 0 ? .9 : .6) / Math.sqrt(n.k.length), undefined, undefined, undefined, s]); ev.push(...evs); held = { k: n.k.join(), evs }; }   // event [7] = the note's spelling (for sung playback)
+            else { const A = n.art || [], len = A.includes("a.") ? .45 : A.includes("a^") ? .7 : A.includes("a@a") ? 1.9 : A.includes("a-") ? 1 : .95, acc = (A.includes("a^") ? 1.35 : A.includes("a>") ? 1.25 : A.includes("a-") ? 1.05 : 1) * (DF.get(n) ?? 1);   // articulation: length and weight; dynamics: loudness
+              const evs = n.k.map(s => perc ? [76, t, d * len, .9 * acc, "perc"] : [midi(parse(s)), t, d * len, Math.min(1, (si === 0 && vi === 0 ? .9 : .6) * acc) / Math.sqrt(n.k.length), undefined, undefined, undefined, s]); ev.push(...evs); held = { k: n.k.join(), evs }; }   // event [7] = the note's spelling (for sung playback)
             if (!n.tie) held = null;
           } else held = null;
           t += d;

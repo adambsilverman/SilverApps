@@ -165,6 +165,8 @@ HARM = [
   ("Collaboration Lesson.html", "collaboration-lesson.html", "collaboration-lesson", "Understanding Musical Collaboration"),
   ("Lyrics.html", "lyrics.html", "lyrics", "Lyrics"),
   ("Lyrics Lesson.html", "lyrics-lesson.html", "lyrics-lesson", "Understanding Lyrics"),
+  ("Articulation and Phrasing.html", "articulation-and-phrasing.html", "artic", "Articulation and Phrasing"),
+  ("Articulation and Phrasing Lesson.html", "articulation-and-phrasing-lesson.html", "artic-lesson", "Understanding Articulation and Phrasing"),
   ("Pitch Sets.html", "pitch-sets.html", "pitchsets", "Pitch Sets"),
   ("Pitch Sets Lesson.html", "pitch-sets-lesson.html", "pitchsets-lesson", "Composing with Pitch Sets"),
   ("Contemporary Rhythm.html", "contemporary-rhythm.html", "contemprhythm", "Contemporary Rhythm"),

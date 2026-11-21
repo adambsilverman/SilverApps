@@ -1016,6 +1016,28 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .cdclefs label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
 .cdclefs input { width: 20px; height: 20px; accent-color: var(--fi-red-dk, #b33a26); }
 .cdclefs input:disabled + * , .cdclefs label:has(input:disabled) { cursor: default; }
+/* articulation lesson: place-the-syllables toy */
+.pr-toy .pr-bar { display: grid; grid-template-columns: 1.6em repeat(8, minmax(0, 1fr)); gap: 4px; margin: 6px 0; }
+.pr-toy .pr-bn { align-self: center; font-weight: 700; }
+.pr-toy .pr-slot { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 56px; padding: 4px 1px; font: inherit; color: inherit; background: var(--fi-card, #fff); border: 1.5px solid var(--fi-line, #c9c1b4); border-radius: 8px; cursor: pointer; }
+.pr-toy .pr-slot.beat { border-color: #8f877c; }
+.pr-toy .pr-slot.strong { border: 2.5px solid currentColor; }
+.pr-toy .pr-c { font-size: .75rem; opacity: .8; }
+.pr-toy .pr-s { font-size: clamp(.66rem, 2.4vw, .9rem); font-weight: 600; white-space: nowrap; letter-spacing: -.02em; line-height: 1.15; }
+.pr-toy .pr-slot.on { background: #fde9c4; color: #1d1b19; }
+.pr-toy .pr-slot.on.st { background: #f2bf6c; }
+.pr-toy .pr-slot.on.st .pr-s { font-weight: 800; }
+.pr-toy .pr-slot.held { background: repeating-linear-gradient(90deg, #f6e6c8 0 6px, #fffaf0 6px 10px); color: #1d1b19; }
+.pr-toy .pr-w { padding: 0 2px; border-radius: 4px; }
+.pr-toy .pr-w.st { font-weight: 800; }
+.pr-toy .pr-w.next { text-decoration: underline 2px; }
+.pr-toy .pr-w.sing { background: #f2bf6c; color: #1d1b19; }
+.pr-toy .pr-list { padding-left: 1.2em; }
+.pr-toy .pr-list li.pr-bad::marker { content: "✗ "; color: #a02f1a; }
+.pr-toy .pr-list li.pr-good::marker, .pr-toy .pr-list li.pr-push::marker { content: "✓ "; color: #2e6b2e; }
+.pr-toy .pr-list li.pr-ok::marker { content: "• "; }
+.dynm { font-family: "Times New Roman", Times, serif; font-weight: 700; font-style: italic; font-size: 1.1em; }
+.ltable th .dynm { text-transform: none; letter-spacing: 0; font-size: 1.35em; }
 
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 

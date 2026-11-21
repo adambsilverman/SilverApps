@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Maker for Professors · SilverApps Interactive Music Training</title>
+<meta name="description" content="Build a closed-note test from the SilverApps Test Yourself question banks: pick units and a length, share a link, or add it to your LMS gradebook as a SCORM package.">
+<link rel="stylesheet" href="assets/indie.css?v=bc857d9b">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span></header>
+<style>
+.tm{max-width:900px;margin:0 auto;padding:22px 16px 48px}
+.tm h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.tm h1 span{color:var(--fi-red-dk)}
+.tm h2{font:400 clamp(28px,4.4vw,38px)/1 var(--fi-display);margin:34px 0 8px}
+.tm p,.tm li{max-width:68ch}
+.tm a{color:var(--fi-red-dk)}
+.tm .lbl,.tm legend{display:block;font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:16px 0 6px;padding:0}
+.tm .lbl small,.tm legend small{font:400 13px var(--fi-body);letter-spacing:0;text-transform:none}
+.tm input[type=text],.tm input[type=url],.tm input[type=number]{font:16px var(--fi-serif);padding:9px 10px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink);width:100%;max-width:560px;box-sizing:border-box}
+.tm input[type=number]{max-width:120px}
+.tm fieldset{border:0;margin:0;padding:0}
+.tm .sec{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);padding:10px 14px;margin:10px 0}
+.tm .sec-h{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between}
+.tm .sec-h h3{font:400 24px/1.1 var(--fi-display);margin:0}
+.tm .units{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px 16px;margin-top:6px}
+.tm .units label,.tm .opt{display:flex;gap:9px;align-items:flex-start;padding:6px 0;font:16px/1.35 var(--fi-serif);cursor:pointer}
+.tm .units input,.tm .opt input{width:20px;height:20px;margin:1px 0 0;flex:none}
+.tm .units small{color:var(--fi-ink-2,#5c544c)}
+.tm .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.tm .sum{font:600 17px var(--fi-serif);margin:14px 0 0}
+.tm .out[hidden]{display:none}
+.tm .out{border:2px solid var(--fi-red);border-radius:var(--fi-r);padding:12px 16px;margin-top:18px;background:var(--fi-card)}
+.tm .warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px;color:#231d19}
+.tm .linkbox{font:14px/1.4 ui-monospace,Menlo,monospace!important}
+</style>
+<script src="assets/test-bank.js?v=d39983f3"></script>
+<script src="assets/scorm.js?v=ccadaeca"></script>
+<main id="main" class="tm">
+<h1>Test <span>maker</span></h1>
+<p>Build a test from the Test Yourself question banks. Pick the units it covers and how many questions it has. Unlike Test Yourself, a test gives no hints and no links back to the lessons, and each question gets one answer: students can go back and change answers until they submit, and only then see their score.</p>
+<p>Share the test as a link, or download it as a SCORM package for D2L Brightspace, Canvas, Blackboard or Moodle so scores go straight to your gradebook. Students outside an LMS can press <b>Report for my professor</b> when they finish; you check those reports on <a href="verify.html">Check reports</a>.</p>
+
+<h2>1. Units</h2>
+<p id="tmAvail"></p>
+<div id="tmUnits"></div>
+
+<h2>2. The test</h2>
+<label class="lbl" for="tmTitle">Title <small>(students see it, and it names the gradebook column)</small></label>
+<input type="text" id="tmTitle" maxlength="80" value="Music theory test">
+<label class="lbl" for="tmN">Number of questions</label>
+<div class="row"><input type="number" id="tmN" min="1" max="200" step="1" value="20"><span id="tmPresets" class="row" style="margin:0"></span></div>
+<fieldset><legend>Which questions each student gets</legend>
+  <label class="opt"><input type="radio" name="tmDraw" value="same" checked> <span><b>The same set for everyone.</b> Every student sees the same questions; the order of questions and answer choices is shuffled for each student.</span></label>
+  <label class="opt"><input type="radio" name="tmDraw" value="fresh"> <span><b>A new draw each time.</b> Each student, and each retake, gets a different set from the same units.</span></label>
+</fieldset>
+<fieldset><legend>After students submit</legend>
+  <label class="opt"><input type="radio" name="tmRev" value="0" checked> <span>Show the score only.</span></label>
+  <label class="opt"><input type="radio" name="tmRev" value="1"> <span>Show the score and every question with the correct answer.</span></label>
+</fieldset>
+<p class="sum" id="tmSum" aria-live="polite"></p>
+<div class="row"><button type="button" class="pr-btn primary" id="tmMake">Make the test</button></div>
+
+<section class="out" id="tmOut" hidden aria-labelledby="tmOutH">
+<h2 id="tmOutH" tabindex="-1">3. Give it to students</h2>
+<label class="lbl" for="tmLink">Link to the test</label>
+<input type="text" id="tmLink" class="linkbox" readonly>
+<div class="row"><button type="button" class="pr-btn" id="tmCopy">Copy link</button><a class="pr-btn" id="tmOpen" href="#" target="_blank" rel="noopener">Try it<span class="sr-only"> (opens in a new tab)</span></a></div>
+<p>The whole test is in the link, so keep it: making the same choices again gives a different link. Changing the units or the length means making a new test.</p>
+<h3>Send scores to your LMS gradebook</h3>
+<label class="lbl" for="tmPass">Passing score <small>(optional, percent; blank marks any finished test "completed")</small></label>
+<input id="tmPass" type="number" min="0" max="100" step="1" placeholder="e.g. 70">
+<label class="lbl" for="tmSite">Site address <small>(where the live tests are published)</small></label>
+<input id="tmSite" type="url" spellcheck="false">
+<p id="tmWarn" class="warn" hidden></p>
+<div class="row"><button type="button" class="pr-btn primary" id="tmScorm">Download SCORM package</button></div>
+<p id="tmMsg" role="status" aria-live="polite"></p>
+<p>Upload the .zip as it is, the same way as a Test Yourself package (steps for each LMS are on <a href="about-this-site.html#lms">About this site</a>). The score arrives as a percent, and if students retake the test the gradebook keeps their best score.</p>
+</section>
+</main>
+<script>
+(() => {
+  const BANK = window.SA_BANK || [], $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const short = t => t.replace(/^Understanding /, "").replace(/^Introduction to /, "Intro to ");
+  const DEFAULT_SITE = "https://adambsilverman.github.io/SilverApps/";
+  const secs = [...new Set(BANK.map(u => u.section))];
+  $("tmAvail").textContent = `${BANK.length} units, ${BANK.reduce((n, u) => n + u.qs.length, 0)} questions in all. Questions are spread evenly across the units you pick.`;
+  $("tmUnits").innerHTML = secs.map((s, si) => `<div class="sec" role="group" aria-labelledby="tmSec${si}"><div class="sec-h"><h3 id="tmSec${si}">${esc(s)}</h3><button type="button" class="pr-btn" data-all="${si}" aria-label="Select all units in ${esc(s)}">Select all</button></div>
+    <div class="units">${BANK.map((u, i) => u.section === s ? `<label><input type="checkbox" value="${i}" data-sec="${si}"> <span>${esc(short(u.title))} <small>(${u.qs.length})</small></span></label>` : "").join("")}</div></div>`).join("");
+  const picked = () => [...document.querySelectorAll("#tmUnits input:checked")].map(i => BANK[+i.value]);
+  const avail = () => picked().reduce((n, u) => n + u.qs.length, 0);
+  $("tmPresets").innerHTML = [10, 20, 30, 50].map(n => `<button type="button" class="pr-btn" data-n="${n}">${n}</button>`).join("");
+  function sum() {
+    const P = picked(), a = avail(), n = Math.max(1, Math.round(+$("tmN").value || 0));
+    $("tmN").max = Math.max(1, a);
+    if (!P.length) { $("tmSum").textContent = "Pick at least one unit."; return; }
+    const per = Math.floor(Math.min(n, a) / P.length), extra = Math.min(n, a) % P.length;
+    $("tmSum").textContent = n > a ? `These units have ${a} questions, so the test can have at most ${a}.` : `${n} question${n === 1 ? "" : "s"} from ${P.length} unit${P.length === 1 ? "" : "s"}: ${per ? `${per}${extra ? " or " + (per + 1) : ""} from each` : "one each from " + n + " of them"}.`;
+  }
+  document.addEventListener("change", e => { if (e.target.closest("#tmUnits")) sum(); });
+  $("tmN").addEventListener("input", sum);
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-all]"), p = e.target.closest("[data-n]");
+    if (a) { const bs = [...document.querySelectorAll(`#tmUnits input[data-sec="${a.dataset.all}"]`)], on = !bs.every(b => b.checked); bs.forEach(b => b.checked = on); a.textContent = on ? "Clear" : "Select all"; sum(); }
+    if (p) { $("tmN").value = p.dataset.n; sum(); }
+  });
+  sum();
+  // the test lives in the link: #t=<base64url JSON> { v, t: title, u: unit ids, n, d: "same" | "fresh", s: seed, r: show answers }
+  const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  let CUR = null;
+  const here = new URL(".", location.href).href, local = !/^https:/.test(location.protocol) || /^(localhost|127\.|192\.168\.)/.test(location.hostname);
+  $("tmSite").value = local ? DEFAULT_SITE : here;
+  if (local) { $("tmWarn").hidden = false; $("tmWarn").textContent = "This page is open from your own computer, so the link and the package point to the published site above."; }
+  $("tmMake").onclick = () => {
+    const P = picked(); if (!P.length) { sum(); $("tmUnits").querySelector("input").focus(); return; }
+    const n = Math.max(1, Math.min(avail(), Math.round(+$("tmN").value || 20))), title = $("tmTitle").value.trim() || "Music theory test";
+    CUR = { v: 1, t: title, u: P.map(u => u.id), n, d: document.querySelector("[name=tmDraw]:checked").value, s: Math.floor(Math.random() * 2 ** 31), r: +document.querySelector("[name=tmRev]:checked").value };
+    const site = ($("tmSite").value.trim() || DEFAULT_SITE).replace(/\/?$/, "/"), rel = "test.html#t=" + b64(JSON.stringify(CUR));
+    $("tmLink").value = new URL(rel, site).href; $("tmOpen").href = new URL(rel, local ? here : site).href;
+    $("tmOut").hidden = false; $("tmMsg").textContent = ""; $("tmOutH").focus();
+  };
+  $("tmCopy").onclick = async () => { try { await navigator.clipboard.writeText($("tmLink").value); $("tmMsg").textContent = "Link copied."; } catch (e) { $("tmLink").select(); $("tmMsg").textContent = "Press Ctrl+C (or ⌘C) to copy the selected link."; } };
+  $("tmScorm").onclick = () => {
+    if (!CUR) return;
+    const rel = "test.html#t=" + b64(JSON.stringify(CUR)), id = "test-" + CUR.s.toString(36);
+    const bytes = SAscorm.pkg({ id, title: CUR.t, url: rel, item: CUR.t, orgTitle: CUR.t }, $("tmSite").value.trim() || DEFAULT_SITE, $("tmPass").value.trim());
+    SAscorm.save(bytes, `SilverApps ${CUR.t} (SCORM).zip`);
+    $("tmMsg").textContent = `Downloaded the package for “${CUR.t}.” Upload the .zip to your course as it is; don't unzip it.`;
+  };
+})();
+</script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/site.js?v=16eb80eb"></script>
+</body></html>

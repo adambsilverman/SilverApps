@@ -1,0 +1,120 @@
+<!-- title: Test | desc: A closed-note music theory test made with the SilverApps test maker. -->
+<style>
+.ts{max-width:820px;margin:0 auto;padding:22px 16px 48px}
+.ts h1{font:400 clamp(40px,7vw,68px)/.95 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.ts h2{font:400 clamp(26px,4vw,34px)/1.05 var(--fi-display);margin:28px 0 8px}
+.ts p,.ts li{max-width:68ch}
+.ts a{color:var(--fi-red-dk)}
+.ts .card{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);padding:16px 18px;margin-top:16px}
+.ts .qn{font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px}
+.ts .qq{font:600 19px/1.45 var(--fi-serif);margin:0 0 12px}
+.ts fieldset{border:0;margin:0;padding:0}
+.ts .ch{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin:6px 0;border:1.5px solid var(--fi-line);border-radius:12px;cursor:pointer;font:17px/1.4 var(--fi-serif)}
+.ts .ch:has(input:checked){border-color:var(--fi-ink);box-shadow:inset 0 0 0 1px var(--fi-ink)}
+.ts .ch input{width:20px;height:20px;margin:2px 0 0;flex:none}
+.ts .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.ts .dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.ts .dots button{min-width:40px;min-height:40px;border-radius:10px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);font:600 15px var(--fi-body);cursor:pointer}
+.ts .dots button.done{background:var(--fi-ink);color:var(--fi-card);border-color:var(--fi-ink)}
+.ts .dots button[aria-current="true"]{outline:3px solid var(--fi-red);outline-offset:1px}
+.ts .score{font:400 clamp(34px,6vw,54px)/1 var(--fi-display);margin:8px 0}
+.ts .rev li{margin:14px 0}
+.ts .rev .ok{color:#2d6a1f;font-weight:700} .ts .rev .no{color:#9b2a14;font-weight:700}
+.ts .warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px;color:#231d19}
+.ts .rn{white-space:nowrap} .ts .fg{display:inline-flex;flex-direction:column;font-size:.62em;line-height:.95;vertical-align:-.15em;margin-left:1px} .ts .rq{font-size:.8em;vertical-align:.35em}
+</style>
+<script src="assets/test-bank.js"></script>
+<main id="main" class="ts">
+<h1 id="tsTitle">Test</h1>
+<div id="tsBody" aria-live="polite"></div>
+</main>
+<script src="assets/progress.js"></script>
+<script>
+(() => {
+  const BANK = window.SA_BANK || [], $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // {rn:V65/V} → a Roman numeral with stacked figures (the lessons' notation, simplified)
+  const RNRE = /^([♭♯]?)(It|Fr|Ger|[ivIV]+)([°ø+]?)(\d*)$/;
+  const rnPart = p => { const m = RNRE.exec(p); if (!m) return esc(p); let h = m[1] + m[2]; if (m[3]) h += `<span class="rq">${m[3]}</span>`; const f = m[4];
+    return h + (f.length === 2 ? `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>` : f ? `<sup>${f}</sup>` : ""); };
+  const rich = s => esc(s).replace(/\{rn:([^}]+)\}/g, (_, t) => `<span class="rn">${t.split("/").map(rnPart).join("/")}</span>`).replace(/\{sym:([^}]+)\}/g, "$1");
+  const plain = s => String(s).replace(/\{(?:rn|sym):([^}]+)\}/g, "$1");
+  let C = null;
+  try { const h = (location.hash.match(/[#&]t=([\w-]+)/) || [])[1]; C = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(h.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0)))); } catch (e) {}
+  const body = $("tsBody");
+  if (!C || !C.u || !C.n) { body.innerHTML = '<p class="warn">This test link is incomplete. Ask your professor for the full link, or open the test from your course.</p>'; return; }
+  const units = C.u.map(id => BANK.find(u => u.id === id)).filter(Boolean);
+  if (!units.length) { body.innerHTML = '<p class="warn">The questions for this test couldn\'t be found. Ask your professor for a new link.</p>'; return; }
+  const TITLE = String(C.t || "Music theory test").slice(0, 80), ID = "test-" + (C.s >>> 0).toString(36), LOGKEY = "silverapps-" + ID;
+  $("tsTitle").textContent = TITLE; document.title = TITLE + " · " + document.title.split(" · ").slice(1).join(" · ");
+  // seeded random numbers (mulberry32), so "the same set for everyone" really is the same set
+  const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const shuffle = (a, r) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function draw() {
+    const pickR = rng(C.d === "fresh" ? Math.floor(Math.random() * 2 ** 31) : C.s), mix = rng(Math.floor(Math.random() * 2 ** 31));
+    const pools = units.map(u => shuffle(u.qs.map((q, i) => Object.assign({ unit: u.title, id: u.id + "-" + (i + 1) }, q)), pickR)), out = [];
+    while (out.length < C.n && pools.some(p => p.length)) shuffle(pools.filter(p => p.length), pickR).forEach(p => { if (out.length < C.n) out.push(p.shift()); });
+    return shuffle(out, mix).map(q => Object.assign(q, { opts: shuffle([q.a].concat(q.w), mix) }));
+  }
+  const log = () => { try { return JSON.parse(localStorage.getItem(LOGKEY) || "null") || { attempts: [] }; } catch (e) { return { attempts: [] }; } };
+  const pc = (r, n) => n ? Math.round(r / n * 100) : 0, fmt = t => new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  let QS = [], ANS = [], I = 0, DONE = false;
+  function start() { QS = draw(); ANS = QS.map(() => null); I = 0; DONE = false; intro(); }
+  function intro() {
+    body.innerHTML = `<p>${QS.length} questions. Closed notes: there are no hints and no links back to the lessons. Choose one answer for each question; you can go back and change answers until you submit. Your score appears when you submit${C.r ? ", with the correct answers" : ""}.</p>
+      ${window.SAlms ? "" : '<p>If your professor asked for a report, press <b>Report for my professor</b> when you finish.</p>'}
+      <div class="row"><button type="button" class="pr-btn primary" id="tsGo">Start the test</button></div>`;
+    $("tsGo").onclick = () => { show(); focusQ(); };
+  }
+  const focusQ = () => { const q = body.querySelector(".qq, .score, h2"); if (q) { q.setAttribute("tabindex", "-1"); q.focus({ preventScroll: false }); } };
+  function show() {
+    const q = QS[I];
+    body.innerHTML = `<div class="card"><p class="qn">Question ${I + 1} of ${QS.length}</p><fieldset><legend class="qq" id="tsQ">${rich(q.q)}</legend>
+      ${q.opts.map((o, k) => `<label class="ch"><input type="radio" name="tsA" value="${k}"${ANS[I] === k ? " checked" : ""}> <span>${rich(o)}</span></label>`).join("")}</fieldset>
+      <div class="row">${I ? '<button type="button" class="pr-btn" data-go="-1">← Previous</button>' : ""}${I < QS.length - 1 ? '<button type="button" class="pr-btn primary" data-go="1">Next →</button>' : '<button type="button" class="pr-btn primary" data-go="review">Review and submit</button>'}</div></div>
+      <nav class="dots" aria-label="Questions">${QS.map((_, k) => `<button type="button" data-to="${k}" class="${ANS[k] != null ? "done" : ""}"${k === I ? ' aria-current="true"' : ""} aria-label="Question ${k + 1}${ANS[k] != null ? ", answered" : ", not answered"}">${k + 1}</button>`).join("")}</nav>`;
+  }
+  function review() {
+    const left = ANS.map((a, k) => a == null ? k + 1 : null).filter(Boolean);
+    body.innerHTML = `<h2>Ready to submit?</h2><p>${left.length ? `Not answered yet: question${left.length > 1 ? "s" : ""} ${left.join(", ")}. Unanswered questions count as wrong.` : "Every question has an answer."} After you submit, you can't change your answers.</p>
+      <div class="row"><button type="button" class="pr-btn" data-to="${left.length ? left[0] - 1 : QS.length - 1}">← Back to the questions</button><button type="button" class="pr-btn primary" data-go="submit">Submit the test</button></div>`;
+  }
+  function submit() {
+    DONE = true;
+    const ok = QS.map((q, k) => ANS[k] != null && q.opts[ANS[k]] === q.a), right = ok.filter(Boolean).length, L = log();
+    L.attempts.push({ t: Date.now(), right, n: QS.length, missed: QS.filter((q, k) => !ok[k]).map(q => plain(q.q).slice(0, 200)) }); if (L.attempts.length > 50) L.attempts = L.attempts.slice(-50);
+    try { localStorage.setItem(LOGKEY, JSON.stringify(L)); } catch (e) {}
+    if (window.parent !== window) try { window.parent.postMessage({ type: "silverapps-quiz-result", v: 1, page: ID, lesson: TITLE, right, n: QS.length, pct: pc(right, QS.length),
+      questions: QS.map((q, k) => ({ id: q.id, text: plain(q.q).slice(0, 250), correct: ok[k] })) }, "*"); } catch (e) {}
+    const best = L.attempts.reduce((b, a) => !b || a.right / a.n > b.right / b.n ? a : b, null);
+    body.innerHTML = `<h2>Your score</h2><p class="score">${right} of ${QS.length} (${pc(right, QS.length)}%)</p>
+      ${L.attempts.length > 1 ? `<p>Best so far: ${best.right} of ${best.n} (${L.attempts.length} tries finished).</p>` : ""}
+      ${window.SAlms ? "<p>Your score was sent to your course gradebook.</p>" : ""}
+      <div class="row"><button type="button" class="pr-btn primary" data-go="report">Report for my professor</button><button type="button" class="pr-btn" data-go="again">Take the test again</button></div>
+      ${C.r ? `<h2>The answers</h2><ol class="rev">${QS.map((q, k) => `<li><p>${rich(q.q)}</p><p>${ok[k] ? '<span class="ok">Right:</span> ' + rich(q.a) : `<span class="no">${ANS[k] == null ? "Not answered." : "Your answer:"}</span> ${ANS[k] == null ? "" : rich(q.opts[ANS[k]])}<br><span class="ok">Correct:</span> ${rich(q.a)}`}</p>${q.why ? `<p>${rich(q.why)}</p>` : ""}</li>`).join("")}</ol>` : ""}`;
+  }
+  function report() {
+    const L = log(), last = L.attempts[L.attempts.length - 1], b = L.attempts.reduce((x, a) => !x || a.right / a.n > x.right / x.n ? a : x, null);
+    if (!last || !window.SAreport) return;
+    SAreport.open({ app: TITLE, kind: "quiz report", title: "Test report for your professor",
+      intro: "Your report shows this test, your name, the date, how many tries you've finished, your best and latest scores, and the questions you missed, with a verification code your professor can check.",
+      build: st => ["SilverApps Interactive Music Training — Quiz report", "Lesson: " + TITLE, "Quiz: test made by the professor (closed notes; " + QS.length + " questions; units: " + units.map(u => u.title.replace(/^Understanding /, "")).join(", ") + ")",
+        "Student: " + st.name, st.sid ? "Student ID or username: " + st.sid : null, st.course ? "Course or section: " + st.course : null, "Report created: " + fmt(Date.now()),
+        "Attempts finished: " + L.attempts.length, "Latest attempt: " + fmt(last.t) + " — " + last.right + " of " + last.n + " (" + pc(last.right, last.n) + "%)",
+        "Best attempt: " + fmt(b.t) + " — " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)", "Score: " + b.right + " of " + b.n + " (" + pc(b.right, b.n) + "%)",
+        last.missed.length ? "Missed (latest attempt):" : "Latest attempt: every question right."].concat(last.missed.map(t => "- " + t)).filter(l => l !== null).join("\n") });
+  }
+  body.addEventListener("change", e => { if (e.target.name === "tsA") { ANS[I] = +e.target.value; const d = body.querySelector(`[data-to="${I}"]`); if (d) { d.classList.add("done"); d.setAttribute("aria-label", `Question ${I + 1}, answered`); } } });
+  body.addEventListener("click", e => {
+    const g = e.target.closest("[data-go]"), t = e.target.closest("[data-to]");
+    if (t && !DONE) { I = +t.dataset.to; show(); focusQ(); return; }
+    if (!g) return; const v = g.dataset.go;
+    if (v === "1" || v === "-1") { I += +v; show(); focusQ(); }
+    else if (v === "review") { review(); focusQ(); }
+    else if (v === "submit") { submit(); focusQ(); }
+    else if (v === "report") report();
+    else if (v === "again") { start(); focusQ(); }
+  });
+  start();
+})();
+</script>
