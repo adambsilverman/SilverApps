@@ -149,6 +149,7 @@ def body(f):
     <div class="panel-body"><ol class="rules">{how}</ol></div>
   </details>
   </aside>
+  <p class="credit">Much of the content comes from <a href="https://timbreandorchestration.org/isfee/extreme-orchestration">Extreme Orchestration</a>.</p>
   <footer class="credit">App by Adam Silverman</footer>
 </div>
 <dialog class="ref-dialog" id="refDialog" aria-labelledby="refTitle">

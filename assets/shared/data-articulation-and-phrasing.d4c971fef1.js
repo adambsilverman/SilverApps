@@ -6,7 +6,7 @@ window.FAM = (() => {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   // ---------- score helpers: one treble staff ----------
-  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, minBar: 210, scale: 1, lyFit: true, rowW: typeof innerWidth === "number" && innerWidth < 600 ? 680 : 800, bars: bars.map(b => ({ t: [b] })) }, o);
+  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, minBar: 210, scale: 1, lyFit: true, rowW: typeof innerWidth === "number" && innerWidth < 600 ? 680 : 1000, bars: bars.map(b => ({ t: [b] })) }, o);
   const n = (k, d, x = {}) => Object.assign({ k: k ? [k] : [], d }, x);
   const MEL = ["E5", "D5", "C5", "D5", "E5", "E5", "E5", "D5"];   // one short tune, articulated different ways
   const melBar = (art, extra = {}) => [0, 4].map(s => MEL.slice(s, s + 4).map((k, i) => n(k, "q", Object.assign(art ? { art: [art] } : {}, extra[s + i] || {}))));
@@ -26,7 +26,7 @@ window.FAM = (() => {
   const W = (s) => s.split(" ").map(t => { const st = /[A-Z]{2}|^[A-Z]$/.test(t.replace(/-$/, "")) && t.replace(/-$/, "") !== "I", hy = /-$/.test(t); const w = t.replace(/-$/, ""); return [w === "I" ? "I" : w.toLowerCase(), st, hy]; });
   // a setting: bars of [duration, syllable index (null: rest, or the held end of a tie), pitch, extra]
   const setFig = (sylls, bars, o = {}) => sc(o.time || "4/4", bars.map(b => b.map(([d, si, p, x]) => { const sy = si == null ? null : sylls[si];
-    return n(p || null, d, Object.assign(sy ? { ly: sy[1] ? sy[0].toUpperCase() : sy[0], hy: sy[2] } : {}, x || {})); })), { bpm: o.bpm || 88 });
+    return n(p || null, d, Object.assign(sy ? { ly: sy[1] ? sy[0].toUpperCase() : sy[0], hy: sy[2] } : {}, x || {})); })), Object.assign({ bpm: o.bpm || 88 }, o.rowW ? { rowW: o.rowW } : {}));
   const L_MORN = W("I re- MEM- ber the MOR- ning we LEFT");
   const good = setFig(L_MORN, [[["q"], ["8", 0, "C5"], ["8", 1, "D5"], ["q", 2, "E5"], ["8", 3, "D5"], ["8", 4, "C5"]], [["hd", 5, "G5"], ["8", 6, "E5"], ["8", 7, "D5"]], [["w", 8, "C5"]]]);
   const bad = setFig(L_MORN, [[["q", 0, "C5"], ["qd", 1, "D5"], ["8", 2, "E5"], ["q", 3, "D5"]], [["hd", 4, "C5"], ["8", 5, "G5"], ["8", 6, "E5"]], [["h", 7, "D5"], ["8", 8, "C5"], ["8"], ["q"]]]);
@@ -35,7 +35,7 @@ window.FAM = (() => {
   const melis = setFig(L_HOLD, [[["h", 0, "G4"], ["8", 1, "A4"], ["8", 2, "B4"], ["q", 3, "C5"]], [["8", 4, "D5", { sls: 1, ex: 1 }], ["8", null, "E5"], ["8", null, "D5"], ["8", null, "C5", { sle: 1 }], ["h"]]]);
   const L_TOM = W("to- MOR- row will CAR- ry us HOME");
   const straight = setFig(L_TOM, [[["h"], ["q"], ["8"], ["8", 0, "G4"]], [["q", 1, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["q", 4, "G4"], ["8", 5, "A4"], ["8", 6, "B4"]], [["h", 7, "C5"], ["h"]]]);
-  const pushed = setFig(L_TOM, [[["h"], ["q"], ["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]]);
+  const pushed = setFig(L_TOM, [[["h"], ["q"], ["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]], typeof innerWidth === "number" && innerWidth >= 600 ? { rowW: 1180 } : {});
 
   // ---------- Try it: place the syllables (drums + a synthetic singer; 2 bars of 4/4 in eighth notes) ----------
   const LINES = [
@@ -104,8 +104,15 @@ window.FAM = (() => {
   // the setting in notation: each syllable lasts until the next one starts (the last to the end of bar 2); rests fill the gaps.
   // Durations follow the usual 4/4 rules: nothing crosses the middle of the bar unless it starts there, no dotted rests, offbeat notes start with an eighth.
   const NM = m => "C C D D E F F G G A A B".split(" ")[m % 12] + (Math.floor(m / 12) - 1);
-  function chunks(a, b, rest) { const out = []; const ok = (a, s) => s === 8 ? a === 0 : s === 6 ? !rest && a === 0 : s === 4 ? a % 4 === 0 || (!rest && a === 2) : s === 3 ? !rest && (a === 0 || a === 4) : s === 2 ? a % 2 === 0 ? !(a === 2 && rest && false) : !rest && (a === 1 || a === 5) : true;
-    while (a < b) { const sz = [8, 6, 4, 3, 2, 1].find(z => a + z <= b && ok(a, z)); out.push(sz); a += sz; } return out; }
+  // a note or rest from eighth a to eighth b of a 4/4 bar, as tied pieces in the usual notation:
+  // off the beat, one piece if it doesn't cross the middle of the bar (8, quarter or dotted quarter), otherwise an eighth up to the beat;
+  // on the beat, the largest value that starts there (no dotted rests; a dotted half, or a half from beat 2 to beat 4, only for notes).
+  function chunks(a, b, rest) { const out = [];
+    const ok = (a, s) => s === 8 ? a === 0 : s === 6 ? !rest && a === 0 : s === 4 ? a % 4 === 0 || (!rest && a === 2 && b === 6) : s === 3 ? !rest && a % 4 === 0 : true;
+    while (a < b) {
+      if (a % 2) { const lim = a < 4 ? 4 : 8, len = b - a; if (!rest && b <= lim && len <= 3) { out.push(len); a = b; } else { out.push(1); a += 1; } continue; }
+      const sz = [8, 6, 4, 3, 2, 1].find(z => a + z <= b && ok(a, z)); out.push(sz); a += sz; }
+    return out; }
   const DUR = { 8: "w", 6: "hd", 4: "h", 3: "qd", 2: "q", 1: "8" };
   function settingSpec(L, pos) {
     const words = L.text.toLowerCase().replace(/[^a-z ]/g, "").split(" "), wordOf = []; let w = 0, acc = "";

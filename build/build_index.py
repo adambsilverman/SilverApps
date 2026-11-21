@@ -34,7 +34,7 @@ for sec in cfg["sections"]:
 (ROOT / "assets" / "nav.js").write_text("window.SA_NAV = " + json.dumps(_nav, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 tiles = []
 for sec in cfg["sections"]:
-    tiles.append(f'''<section class="group" id="{sec["id"]}" aria-labelledby="h-{sec["id"]}"><h2 id="h-{sec["id"]}"><span class="dot t-{sec["color"]}" aria-hidden="true"></span>{e(sec["title"])}</h2>
+    tiles.append(f'''<section class="group" id="{sec["id"]}" aria-labelledby="h-{sec["id"]}"><h2 id="h-{sec["id"]}"><span class="dot t-{sec["color"]}" aria-hidden="true"></span>{e(sec["title"])}</h2>{f'<p class="sec-intro">{sec["intro"]}</p>' if sec.get("intro") else ""}
       <ul class="tiles">{"".join(card(t, sec["color"]) for t in sec["topics"])}</ul></section>''')
 jump = "".join(f'<li><a href="#{s["id"]}"><span class="dot t-{s["color"]}" aria-hidden="true"></span>{e(s["title"])}</a></li>' for s in cfg["sections"])
 SEARCH_JS = """<script>
@@ -85,6 +85,8 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 .inst p{{margin:4px 0 12px;line-height:1.5}}
 .group h2{{display:flex;align-items:center;gap:12px;font-family:var(--fi-display);font-weight:400;font-size:clamp(38px,5vw,54px);margin:34px 0 12px;line-height:.95}}
 .group h2 .dot{{width:22px;height:22px}}
+.group .sec-intro{{max-width:72ch;margin:-4px 0 14px;font:16px/1.45 var(--fi-serif)}}
+.group .sec-intro a{{color:var(--fi-red-dk)}}
 .group{{scroll-margin-top:90px}}
 .tiles{{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}}
 .card{{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto;align-items:center;gap:6px 22px;padding:10px 18px;border-radius:var(--fi-r);box-shadow:var(--fi-shadow)}}

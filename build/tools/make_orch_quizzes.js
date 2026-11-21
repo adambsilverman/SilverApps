@@ -56,7 +56,7 @@ for (const sp of SPEC) {
 </style>
 <main id="main" class="qz" data-sa-quiz="${esc(name)}">
 <h1><span>Test</span> Yourself</h1>
-<p class="lead">An open-note quiz on <a href="${drills}">${esc(name)}</a>. Each try draws a fresh set of questions from every topic in the app.</p>
+<p class="lead">An open-note quiz on <a href="${drills}">${esc(name)}</a>. Each try draws a fresh set of questions from every topic in the app.</p>${/^orchestration-(strings|winds-brass|percussion|harp|piano|plucked)$|^score-and-parts$/.test(sp.page) ? '\n<p class="lead">Much of the content comes from <a href="https://timbreandorchestration.org/isfee/extreme-orchestration">Extreme Orchestration</a>.</p>' : ""}
 <p class="other"><a href="${drills}">← Practice: ${esc(name)} drills</a></p>
 <div id="saqBox"></div>
 </main>

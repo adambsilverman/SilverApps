@@ -279,66 +279,76 @@
           "name": "Strings",
           "topic": "Bowed strings",
           "blurb": "Open strings, ranges, harmonics, bowings and effects.",
-          "drills": "orchestration-strings.html", "quiz": "orchestration-strings-quiz.html",
+          "drills": "orchestration-strings.html",
+          "quiz": "orchestration-strings-quiz.html",
           "class": true
         },
         {
           "name": "Winds & Brass",
           "topic": "Winds and brass",
           "blurb": "Woodwinds and brass, score order, valves, partials and mutes.",
-          "drills": "orchestration-winds-brass.html", "quiz": "orchestration-winds-brass-quiz.html",
+          "drills": "orchestration-winds-brass.html",
+          "quiz": "orchestration-winds-brass-quiz.html",
           "class": true
         },
         {
           "name": "Percussion",
           "topic": "Percussion",
           "blurb": "Percussion instruments, beaters, logistics and notation.",
-          "drills": "orchestration-percussion.html", "quiz": "orchestration-percussion-quiz.html",
+          "drills": "orchestration-percussion.html",
+          "quiz": "orchestration-percussion-quiz.html",
           "class": true
         },
         {
           "name": "Harp",
           "topic": "Harp",
           "blurb": "Pedals and pedal diagrams, enharmonic spelling, glissandos, harmonics and techniques.",
-          "drills": "orchestration-harp.html", "quiz": "orchestration-harp-quiz.html",
+          "drills": "orchestration-harp.html",
+          "quiz": "orchestration-harp-quiz.html",
           "class": true
         },
         {
           "name": "Keyboard Instruments",
           "topic": "Keyboards",
           "blurb": "Piano, organ, celesta and harpsichord: pedals, accompaniments, organ stops, prepared piano.",
-          "drills": "orchestration-piano.html", "quiz": "orchestration-piano-quiz.html",
+          "drills": "orchestration-piano.html",
+          "quiz": "orchestration-piano-quiz.html",
           "class": true
         },
         {
           "name": "Plucked Hand-held Instruments",
           "topic": "Guitar family",
           "blurb": "Guitar, mandolin, banjo, bouzouki, tenor guitar and ukulele: tunings, tab, chord diagrams, capo and techniques.",
-          "drills": "orchestration-plucked.html", "quiz": "orchestration-plucked-quiz.html",
+          "drills": "orchestration-plucked.html",
+          "quiz": "orchestration-plucked-quiz.html",
           "class": true
         },
         {
           "name": "Instrument Transpositions",
           "topic": "Transposing instruments",
           "blurb": "Read and write parts for transposing instruments.",
-          "drills": "instrument-transpositions.html", "quiz": "instrument-transpositions-quiz.html",
+          "drills": "instrument-transpositions.html",
+          "quiz": "instrument-transpositions-quiz.html",
           "class": true
         },
         {
           "name": "Score and Parts Preparation",
           "topic": "Notation & engraving",
           "blurb": "Professional scores, parts and typesetting.",
-          "drills": "score-and-parts.html", "quiz": "score-and-parts-quiz.html",
+          "drills": "score-and-parts.html",
+          "quiz": "score-and-parts-quiz.html",
           "class": true
         },
         {
           "name": "Orchestration Foreign Terms",
           "topic": "Score terms",
           "blurb": "Instrument names and score terms in four languages.",
-          "drills": "orchestration-foreign-terms.html", "quiz": "orchestration-foreign-terms-quiz.html",
+          "drills": "orchestration-foreign-terms.html",
+          "quiz": "orchestration-foreign-terms-quiz.html",
           "class": true
         }
-      ]
+      ],
+      "intro": "Much of the content in these modules comes from <a href=\"https://timbreandorchestration.org/isfee/extreme-orchestration\">Extreme Orchestration</a>."
     },
     {
       "id": "tools",
@@ -349,14 +359,16 @@
           "name": "Ear Training – Pitch and Harmony",
           "topic": "Ear training & sight-singing",
           "blurb": "Sing intervals and patterns, chord qualities, melodic dictation.",
-          "open": "ear-training.html", "quiz": "ear-training-quiz.html",
+          "open": "ear-training.html",
+          "quiz": "ear-training-quiz.html",
           "note": "Solo practice · uses the microphone"
         },
         {
           "name": "Ear Training – Rhythm",
           "topic": "Ear training & rhythm",
           "blurb": "Rhythmic dictation (hear it, write it), plus performing written rhythms: tap or clap generated, world and classical rhythms, rudiments, cues and phasing, with note-by-note timing.",
-          "open": "rhythm-performance.html", "quiz": "rhythm-performance-quiz.html",
+          "open": "rhythm-performance.html",
+          "quiz": "rhythm-performance-quiz.html",
           "note": "Solo practice"
         },
         {
@@ -528,6 +540,37 @@
           "blurb": "Auto-tune your own recording to a key, transpose it, shift formants, add harmonies, or make chipmunk, giant and robot voices; export WAV or MP3.",
           "open": "vocal-tuner.html",
           "note": "Creative tool · uses the microphone if you record"
+        }
+      ]
+    },
+    {
+      "id": "instructors",
+      "title": "Instructor Tools",
+      "color": "black",
+      "topics": [
+        {
+          "name": "Test Maker",
+          "topic": "Build a test",
+          "blurb": "Pick units and a length to make a closed-note test from the Test Yourself question banks. Share it as a link or add it to your LMS gradebook as a SCORM package.",
+          "open": "test-maker.html"
+        },
+        {
+          "name": "Check Reports",
+          "topic": "Student reports",
+          "blurb": "Check the reports students send when they finish a Test Yourself quiz or a test outside an LMS, and confirm that each one is genuine.",
+          "open": "verify.html"
+        },
+        {
+          "name": "Gradebook Sync",
+          "topic": "LMS gradebook",
+          "blurb": "Download a SCORM package for any Test Yourself quiz so scores go straight to your D2L Brightspace, Canvas, Blackboard or Moodle gradebook.",
+          "open": "gradebook-sync.html"
+        },
+        {
+          "name": "Connecting to Your LMS",
+          "topic": "Instructions",
+          "blurb": "Step-by-step instructions for uploading a SCORM package to each LMS and how scores are reported.",
+          "open": "about-this-site.html#lms"
         }
       ]
     }

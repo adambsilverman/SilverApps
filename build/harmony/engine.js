@@ -395,9 +395,9 @@
                 acc[kk] = y.p.a;
               });
               for (let dd = (shown.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
+              // o.lyFit: bars are widened for their syllables (wNote) and spaced in proportion to the note values (softmax below); an invisible copy of each syllable keeps short notes from crowding their words
+              if (o.lyFit && n.ly != null && VF.Annotation) try { const an = new VF.Annotation(String(n.ly) + (n.hy ? " – " : " ")); an.setFont("Literata", 16); an.setVerticalJustification(VF.Annotation.VerticalJustify ? VF.Annotation.VerticalJustify.BOTTOM : 3); an.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" }); sn.addModifier(an, 0); } catch (e) {}
               // n.art: articulation codes ("a." staccato, "a-" tenuto, "a>" accent, "a^" marcato, "a@a" fermata): on the notehead side, the fermata always above
-              // o.lyFit: an invisible copy of the lyric syllable makes the formatter leave room for it (no colliding syllables under eighth notes)
-              if (o.lyFit && n.ly != null && VF.Annotation) try { const an = new VF.Annotation(String(n.ly) + (n.hy ? " –  " : "  ")); an.setFont("Literata", 16); an.setVerticalJustification(VF.Annotation.VerticalJustify ? VF.Annotation.VerticalJustify.BOTTOM : 3); an.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" }); sn.addModifier(an, 0); } catch (e) {}
               if (n.art && !isRest && VF.Articulation) n.art.forEach(code => { try { const up = (sn.getStemDirection ? sn.getStemDirection() : 1) === 1, a = new VF.Articulation(code); a.setPosition(code === "a@a" || !up ? 3 : 4); sn.addModifier(a, 0); } catch (e) {} });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
               const L = last[si + ":" + vi];
@@ -416,7 +416,7 @@
             else if (o.beam !== false && bar.beam !== false) { try { const gs = bar.groups || o.groups; const bm = VF.Beam.generateBeams(notes, Object.assign({ groups: gs ? gs.map(g => new VF.Fraction(...g.split("/").map(Number))) : VF.Beam.getDefaultBeamGroups(curT) }, stem ? { stem_direction: stem } : {})); beams.push(...bm); } catch (e) {} }
           });
         });
-        const fmt = new VF.Formatter();
+        const fmt = new VF.Formatter(o.lyFit ? { softmaxFactor: 40 } : undefined);
         clefs.forEach((c, si) => { const vv = vlist.filter(x => x.si === si).map(x => x.v); if (vv.length) fmt.joinVoices(vv); });
         if (vlist.length) { const vs = vlist.map(x => x.v); justifyW(VF, fmt, vs, Math.max(20, staves[0].getNoteEndX() - startX - 12)); }
         vlist.forEach(x => x.v.draw(ctx, x.s));
