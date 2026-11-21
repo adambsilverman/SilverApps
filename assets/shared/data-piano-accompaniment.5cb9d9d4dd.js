@@ -1,0 +1,181 @@
+
+// ===== "Brother, Can You Spare a Dime?" (Jay Gorney / E. Y. Harburg, 1932), bars 1–8: Adam's lead sheet and six piano settings (images in assets/img/dime/),
+// the melody and chords as data, and a figure that hides an arrangement's chord symbols until "Show the chords" reveals them with their regions shaded.
+// Shared by the Lead Sheets lesson (leadsheets.js) and the Piano Accompaniment lesson (accomp.js). Time in quarter-note beats; bar 1 starts at 0.
+window.DIME = (() => {
+  const NM = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+  const name = m => NM[((m % 12) + 12) % 12];
+  // melody: [start, length, midi, syllable]
+  const MEL = [[0, .75, 60, "Once"], [.75, .25, 62, "I"], [1, .75, 63, "built"], [1.75, .25, 65, "a"], [2, .5, 67, "rail-"], [2.5, 1.5, 72, "-road"],
+    [4, 1, 71, "made"], [5, .5, 67, "it"], [5.5, 2.5, 70, "run"], [8, 1, 69, "Made"], [9, .5, 65, "it"], [9.5, 1, 68, "race"], [10.5, .5, 70, "a-"], [11, 1, 68, "-gainst"], [12, 4, 67, "time"],
+    [16, .75, 65, "Once"], [16.75, .25, 63, "I"], [17, .75, 62, "built"], [17.75, .25, 63, "a"], [18, .5, 65, "rail-"], [18.5, 1.5, 67, "-road"],
+    [20, 1, 63, "now"], [21, .5, 60, "it's"], [21.5, 2.5, 63, "done"], [24, .75, 62, "Bro-"], [24.75, .25, 60, "-ther"], [25, .75, 59, "can"], [25.75, .25, 60, "you"], [26, .5, 62, "spare"], [26.5, 1, 63, "a"], [27.5, 3.5, 60, "dime"]];
+  const CHORD = { "Cm": [[0, 3, 7], 0, "C–E♭–G"], "G7/D": [[7, 11, 2, 5], 2, "G–B–D–F, D in the bass"], "C7/E": [[0, 4, 7, 10], 4, "C–E–G–B♭, E in the bass"], "F": [[5, 9, 0], 5, "F–A–C"],
+    "B♭/D": [[10, 2, 5], 2, "B♭–D–F, D in the bass"], "E♭": [[3, 7, 10], 3, "E♭–G–B♭"], "G7": [[7, 11, 2, 5], 7, "G–B–D–F"], "Dm7(♭5)": [[2, 5, 8, 0], 2, "D–F–A♭–C"],
+    "A♭7": [[8, 0, 3, 6], 8, "A♭–C–E♭–G♭"], "Fm6": [[5, 8, 0, 2], 5, "F–A♭–C–D"] };
+  const CH = [[0, "Cm"], [4, "G7/D"], [6, "C7/E"], [8, "F"], [10, "B♭/D"], [12, "E♭"], [14, "G7"], [16, "Dm7(♭5)"], [18, "G7"], [20, "Cm"], [22, "A♭7"], [24, "Fm6"], [26, "G7"], [28, "Cm"], [30, "G7"]];
+  const END = 32;
+  const inChord = (sym, m) => CHORD[sym][0].includes(((m % 12) + 12) % 12);
+  // non-chord tones: by start beat ("h" + region start for a note held over into a region)
+  const NCT = { .75: "a passing tone (C–D–E♭)", 1.75: "a passing tone (E♭–F–G)", 5.5: "an anticipation: B♭ arrives before C7/E, where it's the 7th",
+    9.5: "a chromatic step down from A (the 3rd of F), held over into the next chord", h10: "held over: A♭ against B♭ adds a 7th (it sounds like B♭7), pulling toward E♭",
+    11: "the 7th of B♭ again (B♭7), resolving down to G over E♭", 16.75: "a passing tone (F–E♭–D)", 17.75: "a passing tone (D–E♭–F)", 25: "a neighbor tone (C–B–C)",
+    26.5: "an escape tone: a step up from D, then a leap down to C", h30: "held over from C minor: the singer is still on C when the G7 arrives", 27.5: "an anticipation: C arrives just before the C minor chord" };
+  // images: chord-symbol boxes [system, x0, x1, y0, y1] and system bands [y0, y1], in pixels of the original scans
+  const IMG = {"leadsheet":{"w":2248,"h":777,"sys":[[50,370],[405,770]],"ch":[[0,251,356,81,142],[0,852,1001,72,149],[0,1126,1268,72,173],[0,1348,1410,80,141],[0,1623,1759,72,149],[0,1941,2020,81,139],[0,2071,2169,75,141],[1,197,394,429,500],[1,490,588,435,501],[1,745,849,441,502],[1,976,1089,435,500],[1,1170,1297,434,501],[1,1540,1637,435,501],[1,1840,1969,415,502],[1,1991,2089,435,501]]},"alberti":{"w":2240,"h":960,"sys":[[0,430],[465,935]],"ch":[[0,298,403,11,72],[0,791,940,2,79],[0,1014,1156,2,103],[0,1264,1326,10,71],[0,1493,1630,2,79],[0,1742,1821,11,69],[0,1960,2058,5,71],[1,244,441,485,556],[1,491,640,488,565],[1,733,838,497,558],[1,939,1053,491,556],[1,1181,1307,490,557],[1,1442,1540,491,557],[1,1713,1818,471,558],[1,1918,2016,491,557]]},"block":{"w":2232,"h":973,"sys":[[0,435],[470,945]],"ch":[[0,290,395,14,75],[0,844,993,5,82],[0,1092,1235,5,106],[0,1301,1363,13,74],[0,1550,1687,5,82],[0,1827,1906,14,72],[0,2000,2097,8,74],[1,236,433,493,564],[1,513,662,496,573],[1,748,853,505,566],[1,987,1101,499,564],[1,1188,1314,498,565],[1,1479,1576,499,565],[1,1756,1861,478,566],[1,1923,2020,499,565]]},"stride":{"w":2200,"h":981,"sys":[[0,445],[475,965]],"ch":[[0,267,372,14,75],[0,785,934,5,82],[0,1024,1166,5,105],[0,1251,1313,13,74],[0,1490,1627,5,82],[0,1758,1837,14,72],[0,1953,2051,8,74],[1,213,410,498,569],[1,479,576,504,570],[1,714,819,510,571],[1,944,1058,504,569],[1,1166,1293,503,570],[1,1448,1546,504,570],[1,1710,1824,483,571],[1,1907,2005,504,570]]},"singer":{"w":2248,"h":1622,"sys":[[0,795],[820,1600]],"ch":[[0,303,408,28,89],[0,851,1000,19,96],[0,1079,1221,19,119],[0,1297,1359,27,88],[0,1526,1663,19,96],[0,1812,1891,28,86],[0,1998,2095,22,88],[1,249,446,843,914],[1,528,625,849,915],[1,765,870,855,916],[1,963,1077,849,914],[1,1149,1275,848,915],[1,1519,1616,849,915],[1,1801,1930,829,916],[1,1978,2075,849,915]]},"pulse":{"w":2216,"h":973,"sys":[[0,440],[478,950]],"ch":[[0,277,382,22,83],[0,814,963,13,90],[0,1048,1191,13,114],[0,1276,1338,21,82],[0,1512,1649,13,90],[0,1775,1854,22,80],[0,1967,2064,16,82],[1,223,420,500,571],[1,489,638,503,580],[1,725,829,512,573],[1,954,1068,506,571],[1,1177,1303,505,572],[1,1459,1556,506,572],[1,1717,1834,486,573],[1,1918,2015,506,572]]},"bassline":{"w":2224,"h":1149,"sys":[[0,505],[535,1140]],"ch":[[0,283,388,17,78],[0,769,918,8,108],[0,1012,1155,8,108],[0,1226,1288,16,77],[0,1460,1597,8,85],[0,1712,1791,17,75],[0,1976,2073,11,77],[1,229,426,559,630],[1,510,659,562,639],[1,716,820,571,632],[1,928,1042,565,630],[1,1195,1321,564,631],[1,1470,1568,565,631],[1,1710,1822,544,632],[1,1950,2047,565,631]]},"rhythm":{"w":2248,"h":1627,"sys":[[0,800],[815,1610]],"ch":[[0,299,368,34,78],[0,845,958,26,85],[0,1075,1183,26,99],[0,1296,1340,34,99],[0,1515,1616,26,85],[0,1787,1832,34,75],[0,1991,2054,29,77],[1,247,404,829,882],[1,505,568,835,883],[1,752,821,840,884],[1,949,1028,835,882],[1,1177,1267,834,883],[1,1533,1596,835,883],[1,1836,1906,840,884],[1,2018,2081,835,883]]}};
+  const ALT = { leadsheet: "Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols, ending with a first ending and a repeat sign.",
+    alberti: "Piano setting: the melody in the right hand, an Alberti bass in left-hand eighth notes.", block: "Piano setting: the melody in the right hand, block chords held in the left hand (half and whole notes).",
+    stride: "Piano setting: the melody in the right hand; the left hand plays bass notes on beats 1 and 3 and chords on beats 2 and 4 (boom-chuck in the left hand).",
+    singer: "Voice and piano: the vocal line with lyrics on top; the piano's right hand plays chords on beats 2 and 4 and the left hand bass notes on beats 1 and 3.",
+    pulse: "Piano setting: the melody in the right hand, left-hand chords repeated on every beat.", rhythm: "Voice and piano: the vocal line in the bass clef (lyrics not shown); the piano's right hand plays chord tones in a steady eighth-note pattern, the left hand half-note bass notes, with the pedal changing for each chord.", bassline: "Piano setting: the melody on top of the right hand with chord tones under it; an active bass line in the left hand." };
+  const AUDL = { leadsheet: "the lead sheet played: melody and chords", melody: "the melody alone", alberti: "Alberti bass setting", block: "block chords setting", stride: "boom-chuck in the left hand setting",
+    singer: "voice and piano (boom-chuck) setting", pulse: "pulsing chords setting", rhythm: "voice and piano with rhythmicized chords", bassline: "melody with chords and an active bass line" };
+  const aud = id => `<audio class="dm-aud" controls preload="none" src="assets/audio/dime/${id}.mp3" aria-label="Brother, Can You Spare a Dime?: ${AUDL[id]}"></audio>`;
+  const pc = (v, t) => (v / t * 100).toFixed(2) + "%";
+  // a setting with its chord symbols covered; the toggle shows them and shades each chord's region
+  function fig(id, cap, o = {}) {
+    const d = IMG[id], syms = CH.map(c => c[1]), lab = o.g7d ? syms.map((s, i) => i === 8 ? "G7/D" : s) : syms;
+    const regs = d.ch.map(([s, x0], i) => { const nx = d.ch[i + 1] && d.ch[i + 1][0] === s ? d.ch[i + 1][1] : d.w - 12, [y0, y1] = d.sys[s];
+      return `<span class="dm-reg${i % 2 ? " alt" : ""}" style="left:${pc(x0 - 12, d.w)};width:${pc(nx - x0, d.w)};top:${pc(y0, d.h)};height:${pc(y1 - y0, d.h)}"></span>`; }).join("");
+    const covs = d.ch.map(([s, x0, x1, y0, y1]) => `<span class="dm-cov" style="left:${pc(x0 - 8, d.w)};width:${pc(x1 - x0 + 16, d.w)};top:${pc(y0 - 6, d.h)};height:${pc(y1 - y0 + 12, d.h)}"></span>`).join("");
+    return `<figure class="lfig dm-fig"><div class="dm-wrap" tabindex="0" role="region" aria-label="${ALT[id].split(":")[0]}"><div class="dm-score">${regs}<img src="assets/img/dime/${id}.png" alt="${ALT[id]} Chord symbols are hidden until you show them." width="1600" height="${Math.round(d.h * 1600 / d.w)}">${covs}</div></div>
+      <figcaption><p>${cap}</p>${aud(id)}<button type="button" class="btn dm-show" data-dmshow aria-pressed="false">Show the chords</button><span class="sr dm-list"> Chords: ${lab.join(", ")}.</span><p class="note lcite fair-use" data-fair-use></p></figcaption></figure>`;
+  }
+  if (typeof document !== "undefined") document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-dmshow]"); if (!b) return;
+    const f = b.closest(".dm-fig"), on = !f.classList.contains("on"); f.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "Hide the chords" : "Show the chords"; });
+  // region playback: block chord (close position around middle C) + bass + melody notes that start in the region
+  function regionPlay(i) {
+    const [s, sym] = CH[i], e = i + 1 < CH.length ? CH[i + 1][0] : END, [pcs, bass] = CHORD[sym], spb = 60 / 72, ev = [];
+    let b = 55; while (!pcs.includes(b % 12)) b++; const v = [b]; pcs.filter(p => p !== b % 12).forEach(p => { let m = b + 1; while (m % 12 !== p) m++; v.push(m); });
+    let bm = 36; while (bm % 12 !== bass) bm++;
+    v.forEach(m => ev.push([m, 0, (e - s) * spb, .4])); ev.push([bm, 0, (e - s) * spb, .55]);
+    MEL.filter(n => n[0] < e - 1e-6 && n[0] + n[1] > s + 1e-6).forEach(n => { const st = Math.max(n[0], s); ev.push([n[2] + 12, (st - s) * spb, (Math.min(n[0] + n[1], e) - st) * spb * .95, .9]); });
+    return { ev };
+  }
+  return { MEL, CH, CHORD, END, IMG, NCT, inChord, name, fig, aud, regionPlay };
+})();
+
+window.FAM = (() => {
+  // ===== Understanding Piano Accompaniment: lesson only (practice: the Groove Maker). Examples: Adam's settings of Brother, Can You Spare a Dime? (build/harmony/dime.js). Engine: build/harmony/engine.js =====
+  const tbl = (cap, head, rows) => `<div class="ltable-wrap" tabindex="0" role="region" aria-label="${cap}"><table class="ltable"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const C = s => `{sym:${s}}`;
+  const SIG = { 2: -1, 5: -1, 6: -1 };   // C minor / E♭ major: letter indices (C = 0)
+  const SHOW = `<p class="small">The chord symbols are hidden. Work out which chord each part of the accompaniment spells, then press <b>Show the chords</b> to check: each chord's region is shaded.</p>`;
+  // a grand-staff figure of single chords: each column { t, b, lab }
+  const gfig = (H, U, cols, cap) => U.fig({ type: "grand", vf: "Eb", sig: SIG, cols: cols.map(c => Object.assign({ labNear: true }, c)) }, cap, { play: { chords: cols.map(c => (c.t || []).concat(c.b || []).map(s => H.midi(H.parse(s)))), gap: 1.3, dur: .95 } });
+  // boom-chuck-chuck in 3/4: Cm, Fm, G7, Cm
+  const N = (k, d, sym) => Object.assign({ k, d }, sym ? { sym } : {}), R = d => ({ k: [], d });
+  const WALTZ = { type: "score", clefs: ["treble", "bass"], time: "3/4", vf: "Eb", sig: SIG, bpm: 132, final: true, rowW: 900, bars: [
+    { t: [[R("q"), N(["G3", "C4", "E♭4"], "q", "Cm"), N(["G3", "C4", "E♭4"], "q")]], b: [[N(["C3"], "q"), R("q"), R("q")]] },
+    { t: [[R("q"), N(["A♭3", "C4", "F4"], "q", "Fm"), N(["A♭3", "C4", "F4"], "q")]], b: [[N(["F2"], "q"), R("q"), R("q")]] },
+    { t: [[R("q"), N(["G3", "B3", "F4"], "q", "G7"), N(["G3", "B3", "F4"], "q")]], b: [[N(["G2"], "q"), R("q"), R("q")]] },
+    { t: [[R("q"), N(["G3", "C4", "E♭4"], "q", "Cm"), N(["G3", "C4", "E♭4"], "q")]], b: [[N(["C3"], "q"), R("q"), R("q")]] }] };
+
+  const lesson = { steps: [
+    { title: "From lead sheet to piano part", kick: "One song, many accompaniments", render: () => `<p>Most songs reach a pianist as a <a href="lead-sheets-lesson.html">lead sheet</a>: a melody, its lyrics, and chord symbols. Nothing on the page says what the piano should actually play. That's the accompanist's job: to turn each chord symbol into notes, in a rhythm and texture that suit the song.</p>
+      <p>This lesson works from one lead sheet, the first eight bars of <i>Brother, Can You Spare a Dime?</i> (Jay Gorney and E. Y. Harburg, 1932):</p>
+      <figure class="lfig lsfig"><img src="assets/img/dime/leadsheet.png" alt="Lead sheet of the first eight bars of Brother, Can You Spare a Dime? in C minor, 4/4, Medium Slow: melody with lyrics and chord symbols (Cm, G7/D, C7/E, F, B-flat/D, E-flat, G7, Dm7 flat 5, G7, Cm, A-flat 7, Fm6, G7, Cm, G7), ending with a first ending and a repeat sign." width="1600" height="553">
+      <figcaption>${DIME.aud("leadsheet")}</figcaption></figure>
+      <p>Every example that follows is an <b>expansion</b> of this page: the same melody and the same chords, written out for two hands in a different way: block chords, boom-chuck (shared between the hands, then in the left hand alone, and its big cousin, stride), Alberti bass, and an active bass line. Along the way you'll see how to fit the notes in your hands, keep the chords in one place, and decide where the bass goes.</p>
+      <p>In each setting the chord symbols are hidden at first. Before you show them, try to work out which chord each part of the accompaniment spells, using the lead sheet above.</p>` },
+    { title: "Three jobs for two hands", kick: "Melody, harmony, bass", render: () => `<p>A lead sheet gives you a melody and chord symbols. To turn them into a piano part, split the music into three <b>layers</b>:</p>
+      <ul><li><b>Melody</b>: on top, in the right hand, where it's easiest to hear.</li>
+      <li><b>Harmony</b>: the other tones of each chord, tucked <b>under the melody</b> in the right hand (or in the middle of the keyboard).</li>
+      <li><b>Bass</b>: the lowest note, in the left hand: the chord's root, or the note after the slash in a slash chord.</li></ul>
+      <p>Here is the lead sheet set that way: the melody on top of the right hand with chord tones under it, and a bass line in the left hand.</p>
+      ${DIME.fig("bassline", "Melody on top of the right hand, chord tones under it, bass in the left hand.", { g7d: true })}${SHOW}
+      <p>When you accompany a <b>singer</b>, leave the melody out: the right hand plays only the chords (see “Keep the chords in one place”).</p>` },
+    { title: "Fitting the notes in your hands", kick: "Span, spacing and register", render: (H, k, U) => `<p>Every note you write has to be playable. A few rules of thumb:</p>
+      <ul><li><b>Each hand spans about an octave.</b> In the right hand, keep the chord tones within an octave below the melody note, so one hand can hold them all. Two chord tones under the melody is plenty; three gets thick.</li>
+      <li><b>Low notes need space.</b> Close chords low on the keyboard sound muddy. In the bass, play a single note, an octave, or an open 5th, and keep 3rds above about C3.</li>
+      <li><b>Leave a gap between the hands</b> so they don't collide, and so the chord tones don't bury the melody.</li>
+      <li><b>You don't need every chord tone.</b> The bass usually has the root; the right hand can leave out the 5th, and should avoid doubling the 3rd.</li></ul>
+      ${gfig(H, U, [{ t: ["G4", "C5", "E♭5"], b: ["C2", "E♭2", "G2"], lab: "muddy" }, { t: ["G4", "C5", "E♭5"], b: ["C2", "G2"], lab: "clear" }, { t: ["G3", "C4", "E♭4", "G4", "C5"], b: ["C3"], lab: "too wide" }, { t: ["C5", "E♭5", "G5"], b: ["C3"], lab: "fits" }], "C minor four ways. A close triad low in the bass is muddy; an open 5th is clear. A right-hand chord wider than an octave doesn't fit one hand; three notes within an octave do.")}` },
+    { title: "Keep the chords in one place", kick: "Inversions instead of leaps", render: (H, k, U) => `<p>If you play every chord in <b>root position</b>, the right hand jumps around the keyboard and the harmony sounds disjointed. Instead, choose for each chord the <b>inversion</b> closest to the one before: keep common tones, and move the others by the smallest step. The chord shapes then stay in one comfortable <b>register</b>, and the left hand supplies the roots.</p>
+      ${gfig(H, U, [{ t: ["C4", "E♭4", "G4"], b: ["C3"], lab: "Cm" }, { t: ["F4", "A♭4", "C5"], b: ["F2"], lab: "Fm" }, { t: ["G4", "B4", "D5", "F5"], b: ["G2"], lab: "G7" }, { t: ["C4", "E♭4", "G4"], b: ["C3"], lab: "Cm" }], "Root position every time: the right hand leaps.")}
+      ${gfig(H, U, [{ t: ["C4", "E♭4", "G4"], b: ["C3"], lab: "Cm" }, { t: ["C4", "F4", "A♭4"], b: ["F2"], lab: "Fm" }, { t: ["B3", "D4", "F4", "G4"], b: ["G2"], lab: "G7" }, { t: ["C4", "E♭4", "G4"], b: ["C3"], lab: "Cm" }], "The nearest inversion each time: the same chords, in one place.")}
+      <p>This is how a pianist accompanies a singer from a lead sheet: right-hand chords in the middle of the keyboard, left-hand bass notes, and the singer carries the melody (there's an example in “Boom-chuck and boom-chuck-chuck”).</p>`
+      + H.check("Why play most right-hand chords in inversions rather than root position?", "so the chords stay in one register and move smoothly", ["because root position is wrong on a lead sheet", "so the bass is always the 3rd", "to make the chords louder"], "Nearest inversions keep common tones and small steps, so the hand barely moves.") },
+    { title: "The bass doesn't need every beat", kick: "Mark the changes, then get out of the way", render: () => `<p>The bass note tells the listener which chord is sounding. It's strongest on <b>beat 1</b> and on <b>chord changes</b>; after that it can ring, move to another chord tone, or rest. A full chord with its bass on every beat gets heavy fast:</p>
+      ${DIME.fig("pulse", "Left-hand chords on every beat: steady, but thick.", { g7d: true })}
+      ${DIME.fig("block", "The same chords held for each region: calm, with space for the melody.", { g7d: true })}${SHOW}
+      <ul><li>Put bass notes where the chord changes and on strong beats; let them sustain (with the pedal on an acoustic piano).</li>
+      <li>When the melody is busy, the accompaniment can be still, and when the melody holds or rests, the accompaniment can move.</li>
+      <li>On a held chord, the bass can alternate <b>root and 5th</b> to keep it moving without changing the harmony.</li></ul>` },
+    { title: "Block chords", kick: "The simplest texture", render: () => `<p><b>Block chords</b> play all the chord tones together. Held for each chord's whole region, they suit hymns, slow ballads and the first time you read a song; repeated on the beats, they mark the pulse. Both settings in the step before are block chords: the held one changes only when the chord symbol changes, the other repeats each chord on every beat.</p>
+      <p>When the left hand plays the chords, keep them compact and around the octave below middle C, so they don't get muddy. Slash chords such as ${C("G7/D")} and ${C("C7/E")} put their bass note at the bottom of the chord.</p>` },
+    { title: "Boom-chuck and boom-chuck-chuck", kick: "Bass on the strong beats, chords on the weak ones", render: (H, k, U) => `<p>In a <b>boom-chuck</b> pattern the bass (“boom”) takes the strong beats and the chords answer (“chuck”) on the weak ones. In 4/4 that's bass on 1 and 3, chords on 2 and 4; in 2/4, bass on 1, chord on 2. It's the basis of marches, polkas, country, folk and ragtime. The bass can be in the left hand with the chords in the right, as in this accompaniment for a singer:</p>
+      ${DIME.fig("singer", "Boom-chuck shared between the hands: left-hand bass on 1 and 3, right-hand chords on 2 and 4.")}${SHOW}
+      <p>In 3/4, <b>boom-chuck-chuck</b> is the waltz accompaniment: bass on beat 1, chords on beats 2 and 3.</p>
+      ${U.fig(WALTZ, "Boom-chuck-chuck in 3/4: Cm, Fm, G7, Cm.", { follow: true })}`
+      + H.check("In a 4/4 boom-chuck pattern, where do the chords usually go?", "beats 2 and 4", ["beats 1 and 3", "every beat", "only beat 1"], "The bass takes the strong beats (1 and 3), the chords the weak ones (2 and 4).") },
+    { title: "Boom-chuck in the left hand", kick: "The left hand does both jobs", render: () => `<p>Boom-chuck can also go entirely into the left hand: a bass note on beats 1 and 3, then a chord just above it on 2 and 4. That frees the right hand for the melody, so one player covers melody, harmony and bass.</p>
+      ${DIME.fig("stride", "Boom-chuck in the left hand: bass notes on 1 and 3, chords on 2 and 4; the melody in the right hand.")}${SHOW}
+      <p>Keep the left-hand chords in one register (nearest inversions again) so the leap back to the bass is the only big move.</p>
+      <h3>Stride piano</h3>
+      <p><b>Stride</b> piano, from Harlem in the 1910s and 1920s (James P. Johnson, Fats Waller, Willie “The Lion” Smith), takes left-hand boom-chuck and stretches it. The bass notes drop toward the bottom of the keyboard, as single notes or octaves, and the chords sit around middle C, so the left hand leaps an octave or more on almost every beat. The right hand plays the melody in full chords and octaves on top.</p>
+      <figure class="lfig ext-fig"><img src="assets/img/dime/waller-effervescent.jpg" width="605" height="558" loading="lazy" alt="Four systems of Fats Waller's Effervescent for solo piano, in E-flat major. The right hand plays the melody in chords and octaves; the left hand alternates low bass notes, many on ledger lines below the bass staff, with chords around middle C.">
+        <figcaption>Fats Waller, <i>Effervescent</i>. The left hand leaps between low bass notes on 1 and 3 and chords around middle C on 2 and 4.<p class="note lcite fair-use" data-fair-use></p></figcaption></figure>
+      <div class="lvideo"><iframe src="https://www.youtube-nocookie.com/embed/_L5zjY8zV98?start=93&amp;end=127&amp;rel=0" title="Fats Waller, Effervescent, 1:33 to 2:07 (YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      <p class="note">The video starts at 1:33 and stops at 2:07. Watch the left hand.</p>` },
+    { title: "Alberti bass and broken chords", kick: "Low, high, middle, high", render: () => `<p>An <b>Alberti bass</b> (after Domenico Alberti, about 1710–1740) breaks each chord into a repeating figure: <b>low–high–middle–high</b>. It's everywhere in Classical keyboard music (Mozart, Haydn, early Beethoven). Keep it in close position, just above the bass, and let it run in steady eighths or sixteenths under the melody.</p>
+      ${DIME.fig("alberti", "Alberti bass in eighth notes, with the melody alone in the right hand.", { g7d: true })}${SHOW}
+      <p>Other <b>broken-chord</b> patterns spread the chord wider (bass, 5th, octave, then the 3rd above) for ballads; with the pedal they fill out the sound without getting thick.</p>` },
+    { title: "Rhythmicized chords", kick: "A steady pattern for a singer", render: () => `<p>Another way to accompany a singer is to keep the chords moving in a <b>steady rhythm</b>. Here the right hand plays each chord as a repeating eighth-note figure (two chord tones on each beat, answered by a single lower note in between), while the left hand holds the bass in <b>half notes</b>, changing only with the chords. The pedal changes with each chord, so the sound stays connected but never blurs two harmonies together.</p>
+      ${DIME.fig("rhythm", "Voice (in the bass clef) and piano: right-hand chords in a steady eighth-note pattern, left-hand bass in half notes, pedal changing with each chord.")}${SHOW}
+      <ul><li>The pattern gives the song a pulse without the singer having to supply it.</li>
+      <li>The right-hand chords stay in one register (nearest inversions), so the figure barely moves as the harmony changes.</li>
+      <li>In bar 8 the pattern climbs to lead back to the top of the song: an accompaniment can fill the gaps the melody leaves.</li></ul>` },
+    { title: "An active bass line", kick: "Connect the chords", render: () => `<p>Instead of repeating roots, the left hand can play a <b>bass line</b>: the chord's bass note on each change, connected by chord tones and steps. A note a step away from the next chord's bass leads into it smoothly. Above it, the right hand keeps the melody on top with chord tones under it.</p>
+      ${DIME.fig("bassline", "An active bass line in the left hand; melody and chord tones in the right.", { g7d: true })}${SHOW}
+      <p>Slash chords already sketch a line: ${C("Cm")}–${C("G7/D")}–${C("C7/E")}–${C("F")} gives a rising bass C–D–E–F before any extra notes are added.</p>` },
+    { title: "Choosing a pattern", kick: "Style, tempo and the melody", render: H => `${tbl("Accompaniment patterns", ["Pattern", "What it does", "Good for"], [
+        ["Block chords", "all chord tones together, held or on the beats", "hymns, slow ballads, sight-reading"],
+        ["Boom-chuck", "bass on strong beats, chords on weak beats", "marches, folk, country, polkas, upbeat songs"],
+        ["Boom-chuck-chuck", "bass on 1, chords on 2 and 3", "waltzes and other songs in 3/4"],
+        ["Left-hand boom-chuck", "bass and chords both in the left hand, melody in the right", "solo piano, playing a lead sheet alone"],
+        ["Stride", "left-hand boom-chuck with wide leaps: low bass, chords around middle C", "ragtime, early jazz, solo piano"],
+        ["Alberti bass", "low–high–middle–high broken chord", "Classical style, gentle songs"],
+        ["Broken chords", "wide arpeggios from the bass", "ballads, slow and lyrical songs"],
+        ["Rhythmicized chords", "chord tones in a steady repeating rhythm over a held bass", "ballads and accompanying a singer"],
+        ["Active bass line", "bass moves between chord tones and steps", "jazz, pop, gospel; adding motion"]])}
+      <ul><li><b>Start simple</b>: block chords first, then add rhythm.</li>
+      <li><b>Pick one pattern for a section</b> and keep it; change pattern at a new section to mark the form.</li>
+      <li><b>Thin out under a busy melody</b>, and fill in when the melody holds or rests.</li>
+      <li><b>Practice hands separately</b>, then together at a slow tempo.</li></ul>
+      <p>To hear these patterns with any progression, try the <a href="groove-maker.html"><b>Groove Maker</b></a>.</p>`
+      + H.check("Which pattern puts both the bass and the chords in the left hand?", "left-hand boom-chuck", ["Alberti bass", "block chords", "boom-chuck with chords in the right hand"], "The left hand alternates a bass note and a chord, leaving the right hand free for the melody.") },
+  ] };
+  return { key: "silverapps-accomp-v1", lesson, make: () => null, reference: () => "", modes: [], topics: [] };
+})();
+window.FAM.quiz = [
+  {"s": 1, "q": "A lead sheet gives a pianist…", "a": "the melody, lyrics and chord symbols", "w": ["a fully written piano part", "only the bass line", "only the lyrics"], "hint": "Nothing says what the piano plays.", "why": "The accompanist turns the chord symbols into notes."},
+  {"s": 2, "q": "In a solo piano setting, where does the melody usually go?", "a": "on top, in the right hand", "w": ["in the left hand, at the bottom", "in the middle voice", "nowhere"], "hint": "Easiest to hear.", "why": "Chord tones go under it; the bass goes in the left hand."},
+  {"s": 2, "q": "In a slash chord such as G7/D, the bass plays…", "a": "D", "w": ["G", "B", "F"], "hint": "Read after the slash.", "why": "A slash chord names its bass note."},
+  {"s": 2, "q": "When accompanying a singer, the pianist's right hand usually…", "a": "plays only the chords, leaving the tune to the voice", "w": ["doubles the singer's melody", "rests", "plays the bass line"], "hint": "The singer has the tune.", "why": "The right hand supplies harmony in the middle of the keyboard."},
+  {"s": 3, "q": "Each hand spans about…", "a": "an octave", "w": ["a 3rd", "two octaves", "a 5th"], "hint": "One hand, one chord.", "why": "Keep right-hand chord tones within an octave below the melody note."},
+  {"s": 3, "q": "In the bass register, what sounds clearest?", "a": "a single note, an octave or an open 5th", "w": ["a close triad", "a cluster of seconds", "a four-note chord"], "hint": "Low notes need space.", "why": "Close chords low down are muddy."},
+  {"s": 3, "q": "Which chord tone should the right hand avoid doubling?", "a": "the 3rd", "w": ["the root", "the 5th", "the octave"], "hint": "It's the most prominent tone to double.", "why": "Doubling the 3rd makes the chord unbalanced."},
+  {"s": 3, "q": "Which chord tone can the right hand usually leave out?", "a": "the 5th", "w": ["the 3rd", "the 7th of a dominant", "the melody note"], "hint": "It adds the least.", "why": "The bass has the root, so the 5th is the easiest to drop."},
+  {"s": 3, "q": "In the bass, 3rds are best kept above about…", "a": "C3", "w": ["C1", "C5", "C6"], "hint": "Low 3rds blur.", "why": "Below that, a 3rd turns muddy."},
+  {"s": 4, "q": "Choosing the nearest inversion for each chord keeps the right hand…", "a": "in one register, moving smoothly", "w": ["leaping around the keyboard", "always in root position", "an octave higher each time"], "hint": "Common tones, small steps.", "why": "The left hand supplies the roots."},
+  {"s": 4, "q": "When moving from chord to chord, keep common tones and…", "a": "move the other notes by the smallest step", "w": ["leap every voice", "double every note", "move everything in parallel octaves"], "hint": "Minimum motion.", "why": "Small moves keep the harmony connected."},
+  {"s": 5, "q": "The bass note matters most…", "a": "on beat 1 and where the chord changes", "w": ["on every offbeat", "only at the end", "never"], "hint": "It tells the listener which chord sounds.", "why": "After that it can ring, move or rest."},
+  {"s": 5, "q": "When the melody is busy, the accompaniment should…", "a": "stay still", "w": ["get busier", "stop entirely", "double the melody"], "hint": "Fill gaps, don't compete.", "why": "When the melody holds or rests, the accompaniment can move."},
+  {"s": 5, "q": "On a chord held for a long time, the bass can alternate…", "a": "root and 5th", "w": ["root and 2nd", "3rd and 7th", "two different chords"], "hint": "Motion without changing harmony.", "why": "Alternating keeps the part moving without implying new chords."},
+  {"s": 6, "q": "Held block chords suit…", "a": "hymns, slow ballads and sight-reading", "w": ["fast stride piano", "Alberti figures", "only marches"], "hint": "The simplest texture.", "why": "All the chord tones sound together."},
+  {"s": 6, "q": "Left-hand chords stay clear when kept…", "a": "compact, around the octave below middle C", "w": ["spread over three octaves", "at the very bottom of the keyboard", "above the melody"], "hint": "Not too low.", "why": "Low, spread chords get muddy."},
+  {"s": 7, "q": "In a 4/4 boom-chuck pattern, the chords go on…", "a": "beats 2 and 4", "w": ["beats 1 and 3", "every beat", "beat 1 only"], "hint": "Bass on the strong beats.", "why": "Bass on 1 and 3, chords on 2 and 4."},
+  {"s": 7, "q": "A waltz accompaniment in 3/4 puts the bass on…", "a": "beat 1, with chords on beats 2 and 3", "w": ["beats 1 and 3", "every beat", "beat 3 only"], "hint": "Boom-chuck-chuck.", "why": "One bass note, then two chords."},
+  {"s": 7, "q": "In 2/4, boom-chuck puts…", "a": "the bass on 1 and the chord on 2", "w": ["the chord on 1 and the bass on 2", "both on beat 1", "the bass on both beats"], "hint": "Strong, then weak.", "why": "It's the basis of marches and polkas."},
+  {"s": 8, "q": "Putting boom-chuck entirely in the left hand frees the right hand for…", "a": "the melody", "w": ["more bass notes", "the pedal", "rests only"], "hint": "One player, all three jobs.", "why": "Melody, harmony and bass from one pianist."},
+  {"s": 8, "q": "Stride piano developed in…", "a": "Harlem in the 1910s and 1920s", "w": ["Vienna in the 1790s", "Nashville in the 1960s", "Naples in the 1700s"], "hint": "James P. Johnson, Fats Waller.", "why": "It stretches left-hand boom-chuck across the keyboard."},
+  {"s": 8, "q": "In stride, the left hand…", "a": "leaps between low bass notes and chords around middle C", "w": ["holds whole notes", "plays the melody", "stays on one note"], "hint": "Big jumps every beat.", "why": "The right hand plays the melody in chords and octaves."},
+  {"s": 9, "q": "An Alberti bass breaks a chord in the order…", "a": "low–high–middle–high", "w": ["high–low–high–low", "low–middle–high–middle", "all notes together"], "hint": "Four-note figure.", "why": "It runs in steady eighths or sixteenths."},
+  {"s": 9, "q": "Alberti bass is typical of…", "a": "Classical keyboard music (Mozart, Haydn, early Beethoven)", "w": ["bebop", "stride piano", "gospel organ"], "hint": "Named after an eighteenth-century composer.", "why": "Domenico Alberti used it around 1710–1740."},
+  {"s": 10, "q": "In a rhythmicized accompaniment, the pedal changes…", "a": "with each chord", "w": ["every beat", "never", "only at the end"], "hint": "Connected but not blurred.", "why": "Changing with the harmony keeps two chords from mixing."},
+  {"s": 11, "q": "An active bass line leads smoothly into the next chord by…", "a": "approaching its bass note from a step away", "w": ["leaping an octave", "repeating the same root", "resting"], "hint": "Stepwise connection.", "why": "Chord tones and steps link one bass note to the next."},
+  {"s": 11, "q": "Cm – G7/D – C7/E – F produces which bass line?", "a": "C–D–E–F", "w": ["C–G–C–F", "C–B–C–F", "C–F–C–F"], "hint": "Read the bass notes after the slashes.", "why": "Slash chords already sketch a rising line."},
+  {"s": 12, "q": "Changing the accompaniment pattern at a new section…", "a": "marks the form", "w": ["confuses the singer", "changes the key", "should never happen"], "hint": "Pick one per section.", "why": "A new pattern signals a new section."},
+  {"s": 12, "q": "Which pattern suits songs in 3/4?", "a": "boom-chuck-chuck", "w": ["stride", "boom-chuck in 2/4", "Alberti in 4/4"], "hint": "One bass, two chords.", "why": "It's the waltz accompaniment."}
+];
