@@ -706,3 +706,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - engine.js: n.art articulation codes (a. a- a> a^ a@a) drawn and played (length/weight); n.dyn dynamics under the staff and n.hp "<"/">" … n.hpe hairpins (cross line breaks), both affecting playback loudness.
 - Test maker: build/pages/test-maker.html (pick units/length/draw/review; link + SCORM) and build/pages/test.html (no hints, change answers until submit, score posted to the SCORM wrapper as page test-<seed>, Report for my professor). build_quizlist.py writes assets/test-bank.js (every Test Yourself bank, fig questions and hints left out). SCORM zip/manifest/wrapper moved to build/shared/scorm.js → assets/scorm.js, used by gradebook-sync.html too.
 - apps.json: Pitch Sets moved to Advanced Harmony.
+
+- z188b: Articulation, Dynamics and Phrasing moved to Foundations (after Reading Pitch).

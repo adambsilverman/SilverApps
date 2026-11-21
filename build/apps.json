@@ -55,6 +55,14 @@
           "class": true
         },
         {
+          "name": "Articulation, Dynamics and Phrasing",
+          "topic": "Shaping the line",
+          "blurb": "Articulation marks, dynamics and hairpins, slurs, ties and phrase marks, shaping a phrase, and where songwriters put stressed syllables: strong beats, long notes and syncopations.",
+          "lesson": "articulation-and-phrasing-lesson.html",
+          "drills": "articulation-and-phrasing.html",
+          "class": true
+        },
+        {
           "name": "Intervals: What, Why and How",
           "topic": "Intervals",
           "blurb": "What intervals are and how they shape melody, chords and keys; drills for naming and writing intervals.",
@@ -250,14 +258,6 @@
           "blurb": "Sentences, periods, phrase groups and double periods.",
           "lesson": "phrases-lesson.html",
           "drills": "phrases.html",
-          "class": true
-        },
-        {
-          "name": "Articulation, Dynamics and Phrasing",
-          "topic": "Shaping the line",
-          "blurb": "Articulation marks, dynamics and hairpins, slurs, ties and phrase marks, shaping a phrase, and where songwriters put stressed syllables: strong beats, long notes and syncopations.",
-          "lesson": "articulation-and-phrasing-lesson.html",
-          "drills": "articulation-and-phrasing.html",
           "class": true
         },
         {
