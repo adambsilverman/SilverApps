@@ -708,3 +708,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - apps.json: Pitch Sets moved to Advanced Harmony.
 
 - z188b: Articulation, Dynamics and Phrasing moved to Foundations (after Reading Pitch).
+
+- z189: Articulation module. Try it toy: once every syllable is placed, drag one to another eighth note (or click it, then click a slot; or arrow keys); order is kept. A staff under the slots (#prStaff) shows the setting (rests fill gaps, ties across beat/bar, no dotted rests). Examples: scale 1, rowW 800 (680 under 600px), new engine o.lyFit (invisible lyric annotation + wider wNote) so lyrics don't collide. Dotted-half rests replaced by half + quarter.

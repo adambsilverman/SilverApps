@@ -316,7 +316,7 @@
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + tagW(n);
+    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * (o.lyFit ? 10 : 6) + (o.lyFit && n.hy ? 14 : 0) - 26) : 0) + (n.lab ? 14 : 0) + tagW(n);
     const tagW = n => o.tagSide && n.tag ? String(n.tag).length * 11 + 10 : 0;   // a side tag needs room beside its note
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
@@ -397,6 +397,8 @@
               });
               for (let dd = (shown.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
               // n.art: articulation codes ("a." staccato, "a-" tenuto, "a>" accent, "a^" marcato, "a@a" fermata): on the notehead side, the fermata always above
+              // o.lyFit: an invisible copy of the lyric syllable makes the formatter leave room for it (no colliding syllables under eighth notes)
+              if (o.lyFit && n.ly != null && VF.Annotation) try { const an = new VF.Annotation(String(n.ly) + (n.hy ? " –  " : "  ")); an.setFont("Literata", 16); an.setVerticalJustification(VF.Annotation.VerticalJustify ? VF.Annotation.VerticalJustify.BOTTOM : 3); an.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" }); sn.addModifier(an, 0); } catch (e) {}
               if (n.art && !isRest && VF.Articulation) n.art.forEach(code => { try { const up = (sn.getStemDirection ? sn.getStemDirection() : 1) === 1, a = new VF.Articulation(code); a.setPosition(code === "a@a" || !up ? 3 : 4); sn.addModifier(a, 0); } catch (e) {} });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
               const L = last[si + ":" + vi];

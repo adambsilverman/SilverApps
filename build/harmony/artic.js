@@ -5,7 +5,7 @@ window.FAM = (() => {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   // ---------- score helpers: one treble staff ----------
-  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, minBar: 210, bars: bars.map(b => ({ t: [b] })) }, o);
+  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, minBar: 210, scale: 1, lyFit: true, rowW: typeof innerWidth === "number" && innerWidth < 600 ? 680 : 800, bars: bars.map(b => ({ t: [b] })) }, o);
   const n = (k, d, x = {}) => Object.assign({ k: k ? [k] : [], d }, x);
   const MEL = ["E5", "D5", "C5", "D5", "E5", "E5", "E5", "D5"];   // one short tune, articulated different ways
   const melBar = (art, extra = {}) => [0, 4].map(s => MEL.slice(s, s + 4).map((k, i) => n(k, "q", Object.assign(art ? { art: [art] } : {}, extra[s + i] || {}))));
@@ -22,7 +22,7 @@ window.FAM = (() => {
 
   // ---------- the text-setting examples (original lyrics) ----------
   // a syllable: [text, stressed?, hyphen to the next?]
-  const W = (s) => s.split(" ").map(t => { const st = /[A-Z]{2}|^[A-Z]$/.test(t.replace(/-$/, "")) && t.replace(/-$/, "") !== "I", hy = /-$/.test(t); return [t.replace(/-$/, "").toLowerCase(), st, hy]; });
+  const W = (s) => s.split(" ").map(t => { const st = /[A-Z]{2}|^[A-Z]$/.test(t.replace(/-$/, "")) && t.replace(/-$/, "") !== "I", hy = /-$/.test(t); const w = t.replace(/-$/, ""); return [w === "I" ? "I" : w.toLowerCase(), st, hy]; });
   // a setting: bars of [duration, syllable index (null: rest, or the held end of a tie), pitch, extra]
   const setFig = (sylls, bars, o = {}) => sc(o.time || "4/4", bars.map(b => b.map(([d, si, p, x]) => { const sy = si == null ? null : sylls[si];
     return n(p || null, d, Object.assign(sy ? { ly: sy[1] ? sy[0].toUpperCase() : sy[0], hy: sy[2] } : {}, x || {})); })), { bpm: o.bpm || 88 });
@@ -33,8 +33,8 @@ window.FAM = (() => {
   const longs = setFig(L_HOLD, [[["h", 0, "G4"], ["8", 1, "A4"], ["8", 2, "B4"], ["q", 3, "C5"]], [["w", 4, "D5"]]]);
   const melis = setFig(L_HOLD, [[["h", 0, "G4"], ["8", 1, "A4"], ["8", 2, "B4"], ["q", 3, "C5"]], [["8", 4, "D5", { sls: 1, ex: 1 }], ["8", null, "E5"], ["8", null, "D5"], ["8", null, "C5", { sle: 1 }], ["h"]]]);
   const L_TOM = W("to- MOR- row will CAR- ry us HOME");
-  const straight = setFig(L_TOM, [[["hd"], ["8"], ["8", 0, "G4"]], [["q", 1, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["q", 4, "G4"], ["8", 5, "A4"], ["8", 6, "B4"]], [["h", 7, "C5"], ["h"]]]);
-  const pushed = setFig(L_TOM, [[["hd"], ["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]]);
+  const straight = setFig(L_TOM, [[["h"], ["q"], ["8"], ["8", 0, "G4"]], [["q", 1, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["q", 4, "G4"], ["8", 5, "A4"], ["8", 6, "B4"]], [["h", 7, "C5"], ["h"]]]);
+  const pushed = setFig(L_TOM, [[["h"], ["q"], ["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]]);
 
   // ---------- Try it: place the syllables (drums + a synthetic singer; 2 bars of 4/4 in eighth notes) ----------
   const LINES = [
@@ -90,15 +90,40 @@ window.FAM = (() => {
     return `<div class="toy pr-toy" id="prToy">
       <div class="toy-row"><label for="prLine">Line <select id="prLine">${LINES.map((l, i) => `<option value="${i}"${i === PR.line ? " selected" : ""}>${esc(l.text)}</option>`).join("")}</select></label></div>
       <p class="lnote" id="prWords" aria-label="Syllables, stressed ones in capitals">${L.syl.map((s, i) => `<span class="pr-w${s[1] ? " st" : ""}${i === PR.cur && PR.pos.length < L.syl.length ? " next" : ""}">${esc(s[1] ? s[0].toUpperCase() : s[0])}</span>`).join(" ")}</p>
-      <p class="lnote" id="prAsk" aria-live="polite">${PR.pos.length < L.syl.length ? `Click the eighth note where <b>“${esc(L.syl[PR.pos.length][0])}”</b> starts.` : "All placed. Play it, or try a preset."}</p>
+      <p class="lnote" id="prAsk" aria-live="polite">${PR.pos.length < L.syl.length ? `Click the eighth note where <b>“${esc(L.syl[PR.pos.length][0])}”</b> starts.` : PR.sel != null ? `Moving <b>“${esc(L.syl[PR.sel][0])}”</b>: click an empty eighth note between its neighbors, or use the arrow keys.` : "All placed. Drag a syllable to another eighth note to change the rhythm (or click it, then click where it goes), then play it."}</p>
       ${[0, 1].map(b => `<div class="pr-bar" role="group" aria-label="Bar ${b + 1}"><span class="pr-bn" aria-hidden="true">${b + 1}</span>${COUNT.map((c, j) => { const p = b * 8 + j, i = PR.pos.indexOf(p), held = PR.pos.some((q, k) => q < p && (k + 1 < PR.pos.length ? PR.pos[k + 1] : (PR.pos.length === L.syl.length ? SLOTS : q + 1)) > p);
-        return `<button type="button" class="pr-slot${j % 4 === 0 ? " strong" : j % 2 === 0 ? " beat" : ""}${i >= 0 ? " on" + (L.syl[i][1] ? " st" : "") : held ? " held" : ""}" data-prs="${p}" aria-label="${beatName(p)}${i >= 0 ? `: ${L.syl[i][0]}` : held ? ": held" : ""}"><span class="pr-c" aria-hidden="true">${c}</span><span class="pr-s">${i >= 0 ? esc(L.syl[i][1] ? L.syl[i][0].toUpperCase() : L.syl[i][0]) : ""}</span></button>`; }).join("")}</div>`).join("")}
+        return `<button type="button" class="pr-slot${j % 4 === 0 ? " strong" : j % 2 === 0 ? " beat" : ""}${i >= 0 ? " on" + (L.syl[i][1] ? " st" : "") + (PR.sel === i ? " sel" : "") : held ? " held" : ""}" data-prs="${p}"${i >= 0 ? ` data-pri="${i}" aria-pressed="${PR.sel === i}"` : ""} aria-label="${beatName(p)}${i >= 0 ? `: ${L.syl[i][0]}${PR.pos.length === L.syl.length ? " (drag, or press arrow keys to move)" : ""}` : held ? ": held" : ""}"><span class="pr-c" aria-hidden="true">${c}</span><span class="pr-s">${i >= 0 ? esc(L.syl[i][1] ? L.syl[i][0].toUpperCase() : L.syl[i][0]) : ""}</span></button>`; }).join("")}</div>`).join("")}
+      <div class="pr-staff staff wide" id="prStaff" role="img" aria-label="The setting in notation"></div>
       <div class="toy-row"><button type="button" class="play" data-pr="play"><span aria-hidden="true">▶ </span>Play</button><button type="button" class="btn" data-pr="undo">Undo</button><button type="button" class="btn" data-pr="clear">Clear</button>
         <label for="prBpm">Tempo <input type="range" id="prBpm" min="60" max="132" step="2" value="${PR.bpm}"> <span id="prBpmV">${PR.bpm}</span></label></div>
       <div class="toy-row" role="group" aria-label="Presets">${PRESETS.map(([k, l]) => `<button type="button" class="btn" data-prp="${k}">${l}</button>`).join("")}</div>
       <div id="prOut" aria-live="polite">${PR.pos.length === L.syl.length ? (() => { const J = judge(L, PR.pos); return `<p><b>${J.verdict}</b></p><ul class="pr-list">${J.out.map(([t, c, d]) => `<li class="pr-${c}"><b>${esc(t)}</b>: ${d}</li>`).join("")}</ul>`; })() : ""}</div></div>`;
   };
-  const prRedraw = () => { const el = document.getElementById("prToy"); if (el) { const f = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.prs : null; el.outerHTML = prToy(); if (f != null) { const b = document.querySelector(`[data-prs="${f}"]`); if (b) b.focus(); } } };
+  const prRedraw = (focusAt) => { const el = document.getElementById("prToy"); if (el) { const f = focusAt != null ? focusAt : document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.prs : null; el.outerHTML = prToy(); if (f != null) { const b = document.querySelector(`[data-prs="${f}"]`); if (b) b.focus(); } prStaff(); } };
+  // the setting in notation: each syllable lasts until the next one starts (the last to the end of bar 2); rests fill the gaps.
+  // Durations follow the usual 4/4 rules: nothing crosses the middle of the bar unless it starts there, no dotted rests, offbeat notes start with an eighth.
+  const NM = m => "C C D D E F F G G A A B".split(" ")[m % 12] + (Math.floor(m / 12) - 1);
+  function chunks(a, b, rest) { const out = []; const ok = (a, s) => s === 8 ? a === 0 : s === 6 ? !rest && a === 0 : s === 4 ? a % 4 === 0 || (!rest && a === 2) : s === 3 ? !rest && (a === 0 || a === 4) : s === 2 ? a % 2 === 0 ? !(a === 2 && rest && false) : !rest && (a === 1 || a === 5) : true;
+    while (a < b) { const sz = [8, 6, 4, 3, 2, 1].find(z => a + z <= b && ok(a, z)); out.push(sz); a += sz; } return out; }
+  const DUR = { 8: "w", 6: "hd", 4: "h", 3: "qd", 2: "q", 1: "8" };
+  function settingSpec(L, pos) {
+    const words = L.text.toLowerCase().replace(/[^a-z ]/g, "").split(" "), wordOf = []; let w = 0, acc = "";
+    L.syl.forEach((sy, i) => { wordOf[i] = w; acc += sy[0].toLowerCase(); if (acc === words[w]) { w++; acc = ""; } });
+    const bars = [[], []], ev = [];   // [start, end, syllable index or -1]
+    let t = 0; pos.forEach((p, i) => { if (p > t) ev.push([t, p, -1]); ev.push([p, i + 1 < pos.length ? pos[i + 1] : SLOTS, i]); t = i + 1 < pos.length ? pos[i + 1] : SLOTS; }); if (t < SLOTS) ev.push([t, SLOTS, -1]);
+    ev.forEach(([a, b, i]) => { let first = true; for (let bar = Math.floor(a / 8); bar * 8 < b; bar++) { const lo = Math.max(a, bar * 8) - bar * 8, hi = Math.min(b, bar * 8 + 8) - bar * 8; if (hi <= lo) continue;
+      const cs = chunks(lo, hi, i < 0); cs.forEach((z, c) => { const last = c === cs.length - 1 && Math.min(b, bar * 8 + 8) === b;
+        if (i < 0) bars[bar].push(n(null, DUR[z])); else { const sy = L.syl[i]; bars[bar].push(n(NM(L.mel[i % L.mel.length]), DUR[z], Object.assign(first ? { ly: sy[0] === "I" ? "I" : sy[1] ? sy[0].toUpperCase() : sy[0], hy: i + 1 < L.syl.length && wordOf[i + 1] === wordOf[i] } : {}, last ? {} : { tie: 1 }))); first = false; } }); } });
+    return sc("4/4", bars, { bpm: PR.bpm });
+  }
+  function prStaff() { const el = document.getElementById("prStaff"), L = LINES[PR.line]; if (!el || !window.__harm) return; el.innerHTML = "";
+    if (PR.pos.length !== L.syl.length) { el.innerHTML = '<p class="lnote">The notation appears when every syllable is placed.</p>'; return; }
+    try { window.__harm.H.drawStaff(el, settingSpec(L, PR.pos)); } catch (e) {} }
+  const prMove = (i, at) => { const L = LINES[PR.line], pos = PR.pos, ask = document.getElementById("prAsk");
+    if (at < 0 || at >= SLOTS || at === pos[i]) return false;
+    const lo = i ? pos[i - 1] : -1, hi = i + 1 < pos.length ? pos[i + 1] : SLOTS;
+    if (at <= lo || at >= hi) { if (ask) ask.innerHTML = `Syllables stay in order: “${esc(L.syl[i][0])}” has to go after ${i ? `“${esc(L.syl[i - 1][0])}”` : "the start"} and before ${i + 1 < pos.length ? `“${esc(L.syl[i + 1][0])}”` : "the end"}.`; return false; }
+    pos[i] = at; prStop(); prRedraw(at); return true; };
 
   // sound: kick on 1 and 3, snare on 2 and 4, hi-hat eighths, a soft pad; a sawtooth "voice" through vowel formants, every syllable at the same loudness
   let AC = null, bus = null, NZ = null;
@@ -133,15 +158,31 @@ window.FAM = (() => {
     document.addEventListener("click", e => {
       const s = e.target.closest("[data-prs]"), b = e.target.closest("[data-pr]"), p = e.target.closest("[data-prp]"); if (!s && !b && !p) return;
       const L = LINES[PR.line], ask = () => document.getElementById("prAsk");
-      if (s) { const at = +s.dataset.prs;
-        if (PR.pos.length >= L.syl.length) { if (ask()) ask().textContent = "Every syllable is placed. Undo or Clear to move them."; return; }
+      if (s) { const at = +s.dataset.prs, si = s.dataset.pri != null ? +s.dataset.pri : -1;
+        if (Date.now() - (PR.dropT || 0) < 350) return;   // the click a drag ends with
+        if (si >= 0 && PR.pos.length >= L.syl.length) { PR.sel = PR.sel === si ? null : si; prRedraw(at); return; }
+        if (PR.sel != null && si < 0) { const i = PR.sel; if (prMove(i, at)) PR.sel = null, prRedraw(at); return; }
+        if (PR.pos.length >= L.syl.length) { if (ask()) ask().textContent = "Every syllable is placed. Drag one to move it, or Clear to start over."; return; }
         if (PR.pos.length && at <= PR.pos[PR.pos.length - 1]) { if (ask()) ask().textContent = "Syllables go in order: pick a later eighth note."; return; }
         if (SLOTS - at < L.syl.length - PR.pos.length) { if (ask()) ask().textContent = "There wouldn't be room for the rest of the line. Pick an earlier eighth note."; return; }
         PR.pos.push(at); prRedraw(); return; }
-      if (p) { PR.pos = preset(L, p.dataset.prp); prRedraw(); prPlay(); return; }
-      if (b.dataset.pr === "play") prPlay(); else if (b.dataset.pr === "undo") { PR.pos.pop(); prStop(); prRedraw(); } else if (b.dataset.pr === "clear") { PR.pos = []; prStop(); prRedraw(); }
+      if (p) { PR.sel = null; PR.pos = preset(L, p.dataset.prp); prRedraw(); prPlay(); return; }
+      if (b.dataset.pr === "play") prPlay(); else if (b.dataset.pr === "undo") { PR.sel = null; PR.pos.pop(); prStop(); prRedraw(); } else if (b.dataset.pr === "clear") { PR.sel = null; PR.pos = []; prStop(); prRedraw(); }
     });
-    document.addEventListener("change", e => { if (e.target.id === "prLine") { PR.line = +e.target.value; PR.pos = preset(LINES[PR.line], "beat"); prStop(); prRedraw(); } });
+    // drag a placed syllable to another eighth note (pointer events on window, so the drag keeps working off the button)
+    let drag = null;
+    document.addEventListener("pointerdown", e => { const s = e.target.closest("#prToy [data-pri]"); if (!s || PR.pos.length < LINES[PR.line].syl.length || e.button > 0) return;
+      const i = +s.dataset.pri, r = s.getBoundingClientRect(), g = document.createElement("div"); g.className = "pr-ghost"; g.textContent = s.querySelector(".pr-s").textContent; g.setAttribute("aria-hidden", "true");
+      drag = { i, x0: e.clientX, y0: e.clientY, g, on: false, dx: e.clientX - r.left, dy: e.clientY - r.top, rects: [...document.querySelectorAll("#prToy [data-prs]")].map(b => [+b.dataset.prs, b.getBoundingClientRect()]) }; });
+    window.addEventListener("pointermove", e => { if (!drag) return; if (!drag.on && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+      if (!drag.on) { drag.on = true; document.body.appendChild(drag.g); document.body.classList.add("pr-dragging"); }
+      drag.g.style.transform = `translate(${e.clientX - drag.dx}px, ${e.clientY - drag.dy}px)`; e.preventDefault(); }, { passive: false });
+    window.addEventListener("pointerup", e => { if (!drag) return; const d = drag; drag = null; d.g.remove(); document.body.classList.remove("pr-dragging"); if (!d.on) return;
+      PR.dropT = Date.now(); const hit = d.rects.find(([, r]) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom); PR.sel = null; if (hit) prMove(d.i, hit[0]); else prRedraw(); });
+    window.addEventListener("pointercancel", () => { if (drag) { drag.g.remove(); document.body.classList.remove("pr-dragging"); drag = null; } });
+    document.addEventListener("keydown", e => { const s = e.target.closest && e.target.closest("#prToy [data-pri]"); if (!s || PR.pos.length < LINES[PR.line].syl.length) return;
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!step) return; e.preventDefault(); const i = +s.dataset.pri; prMove(i, PR.pos[i] + step); });
+    document.addEventListener("change", e => { if (e.target.id === "prLine") { PR.line = +e.target.value; PR.sel = null; PR.pos = preset(LINES[PR.line], "beat"); prStop(); prRedraw(); } });
     document.addEventListener("input", e => { if (e.target.id === "prBpm") { PR.bpm = +e.target.value; const v = document.getElementById("prBpmV"); if (v) v.textContent = PR.bpm; } });
   }
   PR.pos = preset(LINES[PR.line], "beat");

@@ -805,3 +805,8 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pr-toy .pr-list li.pr-ok::marker { content: "• "; }
 .dynm { font-family: "Times New Roman", Times, serif; font-weight: 700; font-style: italic; font-size: 1.1em; }
 .ltable th .dynm { text-transform: none; letter-spacing: 0; font-size: 1.35em; }
+.pr-slot.on{cursor:grab;touch-action:none}
+.pr-slot.sel{outline:3px solid var(--fi-red-dk,#9b1c1c);outline-offset:2px}
+.pr-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;font:700 18px var(--fi-serif,serif);background:var(--fi-card,#fff);color:var(--fi-ink,#231d19);border:2px solid var(--fi-red-dk,#9b1c1c);border-radius:6px;padding:4px 8px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+body.pr-dragging,body.pr-dragging *{cursor:grabbing!important;user-select:none}
+.pr-staff{margin:10px 0}
