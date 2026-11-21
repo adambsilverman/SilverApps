@@ -279,63 +279,63 @@
           "name": "Strings",
           "topic": "Bowed strings",
           "blurb": "Open strings, ranges, harmonics, bowings and effects.",
-          "drills": "orchestration-strings.html",
+          "drills": "orchestration-strings.html", "quiz": "orchestration-strings-quiz.html",
           "class": true
         },
         {
           "name": "Winds & Brass",
           "topic": "Winds and brass",
           "blurb": "Woodwinds and brass, score order, valves, partials and mutes.",
-          "drills": "orchestration-winds-brass.html",
+          "drills": "orchestration-winds-brass.html", "quiz": "orchestration-winds-brass-quiz.html",
           "class": true
         },
         {
           "name": "Percussion",
           "topic": "Percussion",
           "blurb": "Percussion instruments, beaters, logistics and notation.",
-          "drills": "orchestration-percussion.html",
+          "drills": "orchestration-percussion.html", "quiz": "orchestration-percussion-quiz.html",
           "class": true
         },
         {
           "name": "Harp",
           "topic": "Harp",
           "blurb": "Pedals and pedal diagrams, enharmonic spelling, glissandos, harmonics and techniques.",
-          "drills": "orchestration-harp.html",
+          "drills": "orchestration-harp.html", "quiz": "orchestration-harp-quiz.html",
           "class": true
         },
         {
           "name": "Keyboard Instruments",
           "topic": "Keyboards",
           "blurb": "Piano, organ, celesta and harpsichord: pedals, accompaniments, organ stops, prepared piano.",
-          "drills": "orchestration-piano.html",
+          "drills": "orchestration-piano.html", "quiz": "orchestration-piano-quiz.html",
           "class": true
         },
         {
           "name": "Plucked Hand-held Instruments",
           "topic": "Guitar family",
           "blurb": "Guitar, mandolin, banjo, bouzouki, tenor guitar and ukulele: tunings, tab, chord diagrams, capo and techniques.",
-          "drills": "orchestration-plucked.html",
+          "drills": "orchestration-plucked.html", "quiz": "orchestration-plucked-quiz.html",
           "class": true
         },
         {
           "name": "Instrument Transpositions",
           "topic": "Transposing instruments",
           "blurb": "Read and write parts for transposing instruments.",
-          "drills": "instrument-transpositions.html",
+          "drills": "instrument-transpositions.html", "quiz": "instrument-transpositions-quiz.html",
           "class": true
         },
         {
           "name": "Score and Parts Preparation",
           "topic": "Notation & engraving",
           "blurb": "Professional scores, parts and typesetting.",
-          "drills": "score-and-parts.html",
+          "drills": "score-and-parts.html", "quiz": "score-and-parts-quiz.html",
           "class": true
         },
         {
           "name": "Orchestration Foreign Terms",
           "topic": "Score terms",
           "blurb": "Instrument names and score terms in four languages.",
-          "drills": "orchestration-foreign-terms.html",
+          "drills": "orchestration-foreign-terms.html", "quiz": "orchestration-foreign-terms-quiz.html",
           "class": true
         }
       ]
@@ -349,14 +349,14 @@
           "name": "Ear Training – Pitch and Harmony",
           "topic": "Ear training & sight-singing",
           "blurb": "Sing intervals and patterns, chord qualities, melodic dictation.",
-          "open": "ear-training.html",
+          "open": "ear-training.html", "quiz": "ear-training-quiz.html",
           "note": "Solo practice · uses the microphone"
         },
         {
           "name": "Ear Training – Rhythm",
           "topic": "Ear training & rhythm",
           "blurb": "Rhythmic dictation (hear it, write it), plus performing written rhythms: tap or clap generated, world and classical rhythms, rudiments, cues and phasing, with note-by-note timing.",
-          "open": "rhythm-performance.html",
+          "open": "rhythm-performance.html", "quiz": "rhythm-performance-quiz.html",
           "note": "Solo practice"
         },
         {

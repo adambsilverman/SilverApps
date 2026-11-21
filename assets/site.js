@@ -116,7 +116,7 @@ window.SAquiz = (function () {
     return out.sort(function (a, b) { return (a.s || 0) - (b.s || 0) || a._id - b._id; });
   }
   function state(id, bank) {
-    if (!ST[id]) { var qs = pick(bank); ST[id] = { qs: qs, i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; }
+    if (!ST[id]) { var qs = pick(typeof bank === "function" ? bank() : bank); ST[id] = { qs: qs, i: 0, first: [], tries: 0, done: false, order: qs.map(function (q) { return shuffle([q.a].concat(q.w)); }) }; }
     return ST[id];
   }
   /* Finished attempts are kept in this browser (silverapps-quiz-<page>) for the professor report;
@@ -169,9 +169,9 @@ window.SAquiz = (function () {
         build: function (st) { return reportBody(st); } });
     });
   }
-  function html(id) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score. Every try draws a fresh set of questions covering the whole lesson.</p><div class="saq-card" aria-live="polite"></div></div>'; }
+  function html(id, intro) { return '<div class="saq" id="saq-' + id + '"><p class="saq-intro">' + (intro || 'Open notes. Each question links back to the step that covers it, and a hint is there if you want one. If you miss, you get the hint and another try; only first tries count toward your score. Every try draws a fresh set of questions covering the whole lesson.') + '</p><div class="saq-card" aria-live="polite"></div></div>'; }
   function wire(root, id, bank, o) {
-    o = o || {}; var rich = o.rich || function (s) { return s; };
+    o = o || {}; var rich = o.rich || function (s) { return s; }, optHtml = o.opt || function (v) { return rich(esc(v)); };   // o.play(q.play): a Play button for questions you hear; o.opt(value): how an answer button shows its value
     var box = root.querySelector("#saq-" + id); if (!box) return;
     var card = box.querySelector(".saq-card"), S = state(id, bank), qs = S.qs;
     function look(q) { return q.s && o.href ? '<a class="saq-look" href="' + esc(o.href(q.s)) + '" target="_blank" rel="noopener">Look back: ' + esc(o.stepName ? o.stepName(q.s) : "step " + q.s) + '<span class="sr-only"> (opens in a new tab)</span></a>' : ""; }
@@ -188,7 +188,8 @@ window.SAquiz = (function () {
       }
       var q = qs[S.i];
       card.innerHTML = '<p class="saq-n">Question ' + (S.i + 1) + ' of ' + qs.length + '</p><p class="saq-q">' + rich(esc(q.q)) + '</p>' + (q.fig ? '<div class="staff saq-fig"></div>' : "")
-        + '<div class="opts">' + S.order[S.i].map(function (v) { return '<button type="button" class="opt" data-saqv="' + esc(v) + '">' + rich(esc(v)) + '</button>'; }).join("") + '</div>'
+        + (q.play && o.play ? '<div class="saq-row"><button type="button" class="btn primary saq-play" data-saq="play">▶ Play</button></div>' : "")
+        + '<div class="opts">' + S.order[S.i].map(function (v) { return '<button type="button" class="opt" data-saqv="' + esc(v) + '">' + optHtml(v) + '</button>'; }).join("") + '</div>'
         + '<div class="saq-row">' + (q.hint ? '<button type="button" class="btn saq-hb" data-saq="hint" aria-expanded="false">Hint</button>' : "") + look(q) + '</div>'
         + '<p class="saq-hint" hidden>' + rich(esc(q.hint || "")) + '</p><p class="saq-fb"></p>';
       if (q.fig && o.draw) try { o.draw(card.querySelector(".saq-fig"), q.fig); } catch (e) {}
@@ -200,6 +201,7 @@ window.SAquiz = (function () {
         if (c && c.dataset.saq === "hint") { var h = card.querySelector(".saq-hint"); h.hidden = !h.hidden; c.setAttribute("aria-expanded", String(!h.hidden)); return; }
         if (c && c.dataset.saq === "next") { S.i++; if (S.i >= qs.length) { S.done = true; finish(qs, S); } draw(); var n = card.querySelector(".saq-q, .saq-score"); if (n) { n.setAttribute("tabindex", "-1"); n.focus({ preventScroll: true }); } return; }
         if (c && c.dataset.saq === "report") { openReport(); return; }
+        if (c && c.dataset.saq === "play") { if (o.play) o.play(qs[S.i].play); c.textContent = "▶ Play again"; return; }
         if (c && c.dataset.saq === "again") { delete ST[id]; S = state(id, bank); qs = S.qs; draw(); return; }
         if (!b || b.disabled) return;
         var q = qs[S.i], ok = b.dataset.saqv === q.a, fb = card.querySelector(".saq-fb");

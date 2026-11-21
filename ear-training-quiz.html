@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Yourself: Ear Training – Pitch and Harmony · SilverApps Interactive Music Training</title>
+<meta name="description" content="A listening quiz with a report for your professor: choose the skills (intervals, chord qualities, scales, scale degrees, cadences), hear each question and name what you hear.">
+<link rel="stylesheet" href="assets/indie.css?v=bc857d9b">
+<script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-strip" role="banner"><a class="site-home" href="index.html" aria-label="SilverApps Interactive Music Training — all SilverApps"><img class="site-logo" src="assets/silverapps-logo-light.png?v=3" alt="" width="118" height="30"><span class="lbl-long site-sub">Interactive Music Training</span></a><span class="spacer"></span><span id="saJumpSlot" data-cls="site-btn" hidden></span><button class="site-btn" data-sfx aria-pressed="true" type="button" aria-label="Answer sounds on"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="lbl">Sound on</span></button></header>
+<script src="assets/samplers.js?v=36e11f6d"></script>
+<style>
+.qz{max-width:820px;margin:0 auto;padding:22px 16px 48px}
+.qz h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.qz h1 span{color:var(--fi-red-dk)}
+.qz .lead{max-width:66ch} .qz a{color:var(--fi-red-dk)}
+.qz .other{font:700 15px var(--fi-ui);margin:4px 0 18px}
+.qz fieldset{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);padding:10px 16px 14px;margin:0 0 18px}
+.qz legend{font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;padding:0 6px}
+.qz .sk{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 16px}
+.qz .sk label{display:flex;gap:9px;align-items:flex-start;padding:6px 0;font:16px/1.35 var(--fi-serif);cursor:pointer}
+.qz .sk input{width:20px;height:20px;margin:1px 0 0;flex:none}
+.qz .sk-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.qz .sk-msg{margin:6px 0 0;font:600 15px var(--fi-serif)}
+.qz .btn{font:700 15px var(--fi-ui);text-transform:uppercase;letter-spacing:.04em;padding:9px 16px;border-radius:999px;border:1.5px solid var(--fi-line);background:var(--fi-card);color:var(--fi-ink);cursor:pointer;text-decoration:none;display:inline-block}
+.qz .btn.primary{background:var(--fi-red);border-color:var(--fi-red);color:#000}
+.qz .btn:hover:not(:disabled){background:var(--fi-ink);color:#fff;border-color:var(--fi-ink)}
+.qz .btn:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+</style>
+<main id="main" class="qz" data-sa-quiz="Ear Training – Pitch and Harmony">
+<h1><span>Test</span> Yourself</h1>
+<p class="lead">A listening quiz on the skills practiced in <a href="ear-training.html">Ear Training – Pitch and Harmony</a>. Choose the skills to include, then press <b>Play</b> on each question and name what you hear. Play it as often as you like.</p>
+<p class="other"><a href="ear-training.html">← Practice: Ear Training – Pitch and Harmony</a></p>
+<fieldset id="etSkills"><legend>Skills in this quiz</legend><div class="sk"></div>
+<div class="sk-row"><button type="button" class="btn" id="etAll">Select all</button><button type="button" class="btn primary" id="etGo">Start the quiz</button><button type="button" class="btn" id="etLink">Copy a link to this set</button></div>
+<p class="sk-msg" id="etMsg" role="status" aria-live="polite"></p></fieldset>
+<div id="saqBox"></div>
+</main>
+<script>
+(() => {
+  const SK = [
+    ["mi", "Melodic intervals", true], ["hi", "Harmonic intervals", true], ["tr", "Triad qualities", true], ["sv", "Seventh chord qualities", false],
+    ["sc", "Major and minor scales", false], ["sd", "Scale degrees in a key", false], ["cad", "Cadences", false],
+  ];
+  const KEY = "silverapps-etq-skills";
+  let chosen; try { chosen = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+  const url = new URLSearchParams(location.search).get("skills");   // ?skills=mi,tr lets a teacher link (or package) a fixed set
+  if (url) chosen = url.split(",").filter(k => SK.some(s => s[0] === k));
+  if (!Array.isArray(chosen) || !chosen.length) chosen = SK.filter(s => s[2]).map(s => s[0]);
+  const box = document.querySelector("#etSkills .sk");
+  box.innerHTML = SK.map(([k, n]) => `<label><input type="checkbox" value="${k}"${chosen.includes(k) ? " checked" : ""}> <span>${n}</span></label>`).join("");
+  const picked = () => [...box.querySelectorAll("input:checked")].map(i => i.value);
+
+  // ---- question makers: each returns { q, a, w, why, play } ----
+  const rnd = n => Math.floor(Math.random() * n), pickOne = a => a[rnd(a.length)];
+  const others = (all, a, n = 3) => { const o = all.filter(x => x !== a), out = []; while (out.length < Math.min(n, o.length)) { const x = pickOne(o); if (!out.includes(x)) out.push(x); } return out; };
+  const NAMES = ["C", "D♭", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const IV = [[1, "minor 2nd"], [2, "major 2nd"], [3, "minor 3rd"], [4, "major 3rd"], [5, "perfect 4th"], [6, "tritone"], [7, "perfect 5th"], [8, "minor 6th"], [9, "major 6th"], [10, "minor 7th"], [11, "major 7th"], [12, "octave"]];
+  const ivNames = IV.map(x => x[1]);
+  const TRI = [["major", [0, 4, 7], "major 3rd + minor 3rd"], ["minor", [0, 3, 7], "minor 3rd + major 3rd"], ["diminished", [0, 3, 6], "two minor 3rds"], ["augmented", [0, 4, 8], "two major 3rds"]];
+  const SEV = [["major 7th", [0, 4, 7, 11], "major triad + major 7th"], ["dominant 7th", [0, 4, 7, 10], "major triad + minor 7th"], ["minor 7th", [0, 3, 7, 10], "minor triad + minor 7th"], ["half-diminished 7th", [0, 3, 6, 10], "diminished triad + minor 7th"], ["fully diminished 7th", [0, 3, 6, 9], "diminished triad + diminished 7th"]];
+  const SCL = [["major", [0, 2, 4, 5, 7, 9, 11, 12], "whole steps except 3–4 and 7–8"], ["natural minor", [0, 2, 3, 5, 7, 8, 10, 12], "lowered 3, 6 and 7"], ["harmonic minor", [0, 2, 3, 5, 7, 8, 11, 12], "natural minor with a raised 7th: an augmented 2nd between 6 and 7"], ["melodic minor (ascending)", [0, 2, 3, 5, 7, 9, 11, 12], "minor 3rd, but raised 6th and 7th"]];
+  const DEG = [[0, "1 (do)"], [2, "2 (re)"], [4, "3 (mi)"], [5, "4 (fa)"], [7, "5 (sol)"], [9, "6 (la)"], [11, "7 (ti)"]];
+  // chords as [bass, upper voices] for cadences in a major key (semitones above the tonic)
+  const CH = { I: [0, [4, 7, 12]], IV: [5, [5, 9, 12]], V: [-5, [2, 7, 11]], vi: [-3, [4, 9, 12]], ii: [2, [2, 5, 9]] };
+  const CAD = [["authentic cadence (V–I)", ["I", "IV", "V", "I"], "it ends V to I: the strongest close"], ["half cadence (ends on V)", ["I", "IV", "ii", "V"], "it stops on V, open and unfinished"], ["plagal cadence (IV–I)", ["I", "V", "IV", "I"], "it ends IV to I, the “amen” close"], ["deceptive cadence (V–vi)", ["I", "IV", "V", "vi"], "V moves to vi instead of I"]];
+  const MK = {
+    mi: () => { const [st, nm] = pickOne(IV), r = 55 + rnd(9), up = Math.random() < .6, b = up ? r : r + st, t = up ? r + st : r;
+      return { q: "Name the melodic interval (two notes, one after the other).", a: nm, w: others(ivNames, nm), why: `${NAMES[b % 12]} ${up ? "up" : "down"} to ${NAMES[t % 12]}: ${st} half step${st > 1 ? "s" : ""}, a ${nm}.`, play: { seq: [[b], [t]], gap: .85, dur: .8 } }; },
+    hi: () => { const [st, nm] = pickOne(IV), r = 53 + rnd(9);
+      return { q: "Name the harmonic interval (two notes together).", a: nm, w: others(ivNames, nm), why: `${NAMES[r % 12]} and ${NAMES[(r + st) % 12]}: ${st} half step${st > 1 ? "s" : ""}, a ${nm}.`, play: { seq: [[r, r + st]], gap: 0, dur: 1.6, then: [[r], [r + st]] } }; },
+    tr: () => { const [nm, iv, how] = pickOne(TRI), r = 53 + rnd(8);
+      return { q: "Name the quality of this triad.", a: nm, w: others(TRI.map(x => x[0]), nm), why: `A ${nm} triad on ${NAMES[r % 12]}: ${how}.`, play: { seq: [iv.map(i => r + i)], dur: 1.6, then: iv.map(i => [r + i]) } }; },
+    sv: () => { const [nm, iv, how] = pickOne(SEV), r = 50 + rnd(8);
+      return { q: "Name the quality of this seventh chord.", a: nm, w: others(SEV.map(x => x[0]), nm), why: `A ${nm} chord on ${NAMES[r % 12]}: ${how}.`, play: { seq: [iv.map(i => r + i)], dur: 1.8, then: iv.map(i => [r + i]) } }; },
+    sc: () => { const [nm, iv, how] = pickOne(SCL), r = 55 + rnd(8);
+      return { q: "Which scale is this?", a: nm, w: others(SCL.map(x => x[0]), nm), why: `${NAMES[r % 12]} ${nm}: ${how}.`, play: { seq: iv.map(i => [r + i]), gap: .42, dur: .45 } }; },
+    sd: () => { const [st, nm] = pickOne(DEG), k = 55 + rnd(8), oct = st > 7 && k > 58 ? -12 : 0;
+      return { q: "The chords set up a major key. Which scale degree is the last note?", a: nm, w: others(DEG.map(x => x[1]), nm), why: `In ${NAMES[k % 12]} major, ${NAMES[(k + st) % 12]} is scale degree ${nm}.`, play: { prog: ["I", "IV", "V", "I"], key: k, tail: [k + st + oct] } }; },
+    cad: () => { const [nm, prog, how] = pickOne(CAD), k = 55 + rnd(7);
+      return { q: "Which cadence ends this phrase?", a: nm, w: others(CAD.map(x => x[0]), nm), why: `${prog.join(" – ")}: ${how}.`, play: { prog, key: k } }; },
+  };
+  const bank = () => { const ks = picked(), out = []; ks.forEach((k, i) => { for (let n = 0; n < 15; n++) out.push(Object.assign({ s: i + 1 }, MK[k]())); }); return out; };
+
+  // ---- sound: sampled piano, synthesized until the recordings load ----
+  let AC = null;
+  const ctx = () => { const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return null; if (!AC) AC = new Ctx(); if (AC.state === "suspended") AC.resume(); return AC; };
+  ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, function warm() { ["pointerdown", "keydown"].forEach(x => document.removeEventListener(x, warm, true)); if (ctx() && window.SAMP) SAMP.load(AC, "piano"); }, true));
+  let stopAll = [];
+  function tone(m, t, dur, vel, out) {
+    if (window.SAMP && SAMP.ready(AC, "piano")) { const n = SAMP.note(AC, "piano", m, t, vel, out, dur); stopAll.push(() => n && n.stop && n.stop(AC.currentTime)); return; }
+    const f = 440 * Math.pow(2, (m - 69) / 12), g = AC.createGain(); g.connect(out); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.32 * vel, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + dur + .3);
+    [[1, 1], [2, .35], [3, .12]].forEach(([h, a]) => { const o = AC.createOscillator(), og = AC.createGain(); o.type = "triangle"; o.frequency.value = f * h; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + .4); stopAll.push(() => { try { o.stop(); } catch (e) {} }); });
+  }
+  function play(p) {
+    if (!ctx()) return; stopAll.forEach(f => f()); stopAll = [];
+    const out = AC.createGain(); out.gain.value = .9; out.connect(AC.destination); let t = AC.currentTime + .08;
+    if (p.prog) {   // a short phrase in four parts, then (for scale degrees) one note
+      p.prog.forEach(c => { const [b, up] = CH[c]; [p.key - 12 + b].concat(up.map(u => p.key + u)).forEach(m => tone(m, t, .85, .75, out)); t += .9; });
+      if (p.tail) { t += .5; p.tail.forEach(m => tone(m, t, 1.4, .95, out)); }
+      return;
+    }
+    p.seq.forEach(ms => { ms.forEach(m => tone(m, t, p.dur || 1, .85, out)); t += p.gap || p.dur || 1; });
+    if (p.then) { t += .45; p.then.forEach(ms => { ms.forEach(m => tone(m, t, .5, .8, out)); t += .45; }); }
+  }
+
+  let run = 0;
+  function start() {
+    const ks = picked(), msg = document.getElementById("etMsg");
+    if (!ks.length) { msg.textContent = "Choose at least one skill."; return; }
+    try { localStorage.setItem(KEY, JSON.stringify(ks)); } catch (e) {}
+    msg.textContent = `${ks.length} skill${ks.length > 1 ? "s" : ""}: ${ks.map(k => SK.find(s => s[0] === k)[1].toLowerCase()).join(", ")}.`;
+    const id = "et" + (++run), host = document.getElementById("saqBox");
+    host.innerHTML = SAquiz.html(id, "Press <b>Play</b>, then choose what you hear. If you miss, you get another try; only first tries count toward your score. Every try draws new questions from the skills you chose.");
+    SAquiz.wire(host, id, bank, { play, links: [{ href: "ear-training.html", label: "Practice: Ear Training →", primary: true }] });
+    const n = host.querySelector(".saq-q"); if (n) { n.setAttribute("tabindex", "-1"); n.focus(); }
+  }
+  document.getElementById("etGo").addEventListener("click", start);
+  document.getElementById("etLink").addEventListener("click", async () => {   // for teachers: a link that opens the quiz with these skills
+    const ks = picked(), msg = document.getElementById("etMsg"); if (!ks.length) { msg.textContent = "Choose at least one skill."; return; }
+    const u = new URL(location.href); u.search = "?skills=" + ks.join(","); u.hash = "";
+    try { await navigator.clipboard.writeText(u.href); msg.textContent = "Link copied: it opens this quiz with these skills."; } catch (e) { msg.textContent = u.href; } });
+  document.getElementById("etAll").addEventListener("click", () => { const bs = [...box.querySelectorAll("input")], on = !bs.every(b => b.checked); bs.forEach(b => b.checked = on); document.getElementById("etAll").textContent = on ? "Clear" : "Select all"; });
+  if (url) { const go = () => window.SAquiz && start(); if (window.SAquiz) go(); else window.addEventListener("DOMContentLoaded", go); }
+})();
+</script>
+
+<footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
+<script src="assets/sfx.js?v=b8f71476"></script>
+<script src="assets/site.js?v=d27e1def"></script>
+</body></html>

@@ -1,0 +1,101 @@
+[
+{
+"g": "X",
+"q": "A horn in F reads a written C. What sounds?",
+"a": "F, a perfect 5th lower",
+"w": [
+"C, as written",
+"G, a perfect 5th higher",
+"B♭, a major 2nd lower"
+],
+"why": "Horn in F sounds a P5 below written."
+},
+{
+"g": "X",
+"q": "A B♭ clarinet reads a written D. What sounds?",
+"a": "C, a major 2nd lower",
+"w": [
+"D, as written",
+"E, a major 2nd higher",
+"F, a minor 3rd higher"
+],
+"why": "B♭ instruments sound a major 2nd below written."
+},
+{
+"g": "X",
+"q": "To have a B♭ trumpet sound concert C, write…",
+"a": "D",
+"w": [
+"B♭",
+"C",
+"E♭"
+],
+"why": "Write a major 2nd higher than you want to hear."
+},
+{
+"g": "X",
+"q": "An E♭ alto saxophone sounds how far from what it reads?",
+"a": "a major 6th lower",
+"w": [
+"a major 2nd lower",
+"a perfect 5th lower",
+"an octave lower"
+],
+"why": "Written C sounds the E♭ below."
+},
+{
+"g": "X",
+"q": "An A clarinet reads a written C. What sounds?",
+"a": "A, a minor 3rd lower",
+"w": [
+"C, as written",
+"E♭, a minor 3rd higher",
+"B♭, a major 2nd lower"
+],
+"why": "Instruments in A sound a minor 3rd below written."
+},
+{
+"g": "X",
+"q": "Which instrument sounds an octave higher than written?",
+"a": "piccolo",
+"w": [
+"contrabassoon",
+"contrabass",
+"guitar"
+],
+"why": "Piccolo, xylophone and celesta are written lower than they sound."
+},
+{
+"g": "X",
+"q": "Which instrument sounds an octave lower than written?",
+"a": "guitar",
+"w": [
+"piccolo",
+"flute",
+"oboe"
+],
+"why": "Guitar, contrabass and contrabassoon are written an octave higher than they sound."
+},
+{
+"g": "X",
+"q": "A tenor saxophone in B♭ sounds…",
+"a": "a major 9th lower than written",
+"w": [
+"a major 2nd lower than written",
+"an octave lower than written",
+"as written"
+],
+"why": "It's the B♭ transposition plus an octave."
+},
+{
+"g": "X",
+"q": "A concert-pitch (C) score shows…",
+"a": "every part as it sounds, apart from octave-transposing instruments",
+"w": [
+"every part as the players read it",
+"only the transposing instruments",
+"only the strings"
+],
+"why": "Piccolo, double bass and similar instruments usually keep their octave transposition."
+}
+]
