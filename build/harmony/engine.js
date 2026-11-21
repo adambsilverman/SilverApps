@@ -638,7 +638,7 @@
           if (n.k.length) {
             if (held && held.k === n.k.join()) held.evs.forEach(e => e[2] += d);
             else { const A = n.art || [], len = A.includes("a.") ? .45 : A.includes("a^") ? .7 : A.includes("a@a") ? 1.9 : A.includes("a-") ? 1 : .95, acc = (A.includes("a^") ? 1.35 : A.includes("a>") ? 1.25 : A.includes("a-") ? 1.05 : 1) * (DF.get(n) ?? 1);   // articulation: length and weight; dynamics: loudness
-              const evs = n.k.map(s => perc ? [76, t, d * len, .9 * acc, "perc"] : [midi(parse(s)), t, d * len, Math.min(1, (si === 0 && vi === 0 ? .9 : .6) * acc) / Math.sqrt(n.k.length), undefined, undefined, undefined, s]); ev.push(...evs); held = { k: n.k.join(), evs }; }   // event [7] = the note's spelling (for sung playback)
+              const evs = n.k.map(s => perc ? [76, t, d * len, .9 * acc, "perc"] : [midi(parse(s)), t, d * len, Math.min(1.25, (si === 0 && vi === 0 ? .9 : .6) * acc) / Math.sqrt(n.k.length), undefined, undefined, undefined, s]); ev.push(...evs); held = { k: n.k.join(), evs }; }   // event [7] = the note's spelling (for sung playback)
             if (!n.tie) held = null;
           } else held = null;
           t += d;
@@ -733,9 +733,9 @@
     let lfo = null; if (voice) { lfo = AC.createOscillator(); const lg = AC.createGain(); lfo.frequency.value = 4.8 + Math.random() * .8; lg.gain.setValueAtTime(0, t0); lg.gain.linearRampToValueAtTime(14, t0 + Math.min(.6, dur)); lfo.connect(lg); lfo._g = lg; lfo.start(t0); lfo.stop(t0 + dur + .6); }
     parts.forEach(([h, a]) => { const o = AC.createOscillator(); o.type = voice || reed ? "sine" : "triangle"; o.frequency.value = f * h; o.detune.value = (Math.random() - .5) * 8; if (lfo) lfo._g.connect(o.detune);
       const og = AC.createGain(); og.gain.value = a / parts.length * 1.6; o.connect(og); og.connect(lp); o.start(t0); o.stop(t0 + dur + .6); });
-    const pk = .22 * vel, att = voice ? .07 : reed ? .03 : .012;
-    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + att);
-    if (sus) g.gain.setTargetAtTime(pk * .8, t0 + att + .03, .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
+    const pk = .22 * Math.min(vel, 1), att = voice ? .07 : reed ? .03 : .012, hot = vel > 1;   // vel above 1: an accent, so a sharp, louder attack that falls back
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(hot ? pk * (1 + (vel - 1) * 4) : pk, t0 + (hot ? .012 : att));
+    if (sus) g.gain.setTargetAtTime(pk * .8, t0 + (hot ? .02 : att + .03), hot ? .07 : .2); else g.gain.setTargetAtTime(pk * .45, t0 + .03, .5);
     g.gain.setTargetAtTime(0, t0 + dur, voice ? .12 : .08);
   }
   // recorded counting syllables (see withCount), fetched and decoded on first use
