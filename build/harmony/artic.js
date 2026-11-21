@@ -25,7 +25,7 @@ window.FAM = (() => {
   const W = (s) => s.split(" ").map(t => { const st = /[A-Z]{2}|^[A-Z]$/.test(t.replace(/-$/, "")) && t.replace(/-$/, "") !== "I", hy = /-$/.test(t); const w = t.replace(/-$/, ""); return [w === "I" ? "I" : w.toLowerCase(), st, hy]; });
   // a setting: bars of [duration, syllable index (null: rest, or the held end of a tie), pitch, extra]
   const setFig = (sylls, bars, o = {}) => sc(o.time || "4/4", bars.map(b => b.map(([d, si, p, x]) => { const sy = si == null ? null : sylls[si];
-    return n(p || null, d, Object.assign(sy ? { ly: sy[1] ? sy[0].toUpperCase() : sy[0], hy: sy[2] } : {}, x || {})); })), Object.assign({ bpm: o.bpm || 88 }, o.rowW ? { rowW: o.rowW } : {}));
+    return n(p || null, d, Object.assign(sy ? { ly: sy[1] ? sy[0].toUpperCase() : sy[0], hy: sy[2] } : {}, x || {})); })), Object.assign({ bpm: o.bpm || 88 }, o.rowW ? { rowW: o.rowW } : {}, o.minBar ? { minBar: o.minBar } : {}));
   const L_MORN = W("I re- MEM- ber the MOR- ning we LEFT");
   const good = setFig(L_MORN, [[["q"], ["8", 0, "C5"], ["8", 1, "D5"], ["q", 2, "E5"], ["8", 3, "D5"], ["8", 4, "C5"]], [["hd", 5, "G5"], ["8", 6, "E5"], ["8", 7, "D5"]], [["w", 8, "C5"]]]);
   const bad = setFig(L_MORN, [[["q", 0, "C5"], ["qd", 1, "D5"], ["8", 2, "E5"], ["q", 3, "D5"]], [["hd", 4, "C5"], ["8", 5, "G5"], ["8", 6, "E5"]], [["h", 7, "D5"], ["8", 8, "C5"], ["8"], ["q"]]]);
@@ -33,8 +33,8 @@ window.FAM = (() => {
   const longs = setFig(L_HOLD, [[["h", 0, "G4"], ["8", 1, "A4"], ["8", 2, "B4"], ["q", 3, "C5"]], [["w", 4, "D5"]]]);
   const melis = setFig(L_HOLD, [[["h", 0, "G4"], ["8", 1, "A4"], ["8", 2, "B4"], ["q", 3, "C5"]], [["8", 4, "D5", { sls: 1, ex: 1 }], ["8", null, "E5"], ["8", null, "D5"], ["8", null, "C5", { sle: 1 }], ["h"]]]);
   const L_TOM = W("to- MOR- row will CAR- ry us HOME");
-  const straight = setFig(L_TOM, [[["h"], ["q"], ["8"], ["8", 0, "G4"]], [["q", 1, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["q", 4, "G4"], ["8", 5, "A4"], ["8", 6, "B4"]], [["h", 7, "C5"], ["h"]]]);
-  const pushed = setFig(L_TOM, [[["h"], ["q"], ["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]], typeof innerWidth === "number" && innerWidth >= 600 ? { rowW: 1180 } : {});
+  const straight = setFig(L_TOM, [[["8", 0, "G4"]], [["q", 1, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["q", 4, "G4"], ["8", 5, "A4"], ["8", 6, "B4"]], [["h", 7, "C5"], ["h"]]], { minBar: 60 });
+  const pushed = setFig(L_TOM, [[["8", 0, "G4"], ["8", 1, "C5", { tie: 1 }]], [["8", null, "C5"], ["8", 2, "B4"], ["8", 3, "A4"], ["8", 4, "G4", { tie: 1 }], ["8", null, "G4"], ["8", 5, "A4"], ["8", 6, "B4"], ["8", 7, "C5", { tie: 1 }]], [["h", null, "C5"], ["h"]]], { minBar: 60 });
 
   // ---------- Try it: place the syllables (drums + a synthetic singer; 2 bars of 4/4 in eighth notes) ----------
   const LINES = [
@@ -86,6 +86,7 @@ window.FAM = (() => {
     return { out, verdict };
   }
   const prToy = () => {
+    setTimeout(() => prStaff(), 0);   // draw the notation once the toy is on the page
     const L = LINES[PR.line];
     return `<div class="toy pr-toy" id="prToy">
       <div class="toy-row"><label for="prLine">Line <select id="prLine">${LINES.map((l, i) => `<option value="${i}"${i === PR.line ? " selected" : ""}>${esc(l.text)}</option>`).join("")}</select></label></div>

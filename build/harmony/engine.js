@@ -315,7 +315,9 @@
     const time = o.time || "4/4", sigN = Object.values(o.sig || {}).filter(a => a).length;
     const rest = { treble: "b/4", bass: "d/3", percussion: "b/4", alto: "c/4", tenor: "a/3" };
     const restW = { treble: "d/5", bass: "f/3", percussion: "d/5", alto: "e/4", tenor: "c/4" };   // the whole rest hangs from the 4th line (one line above the half rest)
-    const wNote = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly ? Math.max(0, String(n.ly).length * (o.lyFit ? 10 : 6) + (o.lyFit && n.hy ? 14 : 0) - 26) : 0) + (n.lab ? 14 : 0) + tagW(n);
+    const wNote0 = n => ({ w: 58, h: 46, q: 36, "8": 27, "16": 22 }[/^(w|h|q|8|16)/.exec(n.d)[1]]) + (n.d.match(/d/g) || []).length * 8 + Math.min(30, n.k.filter(s => /[♭♯𝄫𝄪]/.test(s)).length * 10) + (n.ly && !o.lyFit ? Math.max(0, String(n.ly).length * 6 - 26) : 0) + (n.lab ? 14 : 0) + tagW(n);
+    const wNoteFit = n => o.lyFit ? (n.ly != null ? Math.max(wNote0(n), String(n.ly).length * 10 + (n.hy ? 26 : 14)) : wNote0(n) + (n.k.length ? 0 : 12)) : wNote0(n);   // o.lyFit: room for the whole syllable (its invisible copy sets the minimum) and a little more around rests
+    const wNote = wNoteFit;
     const tagW = n => o.tagSide && n.tag ? String(n.tag).length * 11 + 10 : 0;   // a side tag needs room beside its note
     const durN = n => durOf(n.d) * (n.tu ? (n.tuo || 2) / (n.tun || 3) : 1);
     const propW = bar => {   // the densest note sets pixels per beat; the bar gets that rate times its length (so a half note gets twice a quarter's room)
@@ -396,7 +398,7 @@
               });
               for (let dd = (shown.match(/d/g) || []).length; dd > 0; dd--) VF.Dot.buildAndAttach([sn], { all: true });
               // o.lyFit: bars are widened for their syllables (wNote) and spaced in proportion to the note values (softmax below); an invisible copy of each syllable keeps short notes from crowding their words
-              if (o.lyFit && n.ly != null && VF.Annotation) try { const an = new VF.Annotation(String(n.ly) + (n.hy ? " – " : " ")); an.setFont("Literata", 16); an.setVerticalJustification(VF.Annotation.VerticalJustify ? VF.Annotation.VerticalJustify.BOTTOM : 3); an.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" }); sn.addModifier(an, 0); } catch (e) {}
+              if (o.lyFit && n.ly != null && VF.Annotation) try { const an = new VF.Annotation(String(n.ly) + (n.hy ? " – " : " ")); an.setFont("Literata", 16); an.setVerticalJustification(VF.Annotation.VerticalJustify ? VF.Annotation.VerticalJustify.BOTTOM : 3); an.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" }); sn.addModifier(an, 0); sn._saFit = 1; } catch (e) {}
               // n.art: articulation codes ("a." staccato, "a-" tenuto, "a>" accent, "a^" marcato, "a@a" fermata): on the notehead side, the fermata always above
               if (n.art && !isRest && VF.Articulation) n.art.forEach(code => { try { const up = (sn.getStemDirection ? sn.getStemDirection() : 1) === 1, a = new VF.Articulation(code); a.setPosition(code === "a@a" || !up ? 3 : 4); sn.addModifier(a, 0); } catch (e) {} });
               st(sn); if (sn.setLedgerLineStyle) sn.setLedgerLineStyle({ strokeStyle: ink, fillStyle: ink });
@@ -445,7 +447,9 @@
     });
     ties.forEach(t => {
       const idx = [...Array(t.n).keys()];
-      const mkTie = (a, b) => { const tie = new VF.StaveTie({ first_note: a, last_note: b, first_indices: idx, last_indices: idx }); if (t.dir) tie.setDirection(t.dir); st(tie); tie.setContext(ctx).draw(); };
+      const mkTie = (a, b) => { const tie = new VF.StaveTie({ first_note: a, last_note: b, first_indices: idx, last_indices: idx }); if (t.dir) tie.setDirection(t.dir);
+        // a note carrying an invisible lyric (o.lyFit) reports its tie point past the text: start and end the tie at the notehead instead
+        try { if (a && a._saFit) tie.render_options.first_x_shift = a.getNoteHeadEndX() + 2 - a.getTieRightX(); if (b && b._saFit) tie.render_options.last_x_shift = b.getNoteHeadBeginX() - 2 - b.getTieLeftX(); } catch (e) {} st(tie); tie.setContext(ctx).draw(); };
       if (t.ra === t.rb) mkTie(t.a, t.b); else { mkTie(t.a, null); mkTie(null, t.b); }
     });
     const svg = el.querySelector("svg");
