@@ -5,7 +5,7 @@ window.FAM = (() => {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   // ---------- score helpers: one treble staff ----------
-  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, timbre: "reed", minBar: 210, scale: 1, lyFit: true, rowW: typeof innerWidth === "number" && innerWidth < 600 ? 680 : 1000, bars: bars.map(b => ({ t: [b] })) }, o);
+  const sc = (time, bars, o = {}) => Object.assign({ type: "score", clefs: ["treble"], time, vf: "C", sig: {}, bpm: 92, timbre: "reed", minBar: 210, scale: .85, lyFit: true, rowW: typeof innerWidth === "number" && innerWidth < 600 ? 680 : 1000, bars: bars.map(b => ({ t: [b] })) }, o);
   const n = (k, d, x = {}) => Object.assign({ k: k ? [k] : [], d }, x);
   const MEL = ["E5", "D5", "C5", "D5", "E5", "E5", "E5", "D5"];   // one short tune, articulated different ways
   const melBar = (art, extra = {}) => [0, 4].map(s => MEL.slice(s, s + 4).map((k, i) => n(k, "q", Object.assign(art ? { art: [art] } : {}, extra[s + i] || {}))));

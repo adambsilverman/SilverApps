@@ -722,3 +722,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z194: lyFit fixes: bar widths reserve each syllable's full width (wNoteFit; extra room around rests) so bars never overflow; ties on lyric notes start/end at the notehead (StaveTie first/last_x_shift). Toy notation draws as soon as the step opens. Stresses-that-push examples start with a pickup (minBar 60) instead of a bar of rests.
 
 - z195: Articulation module examples play on the "reed" synth (sustained), so note lengths and accents are audible; engine: note velocity may reach 1.25 for accents/marcato, and a sustained synth tone with vel > 1 gets a sharp, louder attack that falls back.
+
+- z196: Lesson notation (score figures in renderLesson fig()) defaults to scale .85 instead of 1.25, so single full-width examples match the smaller side-by-side ones; drills keep 1.25. Articulation module scale .85 too.
