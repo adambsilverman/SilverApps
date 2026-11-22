@@ -295,3 +295,6 @@ button,a,input,select,label,[role="button"]{touch-action:manipulation}
 .sa-lb.zoom .sa-lb-stack { max-width: none; width: 220%; }
 .sa-lb.zoom .sa-lb-stack img { max-width: none; max-height: none; width: 100%; }
 .sa-lb-cap { margin: 0; padding: 6px 14px 12px; font-size: .9rem; color: #333; }
+
+/* iPhone Safari enlarges the text of some blocks on its own ("text autosizing"), so lessons showed different text sizes: keep every page at the sizes set here */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}

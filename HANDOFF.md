@@ -724,3 +724,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z195: Articulation module examples play on the "reed" synth (sustained), so note lengths and accents are audible; engine: note velocity may reach 1.25 for accents/marcato, and a sustained synth tone with vel > 1 gets a sharp, louder attack that falls back.
 
 - z196: Lesson notation (score figures in renderLesson fig()) defaults to scale .85 instead of 1.25, so single full-width examples match the smaller side-by-side ones; drills keep 1.25. Articulation module scale .85 too.
+
+- z197: indie.css: html text-size-adjust 100% (iPhone Safari text autosizing made some lesson steps show larger body text).
