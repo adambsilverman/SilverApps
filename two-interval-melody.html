@@ -43,6 +43,16 @@
 .tim ul.check li{padding:3px 0 3px 28px;position:relative;font:16px/1.4 var(--fi-serif)}
 .tim ul.check li::before{content:"○";position:absolute;left:4px}
 .tim ul.check li.done::before{content:"✓";color:#1d6b2f;font-weight:700}
+.tim .kbd-wrap{overflow-x:auto;margin-top:10px;padding-bottom:4px}
+.tim .kbd{position:relative;display:flex;height:150px;min-width:560px;user-select:none;-webkit-user-select:none}
+.tim .kbd button{font:600 12px var(--fi-ui);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:0 0 6px;touch-action:manipulation}
+.tim .kbd .wk{flex:1;border:1.5px solid #3a332d;border-left-width:0;background:#fffdf8;color:#3a332d;border-radius:0 0 6px 6px}
+.tim .kbd .wk:first-child{border-left-width:1.5px}
+.tim .kbd .bk{position:absolute;top:0;height:60%;background:#231d19;color:#fff;border:1px solid #000;border-radius:0 0 5px 5px;z-index:1;font-size:10px}
+.tim .kbd button:hover{filter:brightness(.92)}
+.tim .kbd button:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:-3px}
+.tim .kbd .last{background:#cfe0f5}.tim .kbd .bk.last{background:#1d4f91}
+.tim .kbd .bad{background:#f6c9cc}.tim .kbd .bk.bad{background:#a3141f}
 .tim .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 <main id="main" class="tim">
@@ -70,14 +80,16 @@
   <div class="chips" id="mIvs" role="group" aria-labelledby="mIvLab"></div>
   <div class="lab" id="mAccLab">Accidental</div>
   <div class="chips" id="mAccs" role="group" aria-labelledby="mAccLab"></div>
-  <p class="now">Click the staff on the line or space where the note goes. Or use the keyboard: choose a note below and press <b>Place note</b>. A note longer than the space left in the bar is tied over the bar line for you. If a note is wrong, it turns red: fix it by changing its accidental, moving it with the arrows, or clicking somewhere else.</p>
+  <p class="now">Click the staff on the line or space where the note goes, or play the note on the keyboard below (a black key is spelled with the accidental you chose: ♯ or ♭). Or choose a letter and octave and press <b>Place note</b>. <b>Respell</b> changes the red note to another name for the same key (like C♯ ↔ D♭). A note longer than the space left in the bar is tied over the bar line for you. If a note is wrong, it turns red: fix it by changing its accidental, moving it with the arrows, or clicking somewhere else.</p>
   <div class="row">
     <label class="f">Letter<select id="mLet"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select></label>
     <label class="f">Octave<select id="mOct"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
     <button type="button" class="btn" id="mPlace">Place note</button>
     <button type="button" class="btn" id="mUp" aria-label="Move the red note up a step">▲</button>
     <button type="button" class="btn" id="mDown" aria-label="Move the red note down a step">▼</button>
+    <button type="button" class="btn" id="mResp">Respell</button>
   </div>
+  <div class="kbd-wrap"><div class="kbd" id="mKbd" role="group" aria-label="Keyboard: play a key to place a note"></div></div>
   <div class="score" id="mScore" role="img" aria-label="Your melody in notation"></div>
   <p class="msg" id="mMsg" role="status" aria-live="assertive"></p>
   <div class="row">
@@ -192,7 +204,7 @@
     if (got.g === want[2] + 1 && got.s === want[3]) { commit(`Right: ${pname(prev)} ${dir} to ${pname(P.p)} is a ${want[0]}.`); return; }
     let why;
     if (got.s === 0 && got.g === 1) why = "That's the same note. Move up or down.";
-    else if (got.s === want[3]) why = `Right size (${want[3]} half steps), but ${pname(prev)} to ${pname(P.p)} is spelled as ${got.art}${got.long}. A ${want[0]} spans ${want[2] + 1} letter names: respell it with a different letter.`;
+    else if (got.s === want[3]) why = `Right size (${want[3]} half step${want[3] === 1 ? "" : "s"}), but ${pname(prev)} to ${pname(P.p)} is spelled as ${got.art}${got.long}. A ${want[0]} spans ${want[2] + 1} letter names: respell it with a different letter.`;
     else if (got.g === want[2] + 1) why = `Right letters for a ${ORD[want[2] + 1]}, but ${pname(prev)} to ${pname(P.p)} is ${got.s} half step${got.s === 1 ? "" : "s"} (${got.art}${got.long}). A ${want[0]} is ${want[3]}: change the accidental.`;
     else why = `${pname(prev)} to ${pname(P.p)} is ${got.art}${got.long} (${got.s} half step${got.s === 1 ? "" : "s"}). A ${want[0]} spans ${want[2] + 1} letter names and ${want[3]} half steps, up or down.`;
     setMsg("Not yet. " + why, "no"); render();
@@ -206,6 +218,27 @@
     playOne(P.p); render();
   }
   function nudge(step) { if (!S.pending) { setMsg("There's no red note to move. Place a note first.", "no"); return; } const p = S.pending.p; if (p.dn + step < RANGE[S.clef][0] || p.dn + step > RANGE[S.clef][1]) return; p.dn += step; check(); }
+  // ---------- soft keyboard ----------
+  // a key gives a pitch; its spelling: the chosen accidental if that names a white key (B♯, E♯ and C♭, F♭ included), otherwise the plain letter or sharp/flat
+  function spell(m, acc) {
+    const oct = Math.floor(m / 12) - 1, pc = ((m % 12) + 12) % 12, tryAcc = a => { const n = pc - a, nn = ((n % 12) + 12) % 12, L = STEP.indexOf(nn); if (L < 0) return null; const o = oct + Math.floor((pc - a) / 12) - (pc - a < 0 ? 0 : 0); return { dn: (oct + Math.floor((pc - a) / 12)) * 7 + L, acc: a }; };
+    return tryAcc(acc) || tryAcc(0) || tryAcc(acc < 0 ? -1 : 1) || tryAcc(acc < 0 ? 1 : -1);
+  }
+  const KR = { treble: [55, 86], bass: [35, 65] };   // G3–D6 and B1–F4
+  function drawKbd() {
+    const [lo, hi] = KR[S.clef], whites = [], blacks = [], last = lastPitch(), bad = S.pending && S.pending.p;
+    for (let m = lo; m <= hi; m++) { if (STEP.includes(m % 12)) whites.push(m); else blacks.push(m); }
+    const W = 100 / whites.length, nm = m => { const s = spell(m, 1), f = spell(m, -1); return STEP.includes(m % 12) ? pspeak(spell(m, 0)) : `${pspeak(s)} or ${pspeak(f)}`; };
+    const cls = m => (bad && midi(bad) === m ? " bad" : last && midi(last) === m ? " last" : "");
+    $("mKbd").innerHTML = whites.map(m => `<button type="button" class="wk${cls(m)}" data-key="${m}" aria-label="${nm(m)}">${m % 12 === 0 ? "C" + (Math.floor(m / 12) - 1) : ""}</button>`).join("")
+      + blacks.map(m => { const i = whites.findIndex(w => w > m); return `<button type="button" class="bk${cls(m)}" data-key="${m}" aria-label="${nm(m)}" style="left:calc(${i * W}% - ${W * .3}%);width:${W * .6}%"></button>`; }).join("");
+  }
+  function centerKbd() { const wrap = $("mKbd").parentElement; if (wrap.scrollWidth <= wrap.clientWidth) return;
+    const k = $("mKbd").querySelector(".bad,.last") || $("mKbd").querySelector(`[data-key="${S.clef === "treble" ? 60 : 48}"]`); if (k) wrap.scrollLeft = k.offsetLeft - wrap.clientWidth / 2 + k.offsetWidth / 2; }
+  $("mKbd").addEventListener("click", e => { const k = e.target.closest("[data-key]"); if (!k) return; const p = spell(+k.dataset.key, S.acc); if (p) place(p); });
+  $("mResp").onclick = () => { if (!S.pending) { setMsg("There's no red note to respell. Place a note first.", "no"); return; }
+    const m = midi(S.pending.p), opts = [-2, -1, 0, 1, 2].map(a => spell(m, a)).filter((x, i, A) => x && x.acc === [-2, -1, 0, 1, 2][i] && x.dn >= RANGE[S.clef][0] && x.dn <= RANGE[S.clef][1]);
+    if (opts.length < 2) return; const i = opts.findIndex(o => o.dn === S.pending.p.dn && o.acc === S.pending.p.acc); S.pending.p = opts[(i + 1) % opts.length]; check(); };
   $("mUp").onclick = () => nudge(1); $("mDown").onclick = () => nudge(-1);
   $("mPlace").onclick = () => { const oct = +$("mOct").value, L = LET.indexOf($("mLet").value); place({ dn: oct * 7 + L, acc: S.acc }); };
   $("mUndo").onclick = () => { if (S.pending) S.pending = null; else S.notes.pop(); save(); setMsg(""); render(); };
@@ -218,7 +251,7 @@
     const u = used(), B = barLen(), done = u >= total();
     const prev = lastPitch(), want = chosen()[S.iv];
     $("mNow").innerHTML = done ? "<b>All four bars are full.</b> Play it, check it below, and export it." : S.rest ? `Bar ${Math.floor(u / B) + 1}: choose a rest value, then click anywhere on the staff (or press Place note) to add it.` : !prev ? "Start by choosing a note value, then click the staff to place your <b>first note</b> (any pitch)." : `Next: a <b>${want[0]}</b> up or down from <b>${pname(prev)}</b>, as a ${DUR.find(d => d[0] === S.dur)[1]} note.`;
-    drawScore(); checklist();
+    drawScore(); checklist(); drawKbd(); centerKbd();
   }
   function drawScore() {
     const box = $("mScore"), VF = window.Vex && Vex.Flow; if (!VF) { box.textContent = "Notation is loading…"; return; }
