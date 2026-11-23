@@ -728,3 +728,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z197: indie.css: html text-size-adjust 100% (iPhone Safari text autosizing made some lesson steps show larger body text).
 
 - z198: New composing tool build/pages/two-interval-melody.html (Creating Music, after Composition): four-bar melody in 4/4 or 12/8 from two chosen intervals; note values w–16 incl. dotted h/q/8, rests; each note checked for interval spelling and size (red until right; fix with accidentals, arrows or another click); VexFlow notation with clef, time signature, auto stems, beams by beat, accidentals per bar, interval labels above; checklist; sampled instruments (SAMP) + synth flute/strings; WAV/MP3 export (OfflineAudioContext reusing AC.__samp). Saves the melody in localStorage.
+
+- z199: Two-Interval Melody: notes may run past the bar line (split into tied pieces drawn with StaveTie, half-ties across a line break; continuation repeats no accidental); rests are split at the bar line without dotted values. Interval labels run from a note's last tied piece to the next note.

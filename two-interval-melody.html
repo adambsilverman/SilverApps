@@ -70,7 +70,7 @@
   <div class="chips" id="mIvs" role="group" aria-labelledby="mIvLab"></div>
   <div class="lab" id="mAccLab">Accidental</div>
   <div class="chips" id="mAccs" role="group" aria-labelledby="mAccLab"></div>
-  <p class="now">Click the staff on the line or space where the note goes. Or use the keyboard: choose a note below and press <b>Place note</b>. If a note is wrong, it turns red: fix it by changing its accidental, moving it with the arrows, or clicking somewhere else.</p>
+  <p class="now">Click the staff on the line or space where the note goes. Or use the keyboard: choose a note below and press <b>Place note</b>. A note longer than the space left in the bar is tied over the bar line for you. If a note is wrong, it turns red: fix it by changing its accidental, moving it with the arrows, or clicking somewhere else.</p>
   <div class="row">
     <label class="f">Letter<select id="mLet"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select></label>
     <label class="f">Octave<select id="mOct"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
@@ -175,9 +175,10 @@
 
   // ---------- placing a note ----------
   const words = n => { const d = DUR.find(x => x[2] === n); return d ? `a ${d[1]} note` : n % 2 ? `${n} sixteenth notes` : `${n / 2} eighth notes`; };
-  function fits(len) { const B = barLen(), u = used(), left = B - (u % B || 0); if (u >= total()) return "The melody is four bars long already. Undo a note to change it."; if (len > left) return `That doesn't fit: bar ${Math.floor(u / B) + 1} has room for only ${words(left)} more. Pick a shorter value (notes don't cross the bar line here).`; return ""; }
+  function fits(len) { const B = barLen(), u = used(), left = B - (u % B || 0); if (u >= total()) return "The melody is four bars long already. Undo a note to change it."; if (u + len > total()) return `That doesn't fit: the melody has room for only ${words(total() - u)} more. Pick a shorter value.`; return ""; }
+  const crosses = len => { const B = barLen(), u = used(); return Math.floor(u / B) !== Math.floor((u + len - 1) / B); };
   function addRest() { const len = DUR.find(d => d[0] === S.dur)[2], f = fits(len); if (f) { setMsg(f, "no"); return; }
-    S.notes.push({ d: S.dur, p: null }); save(); setMsg(`Added a ${DUR.find(d => d[0] === S.dur)[1]} rest.`, "ok"); render(); }
+    const cr = crosses(len); S.notes.push({ d: S.dur, p: null }); save(); setMsg(`Added a ${DUR.find(d => d[0] === S.dur)[1]} rest${cr ? ", split at the bar line (rests are never tied)" : ""}.`, "ok"); render(); }
   function place(p) {
     if (S.rest) { addRest(); return; }
     if (p.dn < RANGE[S.clef][0] || p.dn > RANGE[S.clef][1]) { setMsg("That's too far from the staff. Stay within four ledger lines, or switch clefs.", "no"); return; }
@@ -197,7 +198,7 @@
     setMsg("Not yet. " + why, "no"); render();
   }
   function commit(text) {
-    const P = S.pending; S.pending = null; S.notes.push({ d: P.d, p: P.p }); save();
+    const P = S.pending; S.pending = null; const cr = crosses(DUR.find(d => d[0] === P.d)[2]); S.notes.push({ d: P.d, p: P.p }); save(); if (cr) text += " It's tied over the bar line.";
     // coaching on direction: three moves the same way in a row
     const ps = S.notes.filter(n => n.p).map(n => midi(n.p)), dirs = ps.slice(1).map((m, i) => Math.sign(m - ps[i]));
     const run = dirs.length >= 3 && dirs.slice(-3).every(d => d === dirs[dirs.length - 1]);
@@ -227,7 +228,14 @@
     const svg = box.querySelector("svg"); svg.setAttribute("viewBox", `0 0 ${W} ${rows * rowH + 10}`); svg.removeAttribute("width"); svg.removeAttribute("height"); svg.style.width = "100%"; svg.style.height = "auto"; svg.setAttribute("aria-hidden", "true");
     const all = S.notes.map(n => Object.assign({}, n)); if (S.pending) all.push(Object.assign({ bad: true }, S.pending));
     // split into bars
-    const bars = [[], [], [], []]; let t = 0; all.forEach(n => { const len = DUR.find(d => d[0] === n.d)[2], b = Math.min(3, Math.floor(t / B)); bars[b].push(n); t += len; });
+    // each note becomes one or more pieces: split at bar lines (tied, for notes) and spelled with the largest values that fit
+    const bars = [[], [], [], []], VAL = DUR.map(d => [d[2], d[0]]); let t = 0;
+    all.forEach((n, ni) => { let len = DUR.find(d => d[0] === n.d)[2], first = true; const pieces = [];
+      while (len > 0) { const b = Math.min(3, Math.floor(t / B)), room = (b + 1) * B - t, seg = Math.min(len, room);
+        const parts = seg === len && first ? [[len, n.d]] : (() => { const o = []; let r = seg; while (r > 0) { const v = VAL.find(([l, d]) => l <= r && (n.p || !/d$/.test(d))); o.push(v); r -= v[0]; } return o; })();
+        parts.forEach(([l, d]) => { const pc = Object.assign({}, n, { d, first, ni }); first = false; bars[b].push(pc); pieces.push(pc); });
+        t += seg; len -= seg; }
+      pieces.forEach((pc, i) => { pc.tieNext = n.p && i < pieces.length - 1; pc.last = i === pieces.length - 1; }); });
     const staves = [], vfNotes = [], firstW = perRow === 1 ? 0 : 120, restKey = S.clef === "treble" ? "b/4" : "d/3";
     for (let b = 0; b < 4; b++) {
       const row = Math.floor(b / perRow), col = b % perRow, x0 = 10, avail = W - 20 - firstW, y0 = perRow === 1 ? 30 : 40;
@@ -238,7 +246,7 @@
         const k = n.p ? `${LET[n.p.dn % 7].toLowerCase()}/${Math.floor(n.p.dn / 7)}` : restKey, base = n.d.replace("d", ""), dot = /d$/.test(n.d) && n.d !== "d";
         const sn = new VF.StaveNote({ clef: S.clef, keys: [k], duration: base + (n.p ? "" : "r"), auto_stem: true, dots: dot ? 1 : 0 });
         if (dot) VF.Dot.buildAndAttach([sn], { all: true });
-        if (n.p) { const key = n.p.dn, cur = state[key] ?? 0; if (n.p.acc !== cur) { sn.addModifier(new VF.Accidental(VACC[n.p.acc]), 0); state[key] = n.p.acc; } }
+        if (n.p && n.first) { const key = n.p.dn, cur = state[key] ?? 0; if (n.p.acc !== cur) { sn.addModifier(new VF.Accidental(VACC[n.p.acc]), 0); state[key] = n.p.acc; } }   // a tied continuation repeats no accidental
         if (n.bad) sn.setStyle({ fillStyle: "#c0141f", strokeStyle: "#c0141f" });
         sn._m = n; return sn;
       });
@@ -251,10 +259,15 @@
         notes.forEach(sn => vfNotes.push(sn));
       }
     }
-    // interval labels above the staff, centered between each pair of notes
-    const ns = vfNotes.filter(n => n._m.p);
-    for (let i = 1; i < ns.length; i++) {
-      const a = ns[i - 1], c = ns[i], iv = ivName(a._m.p, c._m.p), sameRow = Math.abs(a.getStave().getY() - c.getStave().getY()) < 1;
+    // ties between the pieces of a note (split in two halves when the tie crosses to a new line)
+    vfNotes.forEach((a, i) => { if (!a._m.tieNext) return; const c = vfNotes[i + 1]; if (!c) return;
+      const same = Math.abs(a.getStave().getY() - c.getStave().getY()) < 1, sty = a._m.bad ? { fillStyle: "#c0141f", strokeStyle: "#c0141f" } : null;
+      const ties = same ? [new VF.StaveTie({ first_note: a, last_note: c, first_indices: [0], last_indices: [0] })] : [new VF.StaveTie({ first_note: a, first_indices: [0] }), new VF.StaveTie({ last_note: c, last_indices: [0] })];
+      ties.forEach(ti => { ti.setContext(cx); if (sty && ti.setStyle) ti.setStyle(sty); ti.draw(); }); });
+    // interval labels above the staff, centered between each pair of notes: from the end of one note (its last tied piece) to the start of the next
+    const heads = vfNotes.filter(n => n._m.p && n._m.first), tails = vfNotes.filter(n => n._m.p && n._m.last);
+    for (let i = 1; i < heads.length; i++) {
+      const a = tails[i - 1], c = heads[i], iv = ivName(a._m.p, c._m.p), sameRow = Math.abs(a.getStave().getY() - c.getStave().getY()) < 1;
       const xa = a.getAbsoluteX() + 6, xc = c.getAbsoluteX() + 6, x = sameRow ? (xa + xc) / 2 : xc - 14;
       const top = Math.min(c.getStave().getYForLine(0) - 18, ...[a, c].filter(n => n.getStave() === c.getStave()).map(n => Math.min(...n.getYs(), n.getStemExtents ? Math.min(n.getStemExtents().topY, n.getStemExtents().baseY) : 999) - 14));
       const tx = document.createElementNS("http://www.w3.org/2000/svg", "text"); tx.setAttribute("x", x); tx.setAttribute("y", Math.max(14, top)); tx.setAttribute("text-anchor", "middle"); tx.setAttribute("class", "iv");
