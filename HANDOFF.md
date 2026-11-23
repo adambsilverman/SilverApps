@@ -734,3 +734,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z200: Two-Interval Melody: on-screen keyboard (G3–D6 treble, B1–F4 bass) places notes; a key is spelled with the selected accidental when that names it (incl. B♯/E♯/C♭/F♭), else natural or sharp/flat; Respell cycles the red note through its enharmonic spellings; last note blue, red note red; scrolls to the current note on phones.
 
 - z201: Two-Interval Melody: direction check passes at 4 or more changes of direction; "Download notation (JPG)" redraws the score with four bars on one line (drawScore(target, rowsOf)), adds a title line, inlines label styles and the root svg defaults, and saves a 2x JPEG.
+
+- z202: Meter and Beaming: new step 12 "Syncopation in songs" (after Syncopation): Firework chorus (anticipations tied over the bar line) and The Message opening verse (tresillo 3+3+2, chain of syncopations), images with lyric rows cut out (assets/img/meter/firework.png, the-message.png) + user-supplied clips (assets/audio/meter/). Quiz s numbers >= 12 shifted by one.
