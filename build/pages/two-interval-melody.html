@@ -93,7 +93,8 @@
 <h2>4. Export</h2>
 <div class="panel">
   <div class="row"><label class="f">Format<select id="mFmt"><option value="wav">WAV</option><option value="mp3">MP3</option></select></label>
-  <button type="button" class="btn primary" id="mExport">Download audio</button></div>
+  <button type="button" class="btn primary" id="mExport">Download audio</button>
+  <button type="button" class="btn" id="mJpg">Download notation (JPG)</button></div>
   <p class="now" id="mExpMsg" role="status" aria-live="polite"></p>
 </div>
 </main>
@@ -241,13 +242,13 @@
     $("mNow").innerHTML = done ? "<b>All four bars are full.</b> Play it, check it below, and export it." : S.rest ? `Bar ${Math.floor(u / B) + 1}: choose a rest value, then click anywhere on the staff (or press Place note) to add it.` : !prev ? "Start by choosing a note value, then click the staff to place your <b>first note</b> (any pitch)." : `Next: a <b>${want[0]}</b> up or down from <b>${pname(prev)}</b>, as a ${DUR.find(d => d[0] === S.dur)[1]} note.`;
     drawScore(); checklist(); drawKbd(); centerKbd();
   }
-  function drawScore() {
-    const box = $("mScore"), VF = window.Vex && Vex.Flow; if (!VF) { box.textContent = "Notation is loading…"; return; }
+  function drawScore(target, rowsOf) {   // target/rowsOf: draw a copy elsewhere (the image export), four bars on one line
+    const box = target || $("mScore"), VF = window.Vex && Vex.Flow; if (!VF) { box.textContent = "Notation is loading…"; return; }
     box.innerHTML = "";
-    const B = barLen(), cw = box.clientWidth, perRow = cw < 560 ? 1 : cw < 820 ? 2 : 4, W = perRow === 1 ? 420 : perRow === 2 ? 760 : 1100, rowH = perRow === 1 ? 160 : 190, rows = 4 / perRow;
+    const B = barLen(), cw = box.clientWidth, perRow = rowsOf ? rowsOf : cw < 560 ? 1 : cw < 820 ? 2 : 4, W = perRow === 1 ? 420 : perRow === 2 ? 760 : 1100, rowH = perRow === 1 ? 160 : 190, rows = 4 / perRow;
     const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, rows * rowH + 10); const cx = r.getContext();
     const svg = box.querySelector("svg"); svg.setAttribute("viewBox", `0 0 ${W} ${rows * rowH + 10}`); svg.removeAttribute("width"); svg.removeAttribute("height"); svg.style.width = "100%"; svg.style.height = "auto"; svg.setAttribute("aria-hidden", "true");
-    const all = S.notes.map(n => Object.assign({}, n)); if (S.pending) all.push(Object.assign({ bad: true }, S.pending));
+    const all = S.notes.map(n => Object.assign({}, n)); if (S.pending && !target) all.push(Object.assign({ bad: true }, S.pending));
     // split into bars
     // each note becomes one or more pieces: split at bar lines (tied, for notes) and spelled with the largest values that fit
     const bars = [[], [], [], []], VAL = DUR.map(d => [d[2], d[0]]); let t = 0;
@@ -294,6 +295,7 @@
       const tx = document.createElementNS("http://www.w3.org/2000/svg", "text"); tx.setAttribute("x", x); tx.setAttribute("y", Math.max(14, top)); tx.setAttribute("text-anchor", "middle"); tx.setAttribute("class", "iv");
       if (c._m.bad) tx.setAttribute("style", "fill:#c0141f"); tx.textContent = c._m.bad ? "?" : iv.short; svg.appendChild(tx);
     }
+    if (target) return svg;
     LAYOUT = { svg, staves };
     box.setAttribute("aria-label", S.notes.length ? "Your melody: " + S.notes.map(n => (n.p ? pspeak(n.p) : "rest") + " " + DUR.find(d => d[0] === n.d)[1]).join(", ") : "An empty four-bar staff");
   }
@@ -314,7 +316,7 @@
     const items = [
       [u >= total(), `Four full bars (${Math.min(4, Math.floor(u / barLen()))} of 4 done)`],
       [ps.length >= 2 && chosen().every(v => set.has(v[1])), `Both intervals used (${chosen().map(v => `${v[1]}: ${labels.filter(l => l === v[1]).length}`).join(", ")})`],
-      [dirs.length >= 3 && changes >= Math.ceil((dirs.length - 1) / 2), `Changes direction often (${changes} change${changes === 1 ? "" : "s"} of direction in ${Math.max(0, dirs.length - 1)} chances)`],
+      [changes >= 4, `Changes direction often: at least 4 times (${changes} so far)`],
       [vals.size >= 3, `Rhythmic variety (${vals.size} different note value${vals.size === 1 ? "" : "s"}${S.notes.some(n => !n.p) ? ", with rests" : ""})`],
       [acc, "Uses accidentals (chromatic notes)"],
       [true, "Clef, time signature, stems and interval labels are written for you, correctly placed"],
@@ -362,6 +364,26 @@
   const lame = () => new Promise((ok, no) => { if (window.lamejs) return ok(); const sc = document.createElement("script"); sc.src = "assets/lame.min.js"; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function mp3(b) { await lame(); const enc = new lamejs.Mp3Encoder(2, b.sampleRate, 192), I = d => Int16Array.from(d, x => Math.max(-32768, Math.min(32767, x * 32767))), L = I(b.getChannelData(0)), R = I(b.getChannelData(1)), parts = [];
     for (let i = 0; i < L.length; i += 1152) { const x = enc.encodeBuffer(L.subarray(i, i + 1152), R.subarray(i, i + 1152)); if (x.length) parts.push(new Uint8Array(x)); } const e = enc.flush(); if (e.length) parts.push(new Uint8Array(e)); return new Blob(parts, { type: "audio/mpeg" }); }
+  // the notation as a JPG: drawn again with all four bars on one line, labels styled inline, on white
+  $("mJpg").onclick = async () => {
+    const msg = $("mExpMsg"); if (!S.notes.length) { msg.textContent = "Place some notes first."; return; }
+    const tmp = document.createElement("div"); tmp.style.cssText = "position:absolute;left:-9999px;top:0;width:1100px"; document.body.appendChild(tmp);
+    try {
+      const svg = drawScore(tmp, 4); if (!svg) throw new Error("notation isn't ready");
+      const vb = svg.getAttribute("viewBox").split(" ").map(Number), head = 46, Wd = vb[2], Ht = vb[3] + head, k = 2, NS = "http://www.w3.org/2000/svg";
+      svg.querySelectorAll("text.iv").forEach(t => { t.setAttribute("font-family", "Helvetica, Arial, sans-serif"); t.setAttribute("font-size", "15"); t.setAttribute("font-weight", "700"); if (!t.getAttribute("style")) t.setAttribute("fill", "#1d4f91"); });
+      const out = document.createElementNS(NS, "svg"); out.setAttribute("xmlns", NS); out.setAttribute("width", Wd * k); out.setAttribute("height", Ht * k); out.setAttribute("viewBox", `0 0 ${Wd} ${Ht}`);
+      out.innerHTML = `<rect width="100%" height="100%" fill="#fff"/><text x="16" y="28" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#231d19">Two-interval melody: ${chosen().map(v => v[0]).join(" and ")} · ${S.meter}</text>`;
+      const g = document.createElementNS(NS, "g"); [...svg.attributes].forEach(at => { if (!/^(width|height|viewBox|style|aria-hidden|xmlns)/.test(at.name)) g.setAttribute(at.name, at.value); }); g.setAttribute("transform", `translate(0 ${head})`); g.innerHTML = svg.innerHTML; out.appendChild(g);
+      const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(out)], { type: "image/svg+xml" }));
+      const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error("couldn't draw the image")); im.src = url; });
+      const cv = document.createElement("canvas"); cv.width = Wd * k; cv.height = Ht * k; const c2 = cv.getContext("2d"); c2.fillStyle = "#fff"; c2.fillRect(0, 0, cv.width, cv.height); c2.drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url);
+      const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", .92)), href = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = href; a.download = "two-interval-melody.jpg"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(href), 4000);
+      msg.textContent = "Saved two-interval-melody.jpg.";
+    } catch (e) { msg.textContent = "Couldn't save the image: " + (e && e.message || e); }
+    tmp.remove();
+  };
   $("mExport").onclick = async () => {
     const msg = $("mExpMsg"), btn = $("mExport"), fmt = $("mFmt").value; if (!S.notes.some(n => n.p)) { msg.textContent = "Place some notes first."; return; }
     if (!ctx()) { msg.textContent = "This browser can't make audio."; return; }

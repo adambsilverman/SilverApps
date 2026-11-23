@@ -732,3 +732,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z199: Two-Interval Melody: notes may run past the bar line (split into tied pieces drawn with StaveTie, half-ties across a line break; continuation repeats no accidental); rests are split at the bar line without dotted values. Interval labels run from a note's last tied piece to the next note.
 
 - z200: Two-Interval Melody: on-screen keyboard (G3–D6 treble, B1–F4 bass) places notes; a key is spelled with the selected accidental when that names it (incl. B♯/E♯/C♭/F♭), else natural or sharp/flat; Respell cycles the red note through its enharmonic spellings; last note blue, red note red; scrolls to the current note on phones.
+
+- z201: Two-Interval Melody: direction check passes at 4 or more changes of direction; "Download notation (JPG)" redraws the score with four bars on one line (drawScore(target, rowsOf)), adds a title line, inlines label styles and the root svg defaults, and saves a 2x JPEG.
