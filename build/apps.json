@@ -408,6 +408,12 @@
           "class": true
         },
         {
+          "name": "Two-Interval Melody",
+          "topic": "Composing tool",
+          "blurb": "Compose a four-bar melody in 4/4 or 12/8 from just two intervals: choose each note value and interval, place the note and get it checked, then play it on an instrument and export audio.",
+          "open": "two-interval-melody.html"
+        },
+        {
           "name": "Contemporary Rhythm",
           "topic": "Meter, tempo and pulse",
           "blurb": "Loosely coordinated music, propulsive beats, unbalanced and changing meters, metric modulation, additive rhythm and polyrhythm.",
