@@ -68,7 +68,7 @@
   while (Q.length < want) shuffle(pools.filter(p => p.length)).forEach(p => { if (Q.length < want) Q.push(p.shift()); });
   const G = { i: 0, shown: false, pts: TEAMS.map(() => 0), got: null, t0: 0 };
   // jokes (approved ones only, from assets/jokes.js), one between every five questions, matched to the question's unit or section
-  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=26c886a6"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
+  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=a20f0577"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
   const jokeFor = q => { if (!JOKES) return null; const sec = (JOKES.sections || {})[q.uid] || "", js = JOKES.jokes.filter(j => (j.units || []).includes(q.uid) || (j.topics || []).includes(sec)); const pool = js.length ? js : JOKES.jokes.filter(j => (j.topics || []).includes("any")); return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; };
   function board() { const top = Math.max(...G.pts); $("cgBoard").innerHTML = TEAMS.map((t, i) => `<div class="team${G.pts[i] === top && top > 0 ? " lead" : ""}"><b>${esc(t)}</b><span class="pts" aria-label="${esc(t)}: ${G.pts[i]} point${G.pts[i] === 1 ? "" : "s"}">${G.pts[i]}</span></div>`).join(""); }
   let tick = 0;

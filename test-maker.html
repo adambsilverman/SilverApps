@@ -65,8 +65,9 @@
 <p class="sum" id="tmSum" aria-live="polite"></p>
 <div class="row"><button type="button" class="pr-btn primary" id="tmMake">Make the test</button></div>
 
-<section class="out" id="tmOut" hidden aria-labelledby="tmOutH">
 <h2 id="tmOutH" tabindex="-1">3. Give it to students</h2>
+<p id="tmOutWait">Press <b>Make the test</b> in step 2 to get a link for students and a SCORM package for your LMS.</p>
+<section class="out" id="tmOut" hidden aria-labelledby="tmOutH">
 <label class="lbl" for="tmLink">Link to the test</label>
 <input type="text" id="tmLink" class="linkbox" readonly>
 <div class="row"><button type="button" class="pr-btn" id="tmCopy">Copy link</button><a class="pr-btn" id="tmOpen" href="#" target="_blank" rel="noopener">Try it<span class="sr-only"> (opens in a new tab)</span></a></div>
@@ -138,7 +139,7 @@
     CUR = { v: 1, t: title, u: P.map(u => u.id), n, d: document.querySelector("[name=tmDraw]:checked").value, s: Math.floor(Math.random() * 2 ** 31), r: +document.querySelector("[name=tmRev]:checked").value };
     const site = ($("tmSite").value.trim() || DEFAULT_SITE).replace(/\/?$/, "/"), rel = "test.html#t=" + b64(JSON.stringify(CUR));
     $("tmLink").value = new URL(rel, site).href; $("tmOpen").href = new URL(rel, local ? here : site).href;
-    $("tmOut").hidden = false; $("tmMsg").textContent = ""; $("tmOutH").focus();
+    $("tmOut").hidden = false; $("tmOutWait").hidden = true; $("tmMsg").textContent = ""; $("tmOutH").focus();
   };
   $("tmCopy").onclick = async () => { try { await navigator.clipboard.writeText($("tmLink").value); $("tmMsg").textContent = "Link copied."; } catch (e) { $("tmLink").select(); $("tmMsg").textContent = "Press Ctrl+C (or ⌘C) to copy the selected link."; } };
   // ---- class game: #g=<base64url JSON> { v, t: title, u: unit ids, n, teams: [names], sec: seconds per question (0 = none) } ----

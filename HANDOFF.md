@@ -750,3 +750,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z208: Turntables shared module build/shared/turntables.js (copied to assets/turntables.js by build_trainers.py, which adds its script tag to pages whose source mentions it): window.SATT = { mount(host, {ctx, out, sources, record, onRecorded, onRecStart, eager}), groove(sr), fromGrooveMaker(ctx) }; styles injected, colors from --satt-* then --fi-* tokens. Groove Maker "Send to turntables" renders a seamless loop (tail folded onto the start) to IndexedDB "silverapps-studio" key "turntable" {ch, sr, bpm, name}; embedded in the studio it posts {type:"sa-tt"}. Multitrack Studio "+ Turntables" panel (#tt): decks play the built-in groove, the Groove Maker loop or project audio tracks; "Record to a new audio track" plays the project from the playhead and adds "Turntables take N" there (first .12 s trimmed); #from=tt opens it with the groove on both decks.
 
 - z209: All 24 jokes approved (build/jokes.json).
+
+- z210: Test Maker: step 3 heading always shows, with a note (#tmOutWait) until the test is made, so the steps run 1–4.
