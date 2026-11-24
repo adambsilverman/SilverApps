@@ -567,7 +567,7 @@ window.FAM = (() => {
       <div class="lbtns"><button class="lk" data-mzshow>Show the answers</button></div></div>`;
   const measure = () => `<div class="mm" role="group" aria-labelledby="mmH">
       <h3 id="mmH">Measure from the bass</h3>
-      <p>A suspension figure counts the letter names from the <b>bass</b> up to the suspended note, then to its resolution. Here, always measure from the <b>bass note indicated by the chord symbol</b>: the root, or the note after the slash (C♯ø7/E has E in the bass). That note is played by the orchestra, which is not shown, so it is often lower than any singer. Pick a suspension:</p>
+      <p>A suspension figure counts the letter names from the <b>bass</b> up to the suspended note, then to its resolution. Here, always measure from the <b>lowest chord tone, as shown by the chord symbol</b>: the root, or the note after the slash (C♯ø7/E has E in the bass). That note is played by the orchestra, which is not shown, so it is often lower than any singer. Pick a suspension:</p>
       <div class="lbtns" role="group" aria-label="Suspension">${Object.entries(SUSQ).map(([id, s], i) => `<button class="lk" data-mmpick="${id}" aria-pressed="${i === 0}">${s.where}</button>`).join("")}</div>
       <div class="mm-body" aria-live="polite"></div></div>`;
   function wireMozart(root) {
@@ -592,7 +592,7 @@ window.FAM = (() => {
       for (let i = 0; i < n; i++) out.push(`<span class="mm-l"><b>${"CDEFGAB"[("CDEFGAB".indexOf(s.ladder[0]) + i) % 7]}</b><small>${i + 1}</small></span>`); return `<div class="mm-ladder" aria-hidden="true">${out.join("")}</div>`; };
     const draw = (msg = "") => { const s = SUSQ[id];
       let h = `<p class="mm-q"><b>${s.where}</b> (${s.fmt}): the suspended <b>${s.sus}</b> over <b>${s.chord}</b>, resolving to <b>${s.res}</b>.</p>`;
-      h += `<p class="mm-q">1. Which note is the bass?</p><div class="lbtns">${s.opts.map(o => `<button class="lk" data-mmb="${o}" ${stage > 0 ? "disabled" : ""} aria-pressed="${stage > 0 && o === s.bass}">${o}</button>`).join("")}</div>`;
+      h += `<p class="mm-q">1. What is the lowest chord tone, as shown by the chord symbol?</p><div class="lbtns">${s.opts.map(o => `<button class="lk" data-mmb="${o}" ${stage > 0 ? "disabled" : ""} aria-pressed="${stage > 0 && o === s.bass}">${o}</button>`).join("")}</div>`;
       if (stage > 0) h += `<p class="mm-ok">${s.why}</p><p class="mm-q">2. Count letter names from ${s.bass} (1) up to the suspended ${s.sus}. What number is it?</p><div class="lbtns">${NUMS.map(n => `<button class="lk" data-mmn="${n}" ${stage > 1 ? "disabled" : ""} aria-pressed="${stage > 1 && n === s.n}">${n}</button>`).join("")}</div>`;
       if (stage > 1) h += ladder(s, s.n) + `<p class="mm-ok">${s.bass} up to ${s.sus} is a ${s.n === 9 ? "9th" : s.n + (s.n === 2 ? "nd" : s.n === 3 ? "rd" : "th")}.${s.ninth ? " Counting letters gives 2, but the melody is above the bass by an octave plus a 2nd, so it is called a 9th: a suspension resolving to the octave is labeled 9-8, not 2-1." : ""}</p><p class="mm-q">3. Now count from ${s.bass} to the resolution, ${s.res}.</p><div class="lbtns">${NUMS.map(n => `<button class="lk" data-mmr="${n}" ${stage > 2 ? "disabled" : ""} aria-pressed="${stage > 2 && n === s.r}">${n}</button>`).join("")}</div>`;
       if (stage > 2) h += `<p class="mm-fig">${s.fig}</p><p class="mm-ok">A <b>${s.fig}</b> suspension: ${s.sus} is a ${s.n === 9 ? "9th" : s.n + "th"} above ${s.bass}, resolving to ${s.res}, a ${s.r === 8 ? "8ve (octave)" : s.r + (s.r === 3 ? "rd" : "th")}.</p>`;
@@ -600,7 +600,7 @@ window.FAM = (() => {
       mm.querySelector(".mm-body").innerHTML = h; };
     mm.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const s = SUSQ[id];
       if (b.dataset.mmpick) { id = b.dataset.mmpick; stage = 0; mm.querySelectorAll("[data-mmpick]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); return; }
-      if (b.dataset.mmb) { if (b.dataset.mmb === s.bass) { stage = 1; draw(); } else draw(b.dataset.mmb === s.sus ? `${s.sus} is the suspension itself. Measure from the bass note the chord symbol indicates: the note after a slash, or otherwise the root of ${s.chord}.` : `Not ${b.dataset.mmb}. Use the bass note the chord symbol indicates: the note after a slash, or otherwise the root of ${s.chord}.`); return; }
+      if (b.dataset.mmb) { if (b.dataset.mmb === s.bass) { stage = 1; draw(); } else draw(b.dataset.mmb === s.sus ? `${s.sus} is the suspension itself. Use the lowest chord tone the chord symbol shows: the note after a slash, or otherwise the root of ${s.chord}.` : `Not ${b.dataset.mmb}. Use the lowest chord tone the chord symbol shows: the note after a slash, or otherwise the root of ${s.chord}.`); return; }
       if (b.dataset.mmn) { const n = +b.dataset.mmn; if (n === s.n) { stage = 2; draw(); } else draw(s.ninth && n === 2 ? "Close: the letters are a 2nd apart, but the melody is an octave higher than that. What is a 2nd plus an octave?" : `Not ${n}. Count ${s.bass} as 1 and say each letter name up to ${s.sus}.`); return; }
       if (b.dataset.mmr) { const n = +b.dataset.mmr; if (n === s.r) { stage = 3; draw(); } else draw(`Not ${n}. Count ${s.bass} as 1 again, up to ${s.res}${s.ninth ? " (an octave above the bass)" : ""}.`); }
     });

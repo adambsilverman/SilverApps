@@ -167,6 +167,8 @@ HARM = [
   ("Lyrics Lesson.html", "lyrics-lesson.html", "lyrics-lesson", "Understanding Lyrics"),
   ("Articulation and Phrasing.html", "articulation-and-phrasing.html", "artic", "Articulation and Phrasing"),
   ("Articulation and Phrasing Lesson.html", "articulation-and-phrasing-lesson.html", "artic-lesson", "Understanding Articulation and Phrasing"),
+  ("Musical Expectation.html", "musical-expectation.html", "expect", "Musical Expectation"),
+  ("Musical Expectation Lesson.html", "musical-expectation-lesson.html", "expect-lesson", "Understanding Musical Expectation"),
   ("Pitch Sets.html", "pitch-sets.html", "pitchsets", "Pitch Sets"),
   ("Pitch Sets Lesson.html", "pitch-sets-lesson.html", "pitchsets-lesson", "Composing with Pitch Sets"),
   ("Contemporary Rhythm.html", "contemporary-rhythm.html", "contemprhythm", "Contemporary Rhythm"),
@@ -228,6 +230,7 @@ def build(a):
     js = js[:end] + (BRIDGE % a) + js[end:]
     libs = (PROGRESS_SCRIPTS + '<script src="assets/mqtt.min.js"></script>\n<script src="assets/qrcode.js"></script>\n'
             '<script src="assets/live.js"></script>\n<script src="assets/site.js"></script>\n')
+    if "assets/turntables.js" in s: libs += '<script src="assets/turntables.js"></script>\n'   # the turntables (Introduction to Pitch)
     ident = '<script>var __SA_APP = %s;</script>\n' % json.dumps({"id": a["id"], "name": a["name"]}, ensure_ascii=False)   # per-page identity, so the shared app code is identical across pages
     s = s[:app.start()] + libs + ident + "<script>" + js + "</script>" + s[app.end():]
     s = before_body_close(s, CREDIT)
@@ -238,4 +241,6 @@ def build(a):
     print("built", a["out"], len(s))
 
 if __name__ == "__main__":
+    import shutil
+    shutil.copyfile(ROOT / "build" / "shared" / "turntables.js", OUT / "assets" / "turntables.js")   # two turntables, shared by Introduction to Pitch and the Multitrack Studio
     for a in APPS: build(a)

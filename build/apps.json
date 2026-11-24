@@ -271,6 +271,20 @@
       ]
     },
     {
+      "id": "analysis",
+      "title": "Analysis, Theory and Philosophy",
+      "color": "red",
+      "topics": [
+        {
+          "name": "Musical Expectation",
+          "topic": "What comes next?",
+          "blurb": "How listeners predict what comes next: the pulse, rhythmic patterns, hearing the key, melodic tendencies, sequences and phrase lengths, with rhyme as the comparison. Build a pattern that sets up and breaks an expectation, and play a guess-the-next-note game.",
+          "lesson": "musical-expectation-lesson.html",
+          "drills": "musical-expectation.html"
+        }
+      ]
+    },
+    {
       "id": "orchestration",
       "title": "Orchestration",
       "color": "green",

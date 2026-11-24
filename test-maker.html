@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test Maker for Professors · SilverApps Interactive Music Training</title>
 <meta name="description" content="Build a closed-note test from the SilverApps Test Yourself question banks: pick units and a length, share a link, or add it to your LMS gradebook as a SCORM package.">
-<link rel="stylesheet" href="assets/indie.css?v=4b8cd800">
+<link rel="stylesheet" href="assets/indie.css?v=a00fdde0">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
 <body>
@@ -33,13 +33,16 @@
 .tm .out[hidden]{display:none}
 .tm .out{border:2px solid var(--fi-red);border-radius:var(--fi-r);padding:12px 16px;margin-top:18px;background:var(--fi-card)}
 .tm .warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px;color:#231d19}
+.tm .tm-sel{font:16px var(--fi-serif);padding:8px 10px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink)}
+.tm #tmTeams input{max-width:220px}
 .tm .linkbox{font:14px/1.4 ui-monospace,Menlo,monospace!important}
 </style>
-<script src="assets/test-bank.js?v=07589cdd"></script>
+<script src="assets/test-bank.js?v=e320cc53"></script>
 <script src="assets/scorm.js?v=ccadaeca"></script>
 <main id="main" class="tm">
 <h1>Test <span>maker</span></h1>
 <p>Build a test from the Test Yourself question banks. Pick the units it covers and how many questions it has. Unlike Test Yourself, a test gives no hints and no links back to the lessons, and each question gets one answer: students can go back and change answers until they submit, and only then see their score.</p>
+<p>Or turn the same units into a <b>class game</b>: questions shown big for the room, answers revealed one at a time, and points for teams (see <a href="#tmGameH">step 4</a>).</p>
 <p>Share the test as a link, or download it as a SCORM package for D2L Brightspace, Canvas, Blackboard or Moodle so scores go straight to your gradebook. Students outside an LMS can press <b>Report for my professor</b> when they finish; you check those reports on <a href="verify.html">Check reports</a>.</p>
 
 <h2>1. Units</h2>
@@ -78,6 +81,22 @@
 <p id="tmMsg" role="status" aria-live="polite"></p>
 <p>Upload the .zip as it is, the same way as a Test Yourself package (steps for each LMS are on <a href="about-this-site.html#lms">About this site</a>). The score arrives as a percent, and if students retake the test the gradebook keeps their best score.</p>
 </section>
+
+<h2 id="tmGameH">4. Or: a class game</h2>
+<p>A game uses the units picked in step 1 and the number of questions in step 2. Put it on the classroom screen: read each question, let the teams answer, then show the answer and give the point. Every time the game opens it draws a fresh mix, and a musical joke turns up every few questions.</p>
+<fieldset><legend>Teams <small>(2 to 4)</small></legend>
+  <div class="row" id="tmTeams"></div>
+  <div class="row"><button type="button" class="pr-btn" id="tmAddTeam">Add a team</button><button type="button" class="pr-btn" id="tmDelTeam">Remove a team</button></div>
+</fieldset>
+<label class="lbl" for="tmSecs">Timer for each question</label>
+<select id="tmSecs" class="tm-sel"><option value="0">No timer</option><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">1 minute</option></select>
+<div class="row"><button type="button" class="pr-btn primary" id="tmGame">Make the class game</button></div>
+<div id="tmGameOut" hidden>
+<label class="lbl" for="tmGameLink">Link to the game</label>
+<input type="text" id="tmGameLink" class="linkbox" readonly>
+<div class="row"><button type="button" class="pr-btn" id="tmGameCopy">Copy link</button><a class="pr-btn primary" id="tmGameOpen" href="#" target="_blank" rel="noopener">Open the game<span class="sr-only"> (opens in a new tab)</span></a></div>
+</div>
+<p id="tmGameMsg" role="status" aria-live="polite"></p>
 </main>
 <script>
 (() => {
@@ -122,6 +141,23 @@
     $("tmOut").hidden = false; $("tmMsg").textContent = ""; $("tmOutH").focus();
   };
   $("tmCopy").onclick = async () => { try { await navigator.clipboard.writeText($("tmLink").value); $("tmMsg").textContent = "Link copied."; } catch (e) { $("tmLink").select(); $("tmMsg").textContent = "Press Ctrl+C (or ⌘C) to copy the selected link."; } };
+  // ---- class game: #g=<base64url JSON> { v, t: title, u: unit ids, n, teams: [names], sec: seconds per question (0 = none) } ----
+  let TEAMS = ["Team 1", "Team 2"];
+  const teamsUI = () => { $("tmTeams").innerHTML = TEAMS.map((t, i) => `<label class="sr-only" for="tmTeam${i}">Team ${i + 1} name</label><input type="text" id="tmTeam${i}" data-team="${i}" maxlength="24" value="${esc(t)}">`).join("");
+    $("tmAddTeam").disabled = TEAMS.length >= 4; $("tmDelTeam").disabled = TEAMS.length <= 2; };
+  teamsUI();
+  $("tmTeams").addEventListener("input", e => { const i = e.target.dataset.team; if (i != null) TEAMS[+i] = e.target.value; });
+  $("tmAddTeam").onclick = () => { if (TEAMS.length < 4) { TEAMS.push("Team " + (TEAMS.length + 1)); teamsUI(); } };
+  $("tmDelTeam").onclick = () => { if (TEAMS.length > 2) { TEAMS.pop(); teamsUI(); } };
+  $("tmGame").onclick = () => {
+    const P = picked(); if (!P.length) { sum(); $("tmGameMsg").textContent = "Pick at least one unit in step 1."; $("tmUnits").querySelector("input").focus(); return; }
+    const n = Math.max(1, Math.min(avail(), Math.round(+$("tmN").value || 20))), title = ($("tmTitle").value.trim() || "Class game").replace(/^Music theory test$/, "Music theory class game");
+    const G = { v: 1, t: title, u: P.map(u => u.id), n, teams: TEAMS.map((t, i) => t.trim() || "Team " + (i + 1)), sec: +$("tmSecs").value };
+    const site = ($("tmSite").value.trim() || DEFAULT_SITE).replace(/\/?$/, "/"), rel = "class-game.html#g=" + b64(JSON.stringify(G));
+    $("tmGameLink").value = new URL(rel, site).href; $("tmGameOpen").href = new URL(rel, local ? here : site).href;
+    $("tmGameOut").hidden = false; $("tmGameMsg").textContent = `A game of ${n} question${n === 1 ? "" : "s"} from ${P.length} unit${P.length === 1 ? "" : "s"}, for ${G.teams.length} teams.`;
+  };
+  $("tmGameCopy").onclick = async () => { try { await navigator.clipboard.writeText($("tmGameLink").value); $("tmGameMsg").textContent = "Link copied."; } catch (e) { $("tmGameLink").select(); $("tmGameMsg").textContent = "Press Ctrl+C (or ⌘C) to copy the selected link."; } };
   $("tmScorm").onclick = () => {
     if (!CUR) return;
     const rel = "test.html#t=" + b64(JSON.stringify(CUR)), id = "test-" + CUR.s.toString(36);
@@ -134,5 +170,5 @@
 
 <footer class="fi-credit"><a href="https://adambsilverman.com" target="_blank" rel="noopener"><span class="mk" aria-hidden="true">♮</span>Made by <b>Adam Silverman</b><span class="sr-only"> (opens adambsilverman.com in a new tab)</span></a><p class="fi-fair">Musical excerpts are included for teaching under fair use (educational use, 17 U.S.C. § 107). All rights remain with the artists and copyright holders. <a href="about-this-site.html">About this site</a></p></footer><div class="fi-filmstrip" aria-hidden="true"></div>
 <script src="assets/sfx.js?v=b8f71476"></script>
-<script src="assets/site.js?v=d27e1def"></script>
+<script src="assets/site.js?v=cdf37c01"></script>
 </body></html>

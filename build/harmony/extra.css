@@ -810,3 +810,22 @@ details.ikbd[open] > summary .kbs, details.ikbd:not([open]) > summary .kbh { dis
 .pr-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;font:700 18px var(--fi-serif,serif);background:var(--fi-card,#fff);color:var(--fi-ink,#231d19);border:2px solid var(--fi-red-dk,#9b1c1c);border-radius:6px;padding:4px 8px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 body.pr-dragging,body.pr-dragging *{cursor:grabbing!important;user-select:none}
 .pr-staff{margin:10px 0}
+/* Musical expectation: the game keyboard and the pattern maker */
+.eg-kb{position:relative;display:flex;height:130px;max-width:620px;margin:10px 0;user-select:none;-webkit-user-select:none}
+.eg-kb button{min-height:0!important;min-width:0!important;margin:0!important;box-shadow:none;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:0 0 6px;font:600 12px var(--fi-ui,system-ui);touch-action:manipulation}
+.eg-kb .eg-w{flex:1;border:1.5px solid #3a332d!important;border-left-width:0!important;background:#fffdf8!important;color:#3a332d!important;border-radius:0 0 6px 6px!important}
+.eg-kb .eg-w:first-child{border-left-width:1.5px!important}
+.eg-kb .eg-b{position:absolute;top:0;height:60%;background:#231d19!important;border:1px solid #000!important;border-radius:0 0 5px 5px!important;z-index:1}
+.eg-kb .eg-w.pick{background:#cfe0f5!important}.eg-kb .eg-b.pick{background:#1d4f91!important}
+.eg-kb .best{box-shadow:inset 0 -8px 0 #1d6b2f}
+.eg-kb button:focus-visible{outline:3px solid var(--fi-red-dk,#9b1c1c);outline-offset:-3px}
+.eg-kb button:disabled{cursor:default}
+.eg-score{font:700 16px var(--fi-serif,serif)}
+.eg-res{border-left:5px solid #1d6b2f;padding:4px 12px;margin:8px 0}
+.pm-grid{display:grid;gap:3px;max-width:640px;margin:10px 0;overflow-x:auto}
+.pm-grid .pm-h{text-align:center;font:700 13px var(--fi-ui,system-ui)}
+.pm-grid .pm-l{font:600 13px var(--fi-ui,system-ui);display:flex;align-items:center}
+.pm-grid .pm-c{min-height:26px!important;min-width:0!important;margin:0!important;border:1px solid #b9aea2!important;border-radius:4px!important;background:#fffdf8!important;cursor:pointer;padding:0!important}
+.pm-grid .pm-c.beat{background:#f3ece2!important}
+.pm-grid .pm-c.on{background:#1d4f91!important;border-color:#1d4f91!important}
+.pm-grid .pm-c:focus-visible{outline:3px solid var(--fi-red-dk,#9b1c1c);outline-offset:1px}

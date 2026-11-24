@@ -156,7 +156,8 @@ html.gp-embed .gp{padding:0;max-width:none}
     <details><summary>Chord tones and voicings</summary><div class="twrap" tabindex="0" role="region" aria-label="Chords and notes"><table class="tbl" id="tbl"></table></div></details>
     <div class="row"><label class="fld" for="expN">Export<select id="expN"><option value="1">once through</option><option value="2" selected>twice through</option><option value="4">four times</option></select></label>
       <label class="fld" for="expFmt">Format<select id="expFmt"><option value="wav">WAV (16-bit)</option><option value="mp3">MP3 (192 kbps)</option></select></label>
-      <button class="tb" id="export" type="button">Export audio</button><button class="tb go" id="studio" type="button">Open in Multitrack Studio</button></div>
+      <button class="tb" id="export" type="button">Export audio</button><button class="tb go" id="studio" type="button">Open in Multitrack Studio</button><button class="tb" id="toTT" type="button">Send to turntables</button></div>
+    <p class="note" id="ttNote" hidden>Sent. Open the turntables in the <a href="multitrack-studio.html#from=tt">Multitrack Studio</a> or in <a href="introduction-to-pitch-lesson.html">Introduction to Pitch</a> (the turntables step); your groove is in each deck's Record menu.</p>
     <p class="note" id="gpStudioNote"><b>Multitrack Studio</b> opens this groove as a backing track so you can add a melody or record yourself. MP3 encoding uses <a href="https://lame.sourceforge.io/" target="_blank" rel="noopener">LAME</a> (via lamejs, LGPL). Nothing is uploaded: everything runs in your browser.</p>
   </section>
 </main>
@@ -788,6 +789,26 @@ html.gp-embed .gp{padding:0;max-width:none}
         parent.postMessage(x, location.origin); btn.disabled = false; status("Added to the studio as a new track."); if (was) start(); return; }
       location.href = "multitrack-studio.html#from=lab";
     } catch (e) { ({ AC, OUT, BUS, NZ } = save); status("Couldn't send it to the studio: " + e.message); btn.disabled = false; if (was) start(); }
+  };
+
+  // ---------- send to the turntables (Multitrack Studio, Introduction to Pitch): the progression as a seamless loop ----------
+  $("toTT").onclick = async () => {
+    if (!S.ch.length) { status("Add some chords first."); return; }
+    const nPass = +$("expN").value, btn = $("toTT"); btn.disabled = true; status("Rendering a loop for the turntables…");
+    const was = playing; if (playing) stop(); const save = { AC, OUT, BUS, NZ };
+    try {
+      if (isBx()) await bxLoad();
+      const one = events(), sr = 44100, n = Math.round(sr * one.len * nPass); AC = new OfflineAudioContext(2, n + sr * 2, sr); build(); await sampPrep(S.ci);
+      for (let p = 0; p < nPass; p++) one.ev.forEach(e => { try { fire(e, p * one.len + e.t); } catch (x) {} });
+      const buf = await AC.startRendering(); ({ AC, OUT, BUS, NZ } = save);
+      // fold the ringing tail back onto the start, so the loop repeats without a gap or a click
+      const ch = [0, 1].map(c => { const d = buf.getChannelData(c), o = d.slice(0, n); for (let i = n; i < d.length; i++) o[(i - n) % n] += d[i]; return o; });
+      const name = `Groove: ${S.ch.map(c => rn(c).text).join(" ")} in ${S.tonic} ${S.mode} (${S.bpm} bpm)`;
+      await idbPut("turntable", { ch, sr, bpm: S.bpm, name });
+      if (EMB) { parent.postMessage({ type: "sa-tt" }, location.origin); status("Sent to the turntables."); }
+      else { status("Sent to the turntables."); $("ttNote").hidden = false; }
+    } catch (e) { ({ AC, OUT, BUS, NZ } = save); status("Couldn't send it to the turntables: " + e.message); }
+    btn.disabled = false; if (was) start();
   };
 
   // ---------- start ----------

@@ -70,6 +70,7 @@ main.tool .daw .bar label input[type=range]{width:110px}
 .status:empty{display:none}
 @media (max-width:560px){.arr{grid-template-columns:200px 1fr}.trk .knob .lbl{display:none}.trk .meta{display:none}}
 /* drum machine (pops out under the arrange view) */
+#tt{--satt-card:#26282c;--satt-ink:#e9eaec;--satt-line:#5a5e66;--satt-accent:#ffb02e;--satt-ok:#8fe09c}
 .dmwrap{background:#1a1b1e;border-top:2px solid var(--hl);padding:6px 10px 10px;display:grid;gap:8px}
 .dmh{font:800 12px var(--fi-ui);text-transform:uppercase;letter-spacing:.08em;margin:0;color:var(--hl)}
 .dmgrid{display:grid;gap:3px;overflow-x:auto;padding-bottom:2px}
@@ -176,7 +177,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     <p class="status" id="status" aria-live="polite"></p>
     <h2 class="sr">Tracks</h2>
     <div class="bar" role="toolbar" aria-label="Tracks">
-      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button><button class="tbtn sm" id="addDrum" type="button">+ Drums</button><button class="tbtn sm" id="addTh" type="button">+ Theremin</button><button class="tbtn sm" id="addGroove" type="button" aria-expanded="false" aria-controls="gm">+ Groove Maker</button><button class="tbtn sm" id="mxBtn" type="button" aria-expanded="false" aria-controls="mx">Mixer</button>
+      <button class="tbtn sm" id="addSynth" type="button">+ Synth</button><button class="tbtn sm" id="addAudio" type="button">+ Mic</button><button class="tbtn sm" id="addDrum" type="button">+ Drums</button><button class="tbtn sm" id="addTh" type="button">+ Theremin</button><button class="tbtn sm" id="addTT" type="button" aria-expanded="false" aria-controls="tt">+ Turntables</button><button class="tbtn sm" id="addGroove" type="button" aria-expanded="false" aria-controls="gm">+ Groove Maker</button><button class="tbtn sm" id="mxBtn" type="button" aria-expanded="false" aria-controls="mx">Mixer</button>
       <label class="tbtn sm" for="file" style="display:inline-flex;align-items:center">Open audio…</label><input type="file" id="file" accept="audio/*" class="sr">
       <button class="tbtn sm" id="undo" type="button" disabled>Undo take</button>
       <span class="note">● arms a track for recording. Use headphones with the mic.</span>
@@ -249,6 +250,10 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
       <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="vtH">Vocal tuner</h2><span class="note" id="vtNote"></span><button class="tbtn sm" id="vtClose" type="button" style="margin-left:auto">Close ✕</button></div>
       <iframe id="vtFrame" title="Vocal Tuner"></iframe>
     </section>
+    <section class="dmwrap" id="tt" aria-labelledby="ttH" hidden>
+      <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="ttH">Turntables</h2><span class="note">Match the decks' speed and beats, scratch by dragging a platter, then press <b>Record to a new audio track</b>: the project plays along from the playhead, and your take lands there. Each deck can play the built-in groove, a loop sent from the Groove Maker, or one of the project's audio tracks.</span><button class="tbtn sm" id="ttClose" type="button" style="margin-left:auto">Close ✕</button></div>
+      <div id="ttHost"></div>
+    </section>
     <section class="dmwrap gmwrap" id="gm" aria-labelledby="gmH" hidden>
       <div class="bar" style="padding:0;background:none;border:0"><h2 class="dmh" id="gmH">Groove Maker</h2><span class="note">Build a progression and groove, then press <b>Add to the studio</b> to drop it in as a backing track.</span><button class="tbtn sm" id="gmClose" type="button" style="margin-left:auto">Close ✕</button></div>
       <iframe id="gmFrame" title="Groove Maker" style="width:100%;height:min(1500px,150vh);border:0;display:block;background:#1d1e21"></iframe>
@@ -294,6 +299,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   </section>
 </main>
 
+<script src="assets/turntables.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -1083,6 +1089,25 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
     ({ MASTER, NZ } = keep); btn.disabled = false;
   };
 
+  // ---------- turntables (assets/turntables.js): two decks; a take is recorded into a new audio track at the playhead ----------
+  let TTD = null, ttN = 0, ttAt = 0;
+  function ttShow(on) {
+    $("tt").hidden = !on; $("addTT").setAttribute("aria-expanded", String(on));
+    if (on && !TTD && window.SATT) TTD = SATT.mount($("ttHost"), { ctx: () => ac(), out: () => MASTER, record: true,
+      sources: async () => { const l = [], g = await SATT.fromGrooveMaker(AC); if (g) l.push(g);
+        P.tracks.forEach(t => { if (t.type === "audio" && t.buf && !/^Turntables take/.test(t.name)) l.push({ id: "trk" + t.id, name: "Track: " + t.name, buf: t.buf, bpm: P.bpm }); }); return l; },
+      onRecStart: () => { ttAt = P.pos; if (P.tracks.length) play(false); },
+      onRecorded: buf => { if (playing) stopAll(true); P.pos = ttAt;
+        // the project starts .12 s after recording does (play() schedules ahead): trim that, so the take lines up with the playhead
+        const cut = Math.min(buf.length - 1, Math.round(.12 * buf.sampleRate)), b = AC.createBuffer(2, buf.length - cut, buf.sampleRate); for (let c = 0; c < 2; c++) b.getChannelData(c).set(buf.getChannelData(c).subarray(cut));
+        addTrack("audio", { name: `Turntables take ${++ttN}`, buf: b, start: ttAt }); clock(); status(`Turntables take ${ttN} is on a new audio track at ${$("clock").textContent}.`); } });
+    else if (on && TTD) TTD.refresh();
+    if (!on && TTD) TTD.stop();
+    if (on) $("tt").scrollIntoView({ block: "nearest" });
+  }
+  $("addTT").onclick = () => ttShow($("tt").hidden); $("ttClose").onclick = () => ttShow(false);
+  window.addEventListener("message", async e => { if (e.origin !== location.origin || !e.data || e.data.type !== "sa-tt") return; ttShow(true); if (TTD) { await TTD.setSource(1, "gm"); status("Your groove is on deck B of the turntables."); } });
+
   // ---------- incoming backing track from the Groove Maker ----------
   const idb = (mode, fn) => new Promise((ok, no) => { const r = indexedDB.open("silverapps-studio", 1); r.onupgradeneeded = () => r.result.createObjectStore("x"); r.onerror = () => no(r.error); r.onsuccess = () => { const tx = r.result.transaction("x", mode), st = tx.objectStore("x"), q = fn(st); tx.oncomplete = () => ok(q && q.result); tx.onerror = () => no(tx.error); }; });
   async function incoming() {
@@ -1097,6 +1122,7 @@ main.tool .daw .sys select{height:22px!important;min-height:22px!important;font-
   }
   drawKbd(); drawTracks(); draw(); clock();
   if (/from=lab/.test(location.hash)) incoming();
-  window.__studio = { P, TH, thOpen, thDown, thUp, thSet, FXD, fxNew, fxOpen, syOpen, vtOpen, addTrack, noteOn, noteOff, play, stopAll, record, projLen, padHit, addDrums };   // used by automated tests
+  if (/from=tt/.test(location.hash)) { ttShow(true); if (TTD) TTD.setSource(1, "gm").then(() => TTD.setSource(0, "gm")); }
+  window.__studio = { get TTD() { return TTD; }, ttShow, P, TH, thOpen, thDown, thUp, thSet, FXD, fxNew, fxOpen, syOpen, vtOpen, addTrack, noteOn, noteOff, play, stopAll, record, projLen, padHit, addDrums };   // used by automated tests
 })();
 </script>

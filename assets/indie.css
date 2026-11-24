@@ -298,3 +298,12 @@ button,a,input,select,label,[role="button"]{touch-action:manipulation}
 
 /* iPhone Safari enlarges the text of some blocks on its own ("text autosizing"), so lessons showed different text sizes: keep every page at the sizes set here */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* joke breaks in Test Yourself quizzes */
+.saq-joke{border-left:5px solid var(--fi-red,#e8573f);background:var(--fi-card,#fff);padding:8px 12px;margin:12px 0 0;border-radius:0 8px 8px 0;font:16px/1.45 var(--fi-serif,serif)}
+.saq-joke-q{margin:0 0 8px}
+.saq-joke-opts{display:flex;flex-wrap:wrap;gap:6px}
+.saq-joke-o{font:15px/1.3 var(--fi-serif,serif);padding:8px 12px;min-height:40px;border:1.5px solid var(--fi-line,#cfc6bb);border-radius:10px;background:#fff;color:var(--fi-ink,#231d19);cursor:pointer;text-align:left}
+.saq-joke-o.right{border-color:#1d6b2f;background:#e5f3e4;color:#14401d}
+.saq-joke-o.wrong{border-color:#a3141f;color:#7a1018}
+.saq-joke-o:disabled{cursor:default}
+.saq-joke-fb{margin:8px 0 0;font-weight:700}

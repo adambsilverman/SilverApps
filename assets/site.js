@@ -100,6 +100,24 @@
    Open notes: every question links to the step that covers it (new tab). A wrong answer shows the hint and allows another try;
    only first tries count toward the score. Every text field is escaped here, then passed through opts.rich, which must not escape again
    (lesson pages pass the engine's richHTML, for {rn:…} numerals and accidentals). opts: { rich(html), href(stepNumber), stepName(stepNumber), draw(el, spec), links: [{href, label, primary}] shown when finished }. ===== */
+// ---- musical jokes as ungraded multiple-choice questions (data: assets/jokes.js, approved jokes only) ----
+window.SAjoke = (function () {
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  function html(j) {
+    if (!j) return "";
+    var ch = [j.a].concat(j.w || []); for (var i = ch.length - 1; i > 0; i--) { var k = Math.floor(Math.random() * (i + 1)), t = ch[i]; ch[i] = ch[k]; ch[k] = t; }
+    return '<div class="saq-joke" data-joke-a="' + esc(j.a) + '"><p class="saq-joke-q"><b>Joke break</b> (not scored): ' + esc(j.q) + '</p><div class="saq-joke-opts">'
+      + ch.map(function (c) { return '<button type="button" class="saq-joke-o" data-joke="' + esc(c) + '">' + esc(c) + '</button>'; }).join("") + '</div><p class="saq-joke-fb" aria-live="polite"></p></div>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-joke]"); if (!b) return;
+    var box = b.closest(".saq-joke"), a = box.getAttribute("data-joke-a"), ok = b.getAttribute("data-joke") === a;
+    box.querySelectorAll("[data-joke]").forEach(function (x) { x.disabled = true; if (x.getAttribute("data-joke") === a) x.classList.add("right"); });
+    if (!ok) b.classList.add("wrong");
+    box.querySelector(".saq-joke-fb").textContent = ok ? "You got the joke." : "The punch line: " + a + ".";
+  });
+  return { html: html };
+})();
 window.SAquiz = (function () {
   var ST = {};
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -174,6 +192,12 @@ window.SAquiz = (function () {
     o = o || {}; var rich = o.rich || function (s) { return s; }, optHtml = o.opt || function (v) { return rich(esc(v)); };   // o.play(q.play): a Play button for questions you hear; o.opt(value): how an answer button shows its value
     var box = root.querySelector("#saq-" + id); if (!box) return;
     var card = box.querySelector(".saq-card"), S = state(id, bank), qs = S.qs;
+    // musical jokes (assets/jokes.js, approved only), matched to this quiz's unit or front-page section: one after the 5th question, one with the score
+    if (!window.SA_JOKES && !document.getElementById("saJokes")) { var js = document.createElement("script"); js.id = "saJokes"; js.src = "assets/jokes.js"; document.head.appendChild(js); }
+    function joke() { var J = window.SA_JOKES; if (!J || !J.jokes.length) return null; var base = (location.pathname.split("/").pop() || "").replace(/\.html$/, "").replace(/-quiz$/, ""), sec = (J.sections || {})[base] || "";
+      var pool = J.jokes.filter(function (j) { return (j.units || []).indexOf(base) >= 0 || (j.topics || []).indexOf(sec) >= 0; }); if (!pool.length) pool = J.jokes.filter(function (j) { return (j.topics || []).indexOf("any") >= 0; });
+      return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; }
+    function jokeHTML() { return window.SAjoke ? SAjoke.html(joke()) : ""; }
     function look(q) { return q.s && o.href ? '<a class="saq-look" href="' + esc(o.href(q.s)) + '" target="_blank" rel="noopener">Look back: ' + esc(o.stepName ? o.stepName(q.s) : "step " + q.s) + '<span class="sr-only"> (opens in a new tab)</span></a>' : ""; }
     function draw() {
       if (S.done) {
@@ -183,7 +207,7 @@ window.SAquiz = (function () {
           + (function () { var L = log(), b = best(L); return L.attempts.length > 1 ? '<p class="saq-best">Best so far: ' + b.right + ' of ' + b.n + ' (' + L.attempts.length + ' tries finished).</p>' : ""; })()
           + '<div class="saq-row"><button type="button" class="btn primary" data-saq="report">Report for my professor</button><button type="button" class="btn" data-saq="again">Start over</button></div>'
           + (o.links && o.links.length ? '<div class="saq-row saq-next">' + o.links.map(function (l) { return '<a class="btn' + (l.primary ? ' primary' : '') + '" href="' + esc(l.href) + '">' + esc(l.label) + '</a>'; }).join("") + '</div>' : "")
-          + (window.SAlms ? '<p class="saq-lms">Your score was sent to your course gradebook.</p>' : "");
+          + (window.SAlms ? '<p class="saq-lms">Your score was sent to your course gradebook.</p>' : "") + jokeHTML();
         return;
       }
       var q = qs[S.i];
@@ -210,6 +234,7 @@ window.SAquiz = (function () {
         if (ok) {
           card.querySelectorAll("[data-saqv]").forEach(function (x) { x.disabled = true; if (x === b) x.classList.add("right"); });
           fb.innerHTML = '<b>' + (S.tries === 1 ? "Yes." : "Yes, got it.") + '</b> ' + rich(esc(q.why || "")) + '<span class="saq-row"><button type="button" class="btn primary" data-saq="next">' + (S.i < qs.length - 1 ? "Next question →" : "See your score") + '</button></span>';
+          if (S.i === 4 && qs.length > 7) fb.insertAdjacentHTML("afterend", jokeHTML());
         } else {
           b.disabled = true; b.classList.add("wrong");
           var h = card.querySelector(".saq-hint"), hb = card.querySelector(".saq-hb");
