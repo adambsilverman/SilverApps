@@ -56,7 +56,7 @@
    "topics": [
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 5,
@@ -70,7 +70,7 @@
    "topics": [
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 6,
@@ -84,7 +84,7 @@
    "topics": [
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 7,
@@ -98,7 +98,7 @@
    "topics": [
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 9,
@@ -113,7 +113,7 @@
     "foundations",
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 10,
@@ -142,7 +142,7 @@
     "foundations",
     "orchestration"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 12,
@@ -156,7 +156,7 @@
    "topics": [
     "foundations"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 13,
@@ -170,7 +170,7 @@
    "topics": [
     "foundations"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 14,
@@ -184,7 +184,7 @@
    "topics": [
     "foundations"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 15,
@@ -199,7 +199,7 @@
     "foundations",
     "tools"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 16,
@@ -214,7 +214,7 @@
     "harmony",
     "voice-leading"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 20,
@@ -229,7 +229,7 @@
     "analysis",
     "form"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 21,
@@ -244,7 +244,7 @@
     "tools",
     "any"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 22,
@@ -259,7 +259,7 @@
     "tech",
     "audio"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 23,
@@ -288,7 +288,7 @@
     "tools",
     "foundations"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 25,
@@ -302,7 +302,7 @@
    "topics": [
     "harmony"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 26,
@@ -316,7 +316,7 @@
    "topics": [
     "form"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 27,
@@ -331,7 +331,7 @@
     "creating",
     "form"
    ],
-   "approved": false
+   "approved": true
   },
   {
    "id": 28,
