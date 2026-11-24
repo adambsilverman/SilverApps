@@ -15,6 +15,7 @@
      label(cfg)          -> human label for that config (e.g. "Spell it")
      load(cfg)           build + render the question (called inside a seeded RNG)
      showAnswer()        show the correct answer without scoring
+     hostHint, nextHint  optional: the host's setup and "Next:" instructions (default: use the trainer's buttons below)
    and by calling LiveClass.answered(correct) from its score() function;
    if that returns true the trainer must skip its own solo scoring.
 
@@ -163,7 +164,7 @@
         <div class="lc-field"><label for="lc-secs">Time per question</label><select id="lc-secs" class="lc-sel">${[[20, "20 seconds"], [30, "30 seconds"], [45, "45 seconds"], [60, "1 minute"], [90, "90 seconds"], [120, "2 minutes"], [0, "No timer (you stop it)"]].map(([v, t]) => `<option value="${v}" ${v === 60 ? "selected" : ""}>${t}</option>`).join("")}</select></div>
         <div class="lc-field"><label for="lc-goal">Class goal</label><select id="lc-goal" class="lc-sel">${[60, 70, 80, 90].map(v => `<option value="${v}" ${v === 70 ? "selected" : ""}>${v}% class average</option>`).join("")}</select></div>
       </div>
-      <p class="lc-sub" style="margin:10px 0">You choose each question type with the trainer's own buttons and settings below, then send it to the class. You can switch types between questions.</p>
+      <p class="lc-sub" style="margin:10px 0">${A.hostHint || "You choose each question type with the trainer's own buttons and settings below, then send it to the class. You can switch types between questions."}</p>
       <div class="lc-row"><button class="lc-btn" data-a="cancel">Cancel</button><span class="lc-grow"></span><button class="lc-btn primary big" data-a="go">Create room</button></div>
       <p data-msg role="status"></p></div>`;
     q$('[data-a="cancel"]').onclick = idle;
@@ -250,7 +251,7 @@
     el.innerHTML = `<div class="lc-panel">${howTo(false)}
       <div class="lc-row" style="margin-top:14px"><span class="lc-sub">Room <b>${H.code}</b> · <span data-joined>${activeCount()}</span> joined — late arrivals can still join.</span><span class="lc-grow"></span>${fsBtn()}
       <button class="lc-btn" data-a="back">← Join code</button></div>
-      <p class="lc-msg" style="margin-top:12px"><b>Next:</b> choose a question type with the trainer's buttons below (and its settings, if you like), then send it.</p>
+      <p class="lc-msg" style="margin-top:12px"><b>Next:</b> ${A.nextHint || "choose a question type with the trainer's buttons below (and its settings, if you like), then send it."}</p>
       <div class="lc-row"><span class="lc-grow"></span><button class="lc-btn primary big" data-a="send">Send question to class →</button></div></div>`;
     q$('[data-a="back"]').onclick = hostLobby; q$('[data-a="send"]').onclick = hostSend; bindFs();
   }

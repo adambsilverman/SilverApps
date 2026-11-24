@@ -575,6 +575,12 @@
           "open": "test-maker.html"
         },
         {
+          "name": "Drill Maker",
+          "topic": "Drills and class games",
+          "blurb": "Combine any units into one drill. Practice it alone, or run it as a class game with students answering anonymously on their phones.",
+          "open": "drill-maker.html"
+        },
+        {
           "name": "Check Reports",
           "topic": "Student reports",
           "blurb": "Check the reports students send when they finish a Test Yourself quiz or a test outside an LMS, and confirm that each one is genuine.",

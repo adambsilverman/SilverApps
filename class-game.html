@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Class Game · SilverApps Interactive Music Training</title>
-<meta name="description" content="A team quiz game for class, made with the SilverApps test maker: questions from the units your professor chose, shown big for the room, with team scores.">
+<meta name="description" content="A team quiz game for class, made with the SilverApps Drill Maker: questions from the units your professor chose, shown big for the room, with team scores.">
 <link rel="stylesheet" href="assets/indie.css?v=a00fdde0">
 <script src="assets/audio-unlock.js?v=216dcd36"></script><script defer src="https://cloud.umami.is/script.js" data-website-id="fa7addec-ea3a-4f95-87f0-9abe0eba386e" data-domains="adambsilverman.github.io"></script>
 </head>
@@ -56,9 +56,9 @@
   let C = null;
   try { const h = (location.hash.match(/[#&]g=([\w-]+)/) || [])[1]; C = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(h.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0)))); } catch (e) {}
   const body = $("cgBody");
-  if (!C || !C.u) { body.innerHTML = '<p class="warn">This game link is incomplete. Make a new one on the <a href="test-maker.html">test maker</a>.</p>'; return; }
+  if (!C || !C.u) { body.innerHTML = '<p class="warn">This game link is incomplete. Make a new one on the <a href="drill-maker.html">Drill Maker</a>.</p>'; return; }
   const units = C.u.map(id => BANK.find(u => u.id === id)).filter(Boolean);
-  if (!units.length) { body.innerHTML = '<p class="warn">The questions for this game couldn\'t be found. Make a new one on the <a href="test-maker.html">test maker</a>.</p>'; return; }
+  if (!units.length) { body.innerHTML = '<p class="warn">The questions for this game couldn\'t be found. Make a new one on the <a href="drill-maker.html">Drill Maker</a>.</p>'; return; }
   const TITLE = String(C.t || "Class game").slice(0, 80); $("cgTitle").textContent = TITLE; document.title = TITLE + " · " + document.title.split(" · ").slice(1).join(" · ");
   const TEAMS = (C.teams && C.teams.length ? C.teams : ["Team 1", "Team 2"]).slice(0, 4).map(String), SECS = +C.sec || 0;
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -77,7 +77,7 @@
     if (G.i >= Q.length) {
       const top = Math.max(...G.pts), win = TEAMS.filter((t, i) => G.pts[i] === top);
       body.innerHTML = `<div class="card"><p class="q">${top ? (win.length > 1 ? `A tie: ${win.map(esc).join(" and ")}, with ${top} point${top === 1 ? "" : "s"} each.` : `${esc(win[0])} wins, with ${top} point${top === 1 ? "" : "s"}.`) : "No points this game."}</p>
-        <div class="row"><button type="button" class="btn primary" data-cg="again">Play again (new questions)</button><a class="btn" href="test-maker.html">Make another game</a></div></div>`;
+        <div class="row"><button type="button" class="btn primary" data-cg="again">Play again (new questions)</button><a class="btn" href="drill-maker.html">Make another game</a></div></div>`;
       return;
     }
     const q = Q[G.i]; if (!q.opts) q.opts = shuffle([q.a].concat(q.w || []));

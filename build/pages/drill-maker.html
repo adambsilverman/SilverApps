@@ -1,0 +1,225 @@
+<!-- title: Drill Maker | desc: Make a drill from any mix of SilverApps units, practice it on your own, or run it as a live class game: questions on the projector, students answering on their phones. -->
+<style>
+.dm{max-width:1000px;margin:0 auto;padding:22px 16px 48px}
+.dm h1{font:400 clamp(44px,8vw,78px)/.92 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
+.dm h1 span{color:var(--fi-red-dk)}
+.dm h2{font:400 clamp(28px,4.4vw,38px)/1 var(--fi-display);margin:34px 0 8px}
+.dm p,.dm li{max-width:68ch}
+.dm a{color:var(--fi-red-dk)}
+.dm .lbl,.dm legend{display:block;font:900 12px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:16px 0 6px;padding:0}
+.dm .lbl small,.dm legend small{font:400 13px var(--fi-body);letter-spacing:0;text-transform:none}
+.dm input[type=text],.dm input[type=number]{font:16px var(--fi-serif);padding:9px 10px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink);box-sizing:border-box;max-width:220px;width:100%}
+.dm input[type=number]{max-width:120px}
+.dm fieldset{border:0;margin:0;padding:0}
+.dm .sec{border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);padding:10px 14px;margin:10px 0}
+.dm .sec-h{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between}
+.dm .sec-h h3{font:400 24px/1.1 var(--fi-display);margin:0}
+.dm .units{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px 16px;margin-top:6px}
+.dm .units label{display:flex;gap:9px;align-items:flex-start;padding:6px 0;font:16px/1.35 var(--fi-serif);cursor:pointer}
+.dm .units input{width:20px;height:20px;margin:1px 0 0;flex:none}
+.dm .units small{color:var(--fi-ink-2,#5c544c)}
+.dm .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.dm .sum{font:600 17px var(--fi-serif);margin:14px 0 0}
+.dm .warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px;color:#231d19}
+.dm .tm-sel{font:16px var(--fi-serif);padding:8px 10px;border:1.5px solid var(--fi-line);border-radius:var(--fi-r);background:var(--fi-card);color:var(--fi-ink)}
+.dm .linkbox{font:14px/1.4 ui-monospace,Menlo,monospace!important;max-width:560px!important}
+.dm-card{border:2px solid var(--fi-ink);border-radius:var(--fi-r);background:var(--fi-card);padding:18px 22px;margin-top:14px}
+.dm-meta{font:900 13px var(--fi-body);letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dm-q{font:600 clamp(21px,3vw,34px)/1.3 var(--fi-serif);margin:0 0 16px}
+.dm-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:10px}
+.dm .dm-opt{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px 16px;border:2px solid var(--fi-line);border-radius:14px;font:clamp(18px,2.2vw,25px)/1.35 var(--fi-serif);background:#fff;color:var(--fi-ink);cursor:pointer;width:100%;min-height:52px;text-transform:none;letter-spacing:0}
+.dm .dm-opt .L{font:400 clamp(22px,3vw,32px)/1 var(--fi-display);min-width:1.2em}
+.dm .dm-opt:hover:not(:disabled){border-color:var(--fi-ink)}
+.dm .dm-opt:focus-visible{outline:3px solid var(--fi-red-dk);outline-offset:2px}
+.dm .dm-opt:disabled{cursor:default;opacity:1}
+.dm .dm-opt.right{border-color:#1d6b2f;background:#e5f3e4}
+.dm .dm-opt.wrong{border-color:#a3221b;background:#fbe6e3}
+.dm .dm-opt.dim{color:#5f5650;border-style:dashed}
+.dm-fb{font:clamp(17px,2vw,22px)/1.45 var(--fi-serif);margin:14px 0 0;min-height:1em}
+.dm-fb b.ok{color:#1d6b2f}.dm-fb b.no{color:#a3221b}
+.dm-joke{margin-top:16px}
+.dm .rn{white-space:nowrap} .dm .fg{display:inline-flex;flex-direction:column;font-size:.62em;line-height:.95;vertical-align:-.15em;margin-left:1px} .dm .rq{font-size:.8em;vertical-align:.35em}
+/* in a live game, the setup belongs to the host; students only see the game panel and the question */
+body.lc-student .dm-setup,body.lc-student .dm-intro,body.lc-host .dm-solo,body.lc-student .dm-solo{display:none!important}
+body.lc-host .dm-teams,body.lc-student .dm-teams{display:none}
+</style>
+<script src="assets/test-bank.js"></script>
+<script src="assets/mqtt.min.js"></script>
+<script src="assets/qrcode.js"></script>
+<script src="assets/live.js"></script>
+<main id="main" class="dm">
+<h1>Drill <span>maker</span></h1>
+<div class="dm-intro">
+<p>Make a drill from any mix of units, for example every orchestration family at once, or rhythm and meter together. Practice it on your own, or run it as a <b>class game</b>: you project each question, students answer anonymously on their phones, and everyone sees how the class did.</p>
+</div>
+
+<section class="dm-setup" aria-labelledby="dmH1">
+<h2 id="dmH1">1. Units</h2>
+<p id="dmAvail"></p>
+<div id="dmUnits"></div>
+<p class="sum" id="dmSum" aria-live="polite"></p>
+<label class="lbl" for="dmLink">Link to this drill <small>(the units are in the link)</small></label>
+<input type="text" id="dmLink" class="linkbox" readonly>
+<div class="row"><button type="button" class="pr-btn" id="dmCopy">Copy link</button><span id="dmCopyMsg" role="status"></span></div>
+</section>
+
+<h2 class="dm-setup" id="dmH2">2. Drill, or play as a class</h2>
+<p class="dm-setup">To play as a class, press <b>Host a class game</b>. Students join on their phones with the code or the QR code; each question you send comes from the units picked above, and you can change them between questions.</p>
+<div id="dmMount"></div>
+<section class="dm-card" id="dmCard" aria-labelledby="dmQ">
+  <p class="dm-meta"><span id="dmUnit">Drill</span><span id="dmScore" class="dm-solo"></span></p>
+  <p class="dm-q" id="dmQ">Pick at least one unit above to start.</p>
+  <div class="dm-opts" id="dmOpts" role="group" aria-labelledby="dmQ"></div>
+  <p class="dm-fb" id="dmFb" aria-live="polite"></p>
+  <div class="row dm-solo"><button type="button" class="pr-btn primary" id="dmNext" hidden>Next question →</button><span class="keys" style="font:14px var(--fi-serif)">Keys: <b>1</b>–<b>4</b> answer, <b>N</b> next.</span></div>
+</section>
+<div class="dm-joke" id="dmJoke"></div>
+
+<section class="dm-teams dm-setup" aria-labelledby="dmH3">
+<h2 id="dmH3">3. No phones? Teams on one screen</h2>
+<p>A scoreboard game for the projector: read each question, let the teams answer, then show the answer and give the point. It uses the units picked above, and a musical joke turns up every few questions.</p>
+<label class="lbl" for="dmN">Number of questions</label>
+<input type="number" id="dmN" min="1" max="200" step="1" value="20">
+<fieldset><legend>Teams <small>(2 to 4)</small></legend>
+  <div class="row" id="dmTeams"></div>
+  <div class="row"><button type="button" class="pr-btn" id="dmAddTeam">Add a team</button><button type="button" class="pr-btn" id="dmDelTeam">Remove a team</button></div>
+</fieldset>
+<label class="lbl" for="dmSecs">Timer for each question</label>
+<select id="dmSecs" class="tm-sel"><option value="0">No timer</option><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">1 minute</option></select>
+<div class="row"><button type="button" class="pr-btn primary" id="dmGame">Open the team game</button></div>
+<p id="dmGameMsg" role="status"></p>
+</section>
+</main>
+<script>
+(() => {
+  const BANK = window.SA_BANK || [], $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const short = t => t.replace(/^Understanding /, "").replace(/^Introduction to /, "Intro to ");
+  const RNRE = /^([♭♯]?)(It|Fr|Ger|[ivIV]+)([°ø+]?)(\d*)$/;
+  const rnPart = p => { const m = RNRE.exec(p); if (!m) return esc(p); let h = m[1] + m[2]; if (m[3]) h += `<span class="rq">${m[3]}</span>`; const f = m[4];
+    return h + (f.length === 2 ? `<span class="fg"><span>${f[0]}</span><span>${f[1]}</span></span>` : f ? `<sup>${f}</sup>` : ""); };
+  const rich = s => esc(s).replace(/\{rn:([^}]+)\}/g, (_, t) => `<span class="rn">${t.split("/").map(rnPart).join("/")}</span>`).replace(/\{sym:([^}]+)\}/g, "$1");
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const live = () => window.LiveClass && LiveClass.active, role = () => window.LiveClass ? LiveClass.role : "solo";
+  const KEY = "silverapps-drill-units";
+
+  // ---------- 1. units ----------
+  const secs = [...new Set(BANK.map(u => u.section))];
+  $("dmAvail").textContent = `${BANK.length} units, ${BANK.reduce((n, u) => n + u.qs.length, 0)} questions in all.`;
+  $("dmUnits").innerHTML = secs.map((s, si) => `<div class="sec" role="group" aria-labelledby="dmSec${si}"><div class="sec-h"><h3 id="dmSec${si}">${esc(s)}</h3><button type="button" class="pr-btn" data-all="${si}" aria-label="Select all units in ${esc(s)}">Select all</button></div>
+    <div class="units">${BANK.map((u, i) => u.section === s ? `<label><input type="checkbox" value="${esc(u.id)}" data-sec="${si}"> <span>${esc(short(u.title))} <small>(${u.qs.length})</small></span></label>` : "").join("")}</div></div>`).join("");
+  const boxes = () => [...document.querySelectorAll("#dmUnits input")];
+  const pickedIds = () => boxes().filter(b => b.checked).map(b => b.value);
+  const unitsOf = ids => ids.map(id => BANK.find(u => u.id === id)).filter(Boolean);
+  const allBtns = () => document.querySelectorAll("[data-all]").forEach(a => { const bs = boxes().filter(b => b.dataset.sec === a.dataset.all), on = bs.every(b => b.checked); a.textContent = on ? "Clear" : "Select all"; a.setAttribute("aria-label", (on ? "Clear all units in " : "Select all units in ") + secs[+a.dataset.all]); });
+  function setPicked(ids) { boxes().forEach(b => b.checked = ids.includes(b.value)); allBtns(); }
+  // start from the link (#u=id,id), else this browser's last drill (also what a student's "work ahead" frame practices)
+  const fromHash = (new URLSearchParams(location.hash.slice(1)).get("u") || "").split(",").filter(Boolean);
+  let saved = []; try { saved = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) {}
+  setPicked(fromHash.length ? fromHash : saved);
+  function changed() {
+    const ids = pickedIds(), U = unitsOf(ids), n = U.reduce((a, u) => a + u.qs.length, 0);
+    $("dmSum").textContent = ids.length ? `${n} questions from ${ids.length} unit${ids.length === 1 ? "" : "s"}.` : "Pick at least one unit.";
+    try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch (e) {}
+    const u = new URL(location.href); u.search = ""; u.hash = ids.length ? "u=" + ids.join(",") : ""; $("dmLink").value = u.href;
+    if (!/join=/.test(location.hash)) history.replaceState(null, "", ids.length ? "#u=" + ids.join(",") : location.pathname);
+    SOLO.seen = new Set(); allBtns();
+    if (!live() && (!CUR || !ids.includes(CUR.uid))) next();
+  }
+  document.addEventListener("change", e => { if (e.target.closest("#dmUnits")) changed(); });
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-all]"); if (!a) return;
+    const bs = boxes().filter(b => b.dataset.sec === a.dataset.all), on = !bs.every(b => b.checked); bs.forEach(b => b.checked = on); changed();
+  });
+  $("dmCopy").onclick = async () => { try { await navigator.clipboard.writeText($("dmLink").value); $("dmCopyMsg").textContent = "Link copied."; } catch (e) { $("dmLink").select(); $("dmCopyMsg").textContent = "Press Ctrl+C (or ⌘C) to copy the selected link."; } };
+
+  // ---------- 2. the drill card (solo practice, and the question in a live class game) ----------
+  let CUR = null;                                       // { uid, qi, q, unit, opts, done }
+  const SOLO = { seen: new Set(), right: 0, n: 0 };
+  // choose a question not seen yet from the picked units (all units if none are picked); unit first, so small units still come up
+  function choose(ids, seen) {
+    const U = unitsOf(ids.length ? ids : BANK.map(u => u.id));
+    let pool = U.map(u => ({ u, left: u.qs.map((_, i) => i).filter(i => !seen.has(u.id + ":" + i)) })).filter(p => p.left.length);
+    if (!pool.length) { seen.clear(); pool = U.map(u => ({ u, left: u.qs.map((_, i) => i) })); }
+    const p = pool[Math.floor(Math.random() * pool.length)], qi = p.left[Math.floor(Math.random() * p.left.length)];
+    seen.add(p.u.id + ":" + qi); return { uid: p.u.id, qi };
+  }
+  function render(c) {   // c = { uid, qi }; the answer order comes from Math.random, which live.js seeds so every phone matches the projector
+    const u = BANK.find(x => x.id === c.uid), q = u && u.qs[c.qi];
+    if (!q) { $("dmQ").textContent = "This question couldn't be found. Reload the page."; $("dmOpts").innerHTML = ""; return; }
+    CUR = { uid: c.uid, qi: c.qi, q, unit: short(u.title), opts: shuffle([q.a].concat(q.w || [])), done: false };
+    $("dmUnit").textContent = CUR.unit; $("dmQ").innerHTML = rich(q.q); $("dmFb").innerHTML = ""; $("dmNext").hidden = true; $("dmJoke").innerHTML = "";
+    $("dmOpts").innerHTML = CUR.opts.map((o, k) => `<button type="button" class="dm-opt" data-k="${k}"><span class="L" aria-hidden="true">${"ABCD"[k]}</span><span>${rich(o)}</span></button>`).join("");
+    score();
+  }
+  function mark(k) {
+    const ok = k >= 0 && CUR.opts[k] === CUR.q.a;
+    $("dmOpts").querySelectorAll(".dm-opt").forEach((b, i) => { b.disabled = true; const right = CUR.opts[i] === CUR.q.a; b.classList.toggle("right", right); b.classList.toggle("wrong", i === k && !right); b.classList.toggle("dim", !right && i !== k);
+      if (right) b.setAttribute("aria-label", "Correct answer: " + b.textContent.slice(1)); else if (i === k) b.setAttribute("aria-label", "Your answer: " + b.textContent.slice(1)); });
+    $("dmFb").innerHTML = `${k < 0 ? "" : ok ? '<b class="ok">Right.</b> ' : '<b class="no">Not quite.</b> '}<b>Answer: ${"ABCD"[CUR.opts.indexOf(CUR.q.a)]}.</b> ${rich(CUR.q.why || "")}`;
+    return ok;
+  }
+  function answer(k) {
+    if (!CUR || CUR.done) return; CUR.done = true;
+    const ok = mark(k);
+    if (live()) { LiveClass.answered(ok); return; }   // in a class game the phone sends right/wrong; the host's card is locked
+    SOLO.n++; if (ok) SOLO.right++; score(); if (window.SFX) SFX.play(ok);
+    $("dmNext").focus({ preventScroll: true });
+    if (SOLO.n % 5 === 0) joke();
+  }
+  function next() {
+    const ids = pickedIds();
+    if (!ids.length) { CUR = null; $("dmUnit").textContent = "Drill"; $("dmQ").textContent = "Pick at least one unit above to start."; $("dmOpts").innerHTML = ""; $("dmFb").innerHTML = ""; $("dmNext").hidden = true; return; }
+    render(choose(ids, SOLO.seen));
+  }
+  const score = () => { $("dmScore").textContent = SOLO.n ? `${SOLO.right} of ${SOLO.n} right` : ""; $("dmNext").hidden = !(CUR && CUR.done); };
+  $("dmOpts").addEventListener("click", e => { const b = e.target.closest(".dm-opt"); if (b && !b.disabled) answer(+b.dataset.k); });
+  $("dmNext").onclick = next;
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input,select,textarea,summary") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = "1234".indexOf(e.key) >= 0 ? "1234".indexOf(e.key) : "abcd".indexOf(e.key.toLowerCase());
+    if (k >= 0 && e.key.length === 1 && CUR && !CUR.done && k < CUR.opts.length) { const b = $("dmOpts").children[k]; if (b && !b.disabled) { e.preventDefault(); answer(k); } }
+    else if ((e.key === "n" || e.key === "N") && !$("dmNext").hidden && !live()) next();
+  });
+
+  // ---------- musical jokes (approved ones, assets/jokes.js): every fifth solo answer, and on the projector after every fifth class question ----------
+  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
+  function joke() {
+    if (!JOKES || !window.SAjoke || !CUR) return;
+    const sec = (JOKES.sections || {})[CUR.uid] || "", js = JOKES.jokes.filter(j => (j.units || []).includes(CUR.uid) || (j.topics || []).includes(sec));
+    const pool = js.length ? js : JOKES.jokes.filter(j => (j.topics || []).includes("any")); if (!pool.length) return;
+    $("dmJoke").innerHTML = SAjoke.html(pool[Math.floor(Math.random() * pool.length)]);
+  }
+
+  // ---------- live class game (assets/live.js): host projects, phones answer ----------
+  let hostN = 0; const hostSeen = new Set();
+  if (window.LiveClass) LiveClass.register({
+    id: "drill", name: "Drill Maker", mount: $("dmMount"), card: $("dmCard"),
+    hostHint: "Each question you send is drawn from the units picked above. You can change the units between questions.",
+    nextHint: "check the units picked above, then send the first question.",
+    getConfig: () => { hostN++; return Object.assign({ n: hostN }, choose(pickedIds(), hostSeen)); },
+    label: c => { const u = BANK.find(x => x.id === c.uid); return u ? short(u.title) : "Drill"; },
+    load: c => { render(c); try { localStorage.setItem(KEY, JSON.stringify([...new Set(pickedIds().concat(c.uid))])); } catch (e) {} },
+    showAnswer: () => { if (!CUR) return; if (!CUR.done) { CUR.done = true; mark(-1); } if (role() === "host" && hostN % 5 === 0) joke(); },
+  });
+  // the phone's "work ahead" frame practices this page solo: start it on the units the class is using
+  changed();
+
+  // ---------- 3. teams on one screen (class-game.html#g=<base64url JSON> { v, t, u, n, teams, sec }) ----------
+  const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  let TEAMS = ["Team 1", "Team 2"];
+  const teamsUI = () => { $("dmTeams").innerHTML = TEAMS.map((t, i) => `<label class="sr-only" for="dmTeam${i}">Team ${i + 1} name</label><input type="text" id="dmTeam${i}" data-team="${i}" maxlength="24" value="${esc(t)}">`).join("");
+    $("dmAddTeam").disabled = TEAMS.length >= 4; $("dmDelTeam").disabled = TEAMS.length <= 2; };
+  teamsUI();
+  $("dmTeams").addEventListener("input", e => { const i = e.target.dataset.team; if (i != null) TEAMS[+i] = e.target.value; });
+  $("dmAddTeam").onclick = () => { if (TEAMS.length < 4) { TEAMS.push("Team " + (TEAMS.length + 1)); teamsUI(); } };
+  $("dmDelTeam").onclick = () => { if (TEAMS.length > 2) { TEAMS.pop(); teamsUI(); } };
+  $("dmGame").onclick = () => {
+    const U = unitsOf(pickedIds()); if (!U.length) { $("dmGameMsg").textContent = "Pick at least one unit in step 1."; boxes()[0].focus(); return; }
+    const avail = U.reduce((n, u) => n + u.qs.length, 0), n = Math.max(1, Math.min(avail, Math.round(+$("dmN").value || 20)));
+    const G = { v: 1, t: "Music theory class game", u: U.map(u => u.id), n, teams: TEAMS.map((t, i) => t.trim() || "Team " + (i + 1)), sec: +$("dmSecs").value };
+    $("dmGameMsg").textContent = `A game of ${n} question${n === 1 ? "" : "s"} from ${U.length} unit${U.length === 1 ? "" : "s"}, for ${G.teams.length} teams, opened in a new tab.`;
+    window.open("class-game.html#g=" + b64(JSON.stringify(G)), "_blank", "noopener");
+  };
+})();
+</script>

@@ -752,3 +752,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z209: All 24 jokes approved (build/jokes.json).
 
 - z210: Test Maker: step 3 heading always shows, with a note (#tmOutWait) until the test is made, so the steps run 1–4.
+
+- z211: Drill Maker (build/pages/drill-maker.html, Instructor Tools): pick units (#u=id,id link; last pick kept in localStorage "silverapps-drill-units"), solo MC drill with keys 1–4/N and a joke every 5 answers; registers with LiveClass (id "drill") so it runs as a phone class game: host getConfig picks {uid, qi} without repeats, load() renders it with the seeded answer order, showAnswer adds a joke on the host screen every 5th question. Teams-on-one-screen (class-game.html) moved here from the Test Maker (step 4 removed). live.js adapters may pass hostHint/nextHint.
