@@ -16,6 +16,7 @@
      load(cfg)           build + render the question (called inside a seeded RNG)
      showAnswer()        show the correct answer without scoring
      hostHint, nextHint  optional: the host's setup and "Next:" instructions (default: use the trainer's buttons below)
+     revealHint, answerWhere, answerWhereStudent   optional: the host's text after a reveal, and where the answer shows (host, phone)
    and by calling LiveClass.answered(correct) from its score() function;
    if that returns true the trainer must skip its own solo scoring.
 
@@ -294,8 +295,8 @@
     const r = H.results[H.results.length - 1], g = pctR(r.pct); H.timeUp = false;
     el.innerHTML = `<div class="lc-panel"><p class="lc-label">${timeUp ? "Time's up · " : ""}Question ${H.qn} · class results</p>
       ${r.n ? `<div class="lc-pcts"><div class="g"><div class="n">${g}%</div><small>got it</small></div><div class="b"><div class="n">${100 - g}%</div><small>not yet</small></div></div>${bars(r.pct, r.n)}<p class="lc-sub">${r.n} answer${r.n === 1 ? "" : "s"}</p>` : ""}
-      <div class="lc-msg"><h3>${esc(classMsg(r.pct, r.n))}</h3><p>The answer is shown in the trainer below.</p></div>${goalHTML(classStats())}
-      <p class="lc-sub" style="margin-top:10px">Change the question type below if you like, then send the next one.</p>
+      <div class="lc-msg"><h3>${esc(classMsg(r.pct, r.n))}</h3><p>${A.answerWhere || "The answer is shown in the trainer below."}</p></div>${goalHTML(classStats())}
+      <p class="lc-sub" style="margin-top:10px">${A.revealHint || "Change the question type below if you like, then send the next one."}</p>
       <div class="lc-row"><button class="lc-btn" data-a="finish">Finish &amp; recap</button>${fsBtn()}<span class="lc-grow"></span><button class="lc-btn primary big" data-a="next">Next question →</button></div></div>`;
     q$('[data-a="next"]').onclick = hostSend; q$('[data-a="finish"]').onclick = hostFinish; bindFs();
     announce(`${r.n ? g + " percent got it. " : ""}${classMsg(r.pct, r.n)}`);
@@ -412,7 +413,7 @@
       const r = st.reveal || { pct: 0, n: 0 };
       const head = mine == null ? "Time ran out — no problem! Here's the answer." : mine ? "You got it!" : "Not quite — and that's how learning sticks.";
       main = `<p class="lc-label">Question ${st.qn} · ${esc(st.label || "")}</p>
-        <div class="lc-msg ${mine == null ? "" : mine ? "good" : "bad"}"><h3>${esc(head)}</h3><p>The answer and explanation are in the trainer below.</p></div>
+        <div class="lc-msg ${mine == null ? "" : mine ? "good" : "bad"}"><h3>${esc(head)}</h3><p>${A.answerWhereStudent || "The answer and explanation are in the trainer below."}</p></div>
         <p class="lc-label" style="margin-top:10px">Class</p>${r.n ? bars(r.pct, r.n) + `<p class="lc-sub">${pctR(r.pct)}% of the class got this one · ${esc(classMsg(r.pct, r.n))}</p>` : `<p class="lc-sub">${esc(classMsg(0, 0))}</p>`}${goalHTML(st.cls)}`;
     } else if (st.phase === "end") {
       const cs = st.cls || {}, avg = cs.avg || 0;

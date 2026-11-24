@@ -52,11 +52,47 @@
 /* in a live game, the setup belongs to the host; students only see the game panel and the question */
 body.lc-student .dm-setup,body.lc-student .dm-intro,body.lc-host .dm-solo,body.lc-student .dm-solo{display:none!important}
 body.lc-host .dm-teams,body.lc-student .dm-teams{display:none}
+/* projector view: hosting a game fills the screen with the game panel and the question; students answer on their phones */
+.dm-stagebar,.dm .dm-proj{display:none}
+body.lc-host:not(.dm-stage) .dm .dm-proj{display:flex}
+body.dm-stage{background:var(--fi-paper);overflow-x:hidden}
+body.dm-stage .site-strip,body.dm-stage .fi-credit,body.dm-stage .fi-filmstrip,body.dm-stage .skip-link,body.dm-stage .dm-intro,body.dm-stage .dm-setup,body.dm-stage .dm-teams,body.dm-stage h1{display:none!important}
+body.dm-stage .dm{max-width:none;min-height:100vh;box-sizing:border-box;padding:14px clamp(16px,3vw,48px) 28px}
+body.dm-stage .dm-stagebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px}
+.dm-stagebar .t{font:400 clamp(26px,3vw,40px)/1 var(--fi-display);text-transform:uppercase;margin:0}
+.dm-stagebar .u{font:16px/1.3 var(--fi-serif);color:var(--fi-ink-2,#5c544c);flex:1 1 240px;margin:0}
+body.dm-stage #dmCard{scroll-margin-top:100vh}   /* live.js scrolls the question into view; in the projector view everything fits, so stay at the top */
+body.dm-stage:not(.dm-hasq) #dmCard,body.dm-stage:not(.dm-hasq) #dmJoke,body.dm-stage #dmMount{display:none}
+/* with a question up on a wide screen: the question on the left, the clock, count and results on the right, all on one screen */
+@media (min-width:900px){
+  body.dm-stage.dm-hasq .dm{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,30%);grid-template-rows:auto auto 1fr;gap:0 clamp(14px,1.6vw,28px);align-items:start}
+  body.dm-stage.dm-hasq .dm-stagebar{grid-column:1/-1;grid-row:1}
+  body.dm-stage.dm-hasq #lc{grid-column:2;grid-row:2/span 2;margin:0}
+  body.dm-stage.dm-hasq #dmCard{grid-column:1;grid-row:2;margin:0}
+  body.dm-stage.dm-hasq #dmJoke{grid-column:1;grid-row:3}
+  body.dm-stage.dm-hasq .lc-timer{font-size:clamp(56px,6vw,120px)}
+  body.dm-stage.dm-hasq .lc-pcts .n{font-size:clamp(40px,4vw,72px)}
+  body.dm-stage.dm-hasq .lc-panel p,body.dm-stage.dm-hasq .lc-goal{font-size:clamp(14px,1.15vw,20px)}
+  body.dm-stage.dm-hasq .lc-msg h3{font-size:clamp(20px,1.8vw,32px)}
+}
+body.dm-stage .lc-code{font-size:clamp(90px,13vw,190px)}
+body.dm-stage .lc-timer{font-size:clamp(70px,9vw,150px)}
+body.dm-stage .lc-steps,body.dm-stage .lc-panel p{font-size:clamp(16px,1.6vw,24px)}
+body.dm-stage .dm-card{padding:clamp(16px,2vw,32px) clamp(18px,2.6vw,40px)}
+body.dm-stage .dm-meta{font-size:clamp(13px,1.2vw,18px)}
+body.dm-stage .dm-q{font-size:clamp(28px,3.6vw,58px)}
+body.dm-stage .dm .dm-opt{font-size:clamp(22px,2.6vw,42px);padding:clamp(12px,1.4vw,22px) clamp(16px,1.8vw,28px)}
+body.dm-stage .dm .dm-opt .L{font-size:clamp(26px,3vw,48px)}
+body.dm-stage .dm-fb{font-size:clamp(20px,2.2vw,34px)}
+body.dm-stage .dm-joke .saq-joke{font-size:clamp(20px,2.2vw,30px)}
+.dm-dlg{border:2px solid var(--fi-ink);border-radius:var(--fi-r);background:var(--fi-paper);color:var(--fi-ink);width:min(960px,94vw);max-height:88vh;padding:16px 20px}
+.dm-dlg::backdrop{background:rgba(20,15,12,.55)}
+.dm-dlg h2{margin:0 0 6px}
 </style>
 <script src="assets/test-bank.js?v=e320cc53"></script>
 <script src="assets/mqtt.min.js?v=c6d89040"></script>
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
-<script src="assets/live.js?v=570cdf93"></script>
+<script src="assets/live.js?v=939195ec"></script>
 <main id="main" class="dm">
 <h1>Drill <span>maker</span></h1>
 <div class="dm-intro">
@@ -74,7 +110,9 @@ body.lc-host .dm-teams,body.lc-student .dm-teams{display:none}
 </section>
 
 <h2 class="dm-setup" id="dmH2">2. Drill, or play as a class</h2>
-<p class="dm-setup">To play as a class, press <b>Host a class game</b>. Students join on their phones with the code or the QR code; each question you send comes from the units picked above, and you can change them between questions.</p>
+<p class="dm-setup">To play as a class, press <b>Host a class game</b>: the page switches to a full-screen projector view, and students join on their phones with the code or the QR code. Each question you send comes from the units picked above; you can change them between questions.</p>
+<div class="dm-stagebar" role="group" aria-label="Projector view"><p class="t">Class drill</p><p class="u" id="dmStageU"></p><button type="button" class="pr-btn" id="dmStageUnits">Change units</button><button type="button" class="pr-btn" id="dmStageExit">Leave projector view</button></div>
+<div class="row dm-proj"><button type="button" class="pr-btn primary" id="dmStageGo">Projector view</button></div>
 <div id="dmMount"></div>
 <section class="dm-card" id="dmCard" aria-labelledby="dmQ">
   <p class="dm-meta"><span id="dmUnit">Drill</span><span id="dmScore" class="dm-solo"></span></p>
@@ -99,6 +137,7 @@ body.lc-host .dm-teams,body.lc-student .dm-teams{display:none}
 <div class="row"><button type="button" class="pr-btn primary" id="dmGame">Open the team game</button></div>
 <p id="dmGameMsg" role="status"></p>
 </section>
+<dialog class="dm-dlg" id="dmDlg" aria-labelledby="dmDlgH"><h2 id="dmDlgH">Units for the next question</h2><div id="dmDlgSlot"></div><div class="row"><button type="button" class="pr-btn primary" id="dmDlgDone">Done</button></div></dialog>
 </main>
 <script>
 (() => {
@@ -205,15 +244,41 @@ body.lc-host .dm-teams,body.lc-student .dm-teams{display:none}
   let hostN = 0; const hostSeen = new Set();
   if (window.LiveClass) LiveClass.register({
     id: "drill", name: "Drill Maker", mount: $("dmMount"), card: $("dmCard"),
+    answerWhere: "The answer is marked in the question.", answerWhereStudent: "The answer and explanation are below.",
+    revealHint: "Change the units if you like, then send the next one.",
     hostHint: "Each question you send is drawn from the units picked above. You can change the units between questions.",
     nextHint: "check the units picked above, then send the first question.",
     getConfig: () => { hostN++; return Object.assign({ n: hostN }, choose(pickedIds(), hostSeen)); },
     label: c => { const u = BANK.find(x => x.id === c.uid); return u ? short(u.title) : "Drill"; },
-    load: c => { render(c); try { localStorage.setItem(KEY, JSON.stringify([...new Set(pickedIds().concat(c.uid))])); } catch (e) {} },
+    load: c => { render(c); document.body.classList.add("dm-hasq"); try { localStorage.setItem(KEY, JSON.stringify([...new Set(pickedIds().concat(c.uid))])); } catch (e) {} },
     showAnswer: () => { if (!CUR) return; if (!CUR.done) { CUR.done = true; mark(-1); } if (role() === "host" && hostN % 5 === 0) joke(); },
   });
   // the phone's "work ahead" frame practices this page solo: start it on the units the class is using
   changed();
+
+  // ---------- projector view: hosting fills the screen (the "Host a class game" click is the gesture that allows full screen) ----------
+  const fsOn = () => { const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(() => {}); };
+  function stage(on) {
+    document.body.classList.toggle("dm-stage", on);
+    if (on) { fsOn(); stageU(); window.scrollTo(0, 0); }
+    else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+  function stageU() { const U = unitsOf(pickedIds()); $("dmStageU").textContent = U.length ? "Units: " + U.map(u => short(u.title)).join(", ") : "Units: all of them (none picked)"; }
+  document.addEventListener("click", e => { if (e.target.closest('#lc [data-a="host"]')) stage(true); }, true);
+  $("dmStageGo").onclick = () => stage(true);
+  $("dmStageExit").onclick = () => stage(false);
+  // the units picker moves into a dialog while it's open, then back to step 1
+  const home = $("dmUnits").parentNode, slot = $("dmSum").nextSibling;
+  $("dmStageUnits").onclick = () => { $("dmDlgSlot").append($("dmUnits"), $("dmSum")); $("dmDlg").showModal(); };
+  $("dmDlg").addEventListener("close", () => { home.insertBefore($("dmUnits"), slot); home.insertBefore($("dmSum"), slot); stageU(); });
+  $("dmDlgDone").onclick = () => $("dmDlg").close();
+  document.addEventListener("change", e => { if (e.target.closest("#dmUnits")) stageU(); });
+  // show the question only while one is in play: not in the lobby, the how-it-works screen or the recap; leave the view when the session ends
+  new MutationObserver(recs => {
+    const lc = $("lc"); if (!lc || !recs.some(r => lc.contains(r.target))) return;   // only the game panel's own changes
+    if (lc.querySelector('[data-a="host"]') && document.body.classList.contains("dm-stage")) { stage(false); document.body.classList.remove("dm-hasq"); }
+    if (lc.querySelector('[data-a="intro"], [data-a="send"], [data-a="again"]')) document.body.classList.remove("dm-hasq");
+  }).observe(document.getElementById("main"), { childList: true, subtree: true });
 
   // ---------- 3. teams on one screen (class-game.html#g=<base64url JSON> { v, t, u, n, teams, sec }) ----------
   const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
