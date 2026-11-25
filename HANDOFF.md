@@ -761,3 +761,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z214: Musical Expectation: "Try it: set up and break a pattern" is now a surprise meter (sm* in expect.js): one-bar pattern (12-row melody incl. F♯/B♭ + kick/snare/hat) plays 3×, then the student's bar 4; each eighth scored in bits (pitch from model() with the pattern note as implied, timing vs pattern, drum changes), stacked graph per bar, summary, four challenges, notation, playback with playhead. engine.js hit() gains "kick", "snare", "hat".
 
 - z215: Turntables restyled as a compact dark rig (own palette inside .satt; deck A orange, B cyan): vertical pitch fader beside a smaller platter, icon start/stop, short labels (Cue, Set, Rev, 33, 45, Sync, 0%) with full aria-labels; mixer EQ/filter/master are knobs (div role="slider": drag up/down, arrows, Page Up/Down, Home/End, double-click resets); custom range styling; mixer max 330px, centered under the decks below 860px.
+
+- z216: Turntables: platters fill the deck (up to 250px), taller pitch fader (150px), label sized to the rig width.
