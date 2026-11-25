@@ -763,3 +763,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z215: Turntables restyled as a compact dark rig (own palette inside .satt; deck A orange, B cyan): vertical pitch fader beside a smaller platter, icon start/stop, short labels (Cue, Set, Rev, 33, 45, Sync, 0%) with full aria-labels; mixer EQ/filter/master are knobs (div role="slider": drag up/down, arrows, Page Up/Down, Home/End, double-click resets); custom range styling; mixer max 330px, centered under the decks below 860px.
 
 - z216: Turntables: platters fill the deck (up to 250px), taller pitch fader (150px), label sized to the rig width.
+
+- z217: Turntables: a held platter is always released (pointerup/cancel, lost pointer capture, a mouse move with no button down, window blur, or pressing that deck's start/stop or Play both); the grab is set before the first-use loading await, so a quick release during loading no longer leaves the platter held (stopped).

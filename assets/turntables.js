@@ -248,7 +248,7 @@ window.SATT = (() => {
       if (b.dataset.mute != null) { const i = +b.dataset.mute; T.mute[i] = !T.mute[i]; b.setAttribute("aria-pressed", String(T.mute[i])); mix(); return; }
       if (b.dataset.rpm) { const [i, r] = b.dataset.rpm.split(","); T.rpm45[+i] = r === "45"; host.querySelectorAll(`[data-rpm^="${i},"]`).forEach(x => x.setAttribute("aria-pressed", String(x === b))); status(); return; }
       if (b.dataset.d) { const [a, s] = b.dataset.d.split(","), i = +s;
-        if (a === "go") { if (T.run[i]) { T.run[i] = false; status(); } else start([i]); }
+        if (a === "go") { release(i); if (T.run[i]) { T.run[i] = false; status(); } else start([i]); }
         else if (a === "cue") seek(i, T.cue[i]);
         else if (a === "setcue") { T.cue[i] = T.pos[i]; say(`Deck ${D(i)}'s cue point is set. Press Cue to jump back to it.`); }
         else if (a === "rev") { T.rev[i] = !T.rev[i]; b.setAttribute("aria-pressed", String(T.rev[i])); status(); }
@@ -256,7 +256,7 @@ window.SATT = (() => {
         else if (a === "zero") setFader(i, 0);
         return; }
       const a = b.dataset.a;
-      if (a === "play") { if (on()) { T.run = [false, false]; status(); } else start(); }
+      if (a === "play") { onUp(); if (on()) { T.run = [false, false]; status(); } else start(); }
       else if (a === "new") challenge();
       else if (a === "cut") { T.cut = !T.cut; b.setAttribute("aria-pressed", String(T.cut)); mix(); }
       else if (a === "xc") { T.xf = 0; const x = $(`#${T.id}xf`); x.value = 0; x.setAttribute("aria-valuetext", "center"); mix(); }
@@ -266,13 +266,17 @@ window.SATT = (() => {
       const kn = e.target.closest(".satt-knob"); if (kn) { e.preventDefault(); try { kn.setPointerCapture(e.pointerId); } catch (x) {} kn.focus(); T.kn = { el: kn, y: e.clientY, v: +kn.getAttribute("aria-valuenow") }; return; }
       const nb = e.target.closest("[data-n]"); if (nb) { e.preventDefault(); nudge(nb, true); return; }
       const el = e.target.closest(".satt-plat"); if (!el) return; e.preventDefault(); const i = +el.dataset.i;
-      if (!AC()) return; if (!T.list.length) await loadList(); engine(); if (!T.raf) tick();
-      try { el.setPointerCapture(e.pointerId); } catch (x) {} T.grab[i] = { a: ang(el, e), t: performance.now(), rot: (T.pos[i] / 1.8) * 360 }; T.scr[i] = 0; el.classList.add("held"); };
-    const onMove = e => { if (T.kn) { const k = T.kn.el; setKnob(k, T.kn.v + (T.kn.y - e.clientY) / 140 * (+k.dataset.max - +k.dataset.min)); return; }
+      if (!AC()) return;
+      try { el.setPointerCapture(e.pointerId); } catch (x) {} el.onlostpointercapture = () => release(i); T.grab[i] = { a: ang(el, e), t: performance.now(), rot: (T.pos[i] / 1.8) * 360 }; T.scr[i] = 0; el.classList.add("held");
+      if (!T.list.length) await loadList(); engine(); if (!T.raf) tick(); };   // after the grab is set, so a quick release during loading still lets go
+    const onMove = e => { if (e.pointerType === "mouse" && e.buttons === 0 && (T.grab[0] || T.grab[1] || T.kn)) { onUp(); return; }
+      if (T.kn) { const k = T.kn.el; setKnob(k, T.kn.v + (T.kn.y - e.clientY) / 140 * (+k.dataset.max - +k.dataset.min)); return; }
       const el = e.target.closest && e.target.closest(".satt-plat"); if (!el) return; const i = +el.dataset.i, g = T.grab[i]; if (!g) return;
       const a = ang(el, e), now = performance.now(); let da = a - g.a; if (da > 180) da -= 360; if (da < -180) da += 360; const dt = Math.max(.008, (now - g.t) / 1000);
       T.scr[i] = Math.max(-6, Math.min(6, (da / 360 * 1.8) / dt)); g.a = a; g.t = now; g.rot += da; el.style.transform = `rotate(${g.rot % 360}deg)`; };
-    const onUp = () => { T.kn = null; T.nudge = [0, 0]; for (let i = 0; i < 2; i++) if (T.grab[i]) { T.grab[i] = null; T.scr[i] = 0; const p = $(`#${T.id}p${i}`); if (p) p.classList.remove("held"); } };
+    // letting go of a platter hands it back to the motor; also on a lost capture, a move with no button down, or the window losing focus, so a platter never stays held
+    const release = i => { if (!T.grab[i]) return; T.grab[i] = null; T.scr[i] = 0; const p = $(`#${T.id}p${i}`); if (p) p.classList.remove("held"); };
+    const onUp = () => { T.kn = null; T.nudge = [0, 0]; release(0); release(1); };
     const onKey = (e, down) => { const kn = down && e.target.closest && e.target.closest(".satt-knob");
       if (kn) { const st = +kn.dataset.step, v = +kn.getAttribute("aria-valuenow"), d = { ArrowUp: st, ArrowRight: st, ArrowDown: -st, ArrowLeft: -st, PageUp: st * 10, PageDown: -st * 10 }[e.key];
         if (d != null) { e.preventDefault(); setKnob(kn, v + d); } else if (e.key === "Home" || e.key === "End") { e.preventDefault(); setKnob(kn, +kn.dataset[e.key === "Home" ? "min" : "max"]); } return; } const b = e.target.closest && e.target.closest("[data-n]"); if (b && (e.key === " " || e.key === "Enter")) { e.preventDefault(); if (!e.repeat) nudge(b, down); } };
@@ -287,12 +291,12 @@ window.SATT = (() => {
     const onChange = e => { const s = e.target.closest(".satt-src"); if (s) setSrc(+s.dataset.i, s.value); const r = e.target.closest(".satt-sel"); if (r) setRange(+r.dataset.i, +r.value); };
     host.addEventListener("dblclick", e => { const kn = e.target.closest(".satt-knob"); if (kn) setKnob(kn, +kn.dataset.def); });
     host.addEventListener("click", onClick); host.addEventListener("pointerdown", onDown); host.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
+    window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp); window.addEventListener("blur", onUp);
     host.addEventListener("keydown", kd); host.addEventListener("keyup", ku); host.addEventListener("input", onInput); host.addEventListener("change", onChange);
     setTimeout(() => { status(); const el = $(".satt-stat"); if (el && !ready()) el.innerHTML = "Deck A and deck B both hold the built-in groove at 100 bpm, but B's speed is off. Press <b>Play both</b>."; }, 0);
     function destroy() { T.run = [false, false]; T.rec = null; cancelAnimationFrame(T.raf); T.raf = 0;
       if (T.sp) { T.sp.disconnect(); T.sp.onaudioprocess = null; T.sp = null; } if (T.N) { T.N.tap.disconnect(); T.N.tap.onaudioprocess = null; T.N = null; }
-      window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp); if (host.isConnected) host.innerHTML = ""; }
+      window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp); window.removeEventListener("blur", onUp); if (host.isConnected) host.innerHTML = ""; }
     if (AC && opts.ctx && opts.eager !== false) loadList().then(status).catch(() => {});
     return {
       refresh: () => loadList().then(status),
