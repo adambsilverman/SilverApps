@@ -120,73 +120,130 @@ window.FAM = (() => {
     document.addEventListener("change", e => { if (e.target.id === "egSit") { G.sit = e.target.value; G.R = null; G.pick = null; G.done = false; gameRedraw(); } });
   }
 
-  // ---------- the pattern maker: a pulse, a repeating cell, and a departure in bar 4 ----------
-  const PITCH = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5"];   // row 0 = C4 … row 9 = E5
-  const PM = { len: 4, cell: [0, 2, 4, 2], bpm: 96, dep: "keep" };   // cell: row index per eighth, or -1 for a rest
-  const DEPS = [["keep", "Keep the pattern going (no departure)"], ["tonic", "End on a long C, the tonic"], ["high", "Jump up high on the downbeat"], ["shift", "Shift everything an eighth late"], ["stop", "Stop: two beats of silence"], ["outside", "Land on F♯, a note outside the key"]];
-  function pmSlots() {   // 32 eighths: the cell repeats from beat 1 of bar 1; bar 4 (slots 24–31) gets the departure
-    const out = []; for (let i = 0; i < 32; i++) out.push(PM.cell[i % PM.len]);
-    const b4 = out.slice(24);
-    if (PM.dep === "tonic") { for (let i = 24; i < 32; i++) out[i] = -1; out[24] = 7; out.__long = 24; }
-    else if (PM.dep === "high") { const r = out[24] >= 0 ? out[24] : 0; out[24] = Math.min(9, r + 6); }
-    else if (PM.dep === "shift") { for (let i = 31; i > 24; i--) out[i] = b4[i - 25]; out[24] = -1; }
-    else if (PM.dep === "stop") { for (let i = 28; i < 32; i++) out[i] = -1; }
-    else if (PM.dep === "outside") { out[24] = -2; }
+  // ---------- the surprise meter: a one-bar pattern (melody and drums) plays three times, then the student's own bar 4;
+  // every note is scored with the same expectation model as the game, so a graph shows where listeners would be surprised ----------
+  const SMROWS = ["E5", "D5", "C5", "B4", "B♭4", "A4", "G4", "F♯4", "F4", "E4", "D4", "C4"];
+  const SMDR = [["kick", "Kick"], ["snare", "Snare"], ["hat", "Hi-hat"]];
+  const SMDEF = () => ({ mel: ["C4", null, "E4", "G4", "A4", "G4", "E4", null], kick: [1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hat: [1, 1, 1, 1, 1, 1, 1, 1] });
+  const smCopy = p => ({ mel: p.mel.slice(), kick: p.kick.slice(), snare: p.snare.slice(), hat: p.hat.slice() });
+  const SM = { bpm: 96, pat: SMDEF(), brk: SMDEF(), loop: false, on: false, t0: 0, raf: 0, timer: 0 };
+  const smOut = nm => /♯|♭/.test(nm);   // F♯ and B♭ are outside C major
+  const beatName = i => i % 2 ? `the “and” of beat ${Math.floor(i / 2) + 1}` : `beat ${i / 2 + 1}`;
+  // surprise of each eighth in bits (each extra bit = the listener's model gave it half the chance): pitch from the model,
+  // timing from the pattern (a note where it had silence, or silence where it had a note), plus changed drums
+  function smScore() {
+    const H = HC(), out = [], ctx = [], mid = nm => H.midi(H.parse(nm)), kkSum = KK.major.reduce((a, b) => a + b, 0);
+    for (let b = 0; b < 4; b++) { const P = b < 3 ? SM.pat : SM.brk;
+      for (let i = 0; i < 8; i++) { const nm = P.mel[i], m = nm ? mid(nm) : null, exp = b ? SM.pat.mel[i] : undefined;
+        let pS = 0, rhy = 0, miss = 0, dr = 0;
+        if (b === 0) { if (m != null) rhy = i === 0 ? .2 : i % 2 ? 1.1 : .5; }
+        else if (m != null && !exp) rhy = i % 2 ? 2.6 : 1.6;
+        else if (m == null && exp) miss = 2;
+        else if (m != null) rhy = .1;
+        if (m != null) {
+          let p; if (!ctx.length) p = KK.major[((m - 60) % 12 + 12) % 12] / kkSum;
+          else { const hit = model(ctx, 60, "major", exp ? mid(exp) : null).find(x => x.m === m); p = hit ? hit.p : .002; }
+          pS = Math.min(8, -Math.log2(p)); ctx.push(m); }
+        if (b) SMDR.forEach(([k]) => { if (!!P[k][i] !== !!SM.pat[k][i]) dr += k === "hat" ? .4 : 1.2; });
+        out.push({ b, i, nm, exp, pS, rhy, miss, dr, tot: pS + rhy + miss + dr });
+      } }
     return out;
   }
-  const pmName = r => r === -2 ? "F♯4" : PITCH[r];
-  function pmSpec() {
-    const sl = pmSlots(), bars = [];
-    for (let b = 0; b < 4; b++) { const bar = [];
-      if (b === 3 && sl.__long === 24) { bars.push([n("C5", "h"), n(null, "h")]); continue; }
-      for (let i = 0; i < 8; i++) { const r = sl[b * 8 + i];
-        if (r === -1 && i % 2 === 0 && sl[b * 8 + i + 1] === -1) { bar.push(n(null, "q")); i++; continue; }
-        bar.push(r === -1 ? n(null, "8") : n(pmName(r), "8")); }
-      bars.push(bar); }
-    return sc(bars, { bpm: PM.bpm, minBar: 150 });
+  const smBar = (S, b) => S.filter(x => x.b === b).reduce((a, x) => a + x.tot, 0);
+  function smChallenges(S) {
+    const b3 = smBar(S, 2), b4 = smBar(S, 3), d = b4 - b3, B4 = S.filter(x => x.b === 3), notes = B4.filter(x => x.nm);
+    const last = notes[notes.length - 1], patP = new Set(SM.pat.mel.filter(Boolean));
+    return [
+      ["A small twist: bar 4 adds 3 to 9 bits of surprise, using only notes in the key", d >= 3 && d <= 9 && notes.every(x => !smOut(x.nm))],
+      ["A big surprise: bar 4 adds at least 15 bits", d >= 15],
+      ["Surprise, then home: a big surprise (4+ bits) in the first half of bar 4, and bar 4's last note a C on a beat, at least 2 bits calmer than that surprise", (() => { const big = B4.filter(x => x.i < 4).sort((p, q) => q.tot - p.tot)[0]; return !!big && big.tot >= 4 && !!last && last.i >= 4 && /^C/.test(last.nm) && last.i % 2 === 0 && last.tot <= big.tot - 2; })()],
+      ["Rhythm alone: bar 4 uses only the pattern's pitches, but its timing adds 4+ bits", notes.length > 0 && notes.every(x => patP.has(x.nm)) && B4.reduce((a, x) => a + x.rhy + x.miss, 0) - .1 * notes.length >= 4],
+    ];
   }
-  function pmAnalyse() {
-    const on = PM.cell.map((r, i) => r >= 0 ? i : -1).filter(i => i >= 0), aligned = 8 % PM.len === 0;
-    const onBeat = on.filter(i => i % 2 === 0).length, msg = [];
-    if (!on.length) return "Put at least one note in the pattern.";
-    msg.push(aligned ? `Your ${PM.len}-eighth pattern fits the 4/4 bar evenly, so it lines up with the pulse every time it starts${PM.len < 8 ? ` (${8 / PM.len} times a bar)` : ""}.`
-      : `Your ${PM.len}-eighth pattern doesn't divide the bar evenly: it starts in a different place against the beat each time and lines up with the bar line again only every ${PM.len === 3 ? 3 : PM.len === 6 ? 3 : PM.len === 5 ? 5 : PM.len === 7 ? 7 : PM.len} bars. That works against the pulse (a cross-rhythm).`);
-    // a note between beats followed by a silent beat is heard as pushed ahead of the beat (a syncopation); over 3 bars of repeats
-    const sl = pmSlots().slice(0, 24), push = sl.filter((r, i) => r >= 0 && i % 2 === 1 && sl[i + 1] === -1).length;
-    msg.push(push ? `${push} time${push > 1 ? "s" : ""} in bars 1–3, a note between beats is followed by a silent beat, so it's heard as pushed ahead of the beat (a syncopation) and works against the pulse.` : !aligned ? "" : onBeat === on.length ? "All its notes start on beats, so it works with the pulse." : "Its notes between beats are surrounded by notes on the beat, so the pulse stays clear: it works with the pulse.");
-    const d = { keep: "Bar 4 keeps the pattern, so the expectation set up in bars 1–3 is simply met. Try a departure.", tonic: "Bar 4 breaks the pattern with a long tonic: a strong close, like the rhyme at the end of a verse.", high: "Bar 4 starts with a big leap: the pattern is there, but its first note jumps out of the expected register.", shift: "Bar 4 moves everything an eighth late: the same notes, now against the beat.", stop: "Bar 4 stops halfway: silence where the pattern was expected, which makes the missing notes almost audible.", outside: "Bar 4 lands on F♯, outside C major: the pattern returns, but on a note the key didn't prepare." }[PM.dep];
-    msg.push(d); return msg.filter(Boolean).join(" ");
+  function smWhy(x) {
+    const r = [];
+    if (x.nm && !x.exp && x.b) r.push(`a note (${x.nm}) where the pattern had silence, on ${beatName(x.i)}`);
+    if (!x.nm && x.exp) r.push(`silence on ${beatName(x.i)}, where the pattern had ${x.exp}`);
+    if (x.nm && smOut(x.nm)) r.push(`${x.nm} is outside the key`);
+    else if (x.nm && x.exp && x.nm !== x.exp) r.push(`${x.nm} where the pattern had ${x.exp}`);
+    if (x.dr >= 1) r.push("the drums change");
+    return r.join("; ");
   }
-  function pmHTML() {
-    const rows = PITCH.map((p, r) => r).reverse();
-    const grid = `<div class="pm-grid" role="group" aria-label="Pattern: ${PM.len} eighth notes; choose a pitch for each, or leave it silent" style="grid-template-columns:4em repeat(${PM.len},minmax(34px,1fr))">`
-      + `<div></div>${Array.from({ length: PM.len }, (_, i) => `<div class="pm-h" aria-hidden="true">${i % 2 ? "&amp;" : Math.floor(i / 2) % 4 + 1}</div>`).join("")}`
-      + rows.map(r => `<div class="pm-l" aria-hidden="true">${PITCH[r]}</div>` + Array.from({ length: PM.len }, (_, i) => `<button type="button" class="pm-c${PM.cell[i] === r ? " on" : ""}${i % 2 ? "" : " beat"}" data-pmc="${i},${r}" aria-pressed="${PM.cell[i] === r}" aria-label="Eighth ${i + 1}: ${PITCH[r]}"></button>`).join("")).join("") + `</div>`;
-    return `<div class="pm" id="pmToy"><div class="toy-row">
-      <label>Pattern length <select id="pmLen">${[2, 3, 4, 5, 6, 8].map(x => `<option value="${x}"${PM.len === x ? " selected" : ""}>${x} eighths</option>`).join("")}</select></label>
-      <label>Bar 4 <select id="pmDep">${DEPS.map(([v, t]) => `<option value="${v}"${PM.dep === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
-      <label>Pulse <input type="range" id="pmBpm" min="60" max="140" step="4" value="${PM.bpm}"> <span id="pmBpmV">${PM.bpm}</span> beats a minute</label></div>
-      ${grid}
-      <div class="toy-row"><button type="button" class="play" data-pm="play">▶ Play with the pulse</button><button type="button" class="pr-btn" data-pm="clear">Clear the pattern</button></div>
-      <div class="staff wide" id="pmStaff" role="img" aria-label="The four bars in notation"></div>
-      <p class="lnote" id="pmOut" aria-live="polite">${esc(pmAnalyse())}</p></div>`;
+  function smSummary(S) {
+    const t = [0, 1, 2, 3].map(b => smBar(S, b)), d = t[3] - t[2], top = S.filter(x => x.b === 3).sort((a, b) => b.tot - a.tot)[0];
+    let s = `Surprise per bar: ${t.map(v => v.toFixed(1)).join(", ")} bits. Bar 1 is all new. By bars 2 and 3 the pattern has been learned, so they're far less surprising. `;
+    s += Math.abs(d) < 1 ? "Bar 4 is about as predictable as bar 3: the expectation is simply met." : d > 0 ? `Bar 4 adds ${d.toFixed(1)} bits over bar 3.` : `Bar 4 is even more predictable than bar 3.`;
+    if (top && top.tot >= 2.5) s += ` Its biggest surprise is ${beatName(top.i)} (${top.tot.toFixed(1)} bits): ${smWhy(top) || (top.nm ? `${top.nm} is an unlikely next note` : "")}.`;
+    return s;
   }
-  function pmDraw() { const H = HC(), el = document.getElementById("pmStaff"); if (!H || !el) return; el.innerHTML = ""; try { H.drawStaff(el, pmSpec()); } catch (e) {} }
-  function pmRedraw() { const el = document.getElementById("pmToy"); if (!el) return; const f = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.pmc; el.outerHTML = pmHTML(); pmDraw(); if (f) { const b = document.querySelector(`[data-pmc="${f}"]`); if (b) b.focus(); } }
-  function pmPlay() { const H = HC(); if (!H) return; const sp = 60 / PM.bpm / 2, sl = pmSlots(), ev = [];
-    for (let b = 0; b < 16; b++) ev.push([0, b * sp * 2, .05, b % 4 ? .45 : .8, b % 4 ? "click" : "clickHi"]);
-    sl.forEach((r, i) => { if (r === -1) return; const m = H.midi(H.parse(pmName(r))); ev.push([m, i * sp, sl.__long === i ? sp * 8 : sp * .9, .85]); });
-    H.play({ ev }); }
-  function wirePm() {
-    if (window.__pmWired) return; window.__pmWired = true;
-    document.addEventListener("click", e => { const c = e.target.closest("[data-pmc]"), b = e.target.closest("[data-pm]"); const H = HC();
-      if (c) { const [i, r] = c.dataset.pmc.split(",").map(Number); PM.cell[i] = PM.cell[i] === r ? -1 : r; if (PM.cell[i] >= 0 && H) H.play({ ev: [[H.midi(H.parse(PITCH[r])), 0, .3, .8]] }); pmRedraw(); return; }
-      if (b && b.dataset.pm === "play") pmPlay();
-      if (b && b.dataset.pm === "clear") { PM.cell = PM.cell.map(() => -1); pmRedraw(); } });
-    document.addEventListener("change", e => {
-      if (e.target.id === "pmLen") { const L = +e.target.value; PM.cell = Array.from({ length: L }, (_, i) => PM.cell[i] != null ? PM.cell[i] : -1); PM.len = L; pmRedraw(); }
-      if (e.target.id === "pmDep") { PM.dep = e.target.value; pmRedraw(); } });
-    document.addEventListener("input", e => { if (e.target.id === "pmBpm") { PM.bpm = +e.target.value; const v = document.getElementById("pmBpmV"); if (v) v.textContent = PM.bpm; } });
+  function smGrid(which) {
+    const P = SM[which], who = which === "pat" ? "Pattern" : "Bar 4", head = `<div></div>${Array.from({ length: 8 }, (_, i) => `<div class="sm-h" aria-hidden="true">${i % 2 ? "&amp;" : i / 2 + 1}</div>`).join("")}`;
+    const mel = SMROWS.map(r => `<div class="sm-l${smOut(r) ? " out" : ""}" aria-hidden="true">${r}</div>` + Array.from({ length: 8 }, (_, i) => `<button type="button" class="sm-c${P.mel[i] === r ? " on" : ""}${i % 2 ? "" : " beat"}${smOut(r) ? " out" : ""}" data-smc="${which},${i},${r}" data-col="${i}" aria-pressed="${P.mel[i] === r}" aria-label="${who}, ${beatName(i)}: ${r}"></button>`).join("")).join("");
+    const dr = SMDR.map(([k, lab]) => `<div class="sm-l dr" aria-hidden="true">${lab}</div>` + Array.from({ length: 8 }, (_, i) => `<button type="button" class="sm-c dr${P[k][i] ? " on" : ""}${i % 2 ? "" : " beat"}" data-smd="${which},${i},${k}" data-col="${i}" aria-pressed="${!!P[k][i]}" aria-label="${who}, ${beatName(i)}: ${lab}"></button>`).join("")).join("");
+    return `<div class="sm-gw"><h4 class="sm-gh" id="smH${which}">${which === "pat" ? "The pattern: bars 1–3" : "Your bar 4"}</h4><div class="sm-grid" data-g="${which}" role="group" aria-labelledby="smH${which}">${head}${mel}${dr}</div></div>`;
+  }
+  function smGraph(S) {
+    const t = [0, 1, 2, 3].map(b => smBar(S, b)), MAX = 10;
+    const col = x => { const lv = x.tot < 1.5 ? "lo" : x.tot < 4 ? "mid" : "hi", hp = Math.min(100, x.pS / MAX * 100), ht = Math.min(100 - hp, (x.rhy + x.miss + x.dr) / MAX * 100);
+      return `<div class="sm-col${x.b === 3 ? " b4" : ""}" data-st="${x.b * 8 + x.i}"><span class="t" style="height:${ht}%"></span><span class="p ${lv}" style="height:${hp}%"></span></div>`; };
+    return `<div class="sm-graph" role="img" aria-label="Surprise graph. Total surprise per bar: ${t.map((v, b) => `bar ${b + 1}, ${v.toFixed(1)} bits`).join("; ")}.">
+      ${[0, 1, 2, 3].map(b => `<div class="sm-gbar"><div class="sm-cols">${S.filter(x => x.b === b).map(col).join("")}</div><div class="sm-gl">Bar ${b + 1}: <b>${t[b].toFixed(1)}</b></div></div>`).join("")}</div>
+      <p class="sm-key" aria-hidden="true"><span class="k p lo"></span>expected note <span class="k p mid"></span>somewhat surprising <span class="k p hi"></span>surprising pitch <span class="k t"></span>timing or drums</p>`;
+  }
+  function smHTML() {
+    const S = smScore(), ch = smChallenges(S);
+    return `<div class="sm" id="smToy">
+      <div class="toy-row"><button type="button" class="play" data-sm="play" aria-pressed="${SM.on}"><span aria-hidden="true">${SM.on ? "■" : "▶"} </span>${SM.on ? "Stop" : "Play the four bars"}</button>
+        <label><input type="checkbox" id="smLoop"${SM.loop ? " checked" : ""}> Loop</label>
+        <label>Tempo <input type="range" id="smBpm" min="60" max="140" step="4" value="${SM.bpm}"> <span id="smBpmV">${SM.bpm}</span> bpm</label></div>
+      <div class="sm-grids">${smGrid("pat")}${smGrid("brk")}</div>
+      <div class="toy-row"><button type="button" class="pr-btn" data-sm="copy">Copy the pattern into bar 4</button><button type="button" class="pr-btn" data-sm="rand">Random bar 4</button><button type="button" class="pr-btn" data-sm="reset">Start over</button></div>
+      <h4 class="sm-gh">Surprise meter</h4>${smGraph(S)}
+      <p class="lnote" id="smOut" aria-live="polite">${esc(smSummary(S))}</p>
+      <h4 class="sm-gh">Challenges</h4><ul class="sm-ch">${ch.map(([t, ok]) => `<li class="${ok ? "ok" : ""}"><span aria-hidden="true">${ok ? "✓" : "○"}</span> ${esc(t)}<span class="sr-only">${ok ? " (done)" : " (not yet)"}</span></li>`).join("")}</ul>
+      <div class="staff wide" id="smStaff" role="img" aria-label="The four bars of melody in notation"></div></div>`;
+  }
+  function smSpec() {
+    const bars = [0, 1, 2, 3].map(b => { const mel = (b < 3 ? SM.pat : SM.brk).mel, bar = [];
+      for (let i = 0; i < 8; i++) { const r = mel[i]; if (!r && i % 2 === 0 && !mel[i + 1]) { bar.push(n(null, "q")); i++; continue; } bar.push(r ? n(r, "8") : n(null, "8")); }
+      return bar; });
+    return sc(bars, { bpm: SM.bpm, minBar: 150 });
+  }
+  function smDraw() { const H = HC(), el = document.getElementById("smStaff"); if (!H || !el) return; el.innerHTML = ""; try { H.drawStaff(el, smSpec()); } catch (e) {} }
+  function smRedraw() { const el = document.getElementById("smToy"); if (!el) return; const a = document.activeElement, f = a && a.dataset && (a.dataset.smc ? "data-smc" : a.dataset.smd ? "data-smd" : a.dataset.sm ? "data-sm" : null), fv = f && a.getAttribute(f);
+    el.outerHTML = smHTML(); smDraw(); if (f) { const b = document.querySelector(`[${f}="${fv}"]`); if (b) b.focus(); } }
+  function smStop() { SM.on = false; clearTimeout(SM.timer); cancelAnimationFrame(SM.raf); const H = HC(); if (H) H.play({ ev: [] }); smMark(-1); smRedraw(); }
+  function smMark(st) { document.querySelectorAll("#smToy .now").forEach(e => e.classList.remove("now")); if (st < 0) return;
+    const c = document.querySelector(`#smToy .sm-col[data-st="${st}"]`); if (c) c.classList.add("now");
+    document.querySelectorAll(`#smToy .sm-grid[data-g="${st < 24 ? "pat" : "brk"}"] [data-col="${st % 8}"]`).forEach(e => e.classList.add("now")); }
+  function smPlay() {
+    const H = HC(); if (!H) return; const sp = 60 / SM.bpm / 2, ev = [];
+    for (let b = 0; b < 4; b++) { const P = b < 3 ? SM.pat : SM.brk;
+      for (let i = 0; i < 8; i++) { const t = (b * 8 + i) * sp; if (P.mel[i]) ev.push([H.midi(H.parse(P.mel[i])), t, sp * .9, .85]);
+        if (P.kick[i]) ev.push([0, t, .1, .9, "kick"]); if (P.snare[i]) ev.push([0, t, .1, .7, "snare"]); if (P.hat[i]) ev.push([0, t, .05, i % 2 ? .45 : .6, "hat"]); } }
+    SM.on = true; smRedraw();
+    H.play({ ev }, () => { SM.t0 = performance.now() + 60; cancelAnimationFrame(SM.raf);
+      const tick = () => { if (!SM.on) return; const st = Math.floor((performance.now() - SM.t0) / 1000 / sp); if (st >= 0 && st < 32) smMark(st); SM.raf = requestAnimationFrame(tick); }; tick();
+      clearTimeout(SM.timer); SM.timer = setTimeout(() => { if (!SM.on) return; if (SM.loop) smPlay(); else smStop(); }, 32 * sp * 1000 + 60); });
+  }
+  function smRandom() {
+    const B = smCopy(SM.pat), k = 1 + Math.floor(Math.random() * 3);
+    for (let j = 0; j < k; j++) { const i = Math.floor(Math.random() * 8), x = Math.random();
+      if (x < .45) B.mel[i] = SMROWS[Math.floor(Math.random() * SMROWS.length)]; else if (x < .7) B.mel[i] = B.mel[i] ? null : SMROWS[3 + Math.floor(Math.random() * 9)]; else if (x < .85) B.snare[i] = B.snare[i] ? 0 : 1; else B.kick[i] = B.kick[i] ? 0 : 1; }
+    SM.brk = B;
+  }
+  function wireSm() {
+    if (window.__smWired) return; window.__smWired = true;
+    document.addEventListener("click", e => { const c = e.target.closest("[data-smc]"), d = e.target.closest("[data-smd]"), b = e.target.closest("[data-sm]"), H = HC();
+      if (c) { const [w, i, r] = c.dataset.smc.split(","); const P = SM[w]; P.mel[+i] = P.mel[+i] === r ? null : r; if (P.mel[+i] && H && !SM.on) H.play({ ev: [[H.midi(H.parse(r)), 0, .3, .8]] }); smRedraw(); return; }
+      if (d) { const [w, i, k] = d.dataset.smd.split(","); SM[w][k][+i] = SM[w][k][+i] ? 0 : 1; if (SM[w][k][+i] && H && !SM.on) H.play({ ev: [[0, 0, .1, .8, k]] }); smRedraw(); return; }
+      if (!b) return; const a = b.dataset.sm;
+      if (a === "play") { if (SM.on) smStop(); else smPlay(); }
+      else if (a === "copy") { SM.brk = smCopy(SM.pat); smRedraw(); }
+      else if (a === "rand") { smRandom(); smRedraw(); }
+      else if (a === "reset") { SM.pat = SMDEF(); SM.brk = SMDEF(); smRedraw(); } });
+    document.addEventListener("change", e => { if (e.target.id === "smLoop") SM.loop = e.target.checked; });
+    document.addEventListener("input", e => { if (e.target.id === "smBpm") { SM.bpm = +e.target.value; const v = document.getElementById("smBpmV"); if (v) v.textContent = SM.bpm; } });
   }
 
   // ---------- lesson figures ----------
@@ -202,7 +259,7 @@ window.FAM = (() => {
   const deceptive = sc([seq("E4 F4 G4 E4"), [n("F4", "h"), n("D4", "h")], seq("E4 G4 D4 B3"), [n("A3", "w")]], { bpm: 108 });
 
   const lesson = { steps: [
-    { title: "Listening is predicting", kick: "Expectation", render: (H, k, U) => { wireGame(); wirePm(); return `<p>As music unfolds, listeners keep guessing what comes next, mostly without noticing. When a guess comes true, the music feels right and settled; when it's delayed or denied, we feel tension, surprise or delight. The music theorist Leonard Meyer argued in <i>Emotion and Meaning in Music</i> (1956) that much of music's emotional effect comes from exactly this: expectations being set up, delayed and resolved.</p>
+    { title: "Listening is predicting", kick: "Expectation", render: (H, k, U) => { wireGame(); wireSm(); return `<p>As music unfolds, listeners keep guessing what comes next, mostly without noticing. When a guess comes true, the music feels right and settled; when it's delayed or denied, we feel tension, surprise or delight. The music theorist Leonard Meyer argued in <i>Emotion and Meaning in Music</i> (1956) that much of music's emotional effect comes from exactly this: expectations being set up, delayed and resolved.</p>
       <p>The psychologist David Huron (<i>Sweet Anticipation</i>, 2006) describes five stages: we <b>imagine</b> what might happen, feel <b>tension</b> as the moment approaches, then react to the outcome right away (<b>prediction</b>: was our guess right?), more slowly (<b>reaction</b>), and on reflection (<b>appraisal</b>). A surprise can feel bad in the first instant and good a moment later, once we realize it fits.</p>
       <p>Expectations come from two places. Some are learned from a lifetime of listening to a particular style: the more often a pattern occurs in the music around us, the more we expect it (statistical learning). Others are set up by the piece itself, as it repeats ideas and teaches us its patterns.</p>
       <h3>Music rhymes</h3>
@@ -237,7 +294,8 @@ window.FAM = (() => {
       + `<p>And a denied rhyme: the same second phrase, but the last note goes to A, the 6th degree, where a deceptive cadence would put the vi chord. Expecting C, we get a near miss: closer to a slant rhyme or a surprise word than to a mistake, and it makes us want the phrase again.</p>`
       + U.fig(deceptive, "The expected arrival on C is replaced by A.", { play: H.withClick(deceptive) })
       + H.check("In a period, the first phrase usually ends with a half cadence. In the rhyme comparison, it's like…", "a line that sets up a rhyme the next line completes", ["the end of the poem", "a word that doesn't rhyme with anything", "the title"], "The open ending leaves the expectation unresolved until the second phrase.") },
-    { title: "Try it: set up and break a pattern", kick: "Pattern maker", render: (H, k, U) => { wirePm(); setTimeout(pmDraw, 0); return `<p>Build a short pattern of eighth notes. It repeats for three bars over a steady pulse, setting up an expectation; then choose what happens in bar 4. Try a pattern that fits the bar evenly (2, 4 or 8 eighths), then one that doesn't (3, 5 or 6), which keeps shifting against the beat. Notes placed on the “&amp;” columns start between beats.</p>${pmHTML()}`; } },
+    { title: "Try it: set up and break a pattern", kick: "Surprise meter", render: (H, k, U) => { wireSm(); setTimeout(smDraw, 0); return `<p>Build a one-bar pattern of melody and drums. It plays three times, then your own bar 4. The surprise meter scores every eighth note with the same model as the guessing game (pitch proximity, the pull of the key, melodic tendencies, and the pattern itself), plus timing: a note where the pattern had silence, or silence where it had a note. Surprise is measured in <b>bits</b>: each extra bit means the model thought that moment half as likely.</p>
+      <p>Watch the graph. Bar 1 is all new, so it's surprising. By bars 2 and 3 the pattern is learned and the surprise drops. Bar 4 is where you meet the expectation or break it, like the last line of a verse that keeps the rhyme or swerves away from it. Notes in the shaded rows, F♯ and B♭, are outside the key. Then try the challenges below the graph.</p>${smHTML()}`; } },
     { title: "Play: what comes next?", kick: "The expectation game", render: (H, k, U) => { wireGame(); setTimeout(gameDraw, 0); return `<p>Listen to a short tune and guess the next note on the keyboard. Your guess is scored against a model built from the research in this lesson: pitch proximity, step inertia, regression after a leap, the tonal hierarchy, the pull of the leading tone, and pattern continuation. The most expected note earns 3 points, the second 2, the third 1. After each guess, you see the top three and why.</p>${gameHTML()}`; } },
     { title: "Quick check", kick: "Before the drills", render: H => Object.keys(F).map(m => { const [q, a, w, y] = F[m][0]; return H.check(q, a, w, y); }).join("") },
   ] };

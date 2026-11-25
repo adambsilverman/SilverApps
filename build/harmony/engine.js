@@ -695,7 +695,7 @@
   function nearestPiano(m) { let best = null, bd = 99; for (const [sm] of PIANO_M) if (PIANO[sm] && Math.abs(sm - m) < bd) { bd = Math.abs(sm - m); best = sm; } return best; }
   // start fetching the samples on the first touch or key press, so they're ready before the first Play
   ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, function warm() { ["pointerdown", "keydown"].forEach(e => document.removeEventListener(e, warm, true)); audio(); }, true));
-  // unpitched sounds: "click" / "clickHi" (metronome), "perc" (a clear, mid-low drum hit for rhythms)
+  // unpitched sounds: "click" / "clickHi" (metronome), "perc" (a clear, mid-low drum hit for rhythms), "kick" / "snare" / "hat" (a small kit)
   let NZ = null;
   function hit(out, kind, t0, vel) {
     if (!NZ) { NZ = AC.createBuffer(1, AC.sampleRate * .5, AC.sampleRate); const d = NZ.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
@@ -706,6 +706,14 @@
       n.buffer = NZ; bp.type = "bandpass"; bp.frequency.value = f * 1.6; bp.Q.value = 2.5; ng.gain.setValueAtTime(.6 * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .015);
       o.connect(og); og.connect(g); n.connect(bp); bp.connect(ng); ng.connect(g); g.gain.value = .9; o.start(t0); o.stop(t0 + .05); n.start(t0); n.stop(t0 + .03); return;
     }
+    // a small drum kit: "kick", "snare", "hat"
+    if (kind === "kick") { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + .12);
+      og.gain.setValueAtTime(0, t0); og.gain.linearRampToValueAtTime(.95 * vel, t0 + .003); og.gain.exponentialRampToValueAtTime(.001, t0 + .32); o.connect(og); og.connect(g); o.start(t0); o.stop(t0 + .35); return; }
+    if (kind === "snare" || kind === "hat") { const n = AC.createBufferSource(), hp = AC.createBiquadFilter(), ng = AC.createGain(), len = kind === "hat" ? .05 : .17;
+      n.buffer = NZ; hp.type = "highpass"; hp.frequency.value = kind === "hat" ? 7000 : 1500; ng.gain.setValueAtTime((kind === "hat" ? .28 : .5) * vel, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + len);
+      n.connect(hp); hp.connect(ng); ng.connect(g); n.start(t0); n.stop(t0 + len + .02);
+      if (kind === "snare") { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.value = 190; og.gain.setValueAtTime(.35 * vel, t0); og.gain.exponentialRampToValueAtTime(.001, t0 + .1); o.connect(og); og.connect(g); o.start(t0); o.stop(t0 + .12); }
+      return; }
     // "perc": a tom-like drum with a sharp attack, well below the click's range
     const o = AC.createOscillator(), og = AC.createGain(), n = AC.createBufferSource(), lp = AC.createBiquadFilter(), ng = AC.createGain();
     o.type = "sine"; o.frequency.setValueAtTime(260, t0); o.frequency.exponentialRampToValueAtTime(150, t0 + .08);
