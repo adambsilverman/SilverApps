@@ -307,3 +307,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .saq-joke-o.wrong{border-color:#a3141f;color:#7a1018}
 .saq-joke-o:disabled{cursor:default}
 .saq-joke-fb{margin:8px 0 0;font-weight:700}
+
+/* course mode (site.js): no links to Test Yourself or drills; their separators go too */
+html.sa-course .sa-practice-link,html.sa-course .sep:has(+ .sa-practice-link),html.sa-course .sa-practice-link + .sep{display:none!important}
+html.sa-course .btns:not(:has(a.btn:not(.sa-practice-link)))::after{content:"Practice and quiz: in your course";font:600 13px var(--fi-ui,system-ui);opacity:.85}

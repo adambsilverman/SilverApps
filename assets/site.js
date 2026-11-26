@@ -260,6 +260,27 @@ window.SAquiz = (function () {
   try { window.parent.postMessage({ type: "silverapps-ready", page: (location.pathname.split("/").pop() || "").replace(/\.html?$/, "") }, "*"); } catch (e) {}
 })();
 
+/* ===== Course mode: inside an LMS frame (a SCORM package), or after arriving from a course link with ?course=1, links to
+   Test Yourself and the drills are hidden, so students take them from the course, where scores are recorded. The public site
+   keeps them for everyone else. ?course=0 turns course mode off in this browser. ===== */
+(function () {
+  var KEY = "silverapps-course", root = document.documentElement, m = /[?&]course=([01])\b/.exec(location.search), on = false;
+  try { if (m) { if (m[1] === "1") localStorage.setItem(KEY, "1"); else localStorage.removeItem(KEY); } on = localStorage.getItem(KEY) === "1"; } catch (e) { on = !!(m && m[1] === "1"); }
+  var PR = /^(Drills|Test Yourself|Practice\b|Start the drills|Next: Test Yourself)/i;
+  function practice(a) { var h = (a.getAttribute("href") || "").split(/[?#]/)[0].split("/").pop(), t = (a.getAttribute("aria-label") || a.textContent || "").replace(/\s+/g, " ").trim();
+    return /-quiz\.html$/.test(h) || PR.test(t); }
+  function apply() {
+    if (!root.classList.contains("sa-course")) return;
+    document.querySelectorAll('a[href]:not([data-sa-pr]), button[data-view="drills"]:not([data-sa-pr])').forEach(function (a) {
+      a.setAttribute("data-sa-pr", ""); if (a.tagName === "BUTTON" || practice(a)) a.classList.add("sa-practice-link"); });
+  }
+  function enable() { root.classList.add("sa-course"); apply(); }
+  if (on) enable();
+  var t = null;
+  new MutationObserver(function () { if (t) return; t = setTimeout(function () { t = null; if (root.classList.contains("sa-in-lms") && !root.classList.contains("sa-course")) enable(); else apply(); }, 30); })
+    .observe(root, { attributes: true, attributeFilter: ["class"], childList: true, subtree: true });
+})();
+
 /* ===== Enlarge music images: every score image on a page (not the generated staves) can be clicked, or opened with its
    "Enlarge" button, to view it full-screen in a <dialog>. Lessons re-render as steps change, so a MutationObserver keeps up. ===== */
 (function () {

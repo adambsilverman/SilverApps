@@ -125,6 +125,17 @@ main{{max-width:1120px;margin:0 auto;padding:26px 16px 10px}}
 </main>
 {CREDIT}
 {SEARCH_JS}
+<script>
+/* course mode (same rule as site.js): after a course link with ?course=1, or inside an LMS frame, the cards link to lessons only; ?course=0 turns it off */
+(function () {{
+  var K = "silverapps-course", m = /[?&]course=([01])(?![0-9])/.exec(location.search), on = false;
+  try {{ if (m) {{ if (m[1] === "1") localStorage.setItem(K, "1"); else localStorage.removeItem(K); }} on = localStorage.getItem(K) === "1"; }} catch (e) {{ on = !!(m && m[1] === "1"); }}
+  if (!on && window.parent !== window) {{ window.addEventListener("message", function (e) {{ if (e.data && e.data.type === "silverapps-lms" && e.source === window.parent) go(); }}); try {{ window.parent.postMessage({{ type: "silverapps-ready", page: "index" }}, "*"); }} catch (e) {{}} }}
+  function go() {{ document.documentElement.classList.add("sa-course");
+    document.querySelectorAll("a.btn").forEach(function (a) {{ var t = (a.getAttribute("aria-label") || a.textContent).trim(); if (/-quiz[.]html$/.test(a.getAttribute("href") || "") || /^(Drills|Test Yourself)/.test(t)) a.classList.add("sa-practice-link"); }}); }}
+  if (on) go();
+}})();
+</script>
 </body>
 </html>
 '''
