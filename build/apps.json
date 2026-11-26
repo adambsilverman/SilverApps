@@ -428,6 +428,14 @@
           "open": "two-interval-melody.html"
         },
         {
+          "name": "Harmonization",
+          "topic": "Melody and chords",
+          "blurb": "Write a melody over chords and choose chords for a melody: chord tones and non-chord tones, triads and seventh chords, diatonic and chromatic chords, and the melodic/harmonic divorce, with a lab that checks your work as you go.",
+          "lesson": "harmonization-lesson.html",
+          "drills": "harmonization.html",
+          "class": true
+        },
+        {
           "name": "Contemporary Rhythm",
           "topic": "Meter, tempo and pulse",
           "blurb": "Loosely coordinated music, propulsive beats, unbalanced and changing meters, metric modulation, additive rhythm and polyrhythm.",

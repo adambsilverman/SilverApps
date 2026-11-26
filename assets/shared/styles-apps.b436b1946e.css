@@ -1085,6 +1085,48 @@ body.pr-dragging,body.pr-dragging *{cursor:grabbing!important;user-select:none}
 .sm-ch{list-style:none;padding:0;margin:0 0 10px}
 .sm-ch li{padding:4px 0;font:16px/1.4 var(--fi-serif,system-ui)}
 .sm-ch li span[aria-hidden]{display:inline-block;width:1.4em;font-weight:700}
-.sm-ch li.ok{color:#1d6b2f;font-weight:600}
+.sm-ch li.ok{color:#1d6b2f;font-weight:600}.hz-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:12px 0}
+.hz-bar{min-width:0;border:1.5px solid var(--fi-line,#cfc6bb);border-radius:12px;padding:8px 10px;background:var(--fi-card,#fffdf9)}
+.hz-bh{font:700 14px var(--fi-ui,system-ui);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+.hz-chords{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin-bottom:6px}
+.hz-cl{min-width:0}
+.hz-cs{width:100%;min-width:0;max-width:100%;font:14px var(--fi-serif,system-ui);padding:5px 6px;border:1.5px solid var(--fi-line,#cfc6bb);border-radius:8px;background:#fff;color:#231d19}
+.hz-sugs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin-bottom:6px}
+.hz-sug{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+#hzLab .hz-chip{font:600 13px var(--fi-serif,system-ui)!important;padding:3px 8px!important;min-height:30px!important;border-radius:999px!important;border:1.5px solid #1d4f91!important;background:#fff!important;color:#1d4f91!important;cursor:pointer;text-transform:none!important;letter-spacing:0!important}
+#hzLab .hz-chip small{font-size:11px;opacity:.85}
+#hzLab .hz-chip.chrom{border-color:#7a3e9d!important;color:#6a2f8c!important}
+#hzLab .hz-chip.on{background:#1d4f91!important;color:#fff!important}
+.hz-grid{display:grid;grid-template-columns:3.2em repeat(8,minmax(24px,1fr));gap:2px}
+.hz-grid .hz-h{text-align:center;font:700 12px var(--fi-ui,system-ui)}
+.hz-grid .hz-l{font:600 11px var(--fi-ui,system-ui);display:flex;align-items:center}
+.hz-grid .hz-l.ch{color:#6a2f8c}
+#hzLab .hz-c{min-height:18px!important;height:18px;min-width:0!important;margin:0!important;padding:0!important;border:1px solid #c9bfb4!important;border-radius:3px!important;background:#fffdf8!important;cursor:pointer}
+#hzLab .hz-c.beat{background:#f5efe6!important}
+#hzLab .hz-c.half{box-shadow:inset 2px 0 0 #8d8379}
+#hzLab .hz-c.ct{background:#dcebd9!important}
+#hzLab .hz-c.held{background:#9fb8dc!important;border-color:#9fb8dc!important}
+#hzLab .hz-c.on{background:#1d4f91!important;border-color:#1d4f91!important}
+#hzLab .hz-c.rest{height:20px;margin-top:4px!important}
+#hzLab .hz-c.rest.on{background:#5f5650!important;border-color:#5f5650!important}
+#hzLab .hz-c.now{outline:2px solid #f2b705;outline-offset:-1px}
+#hzLab .hz-c:focus-visible{outline:3px solid var(--fi-red-dk,#9b1c1c);outline-offset:1px}
+.hz-meter{margin:10px 0}
+.hz-mt{margin:0 0 6px;font:16px/1.4 var(--fi-serif,system-ui)}
+.hz-mbar{position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,#e7c8c3,#f3e4c4 50%,#d5e8d1 75%);overflow:hidden;box-shadow:inset 0 0 0 1px #b9aea2}
+.hz-mbar i{position:absolute;left:0;top:0;bottom:0;background:rgba(29,79,145,.75);border-radius:7px}
+.hz-mbar span{position:absolute;top:0;bottom:0;width:2px;background:#231d19;opacity:.5}
+.hz-mk{position:relative;height:1.3em;font:12px var(--fi-ui,system-ui);margin:2px 0 0;color:#5f5650}
+.hz-mk span{position:absolute;top:0;padding-left:3px}
+.hz-fb{list-style:none;padding:0;margin:8px 0}
+.hz-fb li{padding:5px 0;font:16px/1.45 var(--fi-serif,system-ui)}
+.hz-fb li span[aria-hidden]{display:inline-block;width:1.3em;font-weight:700}
+.hz-fb li.warn{color:#8a1c12}.hz-fb li.warn span{color:#b3121f}
+.hz-fb li.ok{color:#1d6b2f}
+.hz-div{font-weight:600}
+#hzLab .toy-row>label{max-width:100%;min-width:0}
+#hzLab select{max-width:100%}
+#hzPre{width:min(26em,100%)}
+
 @media (min-width: 640px) { .modes.m6 { grid-template-columns: repeat(3, 1fr); } .modes.m4 { grid-template-columns: repeat(4, 1fr); } .modes.m3 { grid-template-columns: repeat(3, 1fr); } .modes.m7 { grid-template-columns: repeat(4, 1fr); } .modes.m5 { grid-template-columns: repeat(3, 1fr); } .modes button { padding: 9px 4px; } .modes button b { font-size: 1.1rem; } .modes button small { font-size: .72rem; } }
 
