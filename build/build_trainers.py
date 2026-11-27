@@ -233,7 +233,7 @@ def build(a):
     end = js.rindex("})();")
     js = js[:end] + (BRIDGE % a) + js[end:]
     libs = (PROGRESS_SCRIPTS + '<script src="assets/mqtt.min.js"></script>\n<script src="assets/qrcode.js"></script>\n'
-            '<script src="assets/live.js"></script>\n<script src="assets/site.js"></script>\n')
+            '<script src="assets/live.js"></script>\n<script src="assets/site.js"></script>\n<script src="assets/skilltest.js"></script>\n')
     if "assets/turntables.js" in s: libs += '<script src="assets/turntables.js"></script>\n'   # the turntables (Introduction to Pitch)
     ident = '<script>var __SA_APP = %s;</script>\n' % json.dumps({"id": a["id"], "name": a["name"]}, ensure_ascii=False)   # per-page identity, so the shared app code is identical across pages
     s = s[:app.start()] + libs + ident + "<script>" + js + "</script>" + s[app.end():]
@@ -246,5 +246,6 @@ def build(a):
 
 if __name__ == "__main__":
     import shutil
-    shutil.copyfile(ROOT / "build" / "shared" / "turntables.js", OUT / "assets" / "turntables.js")   # two turntables, shared by Introduction to Pitch and the Multitrack Studio
+    shutil.copyfile(ROOT / "build" / "shared" / "turntables.js", OUT / "assets" / "turntables.js")
+    shutil.copyfile(ROOT / "build" / "shared" / "skilltest.js", OUT / "assets" / "skilltest.js")   # Skill Tests: the list of skills, results and reports (drills pages, Chord Figures and Symbols, skill-tests.html)   # two turntables, shared by Introduction to Pitch and the Multitrack Studio
     for a in APPS: build(a)

@@ -23,7 +23,8 @@
 .gs .warn{background:#fff4d6;border-left:6px solid #c98a00;padding:10px 14px;border-radius:6px}
 .gs small{font:400 13px var(--fi-body);letter-spacing:0;text-transform:none}
 </style>
-<script src="assets/scorm.js?v=ccadaeca"></script>
+<script src="assets/scorm.js?v=5ac26e1f"></script>
+<script src="assets/skilltest.js?v=fc3ee09c"></script>
 <main id="main" class="gs">
 <h1>Gradebook <span>sync</span></h1>
 <p>Every lesson's Test Yourself quiz can send its score to your course gradebook. Download a SCORM package for a quiz here and add it to your course in D2L Brightspace, Canvas, Blackboard or Moodle. Students open the quiz from inside the course; when they finish, their first-try score (as a percent) goes into the gradebook. If they take it again, the gradebook keeps their best score.</p>
@@ -45,6 +46,17 @@
 </div>
 <p id="gsMsg" role="status" aria-live="polite"></p>
 <p>The packages are SCORM 1.2, which every major LMS accepts. Upload each quiz's package separately; each one becomes its own gradebook item.</p>
+
+<h2 id="skills">Skill Tests: mastery packages</h2>
+<p>The eight <a href="index.html#skills">Skill Tests</a> are drills with a finish line: 20 fresh questions, and a score of 80% or better means the skill is <b>mastered</b>. Their packages report all or nothing. The gradebook shows <b>100%</b> once a student has mastered the skill and <b>0%</b> before that, and a later, lower try never takes it away. Attach each package to a grade item worth 1 point (or any value) and a mastered skill earns full credit for that item. Students can retake a test as often as they like, with new questions every time.</p>
+<label for="gsSkill">Skill Test</label>
+<select id="gsSkill"></select>
+<div class="row">
+  <button type="button" class="pr-btn primary" id="gsSkillOne">Download this Skill Test package</button>
+  <button type="button" class="pr-btn" id="gsSkillAll">Download all eight (one file of packages)</button>
+</div>
+<p id="gsSkillMsg" role="status" aria-live="polite"></p>
+<p>The packages use the site address above. D2L Brightspace: after importing each package, set its grade item to 1 point; a checklist or release conditions can then use "Grade value on a grade item is at least 1" (see <a href="about-this-site.html#lms">About this site</a>).</p>
 </main>
 <script>
 (() => {
@@ -62,6 +74,14 @@
   const pkg = q => SAscorm.pkg(q, $("gsSite").value.trim() || DEFAULT_SITE, $("gsPass").value.trim());
   const save = SAscorm.save, zip = SAscorm.zip;
   $("gsOne").onclick = () => { const q = QUIZZES[+sel.value]; if (!q) return; save(pkg(q), `SilverApps ${q.title} quiz (SCORM).zip`.replace(/[\\/:*?"<>|]/g, "")); msg(`Downloaded the package for ${q.title}. Upload the .zip to your course as it is; don't unzip it.`); };
+  // Skill Tests (build/shared/skilltest.js): all-or-nothing mastery packages
+  const SK = window.SAskill ? SAskill.SKILLS : [], ssel = $("gsSkill");
+  ssel.innerHTML = SK.map((k, i) => `<option value="${i}">${k.n}. ${k.title}</option>`).join("");
+  const skQ = k => ({ id: "skill-" + k.id, title: "Skill Test " + k.n + ": " + k.title, url: k.url, item: "Skill Test " + k.n + ": " + k.title, orgTitle: "SilverApps Skill Test " + k.n + ": " + k.title, mastery: k.pass });
+  const skName = k => `SilverApps Skill Test ${k.n} - ${k.title} (SCORM).zip`.replace(/[\\/:*?"<>|]/g, "");
+  const skPkg = k => SAscorm.pkg(skQ(k), $("gsSite").value.trim() || DEFAULT_SITE, "");
+  $("gsSkillOne").onclick = () => { const k = SK[+ssel.value]; if (!k) return; save(skPkg(k), skName(k)); $("gsSkillMsg").textContent = `Downloaded the package for Skill Test ${k.n}: ${k.title}. Upload the .zip to your course as it is; don't unzip it.`; };
+  $("gsSkillAll").onclick = () => { save(zip(SK.map(k => ({ name: skName(k), data: skPkg(k) }))), "SilverApps Skill Tests (SCORM packages).zip"); $("gsSkillMsg").textContent = `Downloaded ${SK.length} packages in one file. Unzip that file once; then upload each Skill Test's .zip to your course separately.`; };
   $("gsAll").onclick = () => {
     const files = QUIZZES.map(q => ({ name: `SilverApps ${q.title} quiz (SCORM).zip`.replace(/[\\/:*?"<>|]/g, ""), data: pkg(q) }));
     save(zip(files), "SilverApps quizzes (SCORM packages).zip");

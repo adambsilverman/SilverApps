@@ -51,7 +51,7 @@ vex = (D / "vexflow-bravura.js").read_text(encoding="utf-8")
 vex = re.sub(r"//# sourceMappingURL=.*", "", vex).replace("</script", "<\\/script")
 rep("<script>/*@@VEXFLOW@@*/</script>", "<script>" + vex + "</script>")
 rep("<script>/*@@MQTT@@*/</script>", '<script src="assets/mqtt.min.js"></script>')
-rep("<script>/*@@QRCODE@@*/</script>", '<script src="assets/qrcode.js"></script>\n' + PROGRESS_SCRIPTS)
+rep("<script>/*@@QRCODE@@*/</script>", '<script src="assets/qrcode.js"></script>\n' + PROGRESS_SCRIPTS + '<script src="assets/skilltest.js"></script>\n')
 assert "@@" not in s.replace("/*@@FONTS@@*/", "")
 s = s.replace("/*@@FONTS@@*/", "")   # fonts now come from assets/indie.css
 s = before_body_close(s, '<script>SAprogress.init({ id: "chordfig", name: "Chord Figures and Symbols" });</script>')

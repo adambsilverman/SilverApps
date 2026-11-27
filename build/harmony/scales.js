@@ -91,8 +91,10 @@ window.FAM = (() => {
   const solTable = (rows) => `<div class="ltable-wrap"><table class="ltable"><tbody>${rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
   function make(mode, H) {
+    // a Skill Test may limit keys (H.test.maxAcc: most sharps or flats), the mix of scale types (H.test.types) and the share of minor keys (H.test.minorP)
+    const T = H.test || {}, lim = l => T.maxAcc == null ? l : l.filter((_, j) => (DI[j] < 8 ? DI[j] : DI[j] - 7) <= T.maxAcc);
     if (mode === "spell") {   // widget: the scale's letters on the staff; the student adds accidentals (see widgets.scalespell)
-      const type = H.rnd(["major", "major", "natural", "harmonic", "melodic"]), tonic = H.rnd(type === "major" ? DMAJ : DMIN);
+      const type = H.rnd(T.types || ["major", "major", "natural", "harmonic", "melodic"]), tonic = H.rnd(lim(type === "major" ? DMAJ : DMIN));
       const { notes } = scale(H, tonic, type), right = spell(H, notes);
       return { text: `Spell ${H.esc(tonic)} ${TYPES[type].toLowerCase()}: raise or lower notes so the scale follows its pattern${type === "melodic" ? " (going up)" : ""}.`, answer: right, choices: [], widget: "scalespell", ssT: notes[0], ssType: type,
         explain: `${TYPES[type]}: ${PATTERN[type]}. Every letter appears once: ${right}.`, kicker: "Spell the scale", staffAns: staffOf(H, notes), play: { chords: notes.map(n => [H.midi(n)]), gap: .35, dur: .9 } };
@@ -103,7 +105,7 @@ window.FAM = (() => {
       return H.mc("What kind of scale is this?", TYPES[type], Object.values(TYPES), `Its steps: ${steps(H, notes).join(" ")}: ${TYPES[type].toLowerCase()} on ${H.nm(notes[0])}.`, { kicker: "Name the scale", staff: sp, playQ: { chords: notes.map(n => [H.midi(n)]), gap: .35, dur: .9 }, playQLabel: "Play", topic: type === "major" ? "major" : "minor" });
     }
     if (mode === "keysig") {
-      const minor = Math.random() < .4 && H.topicOn("minor"), list = minor ? DMIN : DMAJ, i = Math.floor(Math.random() * list.length), name = list[i], k = H.key(name, minor ? "minor" : "major");
+      const minor = Math.random() < (T.minorP != null ? T.minorP : .4) && H.topicOn("minor"), list = lim(minor ? DMIN : DMAJ), i = Math.floor(Math.random() * list.length), name = list[i], k = H.key(name, minor ? "minor" : "major");
       const c = sigCount(k);
       if (Math.random() < .5) {
         const sp = sigStaff(k, Math.random() < .3 ? "bass" : "treble");

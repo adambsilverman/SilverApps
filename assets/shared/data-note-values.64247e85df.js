@@ -16,17 +16,20 @@ window.FAM = (() => {
   // incomplete bars: fill all but one value
   const PIECES = ["h", "q", "q", "8", "8", "qd", "16"];
   function incomplete(H) {
+    // a Skill Test may ask for simple and compound meters in turn (H.test.meters: list of [ts, length in quarters]); its meter is picked once, so each comes up equally often
+    const fixed = H.test && H.test.meters ? H.rnd(H.test.meters) : null;
     for (let g = 0; g < 200; g++) {
-      const [ts, len, beam] = H.rnd([["4/4", 4], ["3/4", 3], ["2/4", 2], ["6/8", 3]]);
-      const miss = H.rnd(ts === "6/8" ? ["qd", "q", "8", "h"] : ["h", "q", "qd", "8", "hd", "16", "8d"]);
+      const [ts, len, beam] = fixed || H.rnd([["4/4", 4], ["3/4", 3], ["2/4", 2], ["6/8", 3]]);
+      const cmp = /\/8$/.test(ts);
+      const miss = H.rnd(cmp ? ["qd", "q", "8", "h"].concat(len > 3 ? ["hd"] : []) : ["h", "q", "qd", "8", "hd", "16", "8d"]);
       let left = len - V[miss][1]; if (left <= 0) continue;
       const seq = []; let t = 0;
-      while (left > 1e-9) { const opts = PIECES.filter(p => V[p][1] <= left + 1e-9 && (ts !== "6/8" || V[p][1] !== 2 || t % 1.5 === 0)); if (!opts.length) break; const p = H.rnd(opts); seq.push(p); left -= V[p][1]; t += V[p][1]; }
+      while (left > 1e-9) { const opts = PIECES.filter(p => V[p][1] <= left + 1e-9 && (!cmp || V[p][1] !== 2 || t % 1.5 === 0)); if (!opts.length) break; const p = H.rnd(opts); seq.push(p); left -= V[p][1]; t += V[p][1]; }
       if (left > 1e-9) continue;
       // keep notation tidy: values must not cross the middle of the bar (4/4) or a dotted-quarter beat (6/8)
       let pos = 0, ok = true; const all = seq.concat([miss]);
       const order = H.shuffle(seq).concat([miss]); pos = 0;   // the missing value is always the last one, so the shown notes sit where they belong
-      for (const p of order) { const d = V[p][1], end = pos + d; if (ts === "4/4" && pos < 2 && end > 2 && !(pos === 0 && d >= 2)) ok = false; if (ts === "6/8" && Math.floor(pos / 1.5 + 1e-9) !== Math.floor((end - 1e-9) / 1.5) && !(pos % 1.5 === 0 && d % 1.5 === 0)) ok = false; if (ts !== "6/8" && Math.floor(pos + 1e-9) !== Math.floor(end - 1e-9) && pos % 1 > 1e-9) ok = false; /* anything that crosses a beat must start on a beat */ if (d >= .5 && pos % .5 > 1e-9) ok = false; pos = end; }
+      for (const p of order) { const d = V[p][1], end = pos + d; if (ts === "4/4" && pos < 2 && end > 2 && !(pos === 0 && d >= 2)) ok = false; if (cmp && Math.floor(pos / 1.5 + 1e-9) !== Math.floor((end - 1e-9) / 1.5) && !(pos % 1.5 === 0 && d % 1.5 === 0)) ok = false; if (!cmp && Math.floor(pos + 1e-9) !== Math.floor(end - 1e-9) && pos % 1 > 1e-9) ok = false; /* anything that crosses a beat must start on a beat */ if (d >= .5 && pos % .5 > 1e-9) ok = false; pos = end; }
       if (!ok) continue;
       const gap = order.length - 1;
       const shown = order.map((p, i) => i === gap ? null : p).filter(Boolean);
@@ -82,7 +85,7 @@ window.FAM = (() => {
       if (!x) return null;
       const sp = rh(x.ts, [x.shown.join(" ")], { final: false });
       const full = rh(x.ts, [x.order.join(" ")]); full.bars[0].t[0][x.gap].hl = true;
-      return H.mc(`This bar of ${x.ts} is missing one value. Which single note completes it?`, V[x.miss][2], VAL.slice(0, 8).map(v => v[2]), `The bar holds ${x.ts === "6/8" ? "six eighths (two dotted-quarter beats)" : x.ts.split("/")[0] + " quarter-note beats"}; the notes shown add up to ${frac(x.shown.reduce((t, p) => t + V[p][1], 0) * (x.ts === "6/8" ? 2 : 1))} ${x.ts === "6/8" ? "eighths" : "beats"}, so a ${V[x.miss][2]} completes it (circled).`, { kicker: "Complete the bar", staff: sp, staffAns: full, playQ: H.withClick(full), playQLabel: "Play the full bar with the beat", topic: "meter" });
+      return H.mc(`This bar of ${x.ts} is missing one value. Which single note completes it?`, V[x.miss][2], VAL.slice(0, 8).map(v => v[2]), `The bar holds ${/\/8$/.test(x.ts) ? `${{ 6: "six", 9: "nine", 12: "twelve" }[parseInt(x.ts)]} eighths (${{ 6: "two", 9: "three", 12: "four" }[parseInt(x.ts)]} dotted-quarter beats)` : x.ts.split("/")[0] + " quarter-note beats"}; the notes shown add up to ${frac(x.shown.reduce((t, p) => t + V[p][1], 0) * (/\/8$/.test(x.ts) ? 2 : 1))} ${/\/8$/.test(x.ts) ? "eighths" : "beats"}, so a ${V[x.miss][2]} completes it (circled).`, { kicker: "Complete the bar", staff: sp, staffAns: full, playQ: H.withClick(full), playQLabel: "Play the full bar with the beat", topic: "meter" });
     }
     if (mode === "tuplet") {
       const kind = H.rnd(["8t", "qt", "16t", "dup"]);

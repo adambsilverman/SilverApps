@@ -1,7 +1,9 @@
 /* SilverApps SCORM 1.2 packages, shared by gradebook-sync.html (one Test Yourself quiz) and test-maker.html (a professor's test).
    SAscorm.pkg(q, site, pass) returns the bytes of a .zip: imsmanifest.xml + index.html, a page that shows the live quiz from the
    site in a frame and passes the score to the LMS. q: { page or id, title, url (relative to site; default page + ".html#quiz"),
-   item (the LMS item title; default "<title>: Test Yourself"), orgTitle }. SAscorm.zip(files) and SAscorm.save(bytes, name) too.
+   item (the LMS item title; default "<title>: Test Yourself"), orgTitle, mastery }. SAscorm.zip(files) and SAscorm.save(bytes, name) too.
+   Mastery packages (Skill Tests, q.mastery = the percent that counts as mastered, e.g. 80): the gradebook gets 100% once the student
+   has ever reached mastery and 0% until then, so a 1-point grade item shows 1 or 0; the best percent is kept in suspend_data.
    (Built from build/shared/scorm.js into assets/scorm.js.) */
 window.SAscorm = (() => {
   /* ---- minimal ZIP writer (stored, no compression) ---- */
@@ -63,7 +65,7 @@ window.SAscorm = (() => {
    Shows the live quiz from the SilverApps site; when the student finishes, the first-try score (percent) is sent to the LMS.
    The best score is kept: a lower later attempt does not replace a higher one. */
 (function () {
-  var QUIZ = ${JSON.stringify(url)}, ORIGIN = new URL(QUIZ).origin, PASS = ${pass === "" ? "null" : Number(pass)};
+  var QUIZ = ${JSON.stringify(url)}, ORIGIN = new URL(QUIZ).origin, PASS = ${pass === "" ? "null" : Number(pass)}, MASTERY = ${q.mastery ? Number(q.mastery) : "null"};
   var frame = document.getElementById("sa"), bar = document.getElementById("bar"), api = null, live = false, finished = false;
   function say(t) { bar.textContent = t; bar.hidden = !t; }
   function find(w) { for (var n = 0; w && n < 12; n++) { try { if (w.API) return w.API; } catch (e) {} if (w.parent === w) break; w = w.parent; } return null; }
@@ -84,12 +86,23 @@ window.SAscorm = (() => {
     if (e.data.type === "silverapps-ready") { hello(); return; }
     if (e.data.type !== "silverapps-quiz-result" || !live) return;
     var pct = Math.max(0, Math.min(100, Math.round(+e.data.pct || 0))), prev = parseFloat(get("cmi.core.score.raw"));
+    var qs = e.data.questions || [], base = parseInt(get("cmi.interactions._count"), 10) || 0, i, p;
+    if (MASTERY !== null) {   // Skill Test: all or nothing, and once mastered it stays mastered
+      var sd = {}; try { sd = JSON.parse(get("cmi.suspend_data") || "{}") || {}; } catch (e3) {}
+      var bestP = Math.max(+sd.best || 0, pct), was = sd.mastered === true || get("cmi.core.lesson_status") === "passed" || prev >= 100, now = pct >= MASTERY, done = was || now;
+      set("cmi.core.score.min", 0); set("cmi.core.score.max", 100); set("cmi.core.score.raw", done ? 100 : 0);
+      set("cmi.core.lesson_status", done ? "passed" : "incomplete");
+      for (i = 0; i < qs.length && base + i < 250; i++) { p = "cmi.interactions." + (base + i) + "."; set(p + "id", String(qs[i].id || ("q" + (i + 1))).replace(/[^\\w.-]/g, "_").slice(0, 250)); set(p + "type", "choice"); set(p + "result", qs[i].correct ? "correct" : "wrong"); }
+      set("cmi.suspend_data", JSON.stringify({ best: bestP, last: pct, mastered: done, at: new Date().toISOString() }).slice(0, 4000));
+      try { api.LMSCommit(""); } catch (e4) {}
+      say(now ? "Mastered (" + pct + "%). Full credit for this skill is in your gradebook." : was ? "This try: " + pct + "%. You've already mastered this skill, so your credit stays." : "This try: " + pct + "%. Mastery takes " + MASTERY + "%, so no credit yet. Try again: every try has new questions.");
+      return;
+    }
     if (isNaN(prev) || pct >= prev) { set("cmi.core.score.min", 0); set("cmi.core.score.max", 100); set("cmi.core.score.raw", pct); }
     var bestPct = isNaN(prev) ? pct : Math.max(prev, pct);
     set("cmi.core.lesson_status", PASS === null ? "completed" : (bestPct >= PASS ? "passed" : "failed"));
-    var qs = e.data.questions || [], base = parseInt(get("cmi.interactions._count"), 10) || 0;
-    for (var i = 0; i < qs.length && base + i < 250; i++) {
-      var p = "cmi.interactions." + (base + i) + ".";
+    for (i = 0; i < qs.length && base + i < 250; i++) {
+      p = "cmi.interactions." + (base + i) + ".";
       set(p + "id", String(qs[i].id || ("q" + (i + 1))).replace(/[^\\w.-]/g, "_").slice(0, 250)); set(p + "type", "choice"); set(p + "result", qs[i].correct ? "correct" : "wrong");
     }
     set("cmi.suspend_data", JSON.stringify({ best: bestPct, last: pct, at: new Date().toISOString() }).slice(0, 4000));
@@ -106,6 +119,7 @@ window.SAscorm = (() => {
   function pkg(q, site, pass) {
     pass = pass === "" || pass == null ? "" : String(Math.max(0, Math.min(100, Math.round(+pass))));
     site = site.endsWith("/") ? site : site + "/";
+    if (q.mastery) pass = "";
     return zip([{ name: "imsmanifest.xml", data: manifest(q, pass) }, { name: "index.html", data: wrapper(q, site, pass) }]);
   }
   function save(bytes, name) {

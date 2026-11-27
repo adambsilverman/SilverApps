@@ -617,7 +617,7 @@ let qCounter = 0;
 const mkId = () => Date.now().toString(36) + '-' + (qCounter++);
 
 function genDrill1(opt){
-  const type = focusType(0.42, FOCUS==='inversions');
+  const type = opt.type || focusType(0.42, FOCUS==='inversions');   // opt.type: a Skill Test asks for each chord type in turn
   const root = goodRoot(type, opt.roots);
   const tones0 = chordTones(root, type), s0 = symOf(root, type);
   if (FOCUS === 'inversions'){
@@ -1296,6 +1296,42 @@ function runSolo(setup){
   show();
 }
 
+/* ---------------- SKILL TEST (?skill=chord-spelling; the list of skills is in build/shared/skilltest.js) ----------------
+   Drill 1 (spell from a chord symbol, root position), one part of triads and one of seventh chords; every chord type comes up at least once. */
+function runSkill(SK){
+  const kinds = SK.parts.flatMap(p => { const pool = p.mode === 'triads' ? TRIADS : SEVENTHS, out = pool.slice(); while (out.length < p.n) out.push(pick(pool)); return out.slice(0, p.n); });
+  const order = kinds.map(t => [Math.random(), t]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  const opt = {roots: ROOTS_ALL}, seen = new Set(), log = [];
+  let i = 0;
+  app.className = 'narrow'; FOCUS = 'all';
+  setTop(`<span class="pill">Skill Test</span>`);
+  const head = () => `<section style="margin:10px 0 14px"><h1>Skill Test: ${esc(SK.title)}</h1>${SAskill.introHTML(SK)}</section>`;
+  const show = first => {
+    let q, g = 0; do { q = GEN[1](Object.assign({type: order[i]}, opt)); } while (seen.has(q.answerText) && g++ < 25); seen.add(q.answerText);
+    app.innerHTML = `${head()}<div class="card">${SAskill.progressHTML(SK, i, log.filter(x => x.correct).length)}${qHeader(q, 0, 0)}<div data-ans></div><div data-res></div></div>`;
+    mountStaff(app, q);
+    if (!first){ const p = app.querySelector('.prompt'); if (p){ p.setAttribute('tabindex', '-1'); p.focus({preventScroll: true}); } }
+    const w = answerWidget($('[data-ans]'), q, ans => {
+      const gr = grade(q, ans); log.push({text: q.prompt, correct: !!gr.ok});
+      w.mark(q.answer);
+      $('[data-res]').innerHTML = `<div class="result ${gr.ok?'good':'bad'}"><h3>${esc(gr.ok ? pick(PRAISE) : pick(ENCOURAGE))}</h3>
+        ${gr.ok?'':`<p style="margin:.2em 0">Answer: <span class="answer" aria-label="${escRaw(sayAnswer(q.answerText))}">${esc(q.answerText)}</span></p>`}${partsHTML(gr)}
+        <p style="margin:.4em 0 0">${esc(q.explain)}</p>
+        <div class="row" style="margin-top:12px"><span class="spacer"></span><button class="btn primary big" data-next>${i+1<SK.count?'Next question →':'See my result'}</button></div></div>`;
+      $('[data-next]').onclick = () => { i++; i < SK.count ? show() : end(); window.scrollTo({top: 0, behavior: SMOOTH}); };
+      $('[data-next]').scrollIntoView({behavior:SMOOTH, block:'center'});
+    });
+  };
+  const end = () => {
+    const r = SAskill.finish(SK, log);
+    app.innerHTML = `${head()}<div class="card">${SAskill.resultHTML(SK, r)}</div>`;
+    SAskill.wire(app, SK, () => runSkill(SK));
+  };
+  SAskill.css(); document.body.classList.add('sa-skilltest');
+  document.title = 'Skill Test: ' + SK.title + ' · SilverApps';
+  show(true);
+}
+
 /* ---------------- HOST ---------------- */
 let H = null;
 function hostSetup(){
@@ -1783,7 +1819,8 @@ setInterval(() => {
 }, 300);
 
 /* ---------------- boot ---------------- */
-if (HASH.get('join') != null) joinScreen((HASH.get('join')||'').toUpperCase()); else home();
+const SKILL = window.SAskill && SAskill.current();
+if (SKILL) runSkill(SKILL); else if (HASH.get('join') != null) joinScreen((HASH.get('join')||'').toUpperCase()); else home();
 window.ChordLab = {buildSet, grade, chordTones, symOf, TYPES, KEYS, diatonic, figRowsFor, nm, classify};
 </script>
 </body>

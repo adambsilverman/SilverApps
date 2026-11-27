@@ -44,7 +44,7 @@ window.FAM = (() => {
 
   function make(mode, H) {
     if (mode === "name" || mode === "build") {
-      const k = H.randKey(["major", "minor"]), toks = k.mode === "major" ? ["1", "2", "3", "4", "5", "6", "7", "57", "27", "16", "46", "56", "565", "543", "765"] : ["1", "26", "4", "5", "6", "57", "77", "16", "46", "56", "565", "4"];
+      const k = H.randKey(["major", "minor"]), toks = H.test && H.test.toks ? H.test.toks[k.mode] : k.mode === "major" ? ["1", "2", "3", "4", "5", "6", "7", "57", "27", "16", "46", "56", "565", "543", "765"] : ["1", "26", "4", "5", "6", "57", "77", "16", "46", "56", "565", "4"];
       const t = H.rnd(toks), c = H.tok(k, t), others = toks.filter(x => x !== t).map(x => H.tok(k, x));
       if (mode === "name") return H.mc(`In ${k.label}, which Roman numeral labels {sym:${c.sym}}?`, c.rn, others.map(o => o.rn), `{sym:${c.sym}} (${c.tones.map(H.nm).join("–")}) has its root on scale degree ${c.deg}${c.bass ? `, with its ${["root", "3rd", "5th", "7th"][c.bass]} in the bass` : ""}: {rn:${c.rn}}.`, { kicker: "Name the chord", fmt: "rn", topic: "dia" });
       return H.mc(`In ${k.label}, which chord is {rn:${c.rn}}?`, c.sym, others.map(o => o.sym), `Count up to scale degree ${c.deg} (${H.nm(c.tones[0])}) and build the chord in the key: ${c.tones.map(H.nm).join("–")}.`, { kicker: "Build the chord", fmt: "sym", topic: "dia" });

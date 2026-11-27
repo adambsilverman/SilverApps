@@ -1016,11 +1016,13 @@
 
   // ---------- State ----------
   const MODES = FAM.modes.map(m => m.id);
+  // Skill Test (drills page opened with ?skill=<id>; the list of skills is in build/shared/skilltest.js): a fixed number of fresh questions, mastery at 80%
+  const SK = (window.SAskill && SAskill.current()) || null, TT = SK ? { plan: SAskill.plan(SK), i: 0, log: [], seen: new Set(), done: false } : null;
   const DEFAULTS = { auto: false, topics: Object.fromEntries((FAM.topics || []).map(t => [t.id, t.on !== false])) };
   let S = { mode: MODES[0], settings: JSON.parse(JSON.stringify(DEFAULTS)), right: 0, total: 0, streak: 0, misses: [] };
   try { const saved = JSON.parse(localStorage.getItem(FAM.key) || "null"); if (saved) S = Object.assign(S, saved, { settings: Object.assign({}, S.settings, saved.settings, { topics: Object.assign({}, DEFAULTS.topics, (saved.settings || {}).topics) }) }); } catch (e) {}
   if (!MODES.includes(S.mode)) S.mode = MODES[0];
-  const save = () => { try { localStorage.setItem(FAM.key, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
+  const save = () => { if (SK) return; try { localStorage.setItem(FAM.key, JSON.stringify({ mode: S.mode, settings: S.settings, right: S.right, total: S.total, streak: S.streak, misses: S.misses.slice(-40) })); } catch (e) {} };
   const Q = Object.fromEntries(MODES.map(m => [m, null]));
   const sameSpec = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const topicOn = t => !t || !FAM.topics || (Array.isArray(t) ? t.every(x => S.settings.topics[x] !== false) : S.settings.topics[t] !== false);
@@ -1030,11 +1032,12 @@
   const hasDouble = c => /𝄪|𝄫/.test([c.text, c.answer, c.explain, ...(c.choices || [])].join(" "));
   function newQuestion(mode) {
     const prev = Q[mode];
-    const review = S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
+    const review = SK ? [] : S.misses.filter(m => m.mode === mode && (!prev || !sameSpec(m.c, prev.c)) && topicOn(m.c.topic));
     if (review.length && Math.random() < .3) { const sp = rnd(review); return { mode, c: sp.c, tries: 0, done: false, review: true, correctValue: sp.c.answer }; }
     for (let i = 0; i < 60; i++) {
       let c = null; try { c = FAM.make(mode, H); } catch (e) { if (i > 50) throw e; }
       if (c && !FAM.allowDouble && i < 55 && hasDouble(c)) continue;   // never ask about double sharps or flats (FAM.allowDouble: a drill that teaches them)
+      if (c && TT && i < 50 && TT.seen.has(c.text + "|" + plain(c.answer))) continue;   // a Skill Test never asks the same question twice
       if (c && (c.widget || c.choices.length >= 2) && topicOn(c.topic) && (!prev || prev.c.text !== c.text || plain(prev.c.answer) !== plain(c.answer) || i > 40)) return { mode, c, tries: 0, done: false, correctValue: c.answer };
     }
     const c = FAM.make(mode, H); return { mode, c, tries: 0, done: false, correctValue: c.answer };
@@ -1080,6 +1083,7 @@
   }
   function renderControls() {
     const q = Q[S.mode];
+    if (TT) { const ok = !!(q && (q.done || q.revealed)); nextBtn.disabled = !ok; nextBtn.textContent = !ok ? "Answer to go on" : TT.i + 1 < SK.count ? "Next question" : "See my result"; nextBtn.classList.toggle("primary", ok); return; }
     document.querySelectorAll(".modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)));
     const finished = q.done || q.revealed;
     nextBtn.textContent = finished ? "Next question" : "Skip";
@@ -1087,6 +1091,7 @@
   }
   function score(q, correct) {
     if (q.tries > 0) return;
+    if (TT) { TT.log.push({ text: q.c.text, correct: !!correct }); TT.right = TT.log.filter(x => x.correct).length; return; }
     S.total++;
     const sp = { mode: q.mode, c: q.c };
     if (correct) { S.right++; S.streak++; S.misses = S.misses.filter(m => !sameSpec(m.c, q.c)); }
@@ -1119,7 +1124,31 @@
 
   // ---------- Events & settings ----------
   document.querySelectorAll(".modes [data-mode]").forEach(b => b.onclick = () => setMode(b.dataset.mode));
-  nextBtn.onclick = () => next(true);
+  nextBtn.onclick = () => { if (!TT) return next(true); if (TT.done || !Q[S.mode] || !Q[S.mode].done) return; TT.i++; if (TT.i < SK.count) skillQ(true); else skillEnd(); };
+
+  // ---------- Skill Test ----------
+  function skillQ(focus) {
+    const part = TT.plan[TT.i];
+    stopSound(); S.mode = part.mode;
+    S.settings.topics = Object.fromEntries((FAM.topics || []).map(t => [t.id, !part.topics || part.topics.includes(t.id)]));
+    H.test = part.opts || {};
+    const q = newQuestion(part.mode); TT.seen.add(q.c.text + "|" + plain(q.c.answer)); Q[part.mode] = q;
+    $("skProg").innerHTML = SAskill.progressHTML(SK, TT.i, TT.log.filter(x => x.correct).length);
+    clearAnswer(); renderPrompt(); renderControls();
+    if (focus) { const h = $("qHead"); if (h) h.focus(); }
+  }
+  function skillEnd() {
+    TT.done = true; stopSound();
+    const r = SAskill.finish(SK, TT.log);
+    $("skProg").innerHTML = ""; work.innerHTML = ""; clearAnswer(); document.querySelector("#practice .actions").style.display = "none";
+    promptEl.innerHTML = SAskill.resultHTML(SK, r);
+    SAskill.wire(promptEl, SK, skillStart);
+  }
+  function skillStart(first) {
+    Object.assign(TT, { plan: SAskill.plan(SK), i: 0, log: [], seen: new Set(), done: false });
+    document.querySelector("#practice .actions").style.display = "";
+    skillQ(first !== true); if (first !== true) window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   function renderSettings() {
     document.querySelectorAll("[data-auto]").forEach(b => b.setAttribute("aria-pressed", String((S.settings.auto !== false) === (b.dataset.auto === "1"))));
     document.querySelectorAll("[data-topic]").forEach(b => b.setAttribute("aria-pressed", String(S.settings.topics[b.dataset.topic] !== false)));
@@ -1272,13 +1301,22 @@
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-view]"); if (b) { setView(b.dataset.view, true); if (!b.closest(".viewtabs")) window.scrollTo({ top: 0, behavior: "smooth" }); } });
   H.play = play; H.drawStaff = drawStaff;
-  window.__harm = { H, FAM, newQuestion };   // for automated tests
+  window.__harm = { H, FAM, newQuestion, cur: () => Q[S.mode], answer: v => choose(v) };   // for automated tests
 
   if (MODES.length) { MODES.forEach(m => Q[m] = newQuestion(m)); renderSettings(); renderScore(); renderPrompt(); renderControls(); }
   let v0 = "lesson"; try { v0 = localStorage.getItem(VKEY) || "lesson"; } catch (e) {}
   if (/[?&]solo=1/.test(location.search) || /join=/.test(location.hash)) v0 = "drills";
   if (window.SA_PAGE) v0 = SA_PAGE.view;   // separate lesson and drill pages
   setView(v0, false);
+  if (SK) {   // Skill Test: only the question card, with the test's title, rules and progress
+    SAskill.css(); document.body.classList.add("sa-skilltest");
+    document.title = "Skill Test: " + SK.title + " · SilverApps";
+    const h1 = document.querySelector(".top .brand h1"), bp = document.querySelector(".top .brand p");
+    if (h1) h1.innerHTML = `<span class="h1-pre">Skill Test</span> ${esc(SK.title)}`;
+    if (bp) bp.innerHTML = SAskill.introHTML(SK);
+    promptEl.insertAdjacentHTML("beforebegin", '<div id="skProg" aria-live="off"></div>');
+    skillStart(true);
+  }
   // If a class game starts while the lesson is showing, switch to the drills.
   if (!window.SA_PAGE) new MutationObserver(() => { if (document.body.className.match(/\blc-/) && lessonEl && !lessonEl.hidden) setView("drills", false); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawStaves); } catch (e) {}
