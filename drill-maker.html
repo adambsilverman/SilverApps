@@ -89,7 +89,7 @@ body.dm-stage .dm-joke .saq-joke{font-size:clamp(20px,2.2vw,30px)}
 .dm-dlg::backdrop{background:rgba(20,15,12,.55)}
 .dm-dlg h2{margin:0 0 6px}
 </style>
-<script src="assets/test-bank.js?v=26293b82"></script>
+<script src="assets/test-bank.js?v=1eae3718"></script>
 <script src="assets/mqtt.min.js?v=c6d89040"></script>
 <script src="assets/qrcode.js?v=fbb6b69b"></script>
 <script src="assets/live.js?v=939195ec"></script>
@@ -232,7 +232,7 @@ body.dm-stage .dm-joke .saq-joke{font-size:clamp(20px,2.2vw,30px)}
   });
 
   // ---------- musical jokes (approved ones, assets/jokes.js): every fifth solo answer, and on the projector after every fifth class question ----------
-  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=a20f0577"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
+  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=ea445978"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
   function joke() {
     if (!JOKES || !window.SAjoke || !CUR) return;
     const sec = (JOKES.sections || {})[CUR.uid] || "", js = JOKES.jokes.filter(j => (j.units || []).includes(CUR.uid) || (j.topics || []).includes(sec));

@@ -354,6 +354,14 @@
           "class": true
         },
         {
+          "name": "What a Conductor Does",
+          "topic": "Conducting",
+          "blurb": "Beat patterns, preparation and cutoffs, fermatas, expressive gesture and leadership, and how conducting works for choirs, orchestras, film scoring sessions and jazz bands. Then conduct a chorale yourself.",
+          "lesson": "conducting-lesson.html",
+          "drills": "conducting.html",
+          "class": true
+        },
+        {
           "name": "Orchestration Foreign Terms",
           "topic": "Score terms",
           "blurb": "Instrument names and score terms in four languages.",
