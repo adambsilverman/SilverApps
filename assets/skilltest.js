@@ -10,15 +10,15 @@ window.SAskill = (() => {
   const PASS = 80;
   const SIMPLE = [["2/4", 2], ["3/4", 3], ["4/4", 4]], COMPOUND = [["6/8", 3], ["9/8", 4.5], ["12/8", 6]];
   const SKILLS = [
-    { id: "staff-notes", n: 1, title: "Notes on the Staff", page: "reading-pitch", lesson: "reading-pitch-lesson",
-      desc: "Name notes in treble and bass clef, on the staff and on ledger lines.",
-      parts: [{ mode: "name", n: 10, topics: ["treble", "staff", "ledger"] }, { mode: "name", n: 10, topics: ["bass", "staff", "ledger"] }] },
-    { id: "rhythm-units", n: 2, title: "Units of Rhythm", page: "note-values", lesson: "note-values-lesson",
+    { id: "rhythm-units", n: 1, title: "Units of Rhythm", page: "note-values", lesson: "note-values-lesson",
       desc: "How long each note and rest lasts, and which values add up to which.",
       parts: [{ mode: "value", n: 10 }, { mode: "math", n: 10 }] },
-    { id: "bar-completion", n: 3, title: "Bar Completion", page: "note-values", lesson: "note-values-lesson",
+    { id: "bar-completion", n: 2, title: "Bar Completion", page: "note-values", lesson: "note-values-lesson",
       desc: "Find the one note that completes a bar in simple meter (2/4, 3/4, 4/4) and in compound meter (6/8, 9/8, 12/8).",
       parts: [{ mode: "complete", n: 10, opts: { meters: SIMPLE } }, { mode: "complete", n: 10, opts: { meters: COMPOUND } }] },
+    { id: "staff-notes", n: 3, title: "Notes on the Staff", page: "reading-pitch", lesson: "reading-pitch-lesson",
+      desc: "Name notes in treble and bass clef, on the staff and on ledger lines.",
+      parts: [{ mode: "name", n: 10, topics: ["treble", "staff", "ledger"] }, { mode: "name", n: 10, topics: ["bass", "staff", "ledger"] }] },
     { id: "intervals", n: 4, title: "Intervals", page: "intervals", lesson: "intervals-what-why-how",
       desc: "Name intervals on the staff (quality and number), and name the note a given interval above or below.",
       parts: [{ mode: "name", n: 10, topics: ["pmm", "ad"] }, { mode: "note", n: 10, topics: ["pmm", "ad"] }] },

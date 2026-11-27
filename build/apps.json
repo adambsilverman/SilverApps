@@ -586,25 +586,25 @@
       "intro": "Eight fundamentals to master. Each test is 20 fresh questions; 80% or better and the skill is mastered. Take a test as often as you like. Instructors: <a href=\"gradebook-sync.html#skills\">Gradebook Sync</a> has a SCORM package for each, worth full credit once a student reaches mastery.",
       "topics": [
         {
-          "name": "Notes on the Staff",
-          "topic": "Skill Test 1",
-          "blurb": "Name notes in treble and bass clef, on the staff and on ledger lines.",
-          "lesson": "reading-pitch-lesson.html",
-          "skill": "reading-pitch.html?skill=staff-notes"
-        },
-        {
           "name": "Units of Rhythm",
-          "topic": "Skill Test 2",
+          "topic": "Skill Test 1",
           "blurb": "How long each note and rest lasts, and which values add up to which.",
           "lesson": "note-values-lesson.html",
           "skill": "note-values.html?skill=rhythm-units"
         },
         {
           "name": "Bar Completion",
-          "topic": "Skill Test 3",
+          "topic": "Skill Test 2",
           "blurb": "Find the one note that completes a bar in simple meter (2/4, 3/4, 4/4) and in compound meter (6/8, 9/8, 12/8).",
           "lesson": "note-values-lesson.html",
           "skill": "note-values.html?skill=bar-completion"
+        },
+        {
+          "name": "Notes on the Staff",
+          "topic": "Skill Test 3",
+          "blurb": "Name notes in treble and bass clef, on the staff and on ledger lines.",
+          "lesson": "reading-pitch-lesson.html",
+          "skill": "reading-pitch.html?skill=staff-notes"
         },
         {
           "name": "Intervals",
