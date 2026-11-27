@@ -126,7 +126,11 @@ window.SAscorm = (() => {
      The package page lists the tests (from build/shared/skilltest.js) with each one's best score; a test opens in a frame.
      The grade is the average of the best score on each skill (a skill not taken yet counts 0), so it only goes up.
      suspend_data: {"v":1,"b":{"<skill id>":best percent},"t":{"<skill id>":tries}}. lesson_status: incomplete until every
-     skill has been tried, then completed; passed once every skill is at its mastery mark. */
+     skill has been tried, then completed; passed once every skill is at its mastery mark.
+     For the instructor's reports: one SCORM objective per skill, in order (cmi.objectives.<n-1>, id "Skill-<n>-<Title>",
+     score = best percent, status not attempted / incomplete / passed), so the LMS's Objectives report shows each student's best
+     score on every skill; and one interaction per finished try (id "Skill-<n>-try<k>", learner response = percent, result
+     correct = reached mastery). */
   function suite(skills, site, o) {
     o = o || {}; site = site.endsWith("/") ? site : site + "/";
     const title = o.title || "Skill Mastery", list = skills.map(k => ({ id: k.id, n: k.n, title: k.title, desc: k.desc, pass: k.pass, count: k.count, url: new URL(k.url, site).href }));
@@ -184,6 +188,14 @@ body.testing #menu{display:none}body.testing #test{display:flex}
     try { var sd = JSON.parse(get("cmi.suspend_data") || "{}") || {}; B = sd.b || {}; T = sd.t || {}; } catch (e) {}
     var st = get("cmi.core.lesson_status"); if (!st || st === "not attempted") { set("cmi.core.lesson_status", "incomplete"); try { api.LMSCommit(""); } catch (e) {} }
   } else $("warn").hidden = false;
+  function objId(k) { var t = k.title, o = ""; for (var i = 0; i < t.length; i++) { var c = t.charAt(i); o += /[A-Za-z0-9]/.test(c) ? c : (o.slice(-1) === "-" ? "" : "-"); } return ("Skill-" + k.n + "-" + o).replace(/-$/, "").slice(0, 250); }
+  function objective(i) {   // write skill i's objective (index = its place in the list; SCORM 1.2 needs them in order)
+    var k = SK[i], b = B[k.id], p = "cmi.objectives." + i + ".";
+    set(p + "id", objId(k));
+    if (b != null) { set(p + "score.min", 0); set(p + "score.max", 100); set(p + "score.raw", b); }
+    set(p + "status", b == null ? "not attempted" : b >= k.pass ? "passed" : "incomplete");
+  }
+  if (live) { for (var oi = 0; oi < SK.length; oi++) objective(oi); try { api.LMSCommit(""); } catch (e) {} }
   function total() { var s = 0; SK.forEach(function (k) { s += +B[k.id] || 0; }); return Math.round(s / SK.length * 10) / 10; }
   function draw() {
     var t = total(), m = 0;
@@ -223,7 +235,8 @@ body.testing #menu{display:none}body.testing #test{display:flex}
       set("cmi.core.score.min", 0); set("cmi.core.score.max", 100); set("cmi.core.score.raw", t);
       set("cmi.core.lesson_status", mastered === SK.length ? "passed" : tried === SK.length ? "completed" : "incomplete");
       var c = parseInt(get("cmi.interactions._count"), 10) || 0;
-      if (c < 250) { var p = "cmi.interactions." + c + "."; set(p + "id", cur.id + "-try" + T[cur.id]); set(p + "type", "performance"); set(p + "student_response", pct); set(p + "result", pct >= cur.pass ? "correct" : "wrong"); }
+      objective(SK.indexOf(cur));
+      if (c < 250) { var p = "cmi.interactions." + c + "."; set(p + "id", "Skill-" + cur.n + "-try" + T[cur.id]); set(p + "type", "performance"); set(p + "student_response", pct); set(p + "result", pct >= cur.pass ? "correct" : "wrong"); }
       set("cmi.suspend_data", JSON.stringify({ v: 1, b: B, t: T, at: new Date().toISOString() }).slice(0, 4000));
       try { api.LMSCommit(""); } catch (e2) {}
     }
