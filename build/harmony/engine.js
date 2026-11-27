@@ -761,7 +761,7 @@
     // the first piano example waits (up to 4 s) for the samples; after that, anything still missing falls back to the synth
     if (!pianoWaited && usesPiano(p)) { newBus(); const ticket = bus; Promise.race([loadPiano(), new Promise(r => setTimeout(r, 4000))]).then(() => { pianoWaited = true; if (bus === ticket) play(p, onStart); }); return; }
     const out = newBus(), t = AC.currentTime + .06;
-    if (onStart) onStart();
+    if (onStart) onStart(t, AC);   // the audio-clock time the first event sounds, for visuals that must stay in sync
     if (p.ev) {
       p.ev.forEach(([m, s, d, v, kind, tim, pan]) => kind === "say" || kind === "sing" ? 0 : kind ? hit(out, kind, t + s, v || .8) : tone(out, m, t + s, d, v || .8, tim || p.timbre, pan));
       // each syllable is cut off (with a short fade) where the next one starts, so fast subdivisions stay in time

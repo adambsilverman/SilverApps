@@ -37,7 +37,7 @@ window.FAM = (() => {
   }
 
   // ---------- toy 1: the beat-pattern viewer (an animated baton tip with a click on each ictus) ----------
-  const BV = { pat: "4", bpm: 72, style: "legato", size: 1, on: false, raf: 0, t0: 0, last: -1, sub: false };
+  const BV = { pat: "4", bpm: 72, style: "legato", size: 1, on: false, raf: 0, ac: null, T0: 0, last: -1, sub: false };
   function bvHTML() {
     return `<div class="cd-bv" id="cdBV"><div class="cd-stage">${patSVG(BV.pat, { size: BV.size, dot: true, id: "cdBVs" })}<p class="cd-count" id="cdCount" aria-hidden="true"></p></div>
       <div class="toy-row"><button type="button" class="play" data-cd="bv" aria-pressed="${BV.on}"><span aria-hidden="true">${BV.on ? "■" : "▶"} </span>${BV.on ? "Stop" : "Start the baton"}</button>
@@ -49,22 +49,35 @@ window.FAM = (() => {
       <p class="lnote" id="cdBVt">${esc(bvText())}</p></div>`;
   }
   function bvText() { const P = PAT[BV.pat]; return `${P.name}: ${P.dir.map((x, i) => `${i + 1} ${x}`).join(", ")}. ${BV.style === "legato" ? "Legato: the baton never stops; the ictus is felt, not hit." : BV.style === "marcato" ? "Marcato: the baton speeds into each ictus and rebounds firmly." : "Staccato: a quick, small flick to each ictus, then a stop until the next."} ${BV.size > 1 ? "A large pattern asks for a loud sound." : BV.size < 1 ? "A small pattern asks for a soft sound." : ""}`; }
-  // progress through a beat (0–1) shaped by the style
-  const ease = (f, sty) => sty === "staccato" ? Math.min(1, f / .32) ** .7 : sty === "marcato" ? f * f * (1.6 - .6 * f) : f - Math.sin(2 * Math.PI * f) / (2 * Math.PI) * .35;
+  // progress (0–1) along the path from one ictus to the next, reaching 1 exactly on the beat
+  const ease = (f, sty) => sty === "staccato" ? (f < .22 ? .42 * Math.pow(f / .22, .6) : f < .78 ? .42 : .42 + .58 * Math.pow((f - .78) / .22, 2))   // flick up, stop, drop onto the beat
+    : sty === "marcato" ? f * f * (1.6 - .6 * f)                                                                                                  // speeds into the ictus
+    : f - Math.sin(2 * Math.PI * f) / (2 * Math.PI) * .35;                                                                                         // smooth
+  // the clicks are scheduled ahead on the audio clock, and the tip is drawn from that same clock (less the output latency), so they stay together
+  const BVN = 240;   // beats scheduled per run (minutes at any tempo); a new run starts when it ends
+  function bvSchedule() {
+    const H = HC(); if (!H) return; const P = PAT[BV.pat], beat = 60 / BV.bpm, ev = [];
+    for (let n = 0; n < BVN; n++) { const i = n % P.beats; ev.push([0, n * beat, .05, i === 0 ? 1 : .6, i === 0 ? "clickHi" : "click"]); if (BV.sub) ev.push([0, (n + .5) * beat, .04, .35, "click"]); }
+    BV.ac = null; H.play({ ev }, (t, ac) => { BV.ac = ac; BV.T0 = t; BV.last = -1; });
+  }
+  function bvNow() { const ac = BV.ac; if (!ac) return null; return ac.currentTime - (ac.outputLatency || ac.baseLatency || 0) - BV.T0; }
   function bvTick() {
-    if (!BV.on) return; const P = PAT[BV.pat], H = HC(), beat = 60 / BV.bpm, t = (performance.now() - BV.t0) / 1000, n = Math.floor(t / beat), f = t / beat - n, i = n % P.beats;
-    const sEl = document.getElementById("cdBVs"), dot = sEl && sEl.querySelector(".cd-dot"); if (!dot) { BV.on = false; return; }
-    // during beat i the tip travels from ictus i (where it was on the click) toward ictus i + 1
-    const q = bez(seg(P, i, BV.size), Math.min(1, ease(f, BV.style)));
-    dot.setAttribute("cx", q[0].toFixed(2)); dot.setAttribute("cy", q[1].toFixed(2));
-    if (n !== BV.last) { BV.last = n;
-      const c = document.getElementById("cdCount"); if (c) c.textContent = String(i + 1);
-      if (H) { const ev = [[0, 0, .05, i === 0 ? 1 : .6, i === 0 ? "clickHi" : "click"]]; if (BV.sub) ev.push([0, beat / 2, .04, .35, "click"]); H.play({ ev }); } }
+    if (!BV.on) return; const P = PAT[BV.pat], beat = 60 / BV.bpm, t = bvNow();
+    const sEl = document.getElementById("cdBVs"), dot = sEl && sEl.querySelector(".cd-dot"); if (!dot) { BV.on = false; const H = HC(); if (H) H.play({ ev: [] }); return; }   // the step changed: stop the clicks
+    if (t != null && t >= 0) {
+      if (t > (BVN - 1) * beat) bvSchedule();
+      const n = Math.floor(t / beat), f = t / beat - n, i = n % P.beats;
+      // during beat i the tip travels from ictus i (where it was on the click) toward ictus i + 1
+      const q = bez(seg(P, i, BV.size), Math.min(1, ease(f, BV.style)));
+      dot.setAttribute("cx", q[0].toFixed(2)); dot.setAttribute("cy", q[1].toFixed(2));
+      if (n !== BV.last) { BV.last = n; const c = document.getElementById("cdCount"); if (c) c.textContent = String(i + 1); }
+    }
     BV.raf = requestAnimationFrame(bvTick);
   }
   function bvRedraw() { const el = document.getElementById("cdBV"); if (!el) return; const a = document.activeElement, id = a && a.id, dc = a && a.dataset && a.dataset.cd; el.outerHTML = bvHTML(); const b = id ? document.getElementById(id) : dc ? document.querySelector(`[data-cd="${dc}"]`) : null; if (b) b.focus({ preventScroll: true }); }
-  function bvStart() { BV.on = true; BV.last = -1; BV.t0 = performance.now(); bvRedraw(); cancelAnimationFrame(BV.raf); BV.raf = requestAnimationFrame(bvTick); }
-  function bvStop() { BV.on = false; cancelAnimationFrame(BV.raf); bvRedraw(); }
+  function bvStart() { BV.on = true; BV.last = -1; bvRedraw(); bvSchedule(); cancelAnimationFrame(BV.raf); BV.raf = requestAnimationFrame(bvTick); }
+  function bvStop() { BV.on = false; cancelAnimationFrame(BV.raf); const H = HC(); if (H) H.play({ ev: [] }); bvRedraw(); }
+  let bvT = 0; const bvRestart = () => { if (!BV.on) return; clearTimeout(bvT); bvT = setTimeout(bvSchedule, 120); };   // a new pattern, tempo or subdivision restarts the clicks on beat 1
 
   // ---------- toy 2: conduct the ensemble — an original chorale in three phrases, each ending with a fermata ----------
   // [soprano, alto, tenor, bass] for every beat; fermata on beats 8, 16 and 24
@@ -128,8 +141,8 @@ window.FAM = (() => {
       else if (a === "again") { cdReset(); cdRender(); }
     });
     document.addEventListener("change", e => { const t = e.target;
-      if (t.id === "cdPat") { BV.pat = t.value; bvRedraw(); } else if (t.id === "cdSty") { BV.style = t.value; bvRedraw(); } else if (t.id === "cdSize") { BV.size = +t.value; bvRedraw(); } else if (t.id === "cdSub") BV.sub = t.checked; });
-    document.addEventListener("input", e => { if (e.target.id === "cdBpm") { const was = BV.on, now = performance.now(), P = 60 / BV.bpm, ph = was ? ((now - BV.t0) / 1000) / P : 0; BV.bpm = +e.target.value; if (was) BV.t0 = now - ph * (60 / BV.bpm) * 1000; const v = document.getElementById("cdBpmV"); if (v) v.textContent = BV.bpm; } });
+      if (t.id === "cdPat") { BV.pat = t.value; bvRedraw(); bvRestart(); } else if (t.id === "cdSty") { BV.style = t.value; bvRedraw(); } else if (t.id === "cdSize") { BV.size = +t.value; bvRedraw(); } else if (t.id === "cdSub") { BV.sub = t.checked; bvRestart(); } });
+    document.addEventListener("input", e => { if (e.target.id === "cdBpm") { BV.bpm = +e.target.value; const v = document.getElementById("cdBpmV"); if (v) v.textContent = BV.bpm; bvRestart(); } });
     // the pad: each pointer press is a beat; the gesture size is how far apart the taps are (or how far the mouse traveled)
     document.addEventListener("pointermove", e => { const pad = e.target.closest && e.target.closest("#cdPad"); if (!pad || e.pointerType !== "mouse") return; if (CD.lastXY) CD.travel += Math.hypot(e.clientX - CD.lastXY[0], e.clientY - CD.lastXY[1]); CD.lastXY = [e.clientX, e.clientY]; });
     document.addEventListener("pointerdown", e => { const pad = e.target.closest && e.target.closest("#cdPad"); if (!pad) return; e.preventDefault(); pad.focus({ preventScroll: true });
