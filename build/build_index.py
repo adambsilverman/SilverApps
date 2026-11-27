@@ -16,7 +16,8 @@ def card(t, color):
     if t.get("lesson"): btns.append(f'<a class="btn" href="{e(t["lesson"])}">Lesson<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("quiz"): btns.append(f'<a class="btn" href="{e(t["quiz"])}">Test Yourself<span class="sr">: {e(t["name"])}</span></a>')
     if t.get("drills"): btns.append(f'<a class="btn" href="{e(t["drills"])}">Drills<span class="sr">: {e(t["name"])}</span></a>')
-    if t.get("skill"): btns.append(f'<a class="btn" href="{e(t["skill"])}">Take the test<span class="sr">: {e(t["name"])}</span></a>')   # Skill Tests (build/shared/skilltest.js)
+    for k in t.get("skills", []):   # Skill Tests (build/shared/skilltest.js) on the card of the lesson they test: "Skill Test", or "Skill Test N" when a card has two
+        btns.append(f'<a class="btn" href="{e(k["url"])}">Skill Test{" " + str(k["n"]) if len(t["skills"]) > 1 else ""}<span class="sr">: {e(k["title"])}</span></a>')
     if t.get("open"): btns.append(f'<a class="btn" href="{e(t["open"])}">Open<span class="sr"> {e(t["name"])}</span></a>')
     note = t.get("note") or ""   # the old default "Drills include a class game" note was dropped (Nov 2026)
     words = " ".join([t["name"], t["topic"], t["blurb"]]).lower()
@@ -29,7 +30,7 @@ _nav = []
 for sec in cfg["sections"]:
     items = []
     for t in sec["topics"]:
-        links = [[{"quiz": "Test Yourself", "skill": "Skill Test"}.get(k, k.capitalize()), t[k]] for k in ("lesson", "quiz", "drills", "skill", "open") if t.get(k)]
+        links = [[{"quiz": "Test Yourself"}.get(k, k.capitalize()), t[k]] for k in ("lesson", "quiz", "drills", "open") if t.get(k)] + [["Skill Test: " + k["title"], k["url"]] for k in t.get("skills", [])]
         if links: items.append([t["name"], links])
     if items: _nav.append([sec["title"], items])
 (ROOT / "assets" / "nav.js").write_text("window.SA_NAV = " + json.dumps(_nav, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
