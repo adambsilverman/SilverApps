@@ -775,3 +775,5 @@ Each app is built as two pages: a lesson page (in Lessons on the front page) and
 - z221: Meter and Beaming, Pick-ups step: pull-out (.callout.lpull) on "Happy Birthday to You" (melody from the Hills' "Good Morning to All", 1893, public domain; no words shown): why count-offs go wrong when the pick-up is sung on beat 1, the fix (count "one, two, three, one, two" and come in on beat 3), and two clicked examples, counted right and counted wrong.
 
 - z222: Conducting beat-pattern viewer: clicks are scheduled ahead on the audio clock (240 beats per run) and the baton tip is drawn from that clock less the output latency, so the ictus lands on the click; engine play(p, onStart) now calls onStart(t, AC) with the audio time of the first event. Staccato now flicks up, stops, and drops onto the beat (it used to arrive early and wait). Changing pattern, tempo or subdivisions restarts on beat 1; leaving the step stops the clicks.
+
+- z223: About this site, Gradebook sync: a paragraph explaining that pages opened from an LMS (SCORM) hide their Test Yourself and drills links, ?course=1 / ?course=0, and that other visitors see every link.
