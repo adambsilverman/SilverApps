@@ -84,7 +84,7 @@ window.SAskill = (() => {
   }
   function resultHTML(s, r) {
     const head = r.mastered ? "Skill mastered" : r.everMastered ? "Not this time, but you've already mastered it" : "Not yet";
-    const msg = r.mastered ? `You got ${r.right} of ${r.n} (${r.pct}%): ${s.title} is mastered.${window.parent !== window ? " Your point goes to your course gradebook." : ""}`
+    const msg = r.mastered ? `You got ${r.right} of ${r.n} (${r.pct}%): ${s.title} is mastered.${window.parent !== window ? " Your result goes to your course gradebook." : ""}`
       : `You got ${r.right} of ${r.n} (${r.pct}%). Mastery takes ${need(s)} of ${s.count} (${s.pass}%).${r.everMastered ? ` Your best, ${r.best}%, still counts.` : " Look over the explanations, practice a little, and take it again: every try draws new questions."}`;
     const lesson = s.lesson ? `<a class="btn" href="${esc(s.lesson)}.html">Review the lesson</a>` : "";
     return `<div class="sk-result ${r.mastered ? "ok" : "no"}" role="status"><h2 tabindex="-1" id="skHead">${head}</h2><p class="sk-big">${r.right}<small> / ${r.n}</small></p><p>${msg}</p>

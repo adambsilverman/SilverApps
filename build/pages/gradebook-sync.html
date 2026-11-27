@@ -37,8 +37,14 @@
 <p id="gsMsg" role="status" aria-live="polite"></p>
 <p>The packages are SCORM 1.2, which every major LMS accepts. Upload each quiz's package separately; each one becomes its own gradebook item.</p>
 
-<h2 id="skills">Skill Tests: mastery packages</h2>
-<p>The eight <a href="index.html#skills">Skill Tests</a> are drills with a finish line: 20 fresh questions, and a score of 80% or better means the skill is <b>mastered</b>. Their packages report all or nothing. The gradebook shows <b>100%</b> once a student has mastered the skill and <b>0%</b> before that, and a later, lower try never takes it away. Attach each package to a grade item worth 1 point (or any value) and a mastered skill earns full credit for that item. Students can retake a test as often as they like, with new questions every time.</p>
+<h2 id="skills">Skill Tests: one package for all eight</h2>
+<p>The eight <a href="index.html#skills">Skill Tests</a> are drills with a finish line: 20 fresh questions, with 80% counting as mastery. The <b>Skill Mastery</b> package puts all eight in one gradebook item. Inside it, students see every test with their best score so far and choose one to take. Each skill counts as the student's <b>best score</b> on its test (a test not taken yet counts 0), and the grade is the average of the eight, so retaking a test can only raise it.</p>
+<div class="row"><button type="button" class="pr-btn primary" id="gsSuite">Download the Skill Mastery package</button></div>
+<p id="gsSuiteMsg" role="status" aria-live="polite"></p>
+<p>Give its grade item any point value (8 points makes each skill worth 1). The package also marks the item <i>completed</i> once every skill has been tried and <i>passed</i> once all eight are mastered.</p>
+
+<h3 id="skills-each">Or: one package per Skill Test (mastery, all or nothing)</h3>
+<p>These report all or nothing, one grade item per skill. The gradebook shows <b>100%</b> once a student has mastered the skill and <b>0%</b> before that, and a later, lower try never takes it away. Attach each package to a grade item worth 1 point (or any value) and a mastered skill earns full credit for that item. Students can retake a test as often as they like, with new questions every time.</p>
 <label for="gsSkill">Skill Test</label>
 <select id="gsSkill"></select>
 <div class="row">
@@ -71,6 +77,7 @@
   const skName = k => `SilverApps Skill Test ${k.n} - ${k.title} (SCORM).zip`.replace(/[\\/:*?"<>|]/g, "");
   const skPkg = k => SAscorm.pkg(skQ(k), $("gsSite").value.trim() || DEFAULT_SITE, "");
   $("gsSkillOne").onclick = () => { const k = SK[+ssel.value]; if (!k) return; save(skPkg(k), skName(k)); $("gsSkillMsg").textContent = `Downloaded the package for Skill Test ${k.n}: ${k.title}. Upload the .zip to your course as it is; don't unzip it.`; };
+  $("gsSuite").onclick = () => { save(SAscorm.suite(SK, $("gsSite").value.trim() || DEFAULT_SITE), "SilverApps Skill Mastery (SCORM).zip"); $("gsSuiteMsg").textContent = "Downloaded the Skill Mastery package. Upload the .zip to your course as it is; don't unzip it."; };
   $("gsSkillAll").onclick = () => { save(zip(SK.map(k => ({ name: skName(k), data: skPkg(k) }))), "SilverApps Skill Tests (SCORM packages).zip"); $("gsSkillMsg").textContent = `Downloaded ${SK.length} packages in one file. Unzip that file once; then upload each Skill Test's .zip to your course separately.`; };
   $("gsAll").onclick = () => {
     const files = QUIZZES.map(q => ({ name: `SilverApps ${q.title} quiz (SCORM).zip`.replace(/[\\/:*?"<>|]/g, ""), data: pkg(q) }));
