@@ -923,3 +923,6 @@ body.pr-dragging,body.pr-dragging *{cursor:grabbing!important;user-select:none}
 .cd-rep{border-left:5px solid #1d6b2f;background:#eef6ec;padding:8px 14px;border-radius:6px;margin-top:10px}
 .cd-rep h4{margin:0 0 4px}
 .cd-rep ul{margin:0;padding-left:1.2em}
+.callout.lpull{margin:16px 0}
+.callout.lpull p{margin:.5em 0}
+.callout.lpull .lfigs{margin-top:8px}
