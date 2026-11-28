@@ -256,14 +256,13 @@ body.testing #menu{display:none}body.testing #test{display:flex}
              weeks: [{ n, start, due (YYYY-MM-DD, the Sunday), title, required, likert: [{id,q,opts}], text: [{id,q,optional}] }] }
      (course-specific specs are kept privately by the instructor, not on this site).
      If spec.report is set, each submission is also POSTed there as one JSON row (text/plain, no-cors, so any endpoint such as a
-     Power Automate flow can receive it): Term, Course, Week, Required, Submitted, Status, Student, StudentID, Time, Difficulty,
+     Power Automate flow can receive it): Term, Course, Week, Required, Submitted, Status, Time, Difficulty,
      New, Access, Answers. The questions are built into the package (no frame, nothing loaded
      from the site), so a change to the questions needs a new package (Upload New Version in the LMS).
      A week opens on its start date and stays open until spec.end. Grade: required = spec.reqPoints, optional = spec.bonusPoints,
      out of spec.outOf, capped at 100%. suspend_data: {"v":1,"d":{"<week>":"<ISO time>"}}.
-     For the instructor's reports: one objective per week (id "Week-03", status completed / not attempted) and one interaction per
-     answer (id "W03-time" with type likert and the 1-5 answer; written answers as type fill-in, split into 255-character parts
-     "W03-helpful-p1", "-p2", ...). */
+     Anonymous: the LMS gets only completion (one objective per week, id "Week-03", completed / not attempted, and the grade);
+     answers are never stored in the LMS, and the report row (if spec.report) carries no name or ID. */
   function checkins(spec, o) {
     o = o || {};
     const title = o.title || spec.title || "Weekly Check-ins";
@@ -308,7 +307,7 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;font:16px/1.45 Georgia
 </style></head><body>
 <main id="menu">
 <h1>${x(title)}</h1>
-<p class="lead">A short check-in at the end of each week: about 2 minutes. Your answers go to your instructor. Each week's check-in opens on the first day of that week and stays open until the end of the term. <b>Required</b> weeks count 2 points each; the others are <b>optional bonus</b> (1 point each), which can make up for a missed required week. Your grade is your points out of ${Number(spec.outOf)}.</p>
+<p class="lead">A short check-in at the end of each week: about 2 minutes. <b>Your answers are anonymous</b>: your instructor reads them without your name, and only the fact that you completed the week is recorded for your grade. Each week's check-in opens on the first day of that week and stays open until the end of the term. <b>Required</b> weeks count 2 points each; the others are <b>optional bonus</b> (1 point each), which can make up for a missed required week. Your grade is your points out of ${Number(spec.outOf)}.</p>
 <p id="warn" class="warn" hidden>This page isn't connected to a gradebook here, so check-ins won't be saved. Open ${x(title)} from your course to have them count.</p>
 <p id="ended" class="warn" hidden></p>
 <div class="total" role="status" aria-live="polite"><span>Your ${x(title)} grade:</span><b id="tot">0%</b><span id="totSub"></span><span class="bar" aria-hidden="true"><i id="totBar" style="width:0"></i></span></div>
@@ -387,7 +386,7 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;font:16px/1.45 Georgia
       var due = cur.due ? day(cur.due) : null; if (due) due.setHours(23, 59, 59);
       var late = due ? Math.ceil((Date.now() - due.getTime()) / 864e5) : 0;
       var row = { Term: C.term || "", Course: C.course || "", Week: cur.n, Required: cur.required ? "Required" : "Optional", Submitted: D[cur.n], Status: late > 0 ? "Late (" + late + (late === 1 ? " day)" : " days)") : "On time",
-        Student: (function (n) { var p = n.split(","); return p.length > 1 ? (p.slice(1).join(",").trim() + " " + p[0].trim()).trim() : n; })(get("cmi.core.student_name")), StudentID: get("cmi.core.student_id"), Time: "", Difficulty: "", New: "", Access: "", Answers: "" };
+        Time: "", Difficulty: "", New: "", Access: "", Answers: "" };
       var KEY = { time: "Time", difficulty: "Difficulty", "new": "New", access: "Access" }, txt = [];
       ans.forEach(function (a) {
         if (a.type === "likert") { var lq = cur.likert.filter(function (q) { return q.id === a.id; })[0]; if (KEY[a.id]) row[KEY[a.id]] = a.v + " = " + lq.opts[a.v - 1]; }
@@ -398,11 +397,7 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;font:16px/1.45 Georgia
       catch (e5) { try { navigator.sendBeacon(C.report, new Blob([JSON.stringify(row)], { type: "text/plain;charset=UTF-8" })); } catch (e6) {} }
     }
     if (live) {
-      var c = parseInt(get("cmi.interactions._count"), 10) || 0, pre = "W" + pad(cur.n) + "-";
-      ans.forEach(function (a) {
-        var parts = a.type === "likert" ? [a.v] : (function (s) { var out = []; for (var i = 0; i < s.length; i += 255) out.push(s.slice(i, i + 255)); return out; })(a.v.replace(/[\\r\\n]+/g, " "));
-        parts.forEach(function (pv, k) { if (c >= 1000) return; var p = "cmi.interactions." + c + "."; set(p + "id", pre + a.id + (parts.length > 1 ? "-p" + (k + 1) : "")); set(p + "type", a.type); set(p + "student_response", pv); set(p + "result", "neutral"); c++; });
-      });
+      /* anonymous: the LMS keeps only that the week was done (objective + grade), never the answers */
       objective(C.weeks.indexOf(cur));
       var req = C.weeks.filter(function (w) { return w.required; }), allReq = req.every(function (w) { return D[w.n]; });
       set("cmi.core.score.min", 0); set("cmi.core.score.max", 100); set("cmi.core.score.raw", pct());
