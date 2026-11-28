@@ -141,7 +141,7 @@
         {
           "name": "Triads",
           "topic": "Triads & sus4",
-          "blurb": "Major, minor, diminished and augmented triads, sus4 chords and inversions, with a step-by-step First Steps activity.",
+          "blurb": "Major, minor, diminished and augmented triads, sus4 chords, inversions, figures (6, 6-4) and slash chords, with a step-by-step First Steps activity.",
           "lesson": "triads-lesson.html",
           "open": "triads-first-steps.html",
           "skills": [
@@ -156,7 +156,7 @@
         {
           "name": "Seventh Chords",
           "topic": "Seventh chords",
-          "blurb": "All eight kinds of seventh chord, inversions and chord symbols, with a step-by-step First Steps activity.",
+          "blurb": "All eight kinds of seventh chord, their four positions, figures (7, 6-5, 4-3, 4-2) and chord symbols, with a step-by-step First Steps activity.",
           "lesson": "seventh-chords-lesson.html",
           "open": "seventh-chords-first-steps.html",
           "skills": [
@@ -169,12 +169,11 @@
           "open_label": "First Steps"
         },
         {
-          "name": "Chord Figures and Symbols",
+          "name": "Chord Figures and Symbols Drills",
           "topic": "Triads & sevenths",
-          "blurb": "Spell triads and seventh chords, figured bass and inversions.",
+          "blurb": "Drills: spell, name and figure triads and seventh chords, solo or as a class game. (The lessons are now Triads and Seventh Chords.)",
           "drills": "chord-figures-and-symbols.html",
-          "class": true,
-          "lesson": "chord-figures-and-symbols-lesson.html"
+          "class": true
         },
         {
           "name": "Lead Sheets",
