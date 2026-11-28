@@ -310,6 +310,7 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;font:16px/1.45 Georgia
 <h1>${x(title)}</h1>
 <p class="lead">A short check-in at the end of each week: about 2 minutes. Your answers go to your instructor. Each week's check-in opens on the first day of that week and stays open until the end of the term. <b>Required</b> weeks count 2 points each; the others are <b>optional bonus</b> (1 point each), which can make up for a missed required week. Your grade is your points out of ${Number(spec.outOf)}.</p>
 <p id="warn" class="warn" hidden>This page isn't connected to a gradebook here, so check-ins won't be saved. Open ${x(title)} from your course to have them count.</p>
+<p id="ended" class="warn" hidden></p>
 <div class="total" role="status" aria-live="polite"><span>Your ${x(title)} grade:</span><b id="tot">0%</b><span id="totSub"></span><span class="bar" aria-hidden="true"><i id="totBar" style="width:0"></i></span></div>
 <p id="saved" role="status" aria-live="polite"></p>
 <ol id="list"></ol>
@@ -348,6 +349,7 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;font:16px/1.45 Georgia
   function objective(i) { var w = C.weeks[i], p = "cmi.objectives." + i + "."; set(p + "id", "Week-" + pad(w.n)); set(p + "status", D[w.n] ? "completed" : "not attempted"); if (D[w.n]) { set(p + "score.min", 0); set(p + "score.max", 100); set(p + "score.raw", 100); } }
   if (live) { for (var oi = 0; oi < C.weeks.length; oi++) objective(oi); try { api.LMSCommit(""); } catch (e) {} }
   function draw() {
+    if (new Date() > END) { $("ended").hidden = false; $("ended").textContent = "These check-ins were for " + (C.term ? C.term + ", which" : "a term that") + " ended " + nice(END) + ". If your course has just started, please let your instructor know: this semester's check-ins haven't been loaded yet."; }
     var req = C.weeks.filter(function (w) { return w.required; }), reqDone = req.filter(function (w) { return D[w.n]; }).length, opt = C.weeks.filter(function (w) { return !w.required && D[w.n]; }).length;
     $("list").innerHTML = C.weeks.map(function (w) {
       var s = state(w), d = D[w.n] ? new Date(D[w.n]) : null;
