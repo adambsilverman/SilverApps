@@ -15,7 +15,6 @@
 </style>
 <script src="assets/scorm.js"></script>
 <script src="assets/skilltest.js"></script>
-<script src="assets/checkins.js"></script>
 <main id="main" class="gs">
 <h1>Gradebook <span>sync</span></h1>
 <p>Every lesson's Test Yourself quiz can send its score to your course gradebook. Download a SCORM package for a quiz here and add it to your course in D2L Brightspace, Canvas, Blackboard or Moodle. Students open the quiz from inside the course; when they finish, their first-try score (as a percent) goes into the gradebook. If they take it again, the gradebook keeps their best score.</p>
@@ -37,11 +36,6 @@
 </div>
 <p id="gsMsg" role="status" aria-live="polite"></p>
 <p>The packages are SCORM 1.2, which every major LMS accepts. Upload each quiz's package separately; each one becomes its own gradebook item.</p>
-
-<h2 id="checkins">Weekly Check-ins: one package for all of them</h2>
-<p>Short end-of-week feedback surveys (how long the week took, how hard it was, what helped, what was hard, accessibility, open comments) in one gradebook item. Each week's check-in opens on the first day of that week. Required weeks count 2 points and the others 1 bonus point, out of 10, capped at 100%. Your students' answers are in the LMS's SCORM reports: one objective per week (<i>Week-03</i>: completed or not attempted) and one interaction per answer (<i>W03-difficulty</i> = 1–5; written answers as text, split into 255-character parts). The weeks, dates and questions are in <code>build/shared/checkins.js</code> (currently: <span id="gsCiCourse"></span>).</p>
-<div class="row"><button type="button" class="pr-btn primary" id="gsCheckins">Download the Weekly Check-ins package</button></div>
-<p id="gsCheckinsMsg" role="status" aria-live="polite"></p>
 
 <h2 id="skills">Skill Tests: one package for all of them</h2>
 <p>The Skill Tests (on the front page, a <b>Skill Test</b> button on the card of the lesson each one checks) are drills with a finish line: 20 fresh questions, with 80% counting as mastery. The <b>Skill Mastery</b> package puts all eight in one gradebook item. Inside it, students see every test with their best score so far and choose one to take. Each skill counts as the student's <b>best score</b> on its test (a test not taken yet counts 0), and the grade is the average of all of them, so retaking a test can only raise it.</p>
@@ -83,9 +77,6 @@
   const skName = k => `SilverApps Skill Test ${k.n} - ${k.title} (SCORM).zip`.replace(/[\\/:*?"<>|]/g, "");
   const skPkg = k => SAscorm.pkg(skQ(k), $("gsSite").value.trim() || DEFAULT_SITE, "");
   $("gsSkillOne").onclick = () => { const k = SK[+ssel.value]; if (!k) return; save(skPkg(k), skName(k)); $("gsSkillMsg").textContent = `Downloaded the package for Skill Test ${k.n}: ${k.title}. Upload the .zip to your course as it is; don't unzip it.`; };
-  // Weekly Check-ins (build/shared/checkins.js)
-  if (window.SAcheckins) $("gsCiCourse").textContent = SAcheckins.course + ", " + SAcheckins.weeks.length + " weeks";
-  $("gsCheckins").onclick = () => { if (!window.SAcheckins) return; save(SAscorm.checkins(SAcheckins), "SilverApps Weekly Check-ins (SCORM).zip"); $("gsCheckinsMsg").textContent = "Downloaded the Weekly Check-ins package. Upload the .zip to your course as it is; don't unzip it."; };
   $("gsSuite").onclick = () => { save(SAscorm.suite(SK, $("gsSite").value.trim() || DEFAULT_SITE), "SilverApps Skill Mastery (SCORM).zip"); $("gsSuiteMsg").textContent = "Downloaded the Skill Mastery package. Upload the .zip to your course as it is; don't unzip it."; };
   $("gsSkillAll").onclick = () => { save(zip(SK.map(k => ({ name: skName(k), data: skPkg(k) }))), "SilverApps Skill Tests (SCORM packages).zip"); $("gsSkillMsg").textContent = `Downloaded ${SK.length} packages in one file. Unzip that file once; then upload each Skill Test's .zip to your course separately.`; };
   $("gsAll").onclick = () => {
