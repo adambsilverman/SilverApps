@@ -37,11 +37,11 @@
 <p id="gsMsg" role="status" aria-live="polite"></p>
 <p>The packages are SCORM 1.2, which every major LMS accepts. Upload each quiz's package separately; each one becomes its own gradebook item.</p>
 
-<h2 id="skills">Skill Tests: one package for all eight</h2>
-<p>The eight Skill Tests (on the front page, a <b>Skill Test</b> button on the card of the lesson each one checks) are drills with a finish line: 20 fresh questions, with 80% counting as mastery. The <b>Skill Mastery</b> package puts all eight in one gradebook item. Inside it, students see every test with their best score so far and choose one to take. Each skill counts as the student's <b>best score</b> on its test (a test not taken yet counts 0), and the grade is the average of the eight, so retaking a test can only raise it.</p>
+<h2 id="skills">Skill Tests: one package for all of them</h2>
+<p>The Skill Tests (on the front page, a <b>Skill Test</b> button on the card of the lesson each one checks) are drills with a finish line: 20 fresh questions, with 80% counting as mastery. The <b>Skill Mastery</b> package puts all eight in one gradebook item. Inside it, students see every test with their best score so far and choose one to take. Each skill counts as the student's <b>best score</b> on its test (a test not taken yet counts 0), and the grade is the average of all of them, so retaking a test can only raise it.</p>
 <div class="row"><button type="button" class="pr-btn primary" id="gsSuite">Download the Skill Mastery package</button></div>
 <p id="gsSuiteMsg" role="status" aria-live="polite"></p>
-<p>Give its grade item any point value (8 points makes each skill worth 1). The package also marks the item <i>completed</i> once every skill has been tried and <i>passed</i> once all eight are mastered.</p>
+<p>Give its grade item any point value (one point per skill makes each skill worth 1). The package also marks the item <i>completed</i> once every skill has been tried and <i>passed</i> once all eight are mastered.</p>
 
 <h3 id="skills-each">Or: one package per Skill Test (mastery, all or nothing)</h3>
 <p>These report all or nothing, one grade item per skill. The gradebook shows <b>100%</b> once a student has mastered the skill and <b>0%</b> before that, and a later, lower try never takes it away. Attach each package to a grade item worth 1 point (or any value) and a mastered skill earns full credit for that item. Students can retake a test as often as they like, with new questions every time.</p>
@@ -49,7 +49,7 @@
 <select id="gsSkill"></select>
 <div class="row">
   <button type="button" class="pr-btn primary" id="gsSkillOne">Download this Skill Test package</button>
-  <button type="button" class="pr-btn" id="gsSkillAll">Download all eight (one file of packages)</button>
+  <button type="button" class="pr-btn" id="gsSkillAll">Download all (one file of packages)</button>
 </div>
 <p id="gsSkillMsg" role="status" aria-live="polite"></p>
 <p>The packages use the site address above. D2L Brightspace: after importing each package, set its grade item to 1 point; a checklist or release conditions can then use "Grade value on a grade item is at least 1" (see <a href="about-this-site.html#lms">About this site</a>).</p>

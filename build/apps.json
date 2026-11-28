@@ -139,32 +139,48 @@
           "class": true
         },
         {
+          "name": "Triads",
+          "topic": "Triads & sus4",
+          "blurb": "Major, minor, diminished and augmented triads, sus4 chords and inversions, with a step-by-step First Steps activity.",
+          "lesson": "triads-lesson.html",
+          "open": "triads-first-steps.html",
+          "skills": [
+            {
+              "n": 7,
+              "title": "Triad Spelling",
+              "url": "chord-figures-and-symbols.html?skill=triad-spelling"
+            }
+          ],
+          "open_label": "First Steps"
+        },
+        {
+          "name": "Seventh Chords",
+          "topic": "Seventh chords",
+          "blurb": "All eight kinds of seventh chord, inversions and chord symbols, with a step-by-step First Steps activity.",
+          "lesson": "seventh-chords-lesson.html",
+          "open": "seventh-chords-first-steps.html",
+          "skills": [
+            {
+              "n": 8,
+              "title": "Seventh Chord Spelling",
+              "url": "chord-figures-and-symbols.html?skill=seventh-spelling"
+            }
+          ],
+          "open_label": "First Steps"
+        },
+        {
           "name": "Chord Figures and Symbols",
           "topic": "Triads & sevenths",
           "blurb": "Spell triads and seventh chords, figured bass and inversions.",
           "drills": "chord-figures-and-symbols.html",
           "class": true,
-          "lesson": "chord-figures-and-symbols-lesson.html",
-          "skills": [
-            {
-              "n": 7,
-              "title": "Chord Spelling",
-              "url": "chord-figures-and-symbols.html?skill=chord-spelling"
-            }
-          ]
+          "lesson": "chord-figures-and-symbols-lesson.html"
         },
         {
           "name": "Lead Sheets",
           "topic": "Reading songs",
           "blurb": "How a lead sheet works: melody, lyrics and chord symbols, what's left to the players, and chords as regions of harmony.",
           "lesson": "lead-sheets-lesson.html"
-        },
-        {
-          "name": "Triads and Seventh Chords: First Steps",
-          "topic": "Chord spelling",
-          "blurb": "A step-by-step walkthrough: read each note, measure the intervals, find the root, check the 3rd, 5th and 7th, and name the inversion.",
-          "open": "chord-first-steps.html",
-          "note": "Guided practice"
         },
         {
           "name": "Non-Chord Tones",
@@ -191,7 +207,7 @@
           "class": true,
           "skills": [
             {
-              "n": 8,
+              "n": 9,
               "title": "Roman Numerals",
               "url": "roman-numerals.html?skill=roman-numerals"
             }

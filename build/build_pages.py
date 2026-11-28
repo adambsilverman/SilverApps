@@ -36,3 +36,8 @@ for f in sorted((ROOT / "build" / "pages").glob("*.html")):
     import hashlib
     page = re.sub(r'(assets/[\w.-]+\.js)(?=")', lambda m: m.group(1) + "?v=" + hashlib.md5((SITE_DIR / m.group(1)).read_bytes()).hexdigest()[:8] if (SITE_DIR / m.group(1)).exists() else m.group(1), page)
     (SITE_DIR / f.name).write_text(page, encoding="utf-8"); print("built", f.name, len(page))
+    # meta  variants: name=Title; name2=Title2  -> extra copies of the page under those names (the page's script reads its own file name)
+    for v in filter(None, (x.strip() for x in meta.get("variants", "").split(";"))):
+        vname, vtitle = (t.strip() for t in v.split("=", 1))
+        vp = page.replace(f"<title>{html.escape(meta['title'])} · ", f"<title>{html.escape(vtitle)} · ", 1)
+        (SITE_DIR / (vname + ".html")).write_text(vp, encoding="utf-8"); print("built", vname + ".html (variant)", len(vp))

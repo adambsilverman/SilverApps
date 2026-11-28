@@ -1,4 +1,4 @@
-<!-- title: Triads and Seventh Chords: First Steps | sound: 1 | desc: A step-by-step walkthrough for spelling and identifying a chord in close position: read each note, measure the intervals, find the root, check the quality of the 3rd, 5th and 7th, and name the inversion. | samp: 1 -->
+<!-- title: Triads and Seventh Chords: First Steps | variants: triads-first-steps=Triads: First Steps; seventh-chords-first-steps=Seventh Chords: First Steps | sound: 1 | desc: A step-by-step walkthrough for spelling and identifying a chord in close position: read each note, measure the intervals, find the root, check the quality of the 3rd, 5th and 7th, and name the inversion. | samp: 1 -->
 <style>
 .tool{max-width:900px;margin:0 auto;padding:22px 16px 40px;display:grid;gap:16px}
 .tool h1{font:400 clamp(40px,7vw,70px)/.95 var(--fi-display);margin:0;border-top:2px solid var(--fi-red);padding-top:12px}
@@ -97,14 +97,26 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   const nm = n => LET[n.l] + ACC[n.a], midi = n => 12 * (n.o + 1) + NAT[n.l] + n.a, pos = n => n.o * 7 + n.l;
   const ORD = ["", "unison", "2nd", "3rd", "4th", "5th", "6th", "7th", "octave"];
   const rnd = a => a[Math.floor(Math.random() * a.length)], shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
-  const TRI = { M: ["major", [4, 7]], m: ["minor", [3, 7]], d: ["diminished", [3, 6]], A: ["augmented", [4, 8]] };
-  const SEV = { M7: ["major seventh", [4, 7, 11], "M"], "7": ["dominant seventh (major-minor)", [4, 7, 10], "M"], m7: ["minor seventh", [3, 7, 10], "m"], h7: ["half-diminished seventh", [3, 6, 10], "d"], o7: ["fully diminished seventh", [3, 6, 9], "d"] };
-  const SYM = { M: "", m: "m", d: "°", A: "+", M7: "△7", "7": "7", m7: "m7", h7: "ø7", o7: "°7" };
+  const TRI = { M: ["major", [4, 7]], m: ["minor", [3, 7]], d: ["diminished", [3, 6]], A: ["augmented", [4, 8]], sus: ["sus4", [5, 7]] };   // sus4: a perfect 4th replaces the 3rd (always root position here)
+  const SEV = { M7: ["major seventh", [4, 7, 11], "M"], "7": ["dominant seventh (major-minor)", [4, 7, 10], "M"], m7: ["minor seventh", [3, 7, 10], "m"], h7: ["half-diminished seventh", [3, 6, 10], "d"], o7: ["fully diminished seventh", [3, 6, 9], "d"],
+    mM7: ["minor-major seventh", [3, 7, 11], "m"], A7: ["augmented seventh", [4, 8, 10], "A"], AM7: ["augmented major seventh", [4, 8, 11], "A"] };
+  const SYM = { M: "", m: "m", d: "°", A: "+", sus: "sus4", M7: "△7", "7": "7", m7: "m7", h7: "ø7", o7: "°7", mM7: "m(△7)", A7: "+7", AM7: "+△7" };
+  // chord members' names: a sus4 chord has a 4th where other triads have a 3rd
+  const memOf = i => C && C.q === "sus" ? ["root", "4th", "5th"][i] : MEM[i];
+  const isSus = () => C && C.q === "sus";
   // every note name in everyday use (no E♯, F♭, B♯ or C♭), in three rows: naturals, sharps, flats
   const USUAL = ["C", "D", "E", "F", "G", "A", "B", "C♯", "D♯", "F♯", "G♯", "A♯", "D♭", "E♭", "G♭", "A♭", "B♭"];
   const MEM = ["root", "3rd", "5th", "7th"], INV = ["root position", "first inversion", "second inversion", "third inversion"];
   const FIG3 = ["(no figure)", "6", "6/4"], FIG7 = ["7", "6/5", "4/3", "4/2"];
-  if (window.SAprogress) SAprogress.init({ id: "chordfirststeps", name: "Triads and Seventh Chords: First Steps", before: ".fi-credit" });
+  const PAGE = (location.pathname.split("/").pop() || "").replace(/\.html?$/, ""), FIX = PAGE === "triads-first-steps" ? "tri" : PAGE === "seventh-chords-first-steps" ? "sev" : null;
+  if (FIX) {   // one kind of chord only: the kind menu goes away and the heading says which
+    $("kind").value = FIX; $("kind").closest("label").hidden = true;
+    document.querySelector("header h1").innerHTML = FIX === "tri" ? 'Triads: <span>First Steps</span>' : 'Seventh Chords: <span>First Steps</span>';
+    document.querySelector("header p").innerHTML = FIX === "tri"
+      ? "Two step-by-step activities for <b>triads</b>, including <b>sus4</b> chords: <b>identify</b> a triad you see, or <b>spell</b> one from its root, quality and position. To identify, you read each note from the bottom up, measure the distance between neighbors, find the root, check the 3rd (or the 4th, in a sus4 chord) and the 5th above the root, then name the quality and the position. When triads feel easy, go on to <a href=\"seventh-chords-first-steps.html\">Seventh Chords: First Steps</a>."
+      : "Two step-by-step activities for <b>seventh chords</b>, all eight kinds: <b>identify</b> a seventh chord you see, or <b>spell</b> one from its root, quality and position. To identify, you read each note from the bottom up, measure the distance between neighbors, find the root, check the 3rd, 5th and 7th above the root, then name the quality and the position. New to chords? Start with <a href=\"triads-first-steps.html\">Triads: First Steps</a>.";
+  }
+  if (window.SAprogress) SAprogress.init({ id: FIX === "tri" ? "triadsfirststeps" : FIX === "sev" ? "seventhsfirststeps" : "chordfirststeps", name: FIX === "tri" ? "Triads: First Steps" : FIX === "sev" ? "Seventh Chords: First Steps" : "Triads and Seventh Chords: First Steps", before: ".fi-credit" });
 
   // ---------- make a chord ----------
   let C = null;
@@ -112,14 +124,14 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const kind = $("kind").value, accs = $("acc").value, invs = $("inv").value;
     for (let g = 0; g < 500; g++) {
       const sev = kind === "sev" || (kind === "both" && Math.random() < .5);
-      const q = sev ? rnd(Object.keys(SEV)) : rnd(["M", "M", "m", "m", "d", "A"]);
+      const q = sev ? rnd(Object.keys(SEV)) : rnd(["M", "M", "m", "m", "d", "A", "sus"]);
       const rootL = Math.floor(Math.random() * 7), rootA = accs === "none" ? 0 : rnd([0, 0, -1, 1]);
-      const semis = [0].concat(sev ? SEV[q][1] : TRI[q][1]), steps = [0, 2, 4, 6].slice(0, semis.length);
+      const semis = [0].concat(sev ? SEV[q][1] : TRI[q][1]), steps = q === "sus" ? [0, 3, 4] : [0, 2, 4, 6].slice(0, semis.length);
       const root = { l: rootL, a: rootA }, tones = steps.map((st, i) => { const l = (rootL + st) % 7, want = (NAT[rootL] + rootA + semis[i]) % 12; let a = ((want - NAT[l]) % 12 + 18) % 12 - 6; return { l, a }; });
       if (tones.some(t => Math.abs(t.a) > 1) || (accs === "none" && tones.some(t => t.a))) continue;
       // keep to chords musicians actually spell: no A♯ roots and no F♭, C♭, E♯ or B♯ anywhere in the chord
       if ((rootL === 5 && rootA === 1) || tones.some(t => (t.a === -1 && (t.l === 3 || t.l === 0)) || (t.a === 1 && (t.l === 2 || t.l === 6)))) continue;
-      const inv = invs === "root" ? 0 : Math.floor(Math.random() * tones.length);
+      const inv = invs === "root" || q === "sus" ? 0 : Math.floor(Math.random() * tones.length);
       const clef = $("clef").value === "mix" ? rnd(["treble", "bass"]) : $("clef").value;
       // close position from the bass up, placed on the staff
       const order = tones.slice(inv).concat(tones.slice(0, inv)), lo = clef === "treble" ? 62 : 41, hi = clef === "treble" ? 81 : 60;
@@ -200,7 +212,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     let h = `<figure>${staffSVG(C.notes, C.clef, { hl: st.hl || [], labels, aria: `A ${C.notes.length}-note chord in ${C.clef} clef${C.read >= 0 ? ": notes read so far, from the bottom: " + C.notes.slice(0, C.read + 1).map(nm).join(", ") : ""}` })}<figcaption>As written</figcaption></figure>`;
     if (C.showStack) {
       const r = C.notes[C.rootIdx], stack = [{ ...C.tones[0], o: r.o }]; for (let i = 1; i < C.tones.length; i++) { let n = { ...C.tones[i], o: stack[i - 1].o }; while (pos(n) <= pos(stack[i - 1])) n.o++; stack.push(n); }
-      const hl = st.stackHl || []; h += `<figure>${staffSVG(stack, C.clef, { hl, labels: stack.map((n, i) => `${MEM[i]}: ${nm(n)}`), aria: `Stacked in 3rds: ${stack.map((n, i) => MEM[i] + " " + nm(n)).join(", ")}` })}<figcaption>Stacked in 3rds</figcaption></figure>`;
+      const hl = st.stackHl || []; h += `<figure>${staffSVG(stack, C.clef, { hl, labels: stack.map((n, i) => `${memOf(i)}: ${nm(n)}`), aria: `${isSus() ? "From the root" : "Stacked in 3rds"}: ${stack.map((n, i) => memOf(i) + " " + nm(n)).join(", ")}` })}<figcaption>${isSus() ? "From the root" : "Stacked in 3rds"}</figcaption></figure>`;
       C.stack = stack;
     }
     $("staves").innerHTML = h;
@@ -241,13 +253,17 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const ivs = N.slice(1).map((x, i) => pos(x) - pos(N[i]) + 1), all3 = ivs.every(v => v === 3);
     // the interval step already showed whether every neighbor is a 3rd, so this step starts from that
     const odd = ivs.find(v => v !== 3);
-    S.push({ title: "Find the root", q: all3 ? "Every neighbor is a 3rd, so the chord is already stacked in 3rds and the root is the bottom note. Which note is the root?" : `There's a ${ORD[odd]} between neighbors, so the chord isn't stacked in 3rds: it's inverted. In close position, the root is the <b>upper note of the ${C.sev ? "2nd" : "4th"}</b>. Which note is the root?`,
+    if (isSus()) S.push({ title: "Find the root", q: `A ${ORD[ivs[0]]}, then a ${ORD[ivs[1]]}: these notes can't be stacked in 3rds. That's the sign of a <b>suspended (sus4) chord</b>: a root with a perfect 4th and a perfect 5th above it, here in root position. Which note is the root?`,
+      kind: "opts", opts: N.map(nm), ans: nm(N[C.rootIdx]), hl: [], why: `${nm(N[C.rootIdx])} is the root: ${nm(T[1])} is a 4th above it and ${nm(T[2])} a 5th.`, after: () => { C.showStack = true; } });
+    else S.push({ title: "Find the root", q: all3 ? "Every neighbor is a 3rd, so the chord is already stacked in 3rds and the root is the bottom note. Which note is the root?" : `There's a ${ORD[odd]} between neighbors, so the chord isn't stacked in 3rds: it's inverted. In close position, the root is the <b>upper note of the ${C.sev ? "2nd" : "4th"}</b>. Which note is the root?`,
       kind: "opts", opts: N.map(nm), ans: nm(N[C.rootIdx]), hl: [], why: `${nm(N[C.rootIdx])} is the root: stacked in 3rds the chord is ${C.tones.map(nm).join(" – ")}.`, after: () => { C.showStack = true; } });
     const R = { ...T[0], o: 4 }, up = (t, st) => { let x = { ...t, o: 4 }; while (pos(x) <= pos(R)) x.o++; return x; };
     const third = up(T[1]), fifth = up(T[2]), h3 = midi(third) - midi(R), h5 = midi(fifth) - midi(R);
     // half steps and the interval's name in one answer ("4 half steps – major 3rd")
     const HS = ([h, n]) => `${h} half steps – ${n}`;
-    S.push({ title: "Root to 3rd", q: `Count the <b>half steps</b> from the root (${nm(T[0])}) up to the 3rd (${nm(T[1])}), and name the interval.`, kind: "opts", opts: [[3, "minor 3rd"], [4, "major 3rd"]].map(HS), ans: HS([h3, h3 === 4 ? "major 3rd" : "minor 3rd"]), stackHl: [0, 1], kb: [R, third],
+    if (isSus()) S.push({ title: "Root to 4th", q: `Count the <b>half steps</b> from the root (${nm(T[0])}) up to the 4th (${nm(T[1])}), and name the interval.`, kind: "opts", opts: [[4, "diminished 4th"], [5, "perfect 4th"], [6, "augmented 4th"]].map(HS), ans: HS([h3, h3 === 5 ? "perfect 4th" : h3 === 6 ? "augmented 4th" : "diminished 4th"]), stackHl: [0, 1], kb: [R, third],
+      why: `${h3} half steps: a perfect 4th. In a sus4 chord the perfect 4th takes the place of the 3rd.` });
+    else S.push({ title: "Root to 3rd", q: `Count the <b>half steps</b> from the root (${nm(T[0])}) up to the 3rd (${nm(T[1])}), and name the interval.`, kind: "opts", opts: [[3, "minor 3rd"], [4, "major 3rd"]].map(HS), ans: HS([h3, h3 === 4 ? "major 3rd" : "minor 3rd"]), stackHl: [0, 1], kb: [R, third],
       why: `${h3} half steps: a ${h3 === 4 ? "major" : "minor"} 3rd. A major 3rd is 4 half steps; a minor 3rd is 3.` });
     S.push({ title: "Root to 5th", q: `Count the half steps from the root (${nm(T[0])}) up to the 5th (${nm(T[2])}), and name the interval.`, kind: "opts", opts: [[6, "diminished 5th"], [7, "perfect 5th"], [8, "augmented 5th"]].map(HS), ans: HS([h5, h5 === 7 ? "perfect 5th" : h5 === 6 ? "diminished 5th" : "augmented 5th"]), stackHl: [0, 2], kb: [R, fifth],
       why: `${h5} half steps: ${h5 === 7 ? "a perfect" : h5 === 6 ? "a diminished" : "an augmented"} 5th. Perfect 5th: 7 half steps; diminished: 6; augmented: 8.` });
@@ -257,16 +273,16 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       S.push({ title: "Root to 7th", q: `Count the half steps from the root (${nm(T[0])}) up to the 7th (${nm(T[3])}), and name the interval. (Tip: an octave is 12, so you can count down from the root's octave instead.)`, kind: "opts", opts: [[9, "diminished 7th"], [10, "minor 7th"], [11, "major 7th"]].map(HS), ans: HS([h7, h7 === 11 ? "major 7th" : h7 === 10 ? "minor 7th" : "diminished 7th"]), stackHl: [0, 3], kb: [R, sev],
         why: `${h7} half steps (${12 - h7} below the octave): a ${h7 === 11 ? "major" : h7 === 10 ? "minor" : "diminished"} 7th. Major 7th: 11; minor 7th: 10; diminished 7th: 9.` });
       qn = SEV[C.q][0];
-      S.push({ title: "The chord's quality", q: `The triad on the bottom is <b>${TRI[SEV[C.q][2]][0]}</b> (${h3 === 4 ? "major" : "minor"} 3rd, ${h5 === 7 ? "perfect" : "diminished"} 5th), and the 7th is <b>${h7 === 11 ? "major" : h7 === 10 ? "minor" : "diminished"}</b>. What kind of seventh chord is it?`, kind: "opts", opts: Object.values(SEV).map(v => v[0]), ans: qn, stackHl: [0, 1, 2, 3], table: true,
-        why: `Major triad + major 7th = major seventh (△7). Major triad + minor 7th = dominant seventh (7). Minor triad + minor 7th = minor seventh (m7). Diminished triad + minor 7th = half-diminished (ø7). Diminished triad + diminished 7th = fully diminished (°7).` });
+      S.push({ title: "The chord's quality", q: `The triad on the bottom is <b>${TRI[SEV[C.q][2]][0]}</b> (${h3 === 4 ? "major" : "minor"} 3rd, ${h5 === 7 ? "perfect" : h5 === 6 ? "diminished" : "augmented"} 5th), and the 7th is <b>${h7 === 11 ? "major" : h7 === 10 ? "minor" : "diminished"}</b>. What kind of seventh chord is it?`, kind: "opts", opts: Object.values(SEV).map(v => v[0]), ans: qn, stackHl: [0, 1, 2, 3], table: true,
+        why: `Major triad + major 7th = major seventh (△7). Major triad + minor 7th = dominant seventh (7). Minor triad + minor 7th = minor seventh (m7). Diminished triad + minor 7th = half-diminished (ø7). Diminished triad + diminished 7th = fully diminished (°7). Minor triad + major 7th = minor-major seventh (m(△7)). Augmented triad + minor 7th = augmented seventh (+7). Augmented triad + major 7th = augmented major seventh (+△7).` });
     } else {
       qn = TRI[C.q][0];
-      S.push({ title: "The chord's quality", q: `A <b>${h3 === 4 ? "major" : "minor"} 3rd</b> and a <b>${h5 === 7 ? "perfect" : h5 === 6 ? "diminished" : "augmented"} 5th</b> above the root. What kind of triad is it?`, kind: "opts", opts: ["major", "minor", "diminished", "augmented"], ans: qn, stackHl: [0, 1, 2], table: true,
-        why: "Major: major 3rd + perfect 5th. Minor: minor 3rd + perfect 5th. Diminished: minor 3rd + diminished 5th. Augmented: major 3rd + augmented 5th." });
+      S.push({ title: "The chord's quality", q: isSus() ? `A <b>perfect 4th</b> (and no 3rd) and a <b>perfect 5th</b> above the root. What kind of chord is it?` : `A <b>${h3 === 4 ? "major" : "minor"} 3rd</b> and a <b>${h5 === 7 ? "perfect" : h5 === 6 ? "diminished" : "augmented"} 5th</b> above the root. What kind of triad is it?`, kind: "opts", opts: ["major", "minor", "diminished", "augmented", "sus4"], ans: qn, stackHl: [0, 1, 2], table: true,
+        why: "Major: major 3rd + perfect 5th. Minor: minor 3rd + perfect 5th. Diminished: minor 3rd + diminished 5th. Augmented: major 3rd + augmented 5th. Sus4: perfect 4th (instead of a 3rd) + perfect 5th." });
     }
-    const BP = i => `${MEM[i]} in the bass – ${INV[i]}`;
+    const BP = i => `${memOf(i)} in the bass – ${INV[i]}`;
     S.push({ title: "Bass note and position", q: `The bass (bottom) note is <b>${nm(N[0])}</b>. Which member of the chord is it, and what position does that put the chord in?`, kind: "opts", opts: MEM.slice(0, T.length).map((m, i) => BP(i)), ans: BP(C.inv), hl: [0],
-      why: `Stacked in 3rds the chord is ${T.map((t, i) => MEM[i] + " " + nm(t)).join(", ")}, so ${nm(N[0])} is the ${MEM[C.inv]}. Root in the bass: root position. 3rd: first inversion. 5th: second inversion. 7th: third inversion.` });
+      why: `${isSus() ? "From the root" : "Stacked in 3rds"} the chord is ${T.map((t, i) => memOf(i) + " " + nm(t)).join(", ")}, so ${nm(N[0])} is the ${memOf(C.inv)}. Root in the bass: root position. 3rd: first inversion. 5th: second inversion. 7th: third inversion.` });
     return S;
   }
 
@@ -289,8 +305,8 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       ${C.showHint ? `<p class="guide">${st.hint}</p>` : ""}<div class="row"><button type="button" class="tbtn primary" id="chkD">Check</button>${C.showHint ? "" : `<button type="button" class="tbtn" id="hintD">Hint</button>`}<button type="button" class="tbtn" id="show">Show me</button></div>`;
     }
     else input = `<div class="opts" role="group" aria-label="Answers">${st.opts.map(o => `<button type="button" class="ans" data-o="${o}">${o}</button>`).join("")}</div><div class="row"><button type="button" class="tbtn" id="show">Show me</button></div>`;
-    const tbl = st.table ? (C.sev ? `<div class="tblw"><table class="tbl"><caption class="sr">Seventh chord qualities</caption><thead><tr><th scope="col">Triad</th><th scope="col">7th</th><th scope="col">Chord</th></tr></thead><tbody><tr><td>major</td><td>major</td><td>major seventh (△7)</td></tr><tr><td>major</td><td>minor</td><td>dominant seventh (7)</td></tr><tr><td>minor</td><td>minor</td><td>minor seventh (m7)</td></tr><tr><td>diminished</td><td>minor</td><td>half-diminished seventh (ø7)</td></tr><tr><td>diminished</td><td>diminished</td><td>fully diminished seventh (°7)</td></tr></tbody></table></div>`
-      : `<div class="tblw"><table class="tbl"><caption class="sr">Triad qualities</caption><thead><tr><th scope="col">3rd</th><th scope="col">5th</th><th scope="col">Triad</th></tr></thead><tbody><tr><td>major</td><td>perfect</td><td>major</td></tr><tr><td>minor</td><td>perfect</td><td>minor</td></tr><tr><td>minor</td><td>diminished</td><td>diminished</td></tr><tr><td>major</td><td>augmented</td><td>augmented</td></tr></tbody></table></div>`) : "";
+    const tbl = st.table ? (C.sev ? `<div class="tblw"><table class="tbl"><caption class="sr">Seventh chord qualities</caption><thead><tr><th scope="col">Triad</th><th scope="col">7th</th><th scope="col">Chord</th></tr></thead><tbody><tr><td>major</td><td>major</td><td>major seventh (△7)</td></tr><tr><td>major</td><td>minor</td><td>dominant seventh (7)</td></tr><tr><td>minor</td><td>minor</td><td>minor seventh (m7)</td></tr><tr><td>diminished</td><td>minor</td><td>half-diminished seventh (ø7)</td></tr><tr><td>diminished</td><td>diminished</td><td>fully diminished seventh (°7)</td></tr><tr><td>minor</td><td>major</td><td>minor-major seventh (m(△7))</td></tr><tr><td>augmented</td><td>minor</td><td>augmented seventh (+7)</td></tr><tr><td>augmented</td><td>major</td><td>augmented major seventh (+△7)</td></tr></tbody></table></div>`
+      : `<div class="tblw"><table class="tbl"><caption class="sr">Triad qualities</caption><thead><tr><th scope="col">3rd</th><th scope="col">5th</th><th scope="col">Triad</th></tr></thead><tbody><tr><td>major</td><td>perfect</td><td>major</td></tr><tr><td>minor</td><td>perfect</td><td>minor</td></tr><tr><td>minor</td><td>diminished</td><td>diminished</td></tr><tr><td>major</td><td>augmented</td><td>augmented</td></tr><tr><td>perfect 4th (no 3rd)</td><td>perfect</td><td>sus4</td></tr></tbody></table></div>`) : "";
     $("step").innerHTML = `<h2>${st.title} · ${C.k + 1} of ${C.steps.length}</h2><p class="q">${st.q}</p>${st.kb && st.showKb ? kbSVG(st.kb[0], st.kb[1]) : ""}${st.kb && !st.showKb ? `<div class="row"><button type="button" class="tbtn" id="kbBtn">Show it on a keyboard</button></div>` : ""}${tbl}${input}<p class="fb" id="fb"></p>`;
     if ($("kbBtn")) $("kbBtn").onclick = () => { st.showKb = true; render(); const f = $("step").querySelector(".ans"); if (f) f.focus(); };
     if (st.hl && st.kind === "note") play([midi(C.notes[st.hl[0]])], .9);
@@ -358,12 +374,13 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
   function hintFor(st, v) {
     if (st.title === "How far apart?") return "Count the letter names from the lower note up to the higher one, counting both notes.";
     if (/^Root to/.test(st.title)) return "Count every key, white or black, from the root up to the other note, then find that number. Use the keyboard picture if it helps.";
+    if (st.title === "Find the root" && isSus()) return "No arrangement stacks in 3rds, so look for the note with a perfect 4th and a perfect 5th above it.";
     if (st.title === "Find the root") return C.sev ? "Find the two notes a 2nd apart: the upper one of that pair is the root." : "Find the two notes a 4th apart: the upper one is the root.";
     return "Not quite. Look at the step above for the information you need.";
   }
   function finish() {
     if (MODE === "spell") C.known = C.tones.length, C.placed = true, drawSpell();
-    const T = C.tones, sym = nm(T[0]) + SYM[C.q] + (C.inv ? "/" + nm(C.notes[0]) : ""), q = C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad", fig = C.sev ? FIG7[C.inv] : FIG3[C.inv];
+    const T = C.tones, sym = nm(T[0]) + SYM[C.q] + (C.inv ? "/" + nm(C.notes[0]) : ""), q = C.sev ? SEV[C.q][0] : isSus() ? "sus4 chord" : TRI[C.q][0] + " triad", fig = C.sev ? FIG7[C.inv] : FIG3[C.inv];
     $("step").innerHTML = `<h2>Done</h2><p class="summary">${nm(T[0])} ${q}, ${INV[C.inv]}.</p><p>Spelled from the root: <b>${T.map(nm).join(" – ")}</b>. Chord symbol: <b>${sym}</b>. Figure: <b>${fig}</b>.</p><p>${C.ok ? "All steps right on the first try." : "Finished. Try another chord, and see if you can do every step on the first try."}</p><div class="row"><button type="button" class="tbtn primary" id="again">Next chord</button></div>`;
     $("again").onclick = start; $("again").focus();
     if (window.SAprogress) SAprogress.record((MODE === "spell" ? "Spelling " : "") + (C.sev ? "seventh chords, step by step" : "triads, step by step").replace(/^./, c => MODE === "spell" ? c : c.toUpperCase()), C.ok);
@@ -374,7 +391,7 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
 
   // ================= SPELL A CHORD: root + quality + position → notes =================
   let MODE = "id";
-  const qName = () => C.sev ? SEV[C.q][0] : TRI[C.q][0] + " triad";
+  const qName = () => C.sev ? SEV[C.q][0] : isSus() ? "sus4 chord" : TRI[C.q][0] + " triad";
   function stackOf(n) { const o0 = C.clef === "treble" ? 4 : (C.tones[0].l >= 4 ? 2 : 3), out = [{ ...C.tones[0], o: o0 }]; for (let i = 1; i < n; i++) { let x = { ...C.tones[i], o: out[i - 1].o }; while (pos(x) <= pos(out[i - 1])) x.o++; out.push(x); } return out; }
   function drawSpell() {
     const st0 = C.steps[C.k] || {};
@@ -383,12 +400,12 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
       if (!C.fill) { C.fill = st0.ans.map(() => null); C.lock = st0.ans.map(() => false); C.bad = []; C.sel = null; }
       const rows = st0.rows.map((r, i) => { const v = C.fill[i], ok = C.lock[i];
         return `<li><span class="lad-l">${r.label}</span><button type="button" class="slot lad${v ? " full" : ""}${ok ? " ok" : ""}${C.bad.includes(i) ? " bad" : ""}" data-slot="${i}" aria-label="${r.aria}: ${v || "empty"}${ok ? ", correct" : ""}"${ok ? ' aria-disabled="true"' : ""}>${v || ""}</button></li>`; }).reverse().join("");
-      $("staves").innerHTML = `<figure class="ladder"><ol class="lad" reversed>${rows}<li><span class="lad-l">root</span><span class="slot lad ok given">${nm(C.tones[0])}</span></li></ol><figcaption>Built from the root, in 3rds</figcaption></figure>`;
+      $("staves").innerHTML = `<figure class="ladder"><ol class="lad" reversed>${rows}<li><span class="lad-l">root</span><span class="slot lad ok given">${nm(C.tones[0])}</span></li></ol><figcaption>Built from the root${isSus() ? "" : ", in 3rds"}</figcaption></figure>`;
       return;
     }
     const st = C.steps[C.k] || {}, n = Math.max(1, C.known || 1), stack = stackOf(n).map((x, i) => i < (C.known || 1) ? x : null).filter(Boolean);
     const shown = stack.map((x, i) => i < (C.known || 0) ? x : { ...x, l: x.l, a: C.letterOnly && i === C.known - 1 ? 0 : x.a });
-    let h = `<figure>${staffSVG(C.known ? stack : [stack[0]], C.clef, { hl: st.stackHl || [], labels: (C.known ? stack : [stack[0]]).map((x, i) => `${MEM[i]}: ${nm(x)}`), aria: `Built so far, from the root: ${stack.map((x, i) => MEM[i] + " " + nm(x)).join(", ")}` })}<figcaption>Built from the root, in 3rds</figcaption></figure>`;
+    let h = `<figure>${staffSVG(C.known ? stack : [stack[0]], C.clef, { hl: st.stackHl || [], labels: (C.known ? stack : [stack[0]]).map((x, i) => `${memOf(i)}: ${nm(x)}`), aria: `Built so far, from the root: ${stack.map((x, i) => memOf(i) + " " + nm(x)).join(", ")}` })}<figcaption>Built from the root${isSus() ? "" : ", in 3rds"}</figcaption></figure>`;
     if (C.placed) h += `<figure>${staffSVG(C.notes, C.clef, { hl: [0], labels: C.notes.map(nm), aria: `In ${INV[C.inv]}, from the bottom: ${C.notes.map(nm).join(", ")}` })}<figcaption>In ${INV[C.inv]}, close position</figcaption></figure>`;
     void shown; $("staves").innerHTML = h;
   }
@@ -396,28 +413,28 @@ svg.kb{width:100%;max-width:520px;height:auto;display:block;margin:4px auto}
     const S = [], T = C.tones, n = T.length, R = T[0], up = t => { let x = { ...t, o: 4 }; while (pos(x) <= pos({ ...R, o: 4 })) x.o++; return x; };
     C.known = 1; C.placed = false; C.read = -1;
     const task = `Spell <b>${nm(R)} ${qName()}</b> in <b>${INV[C.inv]}</b>, close position.`; $("task").innerHTML = "Your task: " + task;
-    const IVQ = C.sev ? SEV[C.q][1] : TRI[C.q][1], need = [["3rd", IVQ[0], IVQ[0] === 4 ? "major 3rd" : "minor 3rd"], ["5th", IVQ[1], IVQ[1] === 7 ? "perfect 5th" : IVQ[1] === 6 ? "diminished 5th" : "augmented 5th"]];
+    const IVQ = C.sev ? SEV[C.q][1] : TRI[C.q][1], need = [isSus() ? ["4th", 5, "perfect 4th"] : ["3rd", IVQ[0], IVQ[0] === 4 ? "major 3rd" : "minor 3rd"], ["5th", IVQ[1], IVQ[1] === 7 ? "perfect 5th" : IVQ[1] === 6 ? "diminished 5th" : "augmented 5th"]];
     if (C.sev) need.push(["7th", IVQ[2], IVQ[2] === 11 ? "major 7th" : IVQ[2] === 10 ? "minor 7th" : "diminished 7th"]);
-    const recipe = C.sev ? `A ${SEV[C.q][0]} chord is a ${TRI[SEV[C.q][2]][0]} triad plus a ${need[2][2]}: a ${need[0][2]}, a ${need[1][2]} and a ${need[2][2]} above the root.` : `A ${TRI[C.q][0]} triad has a ${need[0][2]} and a ${need[1][2]} above the root.`;
-    const ivWords = hs => hs.map((h, i) => [{ 3: "minor 3rd", 4: "major 3rd" }, { 6: "diminished 5th", 7: "perfect 5th", 8: "augmented 5th" }, { 9: "diminished 7th", 10: "minor 7th", 11: "major 7th" }][i][h]).join(" + ");
+    const recipe = isSus() ? "A sus4 chord has a perfect 4th (in place of the 3rd) and a perfect 5th above the root." : C.sev ? `A ${SEV[C.q][0]} chord is a ${TRI[SEV[C.q][2]][0]} triad plus a ${need[2][2]}: a ${need[0][2]}, a ${need[1][2]} and a ${need[2][2]} above the root.` : `A ${TRI[C.q][0]} triad has a ${need[0][2]} and a ${need[1][2]} above the root.`;
+    const ivWords = hs => hs.map((h, i) => [{ 3: "minor 3rd", 4: "major 3rd", 5: "perfect 4th" }, { 6: "diminished 5th", 7: "perfect 5th", 8: "augmented 5th" }, { 9: "diminished 7th", 10: "minor 7th", 11: "major 7th" }][i][h]).join(" + ");
     const mine = ivWords(IVQ), others = (C.sev ? Object.keys(SEV).map(k => SEV[k][1]) : Object.keys(TRI).map(k => TRI[k][1])).map(ivWords).filter(x => x !== mine);
     S.push({ title: "Step 1: the recipe", q: `${task}<br>First: which intervals above the root make a ${qName()}?`, kind: "opts", opts: shuffle([mine, ...shuffle(others).slice(0, 3)]), ans: mine, why: recipe });
     // step 2: spell each member: the letter (count up in 3rds) and its sharp, flat or natural (count half steps), in one drag step
-    const mems = need.map(([mem, h, ivn], j) => { const t = T[j + 1], num = [3, 5, 7][j], plain = up({ l: t.l, a: 0 }); return { mem, t, num, h, ivn, hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
+    const mems = need.map(([mem, h, ivn], j) => { const t = T[j + 1], num = (isSus() ? [4, 5] : [3, 5, 7])[j], plain = up({ l: t.l, a: 0 }); return { mem, t, num, h, ivn, hPlain: midi(plain) - midi({ ...R, o: 4 }) }; });
     const seq = num => LET.repeat(3).slice(R.l, R.l + num).split("").join(" – ");
     S.push({ title: "Step 2: spell the chord", kind: "drag", reuse: true, bank: USUAL, rowsOf: 3, ans: mems.map(m => nm(m.t)),
       rows: mems.map(m => ({ label: `${m.mem}: ${m.ivn} (${m.h} half steps)`, aria: `The ${m.mem}, a ${m.ivn}, ${m.h} half steps above ${nm(R)}` })),
-      q: `Spell each member above ${nm(R)}. First find its letter: the 3rd is 3 letters up from ${LET[R.l]}, the 5th is 5${C.sev ? ", the 7th is 7" : ""}, counting ${LET[R.l]} as 1. Then count half steps from ${nm(R)} up to that letter and add a sharp or flat if the box needs a different number.`,
-      hint: `Letters: ${seq(C.sev ? 7 : 5)}, skipping every other one. ${mems.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
+      q: `Spell each member above ${nm(R)}. First find its letter: ${isSus() ? "the 4th is 4 letters" : "the 3rd is 3 letters"} up from ${LET[R.l]}, the 5th is 5${C.sev ? ", the 7th is 7" : ""}, counting ${LET[R.l]} as 1. Then count half steps from ${nm(R)} up to that letter and add a sharp or flat if the box needs a different number.`,
+      hint: `Letters: ${seq(C.sev ? 7 : 5)}${isSus() ? "" : ", skipping every other one"}. ${mems.map((m, k) => `${k ? "plain" : "Plain"} ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)}`).join("; ")}. A sharp adds a half step; a flat takes one away.`,
       judge: (i, v, tr) => { const m = mems[i], gl = "CDEFGAB".indexOf(v[0]);
         if (gl !== m.t.l) return tr >= 2 ? `The ${m.mem}: ${seq(m.num)}, ${m.num} letters, so some kind of ${LET[m.t.l]}.` : `Check the letter of the ${m.mem}: ${m.num} letters up from ${LET[R.l]}, counting ${LET[R.l]} as 1.`;
         return tr >= 2 ? `The ${m.mem}: plain ${LET[m.t.l]} is ${m.hPlain} half steps above ${nm(R)} and the box needs ${m.h}, so ${m.h === m.hPlain ? `plain ${LET[m.t.l]}` : `${m.h > m.hPlain ? "raise" : "lower"} it: ${nm(m.t)}`}.` : `The ${m.mem} has the right letter; count the half steps from ${nm(R)} up to ${v} and compare with the ${m.h} the box needs.`; },
       why: `Spelled from the root: ${T.map(nm).join(" – ")}.`, after: () => { C.known = T.length; } });
     // step 3: the inversion picks the bass note, and close position stacks the rest above it, in one question
     const order = C.notes.map(nm).join(" – "), rots = T.map((_, k) => T.slice(k).concat(T.slice(0, k)).map(nm).join(" – "));
-    S.push({ title: "Step 3: put it in position", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${MEM[C.inv]}</b> in the bass; stack the other notes as close as possible above it. What's the order from the bottom up?`,
+    S.push({ title: "Step 3: put it in position", q: `Spelled from the root, the chord is <b>${T.map(nm).join(" – ")}</b>. ${INV[C.inv][0].toUpperCase() + INV[C.inv].slice(1)} puts the <b>${memOf(C.inv)}</b> in the bass; stack the other notes as close as possible above it. What's the order from the bottom up?`,
       kind: "opts", opts: shuffle([...new Set([order, ...rots, T.slice().reverse().map(nm).join(" – ")])]).slice(0, 4).concat([order]).filter((x, i, a) => a.indexOf(x) === i), ans: order,
-      why: `The ${MEM[C.inv]}, ${nm(T[C.inv])}, goes on the bottom; then keep going around the chord (root, 3rd, 5th${C.sev ? ", 7th" : ""}, root…): ${order}.`, after: () => { C.placed = true; } });
+      why: `The ${memOf(C.inv)}, ${nm(T[C.inv])}, goes on the bottom; then keep going around the chord (root, ${isSus() ? "4th" : "3rd"}, 5th${C.sev ? ", 7th" : ""}, root…): ${order}.`, after: () => { C.placed = true; } });
     return S;
   }
   // ---------- sound ----------

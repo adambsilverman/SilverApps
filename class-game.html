@@ -38,7 +38,7 @@
 .cg .keys{font:14px var(--fi-serif);color:var(--fi-ink-2,#5c544c);margin-top:18px}
 .cg .rn{white-space:nowrap} .cg .fg{display:inline-flex;flex-direction:column;font-size:.62em;line-height:.95;vertical-align:-.15em;margin-left:1px} .cg .rq{font-size:.8em;vertical-align:.35em}
 </style>
-<script src="assets/test-bank.js?v=1eae3718"></script>
+<script src="assets/test-bank.js?v=8f9e2bdc"></script>
 <main id="main" class="cg">
 <h1 id="cgTitle">Class game</h1>
 <div id="cgBoard" class="board" aria-live="polite"></div>
@@ -68,7 +68,7 @@
   while (Q.length < want) shuffle(pools.filter(p => p.length)).forEach(p => { if (Q.length < want) Q.push(p.shift()); });
   const G = { i: 0, shown: false, pts: TEAMS.map(() => 0), got: null, t0: 0 };
   // jokes (approved ones only, from assets/jokes.js), one between every five questions, matched to the question's unit or section
-  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=ea445978"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
+  let JOKES = null; const sj = document.createElement("script"); sj.src = "assets/jokes.js?v=a9999bb0"; sj.onload = () => { JOKES = window.SA_JOKES || null; }; document.head.appendChild(sj);
   const jokeFor = q => { if (!JOKES) return null; const sec = (JOKES.sections || {})[q.uid] || "", js = JOKES.jokes.filter(j => (j.units || []).includes(q.uid) || (j.topics || []).includes(sec)); const pool = js.length ? js : JOKES.jokes.filter(j => (j.topics || []).includes("any")); return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; };
   function board() { const top = Math.max(...G.pts); $("cgBoard").innerHTML = TEAMS.map((t, i) => `<div class="team${G.pts[i] === top && top > 0 ? " lead" : ""}"><b>${esc(t)}</b><span class="pts" aria-label="${esc(t)}: ${G.pts[i]} point${G.pts[i] === 1 ? "" : "s"}">${G.pts[i]}</span></div>`).join(""); }
   let tick = 0;

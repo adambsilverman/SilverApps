@@ -140,6 +140,8 @@ HARM = [
   ("Forms.html", "forms.html", "forms", "Musical Forms"),
   ("Forms Lesson.html", "forms-lesson.html", "forms-lesson", "Understanding Musical Forms"),
   ("Chord Figures Lesson.html", "chord-figures-and-symbols-lesson.html", "figlesson", "Understanding Chord Figures and Symbols"),
+  ("Triads Lesson.html", "triads-lesson.html", "triads-lesson", "Understanding Triads"),
+  ("Seventh Chords Lesson.html", "seventh-chords-lesson.html", "sevenths-lesson", "Understanding Seventh Chords"),
   ("More About Intervals Lesson.html", "more-about-intervals-lesson.html", "intervals2", "More About Intervals"),
   ("Progressions In Class.html", "chord-progressions-in-real-songs.html", "progstudy", "Chord Progressions in Real Songs"),
   ("Lead Sheets Lesson.html", "lead-sheets-lesson.html", "leadsheets", "Understanding Lead Sheets"),
